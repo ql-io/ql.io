@@ -5,7 +5,7 @@
     "version": "0.2.6",
     "repository": {
         "type": "git",
-        "url": "ssh://gitolite@crpgit.corp.ebay.com/ql.io.git"
+        "url": "https://github.com/ql-io/ql.io"
     },
     "main": "lib/ql.uri.js",
     "engines": {
