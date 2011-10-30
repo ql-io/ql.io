@@ -1,0 +1,182 @@
+/*
+ * Copyright 2011 eBay Software Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+start = URITemplate
+
+URITemplate  = c:( literal / expression )* {
+    var o = [], i, current = 0;
+    o.push(c[0]);
+    for(i = 1; i < c.length; i++) {
+        if(c[i].constructor === String && o[current].constructor === String) {
+            o[current] = o[current] + c[i];
+        }
+        else {
+            o.push(c[i]);
+            current++;
+        }
+    }
+    function _append(str, val, encode) {
+        var j;
+        if(str.constructor === Array) {
+            for(j = 0; j < str.length; j++) {
+                str[j] = str[j] + (encode ? encodeURI(val) : val);
+            }
+        }
+        else {
+            str = str + (encode ? encodeURI(val) : val);
+        }
+        return str;
+    }
+    function _format(str, values, defaults) {
+        values = values || {};
+        defaults = defaults || {};
+        var i, j, val, split = false, arr, subset;
+        for(i = 0; i < o.length; i++) {
+            if(o[i].constructor === String) {
+                str = _append(str, o[i], false);
+            }
+            else {
+                val = values[o[i].variable] || defaults[o[i].variable];
+                if(val) {
+                    if(val.constructor == Array) {
+                        // But is the token multivalued?
+                        if(val.length === 1) {
+                            str = _append(str, val, true);
+                        }
+                        else if(o[i].multivalued) {
+                            if(o[i].max) {
+                                if(val.length <= o[i].max) {
+                                    // Append as usual
+                                    str = _append(str, val, true);
+                                }
+                                else {
+                                    // Split the values into multiple and append each
+                                    if(split) {
+                                        throw {
+                                            error: 'Template can not have multiple single-valued params with multiple values'
+                                        }
+                                    }
+                                    else {
+                                        split = true;
+                                        // Split and continue.
+                                        arr = [];
+                                        subset = [];
+                                        var start = 0, end = o[i].max;
+                                        for(j = 0; j < val.length/o[i].max; j++) {
+                                            subset = val.slice(start, end);
+                                            arr.push(_append(str, subset, true));
+                                            start += o[i].max;
+                                            end += o[i].max;
+                                        }
+                                        str = arr;
+                                    }
+                                }
+                            }
+                            else {
+                                str = _append(str, val, true);
+                            }
+                        }
+                        else {
+                            // Split if not already split. If already split, error
+                            if(split) {
+                                throw {
+                                    error: 'Template can not have multiple single-valued params with multiple values'
+                                }
+                            }
+                            else {
+                                split = true;
+                                // Split and continue.
+                                arr = [];
+                                for(j = 0; j < val.length; j++) {
+                                    arr.push(_append(str, val[j], true));
+                                }
+                                str = arr;
+                            }
+                        }
+                    }
+                    else {
+                        str = _append(str, val, true);
+                    }
+                }
+                else if(o[i].required) {
+                    throw {
+                        error: 'Token ' + o[i].variable + ' not specified. Processed ' + str
+                    }
+                }
+            }
+        }
+        return str;
+    }
+    return {
+        format: function(values, defaults) {
+            var str = '', i, j, val, split = false, arr;
+            return _format('', values, defaults);
+        },
+        stream: o
+    }
+}
+
+// any Unicode character except: CTL, SP,
+// DQUOTE, "'", // "<", ">", "\", "`", "{", "|", "}"
+
+literal = [^^ "'<>\`{|}]
+
+expression =  "{" op:operator* v:variable "}" {
+    var token = {
+        variable: v
+    };
+    for(var i = 0; i < op.length; i++) {
+        for(p in op[i]) {
+            if(op[i].hasOwnProperty(p)) {
+                token[p] = op[i][p];
+            }
+        }
+    }
+    return token;
+}
+
+operator = required / multivalued
+
+required = '^' {
+    return {
+      required: true
+    }
+}
+
+multivalued = d:digits? '|' {
+    var ret = {
+      multivalued: true
+    }
+    d = parseInt(d);
+    if(d > 0) {
+        ret.max = d;
+    }
+    return ret;
+}
+
+variable = l:literal* {
+    var r = '';
+    for(i = 0; i < l.length; i++) { r += l[i]; }
+    return r;
+}
+
+digits = d:[0-9]* {
+    var str = '';
+    for(var i = 0; i < d.length; i++) {
+        str += d[i];
+    }
+    return str;
+}

@@ -1,0 +1,792 @@
+/**
+ * Query language: The grammar below should be self-descriptive, but here is a brief overview.
+ *
+ * @Author Subbu Allamaraju
+ */
+{
+  // Utils to establish the right semantic model
+  function typeOf(value) {
+    var s = typeof value;
+    if(s === 'object') {
+      if(value) {
+        if(typeof value.length === 'number' &&
+          !(value.propertyIsEnumerable('length')) &&
+          typeof value.splice === 'function') {
+          s = 'array';
+        }
+      }
+      else {
+        s = 'null';
+      }
+    }
+    return s;
+  }
+  function append(arr) {
+    var str = '';
+    for(var i = 0; i < arr.length; i++) {
+       if(typeOf(arr[i]) == 'array') {
+         str += append(arr[i]);
+       }
+       else if (typeof arr[i] === 'object') {
+         str += JSON.stringify(arr[i].object);
+       }
+       else {
+         str += arr[i];
+      }
+    }
+    return str;
+  }
+  function merge(arr) {
+    var i, ret = {};
+    for(i = 0; i < arr.length; i++) {
+      for(p in arr[i]) {
+        ret[p] = arr[i][p];
+      }
+    }
+    return ret;
+  }
+
+  function collect(arr, separator, ret, f) {
+    for(var i = 0; i < arr.length; i++) {
+      if(typeOf(arr[i]) == 'array') {
+        collect(arr[i], separator, ret, f);
+      }
+      else if(arr[i] != "" && arr[i] != separator) {
+        if(f) {
+          ret.push(arr[i][f]);
+        }
+        else {
+          ret.push(arr[i]);
+        }
+      }
+    }
+  }
+
+  function indexOf(names, name) {
+    for(var i = 0; i < names.length; i++) {
+      if(names[i].name === name) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  function splitJoins(statement, cb) {
+    var main = statement, join, i, cond, column, sel;
+    if(statement.fromClause.length === 1) {
+        return main;
+    }
+
+    if(statement.fromClause.length > 2) {
+      throw new this.SyntaxError("Line: " + statement.line + ": Statement must have no more than two tables in the from clause");
+    }
+
+    main = {
+        type: 'select',
+        line: statement.line,
+        columns: [],
+        selected: [],
+        extras: [], // used only during selection
+        whereCriteria: []
+    };
+    join = {
+        type: 'select',
+        columns: [],
+        extras: [], // used only during selection
+        whereCriteria: []
+    };
+    main.fromClause = [statement.fromClause[0]];
+    join.fromClause = [statement.fromClause[1]];
+    //  Split relevant columns into main and joiner
+    for(i = 0; i < statement.columns.length; i++) {
+        column = statement.columns[i];
+        if(column.name.indexOf(main.fromClause[0].alias + '.') === 0) {
+            // Keep it in main
+            if(indexOf(main.columns, column.name) < 0) {
+                main.columns.push(column);
+                sel = {from: 'main'};
+                if(column.alias) {
+                    sel.name = column.alias;
+                }
+                else {
+                    sel.index = main.columns.length - 1;
+                }
+                main.selected.push(sel);
+            }
+        }
+        else {
+            // Keep it in join
+            if(indexOf(join.columns, column.name) < 0) {
+                join.columns.push(column);
+                sel = {from: 'joiner'};
+                if(column.alias) {
+                    sel.name = column.alias;
+                }
+                else {
+                    sel.index = join.columns.length - 1;
+                }
+                main.selected.push(sel);
+            }
+        }
+    }
+    if(!statement.whereCriteria) {
+        throw new this.SyntaxError("Line " + statement.line + ": Missing join condition in statement ");
+    }
+    if(statement.whereCriteria) {
+        for(i = 0; i < statement.whereCriteria.length; i++) {
+            cond = statement.whereCriteria[i];
+            if(cond.rhs.type && cond.rhs.type === 'alias') {
+                // This is the join condition
+                var index = cond.rhs.value.indexOf(main.fromClause[0].alias + '.');
+                if(index === 0) {
+                    // Include only once
+                    if(indexOf(main.columns, cond.rhs.value) < 0) {
+                        var index = cond.rhs.value.indexOf(main.fromClause[0].alias + '.');
+                        main.columns.push({
+                            name: cond.rhs.value
+                        })
+                        if(statement.usingColumnAliases) {
+                            main.columns[main.columns.length - 1].alias = cond.rhs.alias ||
+                                          cond.rhs.value.substr(index + main.fromClause[0].alias.length + 1);
+                        }
+                        main.extras.push(main.columns.length -1);
+                    }
+                    if(indexOf(join.columns, cond.lhs.name) < 0) {
+                        var index = cond.rhs.value.indexOf(join.fromClause[0].alias + '.');
+                        join.columns.push({
+                            name: cond.lhs.name
+                        });
+                        if(statement.usingColumnAliases) {
+                            join.columns[join.columns.length - 1].alias = cond.lhs.alias ||
+                                               cond.lhs.name.substr(index + join.fromClause[0].alias.length + 1)
+                        }
+                        join.extras.push(join.columns.length - 1);
+                    }
+                }
+                else {
+                    // Include only once
+                    if(indexOf(join.columns, cond.rhs.value) < 0) {
+                        var index = cond.rhs.value.indexOf(join.fromClause[0].alias + '.');
+                        join.columns.push({
+                            name: cond.rhs.value
+                        })
+                        if(statement.usingColumnAliases) {
+                            join.columns[join.columns.length - 1].alias = cond.rhs.alias ||
+                                        cond.rhs.value.substr(index + join.fromClause[0].alias.length + 1)
+                        }
+                        join.extras.push(join.columns.length - 1);
+                    }
+                    if(indexOf(main.columns, cond.lhs.name) < 0) {
+                        var index = cond.lhs.name.indexOf(main.fromClause[0].alias + '.');
+                        main.columns.push({
+                            name: cond.lhs.name
+                        });
+                        if(statement.usingColumnAliases) {
+                            main.columns[main.columns.length - 1].alias = cond.lhs.alias ||
+                                        cond.lhs.name.substr(index + main.fromClause[0].alias.length + 1)
+                        }
+
+                        main.extras.push(main.columns.length -1);
+                    }
+                }
+                join.whereCriteria.push(cond);
+            }
+            else {
+                if(cond.lhs.name.indexOf(main.fromClause[0].alias + '.') === 0) {
+                    main.whereCriteria.push(cond);
+                }
+                else if(cond.lhs.name.indexOf(join.fromClause[0].alias + '.') === 0) {
+                    join.whereCriteria.push(cond);
+                }
+            }
+        }
+    }
+
+    // TODO: Assertions and warnings
+    if(join.whereCriteria && join.whereCriteria.length > 0) {
+        if(indexOf(main.columns, join.whereCriteria[0].rhs.value) >= 0) {
+            join.whereCriteria[0].rhs.joiningColumn = indexOf(main.columns, join.whereCriteria[0].rhs.value);
+        }
+        else {
+            // Flip the condition
+            var temp = join.whereCriteria[0].rhs.value;
+            join.whereCriteria[0].rhs.value = join.whereCriteria[0].lhs.name;
+            join.whereCriteria[0].lhs = {
+                name: temp
+            }
+            temp = join.whereCriteria[0].rhs.value;
+            join.whereCriteria[0].rhs.joiningColumn = indexOf(main.columns, temp);
+        }
+    }
+    main.joiner = join;
+
+    // Verify that all columns have prefixes
+    for(var i = 0; i < main.columns.length; i++) {
+        var prefixed = false;
+         for(var j = 0; j < main.fromClause.length; j++) {
+            if(main.columns[i].name.indexOf(main.fromClause[j].alias + '.') === 0) {
+                prefixed = true;
+                break;
+            }
+        }
+        if(!prefixed) {
+            throw new this.SyntaxError("Line " + main.line + ": Column " + main.columns[i].name + " not prefixed or prefix not found");
+        }
+    }
+    for(var i = 0; i < join.columns.length; i++) {
+        var prefixed = false;
+         for(var j = 0; j < join.fromClause.length; j++) {
+            if(join.columns[i].name.indexOf(join.fromClause[j].alias + '.') === 0) {
+                prefixed = true;
+                break;
+            }
+        }
+        if(!prefixed) {
+            throw new this.SyntaxError("Line " + main.line + ": Column " + join.columns[i].name + " not prefixed or prefix not found");
+        }
+    }
+
+    return main;
+  }
+  // Symbol table
+  var symbols = {};
+  var lincr = 0;
+  var id = 0;
+}
+
+///////////////////////////////////////////////////////////
+
+start = crlf* larr:linecrlf* r:return? crlf* {
+  ret = [];
+  ret = ret.concat(larr);
+  if(r) {
+    ret.push(r);
+  }
+  return ret;
+}
+
+
+linecrlf = l:line crlf* {
+  return l;
+}
+
+line = sp l:(assign / comment) {
+  var i, from;
+  if(l.type !== 'comment') {
+    l.id = id++;
+  }
+  return l;
+}
+
+assign = a:output? s:statementOrObject insig ';'? insig {
+  if(a) {
+    s.assign = a;
+  }
+  symbols[a] = {};
+  return s;
+}
+
+statementOrObject = statement / value
+
+statement = (selectStatement / showStatement / describeStatement / insertStatement / deleteStatement / createStatement)
+
+output = insig w:word insig '=' insig {
+  return w;
+}
+
+comment = '--' sp c:[\u0020-\uffff]* crlf? {
+  return {
+    line: computeErrorPosition().line,
+    type: 'comment',
+    text: c.join('')
+  }
+}
+
+///////////////////////////////////////////////////////////
+// Create
+createStatement = 'create' insig 'table' insig s:nonAliasSource insig a:act* {
+  var s = {
+    type: 'create',
+    name: s.name,
+    line: computeErrorPosition().line
+  };
+  for(i = 0; i < a.length; i++) {
+    s[a[i].type] = a[i];
+    delete a[i].type;
+  }
+  return s;
+}
+
+type = 'select' / 'insert' / 'delete' / 'update'
+uri = quotedWord
+
+act = 'on' insig t:type insig m:actname insig u:uri insig  insig a:withAliases? h:usingHeaders? d:usingDefaults? p:usingMonkeyPatch? insig b:usingBodyTemplate? insig auth:authenticateUsing? insig r:resultSet? insig {
+  var ret = {
+    type: t,
+    method: m,
+    uri: u.value,
+    defaults: d || {},
+    aliases: a || {},
+    headers: h || {},
+    resultSet: r || ''
+  };
+  if(auth && auth.length > 0) {
+    ret.auth = auth;
+  }
+  if(p) ret.patch = p;
+  ret.body = b;
+  return ret;
+}
+
+actname = getfrom / postto / putto / delete
+
+getfrom = 'get' insig 'from' {
+  return 'get'
+}
+postto = 'post' insig 'to' {
+  return 'post'
+}
+putto = 'put' insig 'to' {
+  return 'put'
+}
+delete = 'delete' {
+  return 'delete'
+}
+
+usingDefaults = 'using' insig 'defaults' d:nvps {
+  return merge(d);
+}
+
+usingHeaders = 'using' insig 'headers' d:nvps {
+  return merge(d);
+}
+
+usingMonkeyPatch = 'using' insig 'patch' insig t:quotedWord {
+  return t.value;
+}
+
+usingBodyTemplate = 'using' insig 'bodyTemplate' insig t:quotedWord insig 'type' insig m:quotedWord {
+  return {
+    template: t.value,
+    type: m.value
+  }
+}
+
+withAliases = 'with' insig 'aliases' p:nvps {
+  return merge(p);
+}
+
+authenticateUsing = ('authenticate' / 'auth') insig 'using' insig m:quotedWord {
+  return m.value;
+}
+
+resultSet = 'resultset' insig r:quotedWord {
+  return r.value;
+}
+
+nvps = n:nvp narr:(cnvp)* {
+  var ret = [n];
+  ret = ret.concat(narr);
+  return ret;
+}
+
+cnvp = ',' n:nvp {
+  return n;
+}
+
+nvp = insig lhs:(lhs/quotedWord) insig '=' insig rhs:rhs insig {
+  var  o = {};
+  lhs = lhs.name || lhs;
+  o[lhs.hasOwnProperty('value') ? lhs.value : lhs] = rhs.hasOwnProperty('value') ? rhs.value : rhs;
+  return o;
+}
+
+///////////////////////////////////////////////////////////
+// Select
+
+selectStatement = 'select' insig c:columnsClause insig 'from' insig fc:fromClause insig wc:whereClause* insig l:limit* insig o:offset* {
+  var s = {
+    type: 'select',
+    line: computeErrorPosition().line,
+    fromClause: fc,
+    columns: c,
+    whereCriteria: wc[0]
+  };
+  if(l[0]) {
+    s.limit = l[0];
+  }
+  if(o[0]) {
+    s.offset = o[0];
+  }
+  s.id = id;
+  if(c && c.length > 0 && c[0].alias) {
+    s.usingColumnAliases = true
+  }
+  s = splitJoins(s);
+  delete s.id;
+  return s;
+}
+
+showStatement = 'show' insig 'tables' {
+  return {
+    type: 'show',
+    line: computeErrorPosition().line
+  }
+}
+
+describeStatement = (('describe') / ('desc')) insig s:source {
+  return {
+    type: 'describe',
+    line: computeErrorPosition().line,
+    source: s
+  }
+}
+
+
+///////////////////////////////////////////////////////////
+// insert Statement
+//
+insertStatement = 'insert' insig 'in' 'to' insig s:source insig '(' insig c:columnsClause insig ')' insig 'values' insig '(' v:csv ')' {
+  if(c.length != v.value.length) {
+    throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Number of values does not match number of columns.");
+  }
+  return {
+    type: 'insert',
+    source: s,
+    columns: c,
+    values: v.value,
+    line: computeErrorPosition().line
+  }
+}
+
+///////////////////////////////////////////////////////////
+// delete statement
+deleteStatement = 'delete' insig 'from' insig s:source insig wc:whereClause {
+  return {
+    type: 'delete',
+    source: s,
+    whereCriteria: wc[0],
+    line: computeErrorPosition().line
+  }
+}
+
+///////////////////////////////////////////////////////////
+// Clauses
+
+columnsClause = arr:(all / fields) {
+  var aliasCount = 0;
+  for(var i = 0; i < arr.length; i++) {
+    if(arr[i].alias) {
+      aliasCount++;
+    }
+  }
+  if(aliasCount > 0 && aliasCount != arr.length) {
+    throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Not all selected columns are using aliases.");
+  }
+  return arr;
+}
+
+fromClause = s:source+ sarr:(commaSource*) {
+  return s.concat(sarr);
+}
+
+source = aliasSource / nonAliasSource
+
+commaSource = insig comma insig s:source {
+  return s;
+}
+
+aliasSource = (s:identifier insig 'as' insig a:identifier) {
+  if(symbols[s]) {
+    s = "{" + s + "}";
+  }
+  return {name: s, alias: a};
+}
+
+nonAliasSource = s:identifier {
+  if(symbols[s]) {
+    s = "{" + s + "}";
+  }
+  return {name: s};
+}
+
+// Where clause
+whereClause = 'where' insig w:whereCriteria {
+  return w;
+}
+
+// Limit
+limit = 'limit' insig n:digits {
+  return n;
+}
+
+// Offset
+offset = 'offset' insig n:digits {
+  return n;
+}
+
+whereCriteria = c:cond carr:(andCond)* {
+  var ret = [c];
+  ret = ret.concat(carr);
+  return ret;
+}
+
+and = 'and'
+
+// Conditions in the where clause
+cond = (eqCond / inCond / udf)
+
+andCond = insig and insig c:cond {
+  return c;
+}
+
+eqCond = insig lhs:lhs insig operator insig rhs:rhs insig {
+  return {operator : '=', lhs : lhs, rhs : rhs};
+}
+
+inCond = lhs:identifier insig 'in' insig '(' insig rhs:(selectStatement / csv) insig ')' {
+  return {operator : 'in', lhs : {name: lhs}, rhs: rhs};
+}
+
+udf = name:identifier insig '(' insig p:udfParams? insig ')' {
+  return {
+    operator: 'udf',
+    name: name,
+    args: p
+  }
+}
+
+udfParams = c:udfParam insig carr:(comma insig udfParam)* {
+  var args = [c];
+  collect(carr,',', args, 'value');
+  return args;
+}
+
+udfParam = aliasedRef/quotedWord/quotedDigits
+
+csv =  insig c:csvMember insig carr:(commaCsvMember*) {
+  var res = [c.value];
+  collect(carr,',', res, 'value');
+  return {
+    value: res
+  }
+  return c;
+}
+
+commaCsvMember = (insig comma insig v:csvMember) {
+ return v;
+}
+
+csvMember = quotedWord/quotedDigits/ref
+
+ref = i:identifier {
+  return {
+    value: "{" + i + "}"
+  }
+}
+
+lhs = field
+
+operator = (insig '=' insig/ insig 'in' insig)
+
+rhs = (aliasedRef/quotedWord/quotedDigits/digits)
+
+aliasedRef = chars:((selector ('.' selector)*)) {
+  return {
+    type: 'alias',
+    value: append(chars)
+  };
+}
+
+all = '*' {
+  return {
+    name: '*'
+  }
+}
+fields = arr:(field (insig comma insig field)*) {
+  var res = [];
+  collect(arr, ",", res);
+  return res;
+}
+
+field = aliasField / nonAliasField
+
+aliasField = (s:fieldName insig 'as' insig a:identifier) {
+  if(symbols[s]) {
+    s = "{" + s + "}";
+  }
+  return {name: s, alias: a};
+}
+
+nonAliasField = s:fieldName {
+  return {name: s};
+}
+
+fieldName = chars:((selector ('.' selector)*)) {
+  return append(chars);
+}
+
+selector = word '[' (digits / ('"' qword '"') / ('\'' qword '\'')) ']' / word
+
+comma = ','
+
+identifier = obj:(word ('.' word)*) {
+  return append(obj);
+}
+
+word = chars:([a-zA-Z$:][a-zA-Z_0-9:]*)  {
+  var ret = chars[0];
+  for(i = 1; i < chars.length; i++) {
+    ret = ret + chars[i].join('');
+  }
+  return ret;
+}
+
+quotedWord = sQuotedWord / dQuotedWord
+
+sQuotedWord = '\'' w:qword '\'' {
+  return {
+    value: w
+  }
+}
+dQuotedWord = '"' w:qword '"' {
+  return {
+    value: w
+  }
+}
+
+qword = chars:([\x20-\x21]/[\x23-\x26]/[\x28-\x7E]/[a-zA-Z]/[a-zA-Z_0-9])*  {
+  return chars.join('');
+}
+
+quotedDigits = sQuotedDigits / dQuotedDigits
+
+sQuotedDigits = '\'' d:digits '\'' {
+  return {
+    value: d
+  }
+}
+dQuotedDigits = '"' d:digits '"' {
+  return {
+    value: d
+  }
+}
+
+///////////////////////////////////////////////////////////
+
+return = 'return' insig o:retval insig r:route? insig ';'? {
+  var ret = {
+    type: 'return',
+    line: computeErrorPosition().line,
+    id: id,
+    rhs: o
+  };
+  if(r) {
+    ret.route = r;
+  }
+  return ret;
+}
+
+retval = statement / retref / value
+
+retref = o:word {
+  if(symbols[o] === undefined) {
+    throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Unresolved symbol '" + o + "'");
+  }
+  return {
+    ref: o
+  }
+}
+
+route = 'via' insig 'route' insig p:quotedWord insig 'using' insig 'method' insig m:('get' / 'post' / 'put' / 'delete' / 'patch') {
+  return {
+    path: p,
+    method: m
+  }
+}
+
+// JSON
+value = v:(object / stringval / numberval / arrayval / trueval / falseval / nullval) {
+  return {
+    object: v,
+    type: 'define',
+    line: computeErrorPosition().line
+  }
+}
+
+stringval = s:string {
+  var s = append(s);
+  return s.substr(1, s.length - 2);
+}
+
+numberval = n:number {
+  return parseFloat(n);
+}
+
+arrayval = n:array {
+  return JSON.parse(append(n));
+}
+
+trueval = t:true {
+  return JSON.parse(t);
+}
+
+falseval = f:false {
+  return JSON.parse(f);
+}
+
+nullval = n:null {
+  return null;
+}
+object = o:struct {
+ var str = append(o);
+ return JSON.parse(str);
+}
+
+struct = insig '{' insig m:members? insig '}' insig
+
+members = (pair insig comma insig members) / (insig pair insig)
+
+pair = insig string insig ':' insig value insig
+
+array = '[' insig elements? insig ']'
+
+elements = (value insig comma insig elements) / value
+
+string = dquote ([\u0020-\u0021]/[\u0023-\u005B]/[\u005D-\uFFFF]/['\\'])* dquote
+
+number = c:((int frac exp) / (int frac) / (int exp) / (int)) {
+  return append('' + c);
+}
+
+int = digits / ('-' digits)
+
+frac = '.' digits
+
+exp = e digits
+
+e = 'e' / ('e' '+') / ('e' '-') / 'E' / ('E' '+') / ('E' '-')
+
+digits = d:[0-9]+ {
+  return parseInt(append(d));
+}
+
+true = 'true'
+
+false = 'false'
+
+null = 'null'
+
+comma = ','
+
+dquote = [\u0022]
+
+insig = sp crlf* sp { return ''}
+
+sp = ([\x09]/[\x20])*{
+  return ''
+}
+
+crlf = c:[\x0d\x0a] {
+  return c;
+}

@@ -1,0 +1,24 @@
+start = object
+object = insig '{' insig members? insig '}' insig
+members = (pair insig comma insig members) / (insig pair insig)
+pair = insig string insig ':' insig value insig
+value = string / number / object / array / true / false / null
+array = '[' insig elements? insig ']'
+elements = (value insig comma insig elements) / value
+string = dquote c:([\u0020-\u0021]/[\u0023-\u005B]/[\u005D-\uFFFF]/['\\'])* dquote
+number = (int) / (int frac) / (int exp) / (int frac exp)
+int = digits / ('-' digits)
+frac = '.' digits
+exp = e digits
+e = 'e' / ('e' '+') / ('e' '-') / 'E' / ('E' '+') / ('E' '-')
+digits = d:[0-9]+
+true = 'true'
+false = 'false'
+null = 'null'
+comma = ','
+dquote = [\u0022]
+insig = sp crlf* sp
+sp = chars:([\x20]/crlf)*{
+  return ''
+}
+crlf = [\x0d\x0a]

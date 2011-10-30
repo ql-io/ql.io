@@ -1,0 +1,20 @@
+{
+    "author": "ql.io",
+    "name": "ql.io-mutable-uri",
+    "description": "A utility for manipulating URIs. This is primarily used by monkey patch files.",
+    "version": "0.2.6",
+    "repository": {
+        "type": "git",
+        "url": "ssh://gitolite@crpgit.corp.ebay.com/ql.io.git"
+    },
+    "main": "lib/ql.uri.js",
+    "engines": {
+        "node": ">= 0.4.9 < 0.5.0"
+    },
+    "dependencies": {
+        "underscore": "1.2.0"
+    },
+    "devDependencies": {
+        "nodeunit": "0.5.5"
+    }
+}
