@@ -1,4 +1,4 @@
-MODULES	= modules/uri-template modules/mutable-uri modules/compiler modules/ecv
+MODULES	= modules/uri-template modules/mutable-uri modules/compiler modules/mon modules/ecv
 
 DIRS	= $(MODULES)
  
