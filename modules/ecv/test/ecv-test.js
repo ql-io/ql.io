@@ -27,7 +27,6 @@ module.exports = testCase({
 
     setUp: function (callback) {
             c = new Console({
-                config: __dirname + '/../../../site/config/dev.json',
                 'enable console': false,
                 connection: 'close'
             });
