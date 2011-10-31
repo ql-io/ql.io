@@ -1,0 +1,140 @@
+/*
+ * Copyright 2011 eBay Software Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+{
+  function typeOf(value) {
+      var s = typeof value;
+      if (s === 'object') {
+          if (value) {
+              if (typeof value.length === 'number' &&
+                      !(value.propertyIsEnumerable('length')) &&
+                      typeof value.splice === 'function') {
+                  s = 'array';
+              }
+          } else {
+              s = 'null';
+          }
+      }
+      return s;
+  }
+  function append(arr) {
+      var str = '';
+      for(var i = 0; i < arr.length; i++) {
+          if(typeOf(arr[i]) == 'array') {
+              str += append(arr[i]);
+          }
+          else {
+              str += arr[i];
+          }
+      }
+      return str;
+  }
+
+  function collect(arr, separator, ret) {
+      for(var i = 0; i < arr.length; i++) {
+          if(typeOf(arr[i]) == 'array') {
+              collect(arr[i], separator, ret);
+          }
+          else if(arr[i] != "" && arr[i] != separator) {
+              ret.push(arr[i]);
+          }
+      }
+  }
+}
+
+start = URI
+URI = scheme ":" hierPart ("?" query )* ("#" fragment)*
+hierPart = "//" authority pathAbempty / pathAbsolute / pathRootless / pathEmpty
+URIReference = URI / relativeRef
+absoluteURI  = scheme ":" hierPart ("?" query)*
+relativeRef  = relativePart ("?" query)* ("#" fragment)*
+relativePart = "//" authority pathAbempty / pathAbsolute / pathNoscheme / pathEmpty
+scheme = a:ALPHA arr:( ALPHA / DIGIT / "+" / "-" / "." )* {
+  return a[0] + append(arr)
+}
+
+authority = u:(userinfo "@")? h:host cp:(cport)? {
+  return {
+    userinfo: u,
+    host: h,
+    port: cp
+  }
+}
+userinfo = c:(unreserved / pctEncoded / subDelims / ":" )* {
+  return append(c);
+}
+host = c:(IPLiteral / IPv4address / regName) {
+  return append(c);
+}
+
+cport = ":" p:port {
+  return parseInt(append(p));
+}
+
+port = DIGIT*
+
+IPLiteral = "[" ( IPv6address / IPvFuture  ) "]"
+IPvFuture = "v" HEXDIG "." ( unreserved / subDelims / ":" )
+
+decOctet  = DIGIT / ("%x" [31-39] DIGIT) / ("1" DIGIT DIGIT) / ("2" "%x" [30-34] DIGIT) / ("25" "%x" [30-35])
+
+IPv6address = ( h16 ":" h16 ":" h16 ":" h16 ":" h16 ":" h16 ":" ) ls32
+                  / "::" ( h16 ":" h16 ":" h16 ":" h16 ":" h16 ":" ) ls32
+                  / [ h16 ] "::" ( h16 ":" h16 ":" h16 ":" h16 ":" ) ls32
+                  / [ ( h16 ":" )* h16 ] "::" ( h16 ":" h16 ":" h16 ":" ) ls32
+                  / [ ( h16 ":" h16 ":" )* h16 ] "::" ( h16 ":" h16 ":" ) ls32
+                  / [ ( h16 ":" h16 ":" h16 ":" )* h16 ] "::"    h16 ":"   ls32
+                  / [ ( h16 ":"  h16 ":"  h16 ":"  h16 ":" )* h16 ] "::"              ls32
+                  / [ ( h16 ":" h16 ":" h16 ":" h16 ":" h16 ":" )* h16 ] "::"              h16
+                  / [ ( h16 ":"  h16 ":"  h16 ":"  h16 ":"  h16 ":"  h16 ":" )* h16 ] "::"
+
+h16 = HEXDIG HEXDIG HEXDIG HEXDIG
+ls32 = ( h16 ":" h16 ) / IPv4address
+IPv4address = decOctet "." decOctet "." decOctet "." decOctet
+decOctet = DIGIT / "%x"[31-39] DIGIT/ "1" DIGIT DIGIT / "2" "%x"[30-34] DIGIT / "25" "%x"[30-35]
+regName = ( unreserved / pctEncoded / subDelims )*
+path = pathAbempty / pathAbsolute / pathNoscheme / pathRootless / pathEmpty
+pathAbempty  = s:( "/" segment )* {
+  var r = [];
+  for(var i = 0; i < s.length; i++) {
+    r.push(s[i][1]);
+  }
+  return {
+    segments : s
+  }
+  //return r;
+}
+pathAbsolute = "/" [ segmentNz ( "/" segment )* ]
+pathNoscheme = segmentNzNc *( "/" segment )
+pathRootless = segmentNz *( "/" segment )
+pathEmpty = ''
+segment = c:pchar* {
+  return append(c);
+}
+segmentNz = pchar+
+segmentNzNc = ( unreserved / pctEncoded / subDelims / "@" )
+pchar = unreserved / pctEncoded / subDelims / ":" / "@"
+query = ( pchar / "/" / "?" )*
+fragment = ( pchar / "/" / "?" )*
+pctEncoded = "%" HEXDIG HEXDIG
+unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+reserved  = genDelims / subDelims
+genDelims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+subDelims    = "!" / "$" / "&" / "'" / "(" / ")"
+                 / "*" / "+" / "," / ";" / "="
+ALPHA = [a-zA-Z]
+DIGIT = [0-9]
+HEXDIG = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"

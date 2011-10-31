@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GetMyeBaySellingResponse xmlns="urn:ebay:apis:eBLBaseComponents">
+    <Timestamp>2011-10-28T00:45:17.046Z</Timestamp>
+    <Ack>Success</Ack>
+    <CorrelationID></CorrelationID>
+    <Version>745</Version>
+    <Build>E745_CORE_BUNDLED_14023289_R1</Build>
+    <SoldList>
+        <OrderTransactionArray>
+            <OrderTransaction>
+                <Transaction>
+                    <Buyer>
+                        <Email>bellindira@yahoo.com</Email>
+                        <UserID>bcastillo</UserID>
+                        <BuyerInfo>
+                            <ShippingAddress>
+                                <Country>CR</Country>
+                                <PostalCode>10301</PostalCode>
+                            </ShippingAddress>
+                        </BuyerInfo>
+                        <StaticAlias>bcasti_htnb4256tgta@members.ebay.com</StaticAlias>
+                    </Buyer>
+                    <CreatedDate>2011-09-02T00:57:24.000Z</CreatedDate>
+                    <Item>
+                        <ItemID>180718841864</ItemID>
+                        <ListingDetails>
+                            <StartTime>2011-09-02T00:56:22.000Z</StartTime>
+                            <EndTime>2011-09-02T00:57:24.000Z</EndTime>
+                            <ViewItemURL>
+                                http://www.ebay.com/itm/Mysterious-gift-certificate-BID-09-01-2011-/180718841864
+                            </ViewItemURL>
+                            <ViewItemURLForNaturalSearch>
+                                http://cgi.ebay.com/Mysterious-gift-certificate-BID-09-01-2011?item=180718841864&amp;
+                                category=31411&amp;cmd=ViewItem
+                            </ViewItemURLForNaturalSearch>
+                        </ListingDetails>
+                        <ListingType>Chinese</ListingType>
+                        <ReservePrice currencyID="USD">0.0</ReservePrice>
+                        <SellingStatus>
+                            <CurrentPrice currencyID="USD">0.99</CurrentPrice>
+                        </SellingStatus>
+                        <ShippingDetails>
+                            <ShippingServiceOptions>
+                                <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                            </ShippingServiceOptions>
+                        </ShippingDetails>
+                        <StartPrice currencyID="USD">0.01</StartPrice>
+                        <Title>Mysterious gift certificate BID 09/01/2011</Title>
+                        <PictureDetails>
+                            <GalleryURL>http://thumbs.ebaystatic.com/pict/1807188418646464_1.jpg</GalleryURL>
+                        </PictureDetails>
+                    </Item>
+                    <QuantityPurchased>1</QuantityPurchased>
+                    <Status>
+                        <PaymentHoldStatus>None</PaymentHoldStatus>
+                    </Status>
+                    <TransactionID>0</TransactionID>
+                    <SellerPaidStatus>MarkedAsPaid</SellerPaidStatus>
+                    <PaidTime>2011-09-02T01:31:24.000Z</PaidTime>
+                    <TransactionPlatform>eBay</TransactionPlatform>
+                </Transaction>
+            </OrderTransaction>
+            <OrderTransaction>
+                <Transaction>
+                    <Buyer>
+                        <Email>bellindira@yahoo.com</Email>
+                        <UserID>bcastillo</UserID>
+                        <BuyerInfo>
+                            <ShippingAddress>
+                                <Country>CR</Country>
+                                <PostalCode>10301</PostalCode>
+                            </ShippingAddress>
+                        </BuyerInfo>
+                        <StaticAlias>bcasti_htnb4256tgta@members.ebay.com</StaticAlias>
+                    </Buyer>
+                    <CreatedDate>2011-09-02T01:33:48.000Z</CreatedDate>
+                    <Item>
+                        <ItemID>180718850052</ItemID>
+                        <ListingDetails>
+                            <StartTime>2011-09-02T01:32:36.000Z</StartTime>
+                            <EndTime>2011-09-02T01:33:48.000Z</EndTime>
+                            <ViewItemURL>
+                                http://www.ebay.com/itm/Mysterious-gift-certificate-BID-09-01-2011-2-/180718850052
+                            </ViewItemURL>
+                            <ViewItemURLForNaturalSearch>
+                                http://cgi.ebay.com/Mysterious-gift-certificate-BID-09-01-2011-2?item=180718850052&amp;
+                                category=31411&amp;cmd=ViewItem
+                            </ViewItemURLForNaturalSearch>
+                        </ListingDetails>
+                        <ListingType>Chinese</ListingType>
+                        <ReservePrice currencyID="USD">0.0</ReservePrice>
+                        <SellingStatus>
+                            <CurrentPrice currencyID="USD">0.99</CurrentPrice>
+                        </SellingStatus>
+                        <ShippingDetails>
+                            <ShippingServiceOptions>
+                                <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                            </ShippingServiceOptions>
+                        </ShippingDetails>
+                        <StartPrice currencyID="USD">0.01</StartPrice>
+                        <Title>Mysterious gift certificate BID 09/01/2011 - 2</Title>
+                        <WatchCount>1</WatchCount>
+                        <PictureDetails>
+                            <GalleryURL>http://thumbs.ebaystatic.com/pict/1807188500526464_1.jpg</GalleryURL>
+                        </PictureDetails>
+                    </Item>
+                    <QuantityPurchased>1</QuantityPurchased>
+                    <Status>
+                        <PaymentHoldStatus>None</PaymentHoldStatus>
+                    </Status>
+                    <TransactionID>0</TransactionID>
+                    <SellerPaidStatus>MarkedAsPaid</SellerPaidStatus>
+                    <PaidTime>2011-09-02T01:39:47.000Z</PaidTime>
+                    <TransactionPlatform>eBay</TransactionPlatform>
+                </Transaction>
+            </OrderTransaction>
+            <OrderTransaction>
+                <Transaction>
+                    <Buyer>
+                        <Email>bellindira@yahoo.com</Email>
+                        <UserID>bcastillo</UserID>
+                        <BuyerInfo>
+                            <ShippingAddress>
+                                <Country>CR</Country>
+                                <PostalCode>10301</PostalCode>
+                            </ShippingAddress>
+                        </BuyerInfo>
+                        <StaticAlias>bcasti_htnb4256tgta@members.ebay.com</StaticAlias>
+                    </Buyer>
+                    <CreatedDate>2011-09-02T22:08:04.000Z</CreatedDate>
+                    <Item>
+                        <ItemID>180715921167</ItemID>
+                        <ListingDetails>
+                            <StartTime>2011-08-26T22:08:01.000Z</StartTime>
+                            <EndTime>2011-09-02T22:08:01.000Z</EndTime>
+                            <ViewItemURL>
+                                http://www.ebay.com/itm/Mysterious-gift-certificate-BID-07-26-2011-/180715921167
+                            </ViewItemURL>
+                            <ViewItemURLForNaturalSearch>
+                                http://cgi.ebay.com/Mysterious-gift-certificate-BID-07-26-2011?item=180715921167&amp;
+                                category=31411&amp;cmd=ViewItem
+                            </ViewItemURLForNaturalSearch>
+                        </ListingDetails>
+                        <ListingType>Chinese</ListingType>
+                        <ReservePrice currencyID="USD">0.0</ReservePrice>
+                        <SellingStatus>
+                            <CurrentPrice currencyID="USD">0.91</CurrentPrice>
+                        </SellingStatus>
+                        <ShippingDetails>
+                            <ShippingServiceOptions>
+                                <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                            </ShippingServiceOptions>
+                        </ShippingDetails>
+                        <StartPrice currencyID="USD">0.01</StartPrice>
+                        <Title>Mysterious gift certificate BID 07/26/2011</Title>
+                        <WatchCount>1</WatchCount>
+                        <PictureDetails>
+                            <GalleryURL>http://thumbs.ebaystatic.com/pict/1807159211676464_1.jpg</GalleryURL>
+                        </PictureDetails>
+                    </Item>
+                    <QuantityPurchased>1</QuantityPurchased>
+                    <Status>
+                        <PaymentHoldStatus>None</PaymentHoldStatus>
+                    </Status>
+                    <TransactionID>0</TransactionID>
+                    <SellerPaidStatus>NotPaid</SellerPaidStatus>
+                    <TransactionPlatform>eBay</TransactionPlatform>
+                </Transaction>
+            </OrderTransaction>
+        </OrderTransactionArray>
+        <PaginationResult>
+            <TotalNumberOfPages>1</TotalNumberOfPages>
+            <TotalNumberOfEntries>3</TotalNumberOfEntries>
+        </PaginationResult>
+    </SoldList>
+</GetMyeBaySellingResponse>

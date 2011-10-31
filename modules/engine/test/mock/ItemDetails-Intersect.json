@@ -1,0 +1,184 @@
+{"Timestamp" : "2011-10-28T22:56:47.926Z", "Ack" : "Warning", "Errors" : [
+    {
+        "ShortMessage" : "Cannot calculate shipping cost.",
+        "LongMessage" : "Item 250905280495 need more data to calculate shipping cost. Use GetShippingCosts or contact the seller for additional details about shipping costs and services.",
+        "ErrorCode" : "10.94",
+        "SeverityCode" : "Warning",
+        "ErrorParameters" : [
+            {
+                "Value" : "250905280495",
+                "ParamID" : "0"
+            }
+        ],
+        "ErrorClassification" : "RequestError"
+    }
+], "Build" : "E745_CORE_BUNDLED_14011937_R1", "Version" : "745",
+
+    "Item" : [
+    {
+        "BestOfferEnabled" : false,
+        "ItemID" : "110763457898",
+        "EndTime" : "2011-10-29T17:34:38.000Z",
+        "StartTime" : "2011-10-24T17:34:38.000Z",
+        "ViewItemURLForNaturalSearch" : "http://www.ebay.com/itm/American-Motorcycle-1902-Established-t-shirts-/110763457898",
+        "ListingType" : "Chinese",
+        "Location" : "Lakeside, CA",
+        "PaymentMethods" : ["PayPal"],
+        "GalleryURL" : "http://thumbs3.ebaystatic.com/pict/1107634578988080_1.jpg",
+        "PictureURL" : ["http://i.ebayimg.com/00/$(KGrHqQOKiwE5fRI8MmTBOiyd2syF!~~_1.JPG?set_id=8800005007"],
+        "PostalCode" : "92040",
+        "PrimaryCategoryID" : "15687",
+        "PrimaryCategoryName" : "Clothing, Shoes & Accessories:Men's Clothing:T-Shirts",
+        "Quantity" : 1,
+        "Seller" : {
+            "UserID" : "diecastpeople29",
+            "FeedbackRatingStar" : "Yellow",
+            "FeedbackScore" : 31,
+            "PositiveFeedbackPercent" : 97.0
+        },
+        "BidCount" : 0,
+        "ConvertedCurrentPrice" : {
+            "Value" : 99.99,
+            "CurrencyID" : "USD"
+        },
+        "CurrentPrice" : {
+            "Value" : 99.99,
+            "CurrencyID" : "USD"
+        },
+        "ListingStatus" : "Active",
+        "QuantitySold" : 0,
+        "ShipToLocations" : ["US"],
+        "Site" : "US",
+        "TimeLeft" : "PT18H37M51S",
+        "Title" : "American Motorcycle 1902 Established t-shirts",
+        "ShippingCostSummary" : {
+            "ShippingServiceCost" : {
+                "Value" : 9.99,
+                "CurrencyID" : "USD"
+            },
+            "ShippingType" : "Flat",
+            "ListedShippingServiceCost" : {
+                "Value" : 9.99,
+                "CurrencyID" : "USD"
+            }
+        },
+        "ItemSpecifics" : {
+            "NameValueList" : [
+                {
+                    "Name" : "Size Type",
+                    "Value" : ["Regular"]
+                },
+                {
+                    "Name" : "Size (Men's)",
+                    "Value" : ["xx-large, xxx-large"]
+                },
+                {
+                    "Name" : "Brand",
+                    "Value" : ["1902 series t-shirts"]
+                },
+                {
+                    "Name" : "Style",
+                    "Value" : ["Graphic Tee"]
+                },
+                {
+                    "Name" : "Color",
+                    "Value" : ["Browns"]
+                },
+                {
+                    "Name" : "Shade",
+                    "Value" : ["Medium Brown"]
+                },
+                {
+                    "Name" : "Sleeve Length",
+                    "Value" : ["Short Sleeve"]
+                }
+            ]
+        },
+        "HitCount" : 4,
+        "PrimaryCategoryIDPath" : "11450:1059:15687",
+        "Country" : "US",
+        "ReturnPolicy" : {
+            "Refund" : "Money Back",
+            "ReturnsWithin" : "7 Days",
+            "ReturnsAccepted" : "Returns Accepted",
+            "Description" : "The buyer has 7 days to return the item (the buyer pays shipping fees). The item will be refunded.",
+            "ShippingCostPaidBy" : "Buyer"
+        },
+        "MinimumToBid" : {
+            "Value" : 99.99,
+            "CurrencyID" : "USD"
+        },
+        "AutoPay" : false,
+        "PaymentAllowedSite" : [],
+        "IntegratedMerchantCreditCardEnabled" : false,
+        "HandlingTime" : 4,
+        "ConditionID" : 1000,
+        "ConditionDisplayName" : "New with tags"
+    },
+    {
+        "BestOfferEnabled" : false,
+        "ItemID" : "250905280495",
+        "EndTime" : "2011-10-13T00:12:14.000Z",
+        "StartTime" : "2011-10-06T00:12:14.000Z",
+        "ViewItemURLForNaturalSearch" : "http://www.ebay.com/itm/Mysterious-gift-certificate-BID-10-05-2011-/250905280495",
+        "ListingType" : "Chinese",
+        "Location" : "San Jose, San Jose",
+        "PaymentMethods" : ["PayPal", "CashOnPickup"],
+        "GalleryURL" : "http://thumbs4.ebaystatic.com/pict/2509052804958080_1.jpg",
+        "PictureURL" : ["http://i.ebayimg.com/00/s/NjBYNTc=/$(KGrHqMOKnQE5JfGZ9YRBOjPIlbiWw~~60_1.GIF?set_id=8800004005"],
+        "PrimaryCategoryID" : "31411",
+        "PrimaryCategoryName" : "Gift Cards & Coupons:Gift Certificates",
+        "Quantity" : 1,
+        "Seller" : {
+            "UserID" : "bcastillo",
+            "FeedbackRatingStar" : "Yellow",
+            "FeedbackScore" : 24,
+            "PositiveFeedbackPercent" : 100.0
+        },
+        "BidCount" : 1,
+        "ConvertedCurrentPrice" : {
+            "Value" : 0.01,
+            "CurrencyID" : "USD"
+        },
+        "CurrentPrice" : {
+            "Value" : 0.01,
+            "CurrencyID" : "USD"
+        },
+        "HighBidder" : {
+            "UserID" : "r***1",
+            "FeedbackPrivate" : false,
+            "FeedbackRatingStar" : "Blue",
+            "FeedbackScore" : 50
+        },
+        "ListingStatus" : "Completed",
+        "QuantitySold" : 1,
+        "ShipToLocations" : ["None"],
+        "Site" : "US",
+        "TimeLeft" : "PT0S",
+        "Title" : "Mysterious gift certificate BID 10/05/2011",
+        "ShippingCostSummary" : {
+            "ShippingType" : "NotSpecified"
+        },
+        "ItemSpecifics" : {
+            "NameValueList" : [
+                {
+                    "Name" : "Valid Locations",
+                    "Value" : ["Costa Rica"]
+                }
+            ]
+        },
+        "HitCount" : 24,
+        "PrimaryCategoryIDPath" : "172008:31411",
+        "Country" : "CR",
+        "ReturnPolicy" : {
+            "ReturnsAccepted" : "ReturnsNotAccepted"
+        },
+        "MinimumToBid" : {
+            "Value" : 0.06,
+            "CurrencyID" : "USD"
+        },
+        "AutoPay" : false,
+        "PaymentAllowedSite" : [],
+        "IntegratedMerchantCreditCardEnabled" : false
+    }
+]}

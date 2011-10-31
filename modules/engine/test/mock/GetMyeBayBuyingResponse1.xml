@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GetMyeBayBuyingResponse xmlns="urn:ebay:apis:eBLBaseComponents">
+    <Timestamp>2011-10-27T23:11:02.105Z</Timestamp>
+    <Ack>Success</Ack>
+    <CorrelationID></CorrelationID>
+    <Version>745</Version>
+    <Build>E745_CORE_BUNDLED_14023289_R1</Build>
+    <WatchList>
+        <ItemArray>
+            <Item>
+                <BuyItNowPrice currencyID="GBP">2.55</BuyItNowPrice>
+                <ItemID>380192707119</ItemID>
+                <ListingDetails>
+                    <ConvertedBuyItNowPrice currencyID="USD">4.06</ConvertedBuyItNowPrice>
+                    <StartTime>2009-12-30T04:28:56.000Z</StartTime>
+                    <EndTime>2011-11-20T04:28:56.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/Boy-Scout-Cub-Cubs-Badge-Cell-Phone-Key-Hanger-Strap-/380192707119
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Boy-Scout-Cub-Cubs-Badge-Cell-Phone-Key-Hanger-Strap?item=380192707119&amp;amp;category=404&amp;amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>StoresFixedPrice</ListingType>
+                <Seller>
+                    <FeedbackScore>2271</FeedbackScore>
+                    <FeedbackRatingStar>Red</FeedbackRatingStar>
+                    <UserID>woggleland</UserID>
+                </Seller>
+                <SellingStatus>
+                    <ConvertedCurrentPrice currencyID="USD">4.06</ConvertedCurrentPrice>
+                    <CurrentPrice currencyID="GBP">2.55</CurrentPrice>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="GBP">1.44</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>UK</Site>
+                <TimeLeft>P23DT5H17M55S</TimeLeft>
+                <Title>Boy Scout Cub Cubs Badge Cell Phone Key Hanger Strap</Title>
+                <QuantityAvailable>85</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/3801927071196464_8.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+        </ItemArray>
+        <PaginationResult>
+            <TotalNumberOfPages>1</TotalNumberOfPages>
+            <TotalNumberOfEntries>1</TotalNumberOfEntries>
+        </PaginationResult>
+    </WatchList>
+    <WonList>
+        <OrderTransactionArray>
+            <OrderTransaction>
+                <Transaction>
+                    <CreatedDate>2011-09-09T18:13:07.000Z</CreatedDate>
+                    <Item>
+                        <BiddingDetails>
+                            <MaxBid currencyID="USD">0.26</MaxBid>
+                            <QuantityBid>1</QuantityBid>
+                            <QuantityWon>0</QuantityWon>
+                        </BiddingDetails>
+                        <ItemID>350490245586</ItemID>
+                        <ListingDetails>
+                            <StartTime>2011-09-06T18:13:03.000Z</StartTime>
+                            <EndTime>2011-09-09T18:13:03.000Z</EndTime>
+                            <ViewItemURL>
+                                http://www.ebay.com/itm/Penny-Auction-Cent-Studded-Snow-Tires-Information-01-/350490245586
+                            </ViewItemURL>
+                            <ViewItemURLForNaturalSearch>
+                                http://cgi.ebay.com/Penny-Auction-Cent-Studded-Snow-Tires-Information-01?item=350490245586
+                                &amp;category=88433&amp;cmd=ViewItem
+                            </ViewItemURLForNaturalSearch>
+                        </ListingDetails>
+                        <ListingType>Chinese</ListingType>
+                        <Seller>
+                            <Email>support@yournexttire.com</Email>
+                            <UserID>yournexttire-store</UserID>
+                        </Seller>
+                        <SellingStatus>
+                            <BidCount>6</BidCount>
+                            <CurrentPrice currencyID="USD">0.26</CurrentPrice>
+                        </SellingStatus>
+                        <ShippingDetails>
+                            <ShippingServiceOptions/>
+                        </ShippingDetails>
+                        <Site>US</Site>
+                        <StartPrice currencyID="USD">0.01</StartPrice>
+                        <Title>Penny Auction Cent Studded Snow Tires Information $.01</Title>
+                        <PictureDetails>
+                            <GalleryURL>http://thumbs.ebaystatic.com/pict/3504902455866464_1.jpg</GalleryURL>
+                        </PictureDetails>
+                    </Item>
+                    <QuantityPurchased>1</QuantityPurchased>
+                    <Status>
+                        <PaymentHoldStatus>None</PaymentHoldStatus>
+                    </Status>
+                    <TransactionID>0</TransactionID>
+                    <BuyerPaidStatus>NotPaid</BuyerPaidStatus>
+                    <TransactionPlatform>eBay</TransactionPlatform>
+                    <TotalTransactionPrice currencyID="USD">0.26</TotalTransactionPrice>
+                </Transaction>
+            </OrderTransaction>
+        </OrderTransactionArray>
+        <PaginationResult>
+            <TotalNumberOfPages>1</TotalNumberOfPages>
+            <TotalNumberOfEntries>1</TotalNumberOfEntries>
+        </PaginationResult>
+    </WonList>
+    <FavoriteSearches>
+        <TotalAvailable>2</TotalAvailable>
+        <FavoriteSearch>
+            <SearchName>ipad 2</SearchName>
+            <SearchQuery>http://shop.ebay.com/i.html?_nkw=ipad%202&amp;_sacat=0&amp;_odkw=ipad&amp;_osacat=0&amp;_trksid=m194
+            </SearchQuery>
+            <QueryKeywords>ipad 2</QueryKeywords>
+        </FavoriteSearch>
+        <FavoriteSearch>
+            <SearchName>kodak pulse 10, under 20.00</SearchName>
+            <SearchQuery>http://shop.ebay.com/i.html?_nkw=kodak%20pulse%2010%2C%20under%2020.00&amp;_sacat=0&amp;
+                _odkw=kodak%20pulse%2010%20under%2020.00&amp;_osacat=0&amp;_trksid=m194
+            </SearchQuery>
+            <QueryKeywords>kodak pulse 10, under 20.00</QueryKeywords>
+        </FavoriteSearch>
+    </FavoriteSearches>
+    <FavoriteSellers>
+        <TotalAvailable>2</TotalAvailable>
+        <FavoriteSeller>
+            <UserID>russdasilvagolf</UserID>
+        </FavoriteSeller>
+        <FavoriteSeller>
+            <UserID>superph0nes</UserID>
+        </FavoriteSeller>
+    </FavoriteSellers>
+</GetMyeBayBuyingResponse>

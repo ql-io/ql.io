@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GetMyeBaySellingResponse xmlns="urn:ebay:apis:eBLBaseComponents">
+    <Timestamp>2011-10-28T02:39:12.922Z</Timestamp>
+    <Ack>Success</Ack>
+    <CorrelationID></CorrelationID>
+    <Version>745</Version>
+    <Build>E745_CORE_BUNDLED_14023289_R1</Build>
+    <ActiveList>
+        <ItemArray>
+            <Item>
+                <BuyItNowPrice currencyID="USD">0.99</BuyItNowPrice>
+                <ItemID>260853672188</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-09-13T23:10:01.000Z</StartTime>
+                    <ViewItemURL>http://www.ebay.com/itm/Mysterious-gift-certificate-BIN-09-13-11-/260853672188
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Mysterious-gift-certificate-BIN-09-13-11?item=260853672188&amp;amp;category=118255&amp;amp;
+                        cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingDuration>GTC</ListingDuration>
+                <ListingType>FixedPriceItem</ListingType>
+                <Quantity>20</Quantity>
+                <SellingStatus>
+                    <CurrentPrice currencyID="USD">0.99</CurrentPrice>
+                </SellingStatus>
+                <TimeLeft>P15DT20H30M49S</TimeLeft>
+                <Title>Mysterious gift certificate BIN 09/13/11</Title>
+                <QuantityAvailable>18</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/2608536721886464_1.jpg</GalleryURL>
+                </PictureDetails>
+                <ClassifiedAdPayPerLeadFee currencyID="USD">0.0</ClassifiedAdPayPerLeadFee>
+            </Item>
+            <Item>
+                <BuyItNowPrice currencyID="USD">0.99</BuyItNowPrice>
+                <ItemID>260853673307</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-09-13T23:11:32.000Z</StartTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/Mysterious-gift-certificate-BIN-09-13-11-2-Best-offer-/260853673307
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Mysterious-gift-certificate-BIN-09-13-11-2-Best-offer?item=260853673307&amp;amp;
+                        category=118255&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingDuration>GTC</ListingDuration>
+                <ListingType>FixedPriceItem</ListingType>
+                <Quantity>20</Quantity>
+                <SellingStatus>
+                    <CurrentPrice currencyID="USD">0.99</CurrentPrice>
+                </SellingStatus>
+                <TimeLeft>P15DT20H32M20S</TimeLeft>
+                <Title>Mysterious gift certificate BIN 09/13/11 2 Best offer</Title>
+                <QuantityAvailable>20</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/2608536733076464_1.jpg</GalleryURL>
+                </PictureDetails>
+                <ClassifiedAdPayPerLeadFee currencyID="USD">0.0</ClassifiedAdPayPerLeadFee>
+            </Item>
+        </ItemArray>
+        <PaginationResult>
+            <TotalNumberOfPages>1</TotalNumberOfPages>
+            <TotalNumberOfEntries>2</TotalNumberOfEntries>
+        </PaginationResult>
+    </ActiveList>
+    <SoldList>
+        <OrderTransactionArray>
+            <OrderTransaction>
+                <Transaction>
+                    <Buyer>
+                        <Email>bellindira@yahoo.com</Email>
+                        <UserID>bcastillo</UserID>
+                        <BuyerInfo>
+                            <ShippingAddress>
+                                <Country>CR</Country>
+                                <PostalCode>10301</PostalCode>
+                            </ShippingAddress>
+                        </BuyerInfo>
+                        <StaticAlias>bcasti_htnb4256tgta@members.ebay.com</StaticAlias>
+                    </Buyer>
+                    <CreatedDate>2011-10-24T22:38:05.000Z</CreatedDate>
+                    <Item>
+                        <BuyItNowPrice currencyID="USD">0.99</BuyItNowPrice>
+                        <ItemID>260853672188</ItemID>
+                        <ListingDetails>
+                            <StartTime>2011-09-13T23:10:01.000Z</StartTime>
+                            <EndTime>2011-11-12T23:10:01.000Z</EndTime>
+                            <ViewItemURL>http://www.ebay.com/itm/Mysterious-gift-certificate-BIN-09-13-11-/260853672188
+                            </ViewItemURL>
+                            <ViewItemURLForNaturalSearch>
+                                http://cgi.ebay.com/Mysterious-gift-certificate-BIN-09-13-11?item=260853672188&amp;
+                                category=118255&amp;cmd=ViewItem
+                            </ViewItemURLForNaturalSearch>
+                        </ListingDetails>
+                        <ListingType>FixedPriceItem</ListingType>
+                        <SellingStatus>
+                            <CurrentPrice currencyID="USD">0.99</CurrentPrice>
+                        </SellingStatus>
+                        <ShippingDetails>
+                            <ShippingServiceOptions>
+                                <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                            </ShippingServiceOptions>
+                        </ShippingDetails>
+                        <Title>Mysterious gift certificate BIN 09/13/11</Title>
+                        <PictureDetails>
+                            <GalleryURL>http://thumbs.ebaystatic.com/pict/2608536721886464_1.jpg</GalleryURL>
+                        </PictureDetails>
+                    </Item>
+                    <QuantityPurchased>1</QuantityPurchased>
+                    <Status>
+                        <PaymentHoldStatus>None</PaymentHoldStatus>
+                    </Status>
+                    <TransactionID>857841793016</TransactionID>
+                    <SellerPaidStatus>NotPaid</SellerPaidStatus>
+                    <FeedbackReceived>
+                        <CommentType>Positive</CommentType>
+                    </FeedbackReceived>
+                    <TransactionPlatform>eBay</TransactionPlatform>
+                </Transaction>
+            </OrderTransaction>
+            <OrderTransaction>
+                <Transaction>
+                    <Buyer>
+                        <Email>bellindira@yahoo.com</Email>
+                        <UserID>bcastillo</UserID>
+                        <BuyerInfo>
+                            <ShippingAddress>
+                                <Country>CR</Country>
+                                <PostalCode>10301</PostalCode>
+                            </ShippingAddress>
+                        </BuyerInfo>
+                        <StaticAlias>bcasti_htnb4256tgta@members.ebay.com</StaticAlias>
+                    </Buyer>
+                    <CreatedDate>2011-10-24T23:13:46.000Z</CreatedDate>
+                    <Item>
+                        <BuyItNowPrice currencyID="USD">0.99</BuyItNowPrice>
+                        <ItemID>260853672188</ItemID>
+                        <ListingDetails>
+                            <StartTime>2011-09-13T23:10:01.000Z</StartTime>
+                            <EndTime>2011-11-12T23:10:01.000Z</EndTime>
+                            <ViewItemURL>http://www.ebay.com/itm/Mysterious-gift-certificate-BIN-09-13-11-/260853672188
+                            </ViewItemURL>
+                            <ViewItemURLForNaturalSearch>
+                                http://cgi.ebay.com/Mysterious-gift-certificate-BIN-09-13-11?item=260853672188&amp;
+                                category=118255&amp;cmd=ViewItem
+                            </ViewItemURLForNaturalSearch>
+                        </ListingDetails>
+                        <ListingType>FixedPriceItem</ListingType>
+                        <SellingStatus>
+                            <CurrentPrice currencyID="USD">0.99</CurrentPrice>
+                        </SellingStatus>
+                        <ShippingDetails>
+                            <ShippingServiceOptions>
+                                <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                            </ShippingServiceOptions>
+                        </ShippingDetails>
+                        <Title>Mysterious gift certificate BIN 09/13/11</Title>
+                        <PictureDetails>
+                            <GalleryURL>http://thumbs.ebaystatic.com/pict/2608536721886464_1.jpg</GalleryURL>
+                        </PictureDetails>
+                    </Item>
+                    <QuantityPurchased>1</QuantityPurchased>
+                    <Status>
+                        <PaymentHoldStatus>None</PaymentHoldStatus>
+                    </Status>
+                    <TransactionID>857854400016</TransactionID>
+                    <SellerPaidStatus>NotPaid</SellerPaidStatus>
+                    <TransactionPlatform>eBay</TransactionPlatform>
+                </Transaction>
+            </OrderTransaction>
+        </OrderTransactionArray>
+        <PaginationResult>
+            <TotalNumberOfPages>1</TotalNumberOfPages>
+            <TotalNumberOfEntries>2</TotalNumberOfEntries>
+        </PaginationResult>
+    </SoldList>
+</GetMyeBaySellingResponse>

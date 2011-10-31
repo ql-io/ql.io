@@ -1,0 +1,2310 @@
+{"Timestamp":["2011-10-28T03:14:38.538Z", "2011-10-28T03:14:37.632Z"],
+    "Ack":["Warning", "Warning"], "Errors":[
+    {
+        "ShortMessage":"Cannot ship to specified country.",
+        "LongMessage":"Item 250494184442 cannot be shipped to the country associated with SiteID 0.",
+        "ErrorCode":"10.93",
+        "SeverityCode":"Warning",
+        "ErrorParameters":[
+            {
+                "Value":"250494184442",
+                "ParamID":"0"
+            },
+            {
+                "Value":"0",
+                "ParamID":"1"
+            }
+        ],
+        "ErrorClassification":"RequestError"
+    },
+    {
+        "ShortMessage":"Cannot calculate shipping cost.",
+        "LongMessage":"Item 260853672188 need more data to calculate shipping cost. Use GetShippingCosts or contact the seller for additional details about shipping costs and services.",
+        "ErrorCode":"10.94",
+        "SeverityCode":"Warning",
+        "ErrorParameters":[
+            {
+                "Value":"260853672188",
+                "ParamID":"0"
+            }
+        ],
+        "ErrorClassification":"RequestError"
+    },
+    {
+        "ShortMessage":"Cannot calculate shipping cost.",
+        "LongMessage":"Item 250888486629 need more data to calculate shipping cost. Use GetShippingCosts or contact the seller for additional details about shipping costs and services.",
+        "ErrorCode":"10.94",
+        "SeverityCode":"Warning",
+        "ErrorParameters":[
+            {
+                "Value":"250888486629",
+                "ParamID":"0"
+            }
+        ],
+        "ErrorClassification":"RequestError"
+    },
+    {
+        "ShortMessage":"Cannot calculate shipping cost.",
+        "LongMessage":"Item 170708189366 need more data to calculate shipping cost. Use GetShippingCosts or contact the seller for additional details about shipping costs and services.",
+        "ErrorCode":"10.94",
+        "SeverityCode":"Warning",
+        "ErrorParameters":[
+            {
+                "Value":"170708189366",
+                "ParamID":"0"
+            }
+        ],
+        "ErrorClassification":"RequestError"
+    },
+    {
+        "ShortMessage":"Cannot calculate shipping cost.",
+        "LongMessage":"Item 250905280495 need more data to calculate shipping cost. Use GetShippingCosts or contact the seller for additional details about shipping costs and services.",
+        "ErrorCode":"10.94",
+        "SeverityCode":"Warning",
+        "ErrorParameters":[
+            {
+                "Value":"250905280495",
+                "ParamID":"0"
+            }
+        ],
+        "ErrorClassification":"RequestError"
+    },
+    {
+        "ShortMessage":"Cannot calculate shipping cost.",
+        "LongMessage":"Item 180716796542 need more data to calculate shipping cost. Use GetShippingCosts or contact the seller for additional details about shipping costs and services.",
+        "ErrorCode":"10.94",
+        "SeverityCode":"Warning",
+        "ErrorParameters":[
+            {
+                "Value":"180716796542",
+                "ParamID":"0"
+            }
+        ],
+        "ErrorClassification":"RequestError"
+    },
+    {
+        "ShortMessage":"Cannot calculate shipping cost.",
+        "LongMessage":"Item 320756798762 need more data to calculate shipping cost. Use GetShippingCosts or contact the seller for additional details about shipping costs and services.",
+        "ErrorCode":"10.94",
+        "SeverityCode":"Warning",
+        "ErrorParameters":[
+            {
+                "Value":"320756798762",
+                "ParamID":"0"
+            }
+        ],
+        "ErrorClassification":"RequestError"
+    },
+    {
+        "ShortMessage":"Cannot calculate shipping cost.",
+        "LongMessage":"Item 180716782615 need more data to calculate shipping cost. Use GetShippingCosts or contact the seller for additional details about shipping costs and services.",
+        "ErrorCode":"10.94",
+        "SeverityCode":"Warning",
+        "ErrorParameters":[
+            {
+                "Value":"180716782615",
+                "ParamID":"0"
+            }
+        ],
+        "ErrorClassification":"RequestError"
+    },
+    {
+        "ShortMessage":"Cannot calculate shipping cost.",
+        "LongMessage":"Item 180715921167 need more data to calculate shipping cost. Use GetShippingCosts or contact the seller for additional details about shipping costs and services.",
+        "ErrorCode":"10.94",
+        "SeverityCode":"Warning",
+        "ErrorParameters":[
+            {
+                "Value":"180715921167",
+                "ParamID":"0"
+            }
+        ],
+        "ErrorClassification":"RequestError"
+    }
+], "Build":["E745_CORE_BUNDLED_14011937_R1", "E745_CORE_BUNDLED_14011937_R1"], "Version":["745", "745"], "Item":[
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"220660048005",
+        "EndTime":"2011-11-18T21:52:24.000Z",
+        "StartTime":"2010-08-25T21:52:24.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/JABBAWOCKEEZ-STREET-DANCE-T-SHIRT-NEW-S-M-L-XL-NWT-/220660048005?var=",
+        "ListingType":"StoresFixedPrice",
+        "Location":"Wonderland",
+        "PaymentMethods":["PayPal"],
+        "PictureURL":["http://i.ebayimg.com/14/!BpnHQFg!mk~$(KGrHqUH-DsEu,JMN)R4BLsJZmOJbg~~_1.JPG?set_id=8800004005"],
+        "PrimaryCategoryID":"15687",
+        "PrimaryCategoryName":"Clothing, Shoes & Accessories:Men's Clothing:T-Shirts",
+        "Quantity":67,
+        "Seller":{
+            "UserID":"acidshirts",
+            "FeedbackRatingStar":"Red",
+            "FeedbackScore":1551,
+            "PositiveFeedbackPercent":99.5,
+            "TopRatedSeller":true
+        },
+        "BidCount":0,
+        "ConvertedCurrentPrice":{
+            "Value":14.99,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":14.99,
+            "CurrencyID":"USD"
+        },
+        "ListingStatus":"Active",
+        "QuantitySold":52,
+        "ShipToLocations":["Worldwide"],
+        "Site":"US",
+        "TimeLeft":"P21DT18H37M47S",
+        "Title":"JABBAWOCKEEZ STREET DANCE T-SHIRT NEW S, M, L, XL NWT!!",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":4.9,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":4.9,
+                "CurrencyID":"USD"
+            }
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"Size Type",
+                    "Value":["Regular"]
+                },
+                {
+                    "Name":"Size (Men's)",
+                    "Value":["XS"]
+                },
+                {
+                    "Name":"Brand",
+                    "Value":["Tshirt"]
+                },
+                {
+                    "Name":"Style",
+                    "Value":["Basic Tee"]
+                },
+                {
+                    "Name":"Color",
+                    "Value":["Blacks"]
+                },
+                {
+                    "Name":"Shade",
+                    "Value":["Black"]
+                },
+                {
+                    "Name":"Material",
+                    "Value":["Cotton"]
+                },
+                {
+                    "Name":"Pattern",
+                    "Value":["Print"]
+                }
+            ]
+        },
+        "PrimaryCategoryIDPath":"11450:1059:15687",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=751480777",
+            "StoreName":"ROCK_GALAXY"
+        },
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Merchandise Credit",
+            "ReturnsWithin":"7 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "Description":"Shipping cost is NOT refundable.",
+            "ShippingCostPaidBy":"Buyer"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":1,
+        "ConditionID":1500,
+        "ConditionDisplayName":"New without tags",
+        "QuantityAvailableHint":"MoreThan",
+        "QuantityThreshold":10,
+        "ExcludeShipToLocation":["Africa", "Middle East", "Southeast Asia", "AF", "AM", "AZ", "BD", "BT", "CN", "IN", "KZ", "KR", "KG", "MV", "MN", "NP", "PK", "LK", "TJ", "TM", "UZ", "HU", "IS", "IE", "IT", "MD", "PL", "RO", "SK", "SI"]
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"150682308427",
+        "EndTime":"2011-10-27T00:09:52.000Z",
+        "StartTime":"2011-10-24T00:09:52.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Cobra-Golf-T-Shirt-All-Sizes-New-/150682308427?var=",
+        "ListingType":"FixedPriceItem",
+        "Location":" Spectrum Trading Co.",
+        "PaymentMethods":["PayPal"],
+        "PictureURL":["http://i.ebayimg.com/00/s/MTAyNFg5ODc=/$(KGrHqIOKnME52P1vqKOBOpKzGCC2w~~60_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/s/MTAyNFgxMDI0/$(KGrHqIOKpkE6,zH+!DeBOpKzN8HJ!~~60_1.JPG?set_id=8800005007"],
+        "PostalCode":"06351",
+        "PrimaryCategoryID":"15687",
+        "PrimaryCategoryName":"Clothing, Shoes & Accessories:Men's Clothing:T-Shirts",
+        "Quantity":2016,
+        "Seller":{
+            "UserID":"spectrum-trading",
+            "FeedbackRatingStar":"Red",
+            "FeedbackScore":3597,
+            "PositiveFeedbackPercent":99.4,
+            "TopRatedSeller":true
+        },
+        "BidCount":0,
+        "ConvertedCurrentPrice":{
+            "Value":14.99,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":14.99,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"i***i",
+            "FeedbackPrivate":false,
+            "FeedbackRatingStar":"Yellow",
+            "FeedbackScore":13
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":1,
+        "ShipToLocations":["Worldwide"],
+        "Site":"US",
+        "TimeLeft":"PT0S",
+        "Title":"Cobra Golf T Shirt All Sizes - New",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            }
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"Size Type",
+                    "Value":["Regular"]
+                },
+                {
+                    "Name":"Size (Men's)",
+                    "Value":["All Sizes"]
+                },
+                {
+                    "Name":"Style",
+                    "Value":["Graphic Tee"]
+                },
+                {
+                    "Name":"Brand",
+                    "Value":["Gildan"]
+                },
+                {
+                    "Name":"Color",
+                    "Value":["Whites"]
+                },
+                {
+                    "Name":"Shade",
+                    "Value":["White"]
+                },
+                {
+                    "Name":"Material",
+                    "Value":["100% Cotton"]
+                }
+            ]
+        },
+        "HitCount":20,
+        "PrimaryCategoryIDPath":"11450:1059:15687",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=110379192",
+            "StoreName":"Spectrum Trading Company"
+        },
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Money Back",
+            "ReturnsWithin":"14 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "Description":"If your item arrives damaged, please contact us immediately. Please Photograph the damage on the item and keep all of the original packaging and contact us via: contact seller through EBay for further instructions.\nIf you would like to return the item for a refund it may be subject to a 15% restocking fee and the initial shipping charges will not be refunded and if the product arrives damaged no refund will be given.  \n\nThere is no refund for personalized products, however we will exchange it if it arrives damaged.\n\n\"100% satisfaction is our top priority. Please contact us with any issues prior to leaving negative or neutral feedback. We consider the transaction completed once feedback is received.\n If you have a problem with a transaction, just let us know and we will work with you to resolve the issue. You can contact us via: contact seller through EBay, we will make every effort to respond to all customer service inquiries within 1 business days.\" \n\nPlease Email with any questions prior to purchase.  Any un-paid purchases are subject to Un-Paid EBay Policies.\n~Thank You for Your Business...",
+            "ShippingCostPaidBy":"Buyer"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":1,
+        "ConditionID":1500,
+        "ConditionDisplayName":"New without tags",
+        "QuantityAvailableHint":"MoreThan",
+        "QuantityThreshold":10
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"300605910278",
+        "EndTime":"2011-10-03T18:08:27.000Z",
+        "StartTime":"2011-10-02T18:08:27.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/50-2002-D-bank-wrapped-BU-Lincoln-Pennies-/300605910278",
+        "ListingType":"Chinese",
+        "Location":"Altamonte Springs, Fl",
+        "PaymentMethods":["PayPal"],
+        "GalleryURL":"http://thumbs3.ebaystatic.com/pict/3006059102788080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/s/MzY1WDE2MDA=/$(KGrHqV,!lEE5KoZ6C69BOb+,1y6vg~~60_1.JPG?set_id=8800005007"],
+        "PostalCode":"32716",
+        "PrimaryCategoryID":"11944",
+        "PrimaryCategoryName":"Coins & Paper Money:Coins: US:Small Cents:Lincoln Wheat (1909-1958):Mixed Lots",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"guru1",
+            "FeedbackRatingStar":"YellowShooting",
+            "FeedbackScore":13455,
+            "PositiveFeedbackPercent":99.9,
+            "TopRatedSeller":true
+        },
+        "BidCount":0,
+        "ConvertedCurrentPrice":{
+            "Value":2.95,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":2.95,
+            "CurrencyID":"USD"
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":0,
+        "ShipToLocations":["US"],
+        "Site":"US",
+        "TimeLeft":"PT0S",
+        "Title":"(50)2002-D bank wrapped BU Lincoln Pennies",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":3.95,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":3.95,
+                "CurrencyID":"USD"
+            }
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"Condition",
+                    "Value":["Uncirculated"]
+                },
+                {
+                    "Name":"Mint Location",
+                    "Value":["Denver"]
+                },
+                {
+                    "Name":"Circulated/Uncirculated",
+                    "Value":["Uncirculated"]
+                }
+            ]
+        },
+        "HitCount":3,
+        "PrimaryCategoryIDPath":"11116:253:11633:39455:11944",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=827389",
+            "StoreName":"JOYCO WEBKINZ AND COINS"
+        },
+        "Country":"US",
+        "ReturnPolicy":{
+            "ReturnsAccepted":"ReturnsNotAccepted"
+        },
+        "MinimumToBid":{
+            "Value":2.95,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":3
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"310218058352",
+        "EndTime":"2011-11-25T18:25:42.000Z",
+        "StartTime":"2010-05-04T18:25:42.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/got-violin-Mens-Tee-Shirt-PICK-Size-Small-6XL-Color-/310218058352?var=",
+        "ListingType":"FixedPriceItem",
+        "Location":"Call us with any questions ",
+        "PaymentMethods":["PayPal", "VisaMC"],
+        "PictureURL":["http://99static.net/images/5new/zgtviolinm.jpg"],
+        "PostalCode":"34234",
+        "PrimaryCategoryID":"15687",
+        "PrimaryCategoryName":"Clothing, Shoes & Accessories:Men's Clothing:T-Shirts",
+        "Quantity":109890,
+        "Seller":{
+            "UserID":"99voltsauctions",
+            "FeedbackRatingStar":"RedShooting",
+            "FeedbackScore":105945,
+            "PositiveFeedbackPercent":99.8,
+            "TopRatedSeller":true
+        },
+        "BidCount":0,
+        "ConvertedCurrentPrice":{
+            "Value":17.78,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":17.78,
+            "CurrencyID":"USD"
+        },
+        "ListingStatus":"Active",
+        "QuantitySold":4,
+        "ShipToLocations":["Worldwide"],
+        "Site":"US",
+        "TimeLeft":"P28DT15H11M5S",
+        "Title":"got violin? Men's Tee Shirt PICK Size Small-6XL & Color",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            }
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"brand",
+                    "Value":["99 Volts"]
+                },
+                {
+                    "Name":"style",
+                    "Value":["Grapic Tee"]
+                },
+                {
+                    "Name":"Size Type",
+                    "Value":["Regular"]
+                },
+                {
+                    "Name":"material",
+                    "Value":["100% Cotton"]
+                }
+            ]
+        },
+        "HitCount":98,
+        "PrimaryCategoryIDPath":"11450:1059:15687",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=5782130",
+            "StoreName":"99VOLTSAUCTIONS"
+        },
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Exchange",
+            "ReturnsWithin":"7 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "ShippingCostPaidBy":"Buyer"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":1,
+        "ConditionID":1500,
+        "ConditionDisplayName":"New without tags",
+        "QuantityAvailableHint":"MoreThan",
+        "QuantityThreshold":10
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"140625700110",
+        "EndTime":"2011-10-24T17:36:45.000Z",
+        "StartTime":"2011-10-23T17:36:45.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/SUN-DROP-XL-XLARGE-Shirt-Leg-Warmers-Headband-T-Shirt-Halloween-Costume-/140625700110",
+        "ListingType":"Chinese",
+        "Location":"Place where a LITTLE-BUYS you ALOT!",
+        "PaymentMethods":["PayPal"],
+        "GalleryURL":"http://thumbs3.ebaystatic.com/pict/1406257001108080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/s/MTAyNFg4MDA=/$(KGrHqEOKj8E6Wnp-ebKBOpFC3gQGQ~~60_1.JPG?set_id=880000500F"],
+        "PostalCode":"78228",
+        "PrimaryCategoryID":"63869",
+        "PrimaryCategoryName":"Clothing, Shoes & Accessories:Women's Clothing:T-Shirts",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"little*buys",
+            "FeedbackRatingStar":"Red",
+            "FeedbackScore":2122,
+            "PositiveFeedbackPercent":99.8,
+            "TopRatedSeller":true
+        },
+        "BidCount":8,
+        "ConvertedCurrentPrice":{
+            "Value":64,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":64,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"h***7",
+            "FeedbackPrivate":false,
+            "FeedbackRatingStar":"Yellow",
+            "FeedbackScore":34
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":1,
+        "ShipToLocations":["US"],
+        "Site":"US",
+        "TimeLeft":"PT0S",
+        "Title":"SUN DROP XL XLARGE * Shirt + Leg Warmers + Headband * T-Shirt Halloween Costume",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":4.99,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":4.99,
+                "CurrencyID":"USD"
+            }
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"Size Type",
+                    "Value":["Juniors"]
+                },
+                {
+                    "Name":"Size (Women's)",
+                    "Value":["XLARGE"]
+                },
+                {
+                    "Name":"Brand",
+                    "Value":["TNT"]
+                },
+                {
+                    "Name":"Style",
+                    "Value":["Graphic Tee"]
+                }
+            ]
+        },
+        "HitCount":105,
+        "PrimaryCategoryIDPath":"11450:15724:63869",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=67275931",
+            "StoreName":"Little*Buys"
+        },
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Money Back",
+            "ReturnsWithin":"7 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "Description":"If not satisfied with item, please contact me before leaving feedback so we can work something out. If a we determine a refund is necessary, then I will refund the money MINUS shipping cost. Thanks!",
+            "ShippingCostPaidBy":"Buyer"
+        },
+        "MinimumToBid":{
+            "Value":65,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":2,
+        "ConditionID":1000,
+        "ConditionDisplayName":"New with tags"
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"110763457898",
+        "EndTime":"2011-10-29T17:34:38.000Z",
+        "StartTime":"2011-10-24T17:34:38.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/American-Motorcycle-1902-Established-t-shirts-/110763457898",
+        "ListingType":"Chinese",
+        "Location":"Lakeside, CA",
+        "PaymentMethods":["PayPal"],
+        "GalleryURL":"http://thumbs3.ebaystatic.com/pict/1107634578988080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/$(KGrHqQOKiwE5fRI8MmTBOiyd2syF!~~_1.JPG?set_id=8800005007"],
+        "PostalCode":"92040",
+        "PrimaryCategoryID":"15687",
+        "PrimaryCategoryName":"Clothing, Shoes & Accessories:Men's Clothing:T-Shirts",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"diecastpeople29",
+            "FeedbackRatingStar":"Yellow",
+            "FeedbackScore":31,
+            "PositiveFeedbackPercent":97
+        },
+        "BidCount":0,
+        "ConvertedCurrentPrice":{
+            "Value":99.99,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":99.99,
+            "CurrencyID":"USD"
+        },
+        "ListingStatus":"Active",
+        "QuantitySold":0,
+        "ShipToLocations":["US"],
+        "Site":"US",
+        "TimeLeft":"P1DT14H20M1S",
+        "Title":"American Motorcycle 1902 Established t-shirts",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":9.99,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":9.99,
+                "CurrencyID":"USD"
+            }
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"Size Type",
+                    "Value":["Regular"]
+                },
+                {
+                    "Name":"Size (Men's)",
+                    "Value":["xx-large, xxx-large"]
+                },
+                {
+                    "Name":"Brand",
+                    "Value":["1902 series t-shirts"]
+                },
+                {
+                    "Name":"Style",
+                    "Value":["Graphic Tee"]
+                },
+                {
+                    "Name":"Color",
+                    "Value":["Browns"]
+                },
+                {
+                    "Name":"Shade",
+                    "Value":["Medium Brown"]
+                },
+                {
+                    "Name":"Sleeve Length",
+                    "Value":["Short Sleeve"]
+                }
+            ]
+        },
+        "HitCount":2,
+        "PrimaryCategoryIDPath":"11450:1059:15687",
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Money Back",
+            "ReturnsWithin":"7 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "Description":"The buyer has 7 days to return the item (the buyer pays shipping fees). The item will be refunded.",
+            "ShippingCostPaidBy":"Buyer"
+        },
+        "MinimumToBid":{
+            "Value":99.99,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":4,
+        "ConditionID":1000,
+        "ConditionDisplayName":"New with tags"
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"390359315461",
+        "EndTime":"2011-11-01T22:09:13.000Z",
+        "StartTime":"2011-10-25T22:09:13.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Pumpkin-Roll-Mennonite-Recipe-Grannas-Heart-Hands-one-cent-penny-auction-/390359315461",
+        "ListingType":"Chinese",
+        "Location":"Granna's Heart & Hands",
+        "PaymentMethods":["PayPal"],
+        "GalleryURL":"http://thumbs2.ebaystatic.com/pict/3903593154618080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/s/MzA4WDQ3MA==/$(KGrHqUOKowE5380lRRQBOpzOZ,J+w~~60_1.JPG?set_id=8800005007"],
+        "PostalCode":"26726",
+        "PrimaryCategoryID":"20475",
+        "PrimaryCategoryName":"Home & Garden:Inside the Home:Food & Wine:Recipes",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"granna1954",
+            "FeedbackRatingStar":"Purple",
+            "FeedbackScore":736,
+            "PositiveFeedbackPercent":100
+        },
+        "BidCount":1,
+        "ConvertedCurrentPrice":{
+            "Value":0.01,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":0.01,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"r***1",
+            "FeedbackPrivate":false,
+            "FeedbackRatingStar":"Blue",
+            "FeedbackScore":50
+        },
+        "ListingStatus":"Active",
+        "QuantitySold":0,
+        "ShipToLocations":["US"],
+        "Site":"US",
+        "TimeLeft":"P4DT18H54M36S",
+        "Title":"Pumpkin Roll Mennonite Recipe Grannas Heart & Hands one cent penny auction",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            }
+        },
+        "PrimaryCategoryIDPath":"11700:159888:14308:20475",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=108267985",
+            "StoreName":"Granna&#39;s Heart and Hands"
+        },
+        "Country":"US",
+        "ReturnPolicy":{
+            "ReturnsAccepted":"ReturnsNotAccepted"
+        },
+        "MinimumToBid":{
+            "Value":0.06,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":2
+    },
+    {
+        "BestOfferEnabled":true,
+        "ItemID":"250494184442",
+        "EndTime":"2011-11-25T17:56:00.000Z",
+        "StartTime":"2009-09-06T17:56:00.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Wandtattoo-Bon-Appetit-Guten-Appetit-60cm-Neu-/250494184442",
+        "ListingType":"StoresFixedPrice",
+        "Location":"Hövelhof",
+        "PaymentMethods":["MoneyXferAccepted", "PayPal", "MoneyXferAcceptedInCheckout", "CashOnPickup", "PaymentSeeDescription"],
+        "GalleryURL":"http://thumbs3.ebaystatic.com/pict/2504941844428080_15.jpg",
+        "PictureURL":["http://www.mywandtattoo.de/images/product_images/popup_images/331_0.jpg"],
+        "PostalCode":"33161",
+        "PrimaryCategoryID":"167470",
+        "PrimaryCategoryName":"Möbel & Wohnen:Dekoration:Wandtattoos & Wandbilder:Aufkleber / Tattoos",
+        "Quantity":2144,
+        "Seller":{
+            "UserID":"bargain_paradise_24*7",
+            "FeedbackRatingStar":"YellowShooting",
+            "FeedbackScore":24257,
+            "PositiveFeedbackPercent":99.3
+        },
+        "BidCount":0,
+        "ConvertedCurrentPrice":{
+            "Value":8.28,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":5.99,
+            "CurrencyID":"EUR"
+        },
+        "ListingStatus":"Active",
+        "QuantitySold":44,
+        "ShipToLocations":["Americas", "Europe", "Asia"],
+        "Site":"Germany",
+        "TimeLeft":"P28DT14H41M23S",
+        "Title":"Wandtattoo Bon Appetit Guten Appetit 60cm Neu",
+        "ShippingCostSummary":{
+            "ShippingType":"Flat"
+        },
+        "HitCount":1817,
+        "PrimaryCategoryIDPath":"11700:25817:167469:167470",
+        "SecondaryCategoryID":"8408",
+        "SecondaryCategoryName":"Möbel & Wohnen:Dekoration:Sonstige",
+        "SecondaryCategoryIDPath":"11700:25817:8408",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=713439832",
+            "StoreName":"myWANDtattoo"
+        },
+        "Country":"DE",
+        "ReturnPolicy":{
+            "ReturnsAccepted":"Verbraucher haben das Recht, den Artikel unter den angegebenen Bedingungen zurückzugeben.",
+            "Description":"Auszug aus den AGB\n\n§ 3. Widerrufsrecht und –folgen\n\n\nWiderrufsbelehrung\nWiderrufsrecht\n\n\nSie können Ihre Vertragserklärung innerhalb von 14 Tagen ohne Angabe von Gründen in Textform (z.B. Brief, Fax, E-Mail) widerrufen. Die Frist beginnt nach Erhalt dieser Belehrung in Textform, jedoch nicht vor Vertragsschluss und auch nicht vor Erfüllung unserer Informationspflichten gemäß Artikel 246 § 2 in Verbindung mit § 1 Absatz 1 und 2 EGBGB sowie unserer Pflichten gemäß § 312g Absatz 1 Satz 1 BGB in Verbindung mit Artikel 246 § 3 EGBGB. Zur Wahrung der Widerrufsfrist genügt die rechtzeitige Absendung des Widerrufs. Der Widerruf ist zu richten an:\n\nGlobal Marketing Consult GmbH,\nDetmolder Str 101,\n33161 Hövelhof Riege ,\nFax 052579-348997,\nE-Mail mm (at) selbstklebefolien.com\nInternet www.selbstklebefolien.com\n\nWiderrufsfolgen\nIm Falle eines wirksamen Widerrufs sind die beiderseits empfangenen Leistungen zurückzugewähren und ggf. gezogene Nutzungen (z.B. Zinsen) herauszugeben. Können Sie uns die empfangene Leistung sowie Nutzungen (z.B. Gebrauchsvorteile) nicht oder teilweise nicht oder nur in verschlechtertem Zustand zurückgewähren beziehungsweise herausgeben, müssen Sie uns insoweit Wertersatz leisten. Dies kann dazu führen, dass Sie die vertraglichen Zahlungsverpflichtungen für den Zeitraum bis zum Widerruf gleichwohl erfüllen müssen. Verpflichtungen zur Erstattung von Zahlungen müssen innerhalb von 30 Tagen erfüllt werden. Die Frist beginnt für Sie mit der Absendung Ihrer Widerrufserklärung, für uns mit deren Empfang.\nBesondere Hinweise    \nIhr Widerrufsrecht erlischt vorzeitig, wenn der Vertrag von beiden Seiten auf Ihren ausdrücklichen Wunsch vollständig erfüllt ist, bevor Sie Ihr Widerrufsrecht ausgeübt haben.\n\nDas Widerrufsrecht besteht entsprechend § 312d Abs. 4 BGB (1) nicht bei Verträgen zur Lieferung von Waren, die nach Kundenspezifikation angefertigt werden oder eindeutig auf die persönlichen Bedürfnisse zugeschnitten sind oder die auf Grund ihrer Beschaffenheit nicht für eine Rücksendung geeignet sind oder schnell verderben können oder deren Verfalldatum überschritten würde.\n\nEnde der Widerrufsbelehrung\n\n \n\nAnmerkung: Bitte bedenken Sie bei Ihrer Bestellung, dass es sich bei unseren Produkten um speziell für Sie angefertigte Folien und Produkte nach § 312d Abs. 4 BGB (1) handelt. Aus diesem Grunde bitten wir Sie VOR der Bestellung alle Maße sorgfältig zu überprüfen, die uns übersandt werden und lassen Sie sich ggf. von uns Muster der Folien und Farben zusenden.\n\n \n\nJede Bestellung bei klebefolien.com wir speziell für Sie auf Länge und Breite konfektioniert, von bis zu 100 Meter langen Mutterrollen ab gelängt, vermessen und  von der Breite der Mutterrolle auf Breite gekappt damit Sie ihre gewünschte Laufmeter am Stück erhalten. Folienkonfektionierungen, Digitaldrucke, Plattenzuschnitte und Laminationsprodukte sind für Sie erstellte Einzelanfertigungen.\n\nHier unterscheiden wir uns vom klassischen Versandhandel  und Handel welcher Ware aus einem Lager entnimmt und diese versandfertig macht. Leider können wir unsere Produkte nicht einfach wieder ins Lager legen und dem nächsten Kunden veräußern.\n\nSollten Sie dennoch Meterware umtauschen wollen, nehmen bitte zuerst mit unserem Innendienst Kontakt auf und drucken Sie sich den Beleg zur Rückkonfektionierung aus. Rücksendungen können  nur mit dem Rückkonfektionierungsbeleg bearbeitet werden. Eine Rückkonfektionierung ist recht umständlich, da die Ware erneut vermessen werden muss, auf Beschädigungen geprüft und unter Umständen Verklebeproben gemacht werden um zu testen ob die Folie fachgerecht gelagert wurde.   \n\nHier finden Sie einen Rücksendeschein als PDF\n\n \n\n3 Tipps damit Sie das passende Produkt termingerecht erhalten\n\n    Nutzen Sie unseren Musterversand, da jeder Bildschirm andere Farbeinstellungen hat und nicht die originalfarbe anzeigt, ist es sinnvoll sich ein Handmuster kostenfrei zu bestellen über unseren Musterversand.\n    Lesen Sie sich umgehend Ihre Email Bestellbestätigung an! Sollten Sie sich vertan haben rufen Sie bitte umgehend an, damit wir Ihre Order ändern oder stornieren können bevor Sie in der Konfektionierung landen.\n    Bestellen Sie früh genug, da jede Mutterrolle ein Ende hat, kann es besonders in Ferienzeiten zu Engpässen in den Hauptlagern und Produktionsstätten kommen. Einen aktuellen Lagerbestand können Sie telefonisch und via Email erfragen"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":4,
+        "QuantityAvailableHint":"MoreThan",
+        "QuantityThreshold":10
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"190592293164",
+        "EndTime":"2011-11-23T17:35:26.000Z",
+        "StartTime":"2011-10-24T17:35:26.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Disney-Disneyland-SS-Womens-Gray-Navy-T-Shirt-XL-Mickey-55-/190592293164",
+        "ListingType":"StoresFixedPrice",
+        "Location":" TN",
+        "PaymentMethods":["PayPal"],
+        "GalleryURL":"http://thumbs1.ebaystatic.com/pict/1905922931648080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/$(KGrHqMOKjcE3J6nVqrsBN9Se)nhY!~~0_1.JPG?set_id=880000500F", "http://i.ebayimg.com/00/$(KGrHqEOKp!E3tGsMw(KBN9SfKlR,!~~0_1.JPG?set_id=880000500F"],
+        "PostalCode":"37814",
+        "PrimaryCategoryID":"35843",
+        "PrimaryCategoryName":"Collectibles:Disneyana:Contemporary (1968-Now):Apparel & Accessories:T-Shirts",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"opalise",
+            "FeedbackRatingStar":"Turquoise",
+            "FeedbackScore":409,
+            "PositiveFeedbackPercent":100
+        },
+        "BidCount":0,
+        "ConvertedCurrentPrice":{
+            "Value":8,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":8,
+            "CurrencyID":"USD"
+        },
+        "ListingStatus":"Active",
+        "QuantitySold":0,
+        "ShipToLocations":["US"],
+        "Site":"US",
+        "TimeLeft":"P26DT14H20M49S",
+        "Title":"Disney Disneyland SS Womens Gray Navy T Shirt XL Mickey 55",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":4,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":4,
+                "CurrencyID":"USD"
+            }
+        },
+        "PrimaryCategoryIDPath":"1:137:1369:35839:35843",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=159391144",
+            "StoreName":"Opalise&#39;s Attic"
+        },
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Money Back",
+            "ReturnsWithin":"7 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "Description":"The buyer has 7 days to return the item (the buyer pays shipping fees). The item will be refunded.",
+            "ShippingCostPaidBy":"Buyer"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":3,
+        "ConditionID":3000,
+        "ConditionDisplayName":"Used",
+        "ExcludeShipToLocation":["US Protectorates", "APO/FPO", "Africa", "Asia", "Central America and Caribbean", "Europe", "Middle East", "North America", "Oceania", "Southeast Asia", "South America"]
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"260853672188",
+        "EndTime":"2011-11-12T23:10:01.000Z",
+        "StartTime":"2011-09-13T23:10:01.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Mysterious-gift-certificate-BIN-09-13-11-/260853672188",
+        "ListingType":"FixedPriceItem",
+        "Location":"Coronado, San Jose",
+        "PaymentMethods":["PayPal", "CashOnPickup"],
+        "GalleryURL":"http://thumbs1.ebaystatic.com/pict/2608536721888080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/s/MjkxWDQzNg==/$(KGrHqUOKnIE5!GqGwFrBOb-ICrh8w~~60_1.JPG?set_id=8800005007"],
+        "PrimaryCategoryID":"118255",
+        "PrimaryCategoryName":"Books:Catalogs:Agriculture",
+        "Quantity":20,
+        "Seller":{
+            "UserID":"jmrod17",
+            "FeedbackRatingStar":"Blue",
+            "FeedbackScore":50,
+            "PositiveFeedbackPercent":100
+        },
+        "BidCount":0,
+        "ConvertedCurrentPrice":{
+            "Value":0.99,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":0.99,
+            "CurrencyID":"USD"
+        },
+        "ListingStatus":"Active",
+        "QuantitySold":2,
+        "ShipToLocations":["None"],
+        "Site":"US",
+        "TimeLeft":"P15DT19H55M24S",
+        "Title":"Mysterious gift certificate BIN 09/13/11",
+        "ShippingCostSummary":{
+            "ShippingType":"NotSpecified"
+        },
+        "HitCount":26,
+        "PrimaryCategoryIDPath":"267:118254:118255",
+        "Country":"CR",
+        "ReturnPolicy":{
+            "ReturnsAccepted":"ReturnsNotAccepted"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "ConditionID":6000,
+        "ConditionDisplayName":"Acceptable",
+        "QuantityAvailableHint":"MoreThan",
+        "QuantityThreshold":10
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"320777554988",
+        "EndTime":"2011-11-17T13:06:21.000Z",
+        "StartTime":"2011-10-18T13:06:21.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/NEW-ZEALAND-ALL-BLACKS-RUGBY-T-SHIRT-KIWI-ALL-SIZES-/320777554988?var=",
+        "ListingType":"StoresFixedPrice",
+        "Location":"Luton",
+        "PaymentMethods":["PayPal"],
+        "PictureURL":["http://i.ebayimg.com/00/s/NTUxWDU1MQ==/$(KGrHqYOKiIE6YNvJ3UeBOn(iwkvv!~~60_1.JPG?set_id=880000500F"],
+        "PostalCode":"LU4 8BJ",
+        "PrimaryCategoryID":"15687",
+        "PrimaryCategoryName":"Clothes, Shoes & Accessories:Men's Clothing:T-Shirts",
+        "Quantity":3267,
+        "Seller":{
+            "UserID":"freedom_of_my_mind",
+            "FeedbackRatingStar":"Red",
+            "FeedbackScore":4884,
+            "PositiveFeedbackPercent":99.9,
+            "TopRatedSeller":true
+        },
+        "BidCount":0,
+        "ConvertedCurrentPrice":{
+            "Value":12.71,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":7.99,
+            "CurrencyID":"GBP"
+        },
+        "ListingStatus":"Active",
+        "QuantitySold":66,
+        "ShipToLocations":["Worldwide"],
+        "Site":"UK",
+        "TimeLeft":"P20DT9H51M44S",
+        "Title":"NEW ZEALAND ALL BLACKS RUGBY T SHIRT KIWI ALL SIZES",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":7.96,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":5,
+                "CurrencyID":"GBP"
+            }
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"Brand",
+                    "Value":["Unbranded"]
+                },
+                {
+                    "Name":"T-Shirt & Top Type",
+                    "Value":["T-Shirts"]
+                },
+                {
+                    "Name":"Fabric",
+                    "Value":["100% Cotton"]
+                }
+            ]
+        },
+        "HitCount":891,
+        "PrimaryCategoryIDPath":"11450:1059:15687",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=143446965",
+            "StoreName":"freedom_of_my_mind_one"
+        },
+        "Country":"GB",
+        "ReturnPolicy":{
+            "ReturnsAccepted":"Returns Accepted"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":3,
+        "ConditionID":1500,
+        "ConditionDisplayName":"New without tags",
+        "QuantityAvailableHint":"MoreThan",
+        "QuantityThreshold":10
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"200658112307",
+        "EndTime":"2011-10-04T16:15:32.000Z",
+        "StartTime":"2011-09-29T16:15:32.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/1-000-us-wheat-pennies-/200658112307",
+        "ListingType":"Chinese",
+        "Location":"Worcester, MA",
+        "PaymentMethods":["PayPal"],
+        "GalleryURL":"http://thumbs4.ebaystatic.com/pict/2006581123078080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/$(KGrHqMOKjEE5h1!ztIPBOhJk)jO!g~~_1.JPG?set_id=8800005007"],
+        "PostalCode":"01602",
+        "PrimaryCategoryID":"11944",
+        "PrimaryCategoryName":"Coins & Paper Money:Coins: US:Small Cents:Lincoln Wheat (1909-1958):Mixed Lots",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"vickisuhl",
+            "FeedbackRatingStar":"Turquoise",
+            "FeedbackScore":124,
+            "PositiveFeedbackPercent":100
+        },
+        "BidCount":6,
+        "ConvertedCurrentPrice":{
+            "Value":39.99,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":39.99,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"e***e",
+            "FeedbackPrivate":false,
+            "FeedbackRatingStar":"YellowShooting",
+            "FeedbackScore":12854
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":1,
+        "ShipToLocations":["US"],
+        "Site":"US",
+        "TimeLeft":"PT0S",
+        "Title":"1,000 us wheat pennies!!!",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":4.75,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":4.75,
+                "CurrencyID":"USD"
+            }
+        },
+        "HitCount":40,
+        "PrimaryCategoryIDPath":"11116:253:11633:39455:11944",
+        "Country":"US",
+        "ReturnPolicy":{
+            "ReturnsAccepted":"ReturnsNotAccepted"
+        },
+        "MinimumToBid":{
+            "Value":40.99,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":3,
+        "ExcludeShipToLocation":["US Protectorates", "Africa", "Central America and Caribbean", "Middle East", "South America", "PK", "GE", "BD", "KG", "BT", "MV", "AM", "TJ", "RU", "KZ", "MN", "NP", "LK", "TM", "UZ", "JP", "KR", "AF", "AZ", "DK", "FI", "BG", "MD", "RS", "SI", "CZ", "UA", "MK", "MT", "VA", "IS", "SK", "NO", "RO", "SE", "CY", "GR", "HU", "AD", "LU", "GG", "GI", "SM", "HR", "EE", "BY", "LV", "BA", "LT", "AL", "PT", "SJ", "JE", "LI", "MC", "ME", "BM", "MX", "GL", "PM", "TO", "TV", "PF", "WS", "NC", "PW", "MH", "AS", "WF", "FM", "PG", "CK", "NZ", "GU", "FJ", "VU", "KI", "NR", "SB", "NU", "LA", "PH", "MO", "TW", "TH", "BN", "VN", "ID", "KH"]
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"190592960749",
+        "EndTime":"2011-11-01T22:19:38.000Z",
+        "StartTime":"2011-10-25T22:19:38.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Uncle-Toms-Recipe-Sweet-Baked-Onion-Rings-Penny-Auction-0-01-/190592960749",
+        "ListingType":"Chinese",
+        "Location":"Edmonton, Alberta",
+        "PaymentMethods":["PayPal"],
+        "GalleryURL":"http://thumbs2.ebaystatic.com/pict/1905929607498080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/$(KGrHqMOKisE4p9oqFLCBO(W,eu97!~~_1.JPG?set_id=8800005007"],
+        "PostalCode":"T6M2V9",
+        "PrimaryCategoryID":"20475",
+        "PrimaryCategoryName":"Home & Garden:Inside the Home:Food & Wine:Recipes",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"kurycats",
+            "FeedbackRatingStar":"Red",
+            "FeedbackScore":3449,
+            "PositiveFeedbackPercent":99.8
+        },
+        "BidCount":1,
+        "ConvertedCurrentPrice":{
+            "Value":0.01,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":0.01,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"r***1",
+            "FeedbackPrivate":false,
+            "FeedbackRatingStar":"Blue",
+            "FeedbackScore":50
+        },
+        "ListingStatus":"Active",
+        "QuantitySold":0,
+        "ShipToLocations":["Worldwide"],
+        "Site":"Canada",
+        "TimeLeft":"P4DT19H5M1S",
+        "Title":"Uncle Tom's Recipe For Sweet Baked Onion Rings Penny Auction $0.01",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            }
+        },
+        "PrimaryCategoryIDPath":"11700:159888:14308:20475",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=1749994",
+            "StoreName":"Kurycats Emporium"
+        },
+        "Country":"CA",
+        "ReturnPolicy":{
+            "ReturnsAccepted":"ReturnsNotAccepted"
+        },
+        "MinimumToBid":{
+            "Value":0.06,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":1
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"250888486629",
+        "EndTime":"2011-09-08T16:16:21.000Z",
+        "StartTime":"2011-09-07T16:16:21.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Mysterious-gift-certificate-BID-09-07-2011-/250888486629",
+        "ListingType":"Chinese",
+        "Location":"San Jose, San Jose",
+        "PaymentMethods":["PayPal", "CashOnPickup"],
+        "GalleryURL":"http://thumbs2.ebaystatic.com/pict/2508884866298080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/$(KGrHqQOKosE33(oOzvgBOHgNVU16g~~_1.JPG?set_id=8800005007"],
+        "PrimaryCategoryID":"31411",
+        "PrimaryCategoryName":"Gift Cards & Coupons:Gift Certificates",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"bcastillo",
+            "FeedbackRatingStar":"Yellow",
+            "FeedbackScore":23,
+            "PositiveFeedbackPercent":100
+        },
+        "BidCount":1,
+        "ConvertedCurrentPrice":{
+            "Value":0.01,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":0.01,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"r***1",
+            "FeedbackPrivate":false,
+            "FeedbackRatingStar":"Blue",
+            "FeedbackScore":50
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":1,
+        "ShipToLocations":["None"],
+        "Site":"US",
+        "TimeLeft":"PT0S",
+        "Title":"Mysterious gift certificate BID 09/07/2011",
+        "ShippingCostSummary":{
+            "ShippingType":"NotSpecified"
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"Valid Locations",
+                    "Value":["Costa Rica"]
+                }
+            ]
+        },
+        "HitCount":14,
+        "PrimaryCategoryIDPath":"172008:31411",
+        "Country":"CR",
+        "ReturnPolicy":{
+            "ReturnsAccepted":"ReturnsNotAccepted"
+        },
+        "MinimumToBid":{
+            "Value":0.06,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false
+    },
+    {
+        "BestOfferEnabled":true,
+        "ItemID":"170708189366",
+        "EndTime":"2011-11-05T04:27:36.000Z",
+        "StartTime":"2011-10-06T04:27:36.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Mysterious-gift-certificate-BIN-10-05-11-Best-offer-/170708189366",
+        "ListingType":"FixedPriceItem",
+        "Location":"Coronado, San Jose",
+        "PaymentMethods":["PayPal"],
+        "GalleryURL":"http://thumbs3.ebaystatic.com/pict/1707081893668080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/s/MjQwWDMyMA==/$(KGrHqZ,!m!E6J2LCv6(BOjSw2HFuw~~60_1.JPG?set_id=8800005007"],
+        "PrimaryCategoryID":"162030",
+        "PrimaryCategoryName":"Books:Catalogs:Owner's Manuals",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"juan.glaxstar",
+            "FeedbackRatingStar":"None",
+            "FeedbackScore":2,
+            "PositiveFeedbackPercent":0
+        },
+        "BidCount":0,
+        "ConvertedCurrentPrice":{
+            "Value":2,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":2,
+            "CurrencyID":"USD"
+        },
+        "ListingStatus":"Active",
+        "QuantitySold":0,
+        "ShipToLocations":["None"],
+        "Site":"US",
+        "TimeLeft":"P8DT1H12M59S",
+        "Title":"Mysterious gift certificate BIN 10/05/11 Best offer",
+        "ShippingCostSummary":{
+            "ShippingType":"NotSpecified"
+        },
+        "HitCount":11,
+        "PrimaryCategoryIDPath":"267:118254:162030",
+        "Country":"CR",
+        "ReturnPolicy":{
+            "ReturnsAccepted":"ReturnsNotAccepted"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "ConditionID":6000,
+        "ConditionDisplayName":"Acceptable"
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"250905280495",
+        "EndTime":"2011-10-13T00:12:14.000Z",
+        "StartTime":"2011-10-06T00:12:14.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Mysterious-gift-certificate-BID-10-05-2011-/250905280495",
+        "ListingType":"Chinese",
+        "Location":"San Jose, San Jose",
+        "PaymentMethods":["PayPal", "CashOnPickup"],
+        "GalleryURL":"http://thumbs4.ebaystatic.com/pict/2509052804958080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/s/NjBYNTc=/$(KGrHqMOKnQE5JfGZ9YRBOjPIlbiWw~~60_1.GIF?set_id=8800004005"],
+        "PrimaryCategoryID":"31411",
+        "PrimaryCategoryName":"Gift Cards & Coupons:Gift Certificates",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"bcastillo",
+            "FeedbackRatingStar":"Yellow",
+            "FeedbackScore":23,
+            "PositiveFeedbackPercent":100
+        },
+        "BidCount":1,
+        "ConvertedCurrentPrice":{
+            "Value":0.01,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":0.01,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"r***1",
+            "FeedbackPrivate":false,
+            "FeedbackRatingStar":"Blue",
+            "FeedbackScore":50
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":1,
+        "ShipToLocations":["None"],
+        "Site":"US",
+        "TimeLeft":"PT0S",
+        "Title":"Mysterious gift certificate BID 10/05/2011",
+        "ShippingCostSummary":{
+            "ShippingType":"NotSpecified"
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"Valid Locations",
+                    "Value":["Costa Rica"]
+                }
+            ]
+        },
+        "HitCount":24,
+        "PrimaryCategoryIDPath":"172008:31411",
+        "Country":"CR",
+        "ReturnPolicy":{
+            "ReturnsAccepted":"ReturnsNotAccepted"
+        },
+        "MinimumToBid":{
+            "Value":0.06,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"370523281409",
+        "EndTime":"2011-11-27T01:31:48.000Z",
+        "StartTime":"2011-06-30T01:31:48.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Youre-Jealous-Voices-Talk-Me-Funny-SS-LS-T-Shirts-/370523281409?var=",
+        "ListingType":"FixedPriceItem",
+        "Location":"Eastern Washington",
+        "PaymentMethods":["PayPal", "VisaMC", "Discover", "AmEx"],
+        "PictureURL":["http://www.wildwomantees.com/images/P/316.jpg"],
+        "PostalCode":"99228",
+        "PrimaryCategoryID":"15687",
+        "PrimaryCategoryName":"Clothing, Shoes & Accessories:Men's Clothing:T-Shirts",
+        "Quantity":700,
+        "Seller":{
+            "UserID":"wildwomantees",
+            "FeedbackRatingStar":"Green",
+            "FeedbackScore":7346,
+            "PositiveFeedbackPercent":100,
+            "TopRatedSeller":true
+        },
+        "BidCount":0,
+        "ConvertedCurrentPrice":{
+            "Value":10.99,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":10.99,
+            "CurrencyID":"USD"
+        },
+        "ListingStatus":"Active",
+        "QuantitySold":3,
+        "ShipToLocations":["Worldwide"],
+        "Site":"US",
+        "TimeLeft":"P29DT22H17M11S",
+        "Title":"You're Jealous Voices Talk To Me Funny SS/LS T-Shirts",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":3.95,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":3.95,
+                "CurrencyID":"USD"
+            }
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"Style",
+                    "Value":["Graphic Tee"]
+                },
+                {
+                    "Name":"Material",
+                    "Value":["100% Cotton"]
+                },
+                {
+                    "Name":"Brand",
+                    "Value":["Gildan"]
+                },
+                {
+                    "Name":"Front or Back Print",
+                    "Value":["Front Print"]
+                },
+                {
+                    "Name":"Size Type",
+                    "Value":["Regular"]
+                },
+                {
+                    "Name":"Color",
+                    "Value":["Blacks"]
+                },
+                {
+                    "Name":"Shade",
+                    "Value":["Black"]
+                }
+            ]
+        },
+        "PrimaryCategoryIDPath":"11450:1059:15687",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=107092799",
+            "StoreName":"Wild Woman Tees"
+        },
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Money Back",
+            "ReturnsWithin":"14 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "Description":"If there is a problem with your order that is our fault (defective or wrong item sent) please contact us - we'll take care of it at our expense.  If you don't like your item we will refund once the item is returned to us, unwashed and unworn - refund will be original purchase price, less shipping.  No additional charge for exchanges unless new item has a higher price.",
+            "ShippingCostPaidBy":"Buyer"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":true,
+        "HandlingTime":1,
+        "ConditionID":1500,
+        "ConditionDisplayName":"New without tags",
+        "QuantityAvailableHint":"MoreThan",
+        "QuantityThreshold":10,
+        "ExcludeShipToLocation":["AZ"]
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"380230585390",
+        "EndTime":"2011-11-25T18:25:33.000Z",
+        "StartTime":"2010-05-04T18:25:33.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/got-chess-Mens-Tee-Shirt-PICK-Size-Small-6XL-Color-/380230585390?var=",
+        "ListingType":"FixedPriceItem",
+        "Location":"Call us with any questions ",
+        "PaymentMethods":["PayPal", "VisaMC"],
+        "PictureURL":["http://99static.net/images/4new/zgtchsm.jpg"],
+        "PostalCode":"34234",
+        "PrimaryCategoryID":"15687",
+        "PrimaryCategoryName":"Clothing, Shoes & Accessories:Men's Clothing:T-Shirts",
+        "Quantity":109890,
+        "Seller":{
+            "UserID":"99voltsauctions",
+            "FeedbackRatingStar":"RedShooting",
+            "FeedbackScore":105945,
+            "PositiveFeedbackPercent":99.8,
+            "TopRatedSeller":true
+        },
+        "BidCount":0,
+        "ConvertedCurrentPrice":{
+            "Value":17.78,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":17.78,
+            "CurrencyID":"USD"
+        },
+        "ListingStatus":"Active",
+        "QuantitySold":2,
+        "ShipToLocations":["Worldwide"],
+        "Site":"US",
+        "TimeLeft":"P28DT15H10M56S",
+        "Title":"got chess? Men's Tee Shirt PICK Size Small-6XL & Color",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            }
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"Brand",
+                    "Value":["99 Volts"]
+                },
+                {
+                    "Name":"Style",
+                    "Value":["Grapic Tee"]
+                },
+                {
+                    "Name":"Size Type",
+                    "Value":["Regular"]
+                },
+                {
+                    "Name":"Material",
+                    "Value":["100% Cotton"]
+                },
+                {
+                    "Name":"Size (Men's)",
+                    "Value":["Pick Size"]
+                }
+            ]
+        },
+        "HitCount":91,
+        "PrimaryCategoryIDPath":"11450:1059:15687",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=5782130",
+            "StoreName":"99VOLTSAUCTIONS"
+        },
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Exchange",
+            "ReturnsWithin":"7 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "ShippingCostPaidBy":"Buyer"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":1,
+        "ConditionID":1500,
+        "ConditionDisplayName":"New without tags",
+        "QuantityAvailableHint":"MoreThan",
+        "QuantityThreshold":10
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"110759937440",
+        "EndTime":"2011-10-24T17:36:47.000Z",
+        "StartTime":"2011-10-17T17:36:47.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/J-CREW-2-Perfect-Fit-Long-Sleeved-T-Shirts-Tee-LARGE-Navy-White-EUC-100-Cotton-/110759937440",
+        "ListingType":"Chinese",
+        "Location":"Bellevue, Washington",
+        "PaymentMethods":["PayPal"],
+        "GalleryURL":"http://thumbs1.ebaystatic.com/pict/1107599374408080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/s/MTAyNFg3Njg=/$(KGrHqYOKjwE5v--4v4IBOnG(KwIDQ~~60_1.JPG?set_id=8800005007"],
+        "PostalCode":"98004",
+        "PrimaryCategoryID":"63869",
+        "PrimaryCategoryName":"Clothing, Shoes & Accessories:Women's Clothing:T-Shirts",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"coke_slurpee",
+            "FeedbackRatingStar":"Purple",
+            "FeedbackScore":834,
+            "PositiveFeedbackPercent":100
+        },
+        "BidCount":7,
+        "ConvertedCurrentPrice":{
+            "Value":16.39,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":16.39,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"p***e",
+            "FeedbackPrivate":false,
+            "FeedbackRatingStar":"Green",
+            "FeedbackScore":5152
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":1,
+        "ShipToLocations":["Worldwide"],
+        "Site":"US",
+        "TimeLeft":"PT0S",
+        "Title":"J CREW 2 Perfect Fit Long-Sleeved T-Shirts Tee LARGE Navy White EUC 100% Cotton",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":3.99,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":3.99,
+                "CurrencyID":"USD"
+            }
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"Size Type",
+                    "Value":["Regular"]
+                },
+                {
+                    "Name":"Size (Women's)",
+                    "Value":["L"]
+                },
+                {
+                    "Name":"Brand",
+                    "Value":["J Crew"]
+                },
+                {
+                    "Name":"Style",
+                    "Value":["Basic Tee"]
+                },
+                {
+                    "Name":"Color",
+                    "Value":["Whites"]
+                },
+                {
+                    "Name":"Sleeve Style",
+                    "Value":["Long Sleeve"]
+                },
+                {
+                    "Name":"Material",
+                    "Value":["Cotton"]
+                },
+                {
+                    "Name":"Pattern",
+                    "Value":["Solids"]
+                }
+            ]
+        },
+        "HitCount":56,
+        "PrimaryCategoryIDPath":"11450:15724:63869",
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Money Back",
+            "ReturnsWithin":"7 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "Description":"I am happy to accept returns; however, I do not refund shipping and buyer is responsible for return shipping costs.",
+            "ShippingCostPaidBy":"Buyer"
+        },
+        "MinimumToBid":{
+            "Value":16.89,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":10,
+        "ConditionID":3000,
+        "ConditionDisplayName":"Pre-owned"
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"180716796542",
+        "EndTime":"2011-08-29T22:39:58.000Z",
+        "StartTime":"2011-08-28T22:39:58.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Cupcake-eBook-Penny-Auction-Recipe-FREE-SHIPPING-/180716796542",
+        "ListingType":"Chinese",
+        "Location":"New York, NY",
+        "PaymentMethods":["PayPal"],
+        "GalleryURL":"http://thumbs3.ebaystatic.com/pict/1807167965428080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/$(KGrHqR,!jQE4ozqp,TLBOWsFcdFGg~~60_1.JPG?set_id=8800005007"],
+        "PostalCode":"10014",
+        "PrimaryCategoryID":"20475",
+        "PrimaryCategoryName":"Home & Garden:Inside the Home:Food & Wine:Recipes",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"buyersluckydelight",
+            "FeedbackRatingStar":"Yellow",
+            "FeedbackScore":29,
+            "PositiveFeedbackPercent":100
+        },
+        "BidCount":7,
+        "ConvertedCurrentPrice":{
+            "Value":0.6,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":0.6,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"4***n",
+            "FeedbackPrivate":false,
+            "FeedbackRatingStar":"Blue",
+            "FeedbackScore":78
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":1,
+        "ShipToLocations":["None"],
+        "Site":"US",
+        "TimeLeft":"PT0S",
+        "Title":"Cupcake eBook Penny Auction Recipe FREE SHIPPING!!",
+        "ShippingCostSummary":{
+            "ShippingType":"NotSpecified"
+        },
+        "HitCount":8,
+        "PrimaryCategoryIDPath":"11700:159888:14308:20475",
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Money Back",
+            "ReturnsWithin":"14 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "ShippingCostPaidBy":"Buyer"
+        },
+        "MinimumToBid":{
+            "Value":0.65,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"280735561377",
+        "EndTime":"2011-09-09T17:46:34.000Z",
+        "StartTime":"2011-09-06T17:46:34.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Penny-Auction-1-Cent-Stud-Tire-Info-01-/280735561377",
+        "ListingType":"Chinese",
+        "Location":"Firth, NE",
+        "PaymentMethods":["PayPal", "VisaMC", "Discover"],
+        "GalleryURL":"http://thumbs2.ebaystatic.com/pict/2807355613778080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/$(KGrHqUOKnQE3dH)vYufBO!MMIKEV!~~_1.JPG?set_id=8800004005"],
+        "PostalCode":"68358",
+        "PrimaryCategoryID":"88433",
+        "PrimaryCategoryName":"Everything Else:Other",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"yournexttire-store",
+            "FeedbackRatingStar":"Green",
+            "FeedbackScore":6931,
+            "PositiveFeedbackPercent":99.5,
+            "TopRatedSeller":true
+        },
+        "BidCount":3,
+        "ConvertedCurrentPrice":{
+            "Value":0.16,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":0.16,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"b***i",
+            "FeedbackPrivate":true,
+            "FeedbackRatingStar":"RedShooting",
+            "FeedbackScore":100154
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":1,
+        "ShipToLocations":["US"],
+        "Site":"US",
+        "TimeLeft":"PT0S",
+        "Title":"Penny Auction 1 Cent How to Stud a Tire Info $.01",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            }
+        },
+        "HitCount":26,
+        "PrimaryCategoryIDPath":"99:88433",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=26073877",
+            "StoreName":"yournexttire"
+        },
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Money Back",
+            "ReturnsWithin":"7 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "ShippingCostPaidBy":"Seller"
+        },
+        "MinimumToBid":{
+            "Value":0.21,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":2
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"320756798762",
+        "EndTime":"2011-09-15T22:10:30.000Z",
+        "StartTime":"2011-09-08T22:10:30.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/2005-VW-JETTA-SEDAN-GLI-TURBO-6-SPEED-LOW-MILES-/320756798762",
+        "ListingType":"Chinese",
+        "Location":"san leandro, CA",
+        "PaymentMethods":["MOCC", "PayPal", "CashInPerson"],
+        "GalleryURL":"http://thumbs3.ebaystatic.com/pict/3207567987628080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/$(KGrHqV,!i8E4sEfbUu-BOV,0Zls)w~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqF,!isE4qKBCckfBOV,0bkGqw~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqF,!k0E4lP7)cZWBOV,0qzNu!~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqV,!iUE4vfUGdGPBOV,0wI7e!~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqF,!h0E4qByC6BvBOV,02rRvQ~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqQOKnUE49bQ0fw(BOV,06Co5Q~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqMOKjcE4uiDk3I9BOV,132Q4g~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqN,!hkE45yV0B8iBOV,1vbi4g~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqJ,!lIE4pY!UTCTBOV,16Uhm!~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqN,!isE4qsrp7R5BOV,1zbEBw~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqEOKicE4qDhh,5)BOV,15Md0Q~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqEOKoYE4uUltn5EBOV,1UD9Pw~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqR,!jQE4ozqp,TLBOV,02ugi!~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqN,!jEE5!iBGjMjBOV,08wjzQ~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqV,!k0E4lnJGHo8BOV,1HGWq!~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqR,!lwE4moduizvBOV,1KZRJ!~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqN,!k8E4lpg0ktGBOV,0PKrF!~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqR,!loE4ly(c,31BOV,1Qjzm!~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqV,!lsE4mhGSBITBOV,1TUBt!~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqN,!gsE48i1RfuFBOV,1Tvs-!~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqZ,!hwE4p0iT(QOBOV,1dHsnQ~~48_1.JPG?set_id=8800005007", "http://i.ebayimg.com/00/$(KGrHqF,!jME4oUPEPeEBOV,1okCgQ~~48_1.JPG?set_id=8800005007"],
+        "PostalCode":"94578",
+        "PrimaryCategoryID":"6007",
+        "PrimaryCategoryName":"eBay Motors:Cars & Trucks:BMW:3-Series",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"all-type-of-injectors",
+            "FeedbackRatingStar":"None",
+            "FeedbackScore":8,
+            "PositiveFeedbackPercent":100
+        },
+        "BidCount":15,
+        "ConvertedCurrentPrice":{
+            "Value":7700,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":7700,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"m***1",
+            "FeedbackPrivate":false,
+            "FeedbackRatingStar":"None",
+            "FeedbackScore":0
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":1,
+        "ShipToLocations":["US"],
+        "Site":"eBayMotors",
+        "TimeLeft":"PT0S",
+        "Title":"Volkswagen : Jetta",
+        "ShippingCostSummary":{
+            "ShippingType":"NotSpecified"
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"For sale by",
+                    "Value":["Private seller"]
+                },
+                {
+                    "Name":"Year",
+                    "Value":["20050000"]
+                },
+                {
+                    "Name":"Make",
+                    "Value":["Volkswagen"]
+                },
+                {
+                    "Name":"Model",
+                    "Value":["Jetta"]
+                },
+                {
+                    "Name":"Mileage",
+                    "Value":["55000"]
+                },
+                {
+                    "Name":"Purchase protection",
+                    "Value":["True"]
+                },
+                {
+                    "Name":"Seller guarantee",
+                    "Value":["Not selected"]
+                },
+                {
+                    "Name":"VIN",
+                    "Value":["3VWSE69M45M050940"]
+                },
+                {
+                    "Name":"Transmission",
+                    "Value":["Manual"]
+                },
+                {
+                    "Name":"Sub model",
+                    "Value":["GLI RECARO"]
+                },
+                {
+                    "Name":"Warranty",
+                    "Value":["Vehicle does NOT have an existing warranty"]
+                },
+                {
+                    "Name":"Title",
+                    "Value":["Clear"]
+                },
+                {
+                    "Name":"Inspection",
+                    "Value":[""]
+                },
+                {
+                    "Name":"Title",
+                    "Value":["2005 VW JETTA SEDAN GLI TURBO 6 SPEED LOW MILES"]
+                },
+                {
+                    "Name":"SubTitle",
+                    "Value":["2005 VW JETTA SEDAN GLI TURBO 6 SPEED LOW MILES"]
+                },
+                {
+                    "Name":"Standard equipment",
+                    "Value":["Power Windows"]
+                },
+                {
+                    "Name":"Optional equipment",
+                    "Value":[""]
+                },
+                {
+                    "Name":"Exterior color",
+                    "Value":["Gray"]
+                },
+                {
+                    "Name":"Interior color",
+                    "Value":["Black"]
+                },
+                {
+                    "Name":"Deposit amount",
+                    "Value":["500.0"]
+                },
+                {
+                    "Name":"Deposit type",
+                    "Value":["1"]
+                },
+                {
+                    "Name":"Series",
+                    "Value":["4dr Sdn RWD 325i"]
+                },
+                {
+                    "Name":"Drivetrain",
+                    "Value":["Front Wheel Drive"]
+                },
+                {
+                    "Name":"Roofs",
+                    "Value":["Power Tilt/Sliding Sunroof"]
+                },
+                {
+                    "Name":"Air bag",
+                    "Value":["Side Head Air Bag"]
+                },
+                {
+                    "Name":"Engine",
+                    "Value":["1.8L 4 Cylinder Gasoline Fuel Turbocharged"]
+                },
+                {
+                    "Name":"Limited warranty",
+                    "Value":["No"]
+                },
+                {
+                    "Name":"Fuel type",
+                    "Value":["Gasoline"]
+                },
+                {
+                    "Name":"Disability equipped",
+                    "Value":["No"]
+                },
+                {
+                    "Name":"Body type",
+                    "Value":["Sedan"]
+                },
+                {
+                    "Name":"Cab type (for trucks only)",
+                    "Value":["-"]
+                },
+                {
+                    "Name":"Standard equipment",
+                    "Value":["Power Windows", "4dr Sdn RWD 325i", "Front Wheel Drive", "Side Head Air Bag", "1.8L 4 Cylinder Gasoline Fuel Turbocharged"]
+                },
+                {
+                    "Name":"Optional equipment",
+                    "Value":["", "Power Tilt/Sliding Sunroof"]
+                },
+                {
+                    "Name":"Warranty",
+                    "Value":["No"]
+                },
+                {
+                    "Name":"VIN Number",
+                    "Value":["<font face=\"Arial\" size=\"2\"><b><a target=\"_JumpPage\" href=\"http://www.autocheck.com?siteID=204&amp;vin=3VWSE69M45M050940\">3VWSE69M45M050940</a><br><font size=\"-1\" color=\"#666666\">Get the Vehicle History Report</font></b></font>"]
+                },
+                {
+                    "Name":"Search year",
+                    "Value":["2005"]
+                },
+                {
+                    "Name":"Inspection",
+                    "Value":[""]
+                },
+                {
+                    "Name":"Vehicle title",
+                    "Value":["Clear"]
+                }
+            ]
+        },
+        "HitCount":1096,
+        "PrimaryCategoryIDPath":"6000:6001:6006:6007",
+        "Country":"US",
+        "MinimumToBid":{
+            "Value":7800,
+            "CurrencyID":"USD"
+        },
+        "ProductID":{
+            "Value":"107868418",
+            "Type":"Reference"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "ConditionID":3000,
+        "ConditionDisplayName":"Used"
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"320762747552",
+        "EndTime":"2011-09-26T23:48:36.000Z",
+        "StartTime":"2011-09-19T23:48:36.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/1907-INDIAN-HEAD-CENT-PENNY-4028-FULL-LIBERTY-VERY-FINE-VF-COIN-/320762747552",
+        "ListingType":"Chinese",
+        "Location":"Chicago, IL United States",
+        "PaymentMethods":["PayPal"],
+        "GalleryURL":"http://thumbs1.ebaystatic.com/pict/3207627475528080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/s/MTA1MlgxMDgx/$(KGrHqR,!l!E5YKZcNe2BOd9Tdi(tw~~60_1.JPG?set_id=880000500F"],
+        "PostalCode":"60440",
+        "PrimaryCategoryID":"41086",
+        "PrimaryCategoryName":"Coins & Paper Money:Coins: US:Small Cents:Indian Head (1859-1909):1880-1909",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"coinsrus66",
+            "FeedbackRatingStar":"Green",
+            "FeedbackScore":5569,
+            "PositiveFeedbackPercent":99.8,
+            "TopRatedSeller":true
+        },
+        "BidCount":5,
+        "ConvertedCurrentPrice":{
+            "Value":1.27,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":1.27,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"9***n",
+            "FeedbackPrivate":false,
+            "FeedbackRatingStar":"Blue",
+            "FeedbackScore":55
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":1,
+        "ShipToLocations":["US"],
+        "Site":"US",
+        "TimeLeft":"PT0S",
+        "Title":"1907 INDIAN HEAD CENT PENNY 4028 FULL LIBERTY VERY FINE VF COIN",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            }
+        },
+        "ItemSpecifics":{
+            "NameValueList":[
+                {
+                    "Name":"Strike Type",
+                    "Value":["Business"]
+                },
+                {
+                    "Name":"Mint Location",
+                    "Value":["Philadelphia"]
+                }
+            ]
+        },
+        "HitCount":21,
+        "PrimaryCategoryIDPath":"11116:253:11633:41084:41086",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=852143151",
+            "StoreName":"CoinsRuS66"
+        },
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Money Back",
+            "ReturnsWithin":"7 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "Description":"Will accept returns on all coins. Postage will be paid for by the buyer. Thanks!",
+            "ShippingCostPaidBy":"Buyer"
+        },
+        "MinimumToBid":{
+            "Value":1.52,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":3
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"180716782615",
+        "EndTime":"2011-08-29T21:45:28.000Z",
+        "StartTime":"2011-08-28T21:45:28.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Roasted-Chicken-Recipe-w-Free-Shipping-Penny-Auction-/180716782615",
+        "ListingType":"Chinese",
+        "Location":"New York, NY",
+        "PaymentMethods":["PayPal"],
+        "GalleryURL":"http://thumbs4.ebaystatic.com/pict/1807167826158080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/$(KGrHqJ,!lYE5YswSeQiBOWr!+5gTg~~60_1.JPG?set_id=8800005007"],
+        "PostalCode":"10011",
+        "PrimaryCategoryID":"20475",
+        "PrimaryCategoryName":"Home & Garden:Inside the Home:Food & Wine:Recipes",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"rapidrodriguez",
+            "FeedbackRatingStar":"Yellow",
+            "FeedbackScore":28,
+            "PositiveFeedbackPercent":100
+        },
+        "BidCount":1,
+        "ConvertedCurrentPrice":{
+            "Value":0.01,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":0.01,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"m***m",
+            "FeedbackPrivate":false,
+            "FeedbackRatingStar":"Turquoise",
+            "FeedbackScore":236
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":1,
+        "ShipToLocations":["None"],
+        "Site":"US",
+        "TimeLeft":"PT0S",
+        "Title":"Roasted Chicken Recipe w/ Free Shipping Penny Auction",
+        "ShippingCostSummary":{
+            "ShippingType":"NotSpecified"
+        },
+        "HitCount":7,
+        "PrimaryCategoryIDPath":"11700:159888:14308:20475",
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Money Back",
+            "ReturnsWithin":"14 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "ShippingCostPaidBy":"Buyer"
+        },
+        "MinimumToBid":{
+            "Value":0.06,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"180715921167",
+        "EndTime":"2011-09-02T22:08:01.000Z",
+        "StartTime":"2011-08-26T22:08:01.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Mysterious-gift-certificate-BID-07-26-2011-/180715921167",
+        "ListingType":"Chinese",
+        "Location":"--, SJ",
+        "PaymentMethods":["PayPal"],
+        "GalleryURL":"http://thumbs4.ebaystatic.com/pict/1807159211678080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/$(KGrHqUOKm4E4PccYS4mBOJHvDHspg~~_1.GIF?set_id=8800004005"],
+        "PrimaryCategoryID":"31411",
+        "PrimaryCategoryName":"Gift Cards & Coupons:Gift Certificates",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"sunflowers.flor",
+            "FeedbackRatingStar":"Yellow",
+            "FeedbackScore":14,
+            "PositiveFeedbackPercent":100
+        },
+        "BidCount":19,
+        "ConvertedCurrentPrice":{
+            "Value":0.91,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":0.91,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"o***o",
+            "FeedbackPrivate":false,
+            "FeedbackRatingStar":"Yellow",
+            "FeedbackScore":23
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":1,
+        "ShipToLocations":["None"],
+        "Site":"US",
+        "TimeLeft":"PT0S",
+        "Title":"Mysterious gift certificate BID 07/26/2011",
+        "ShippingCostSummary":{
+            "ShippingType":"NotSpecified"
+        },
+        "HitCount":22,
+        "PrimaryCategoryIDPath":"172008:31411",
+        "Country":"CR",
+        "ReturnPolicy":{
+            "ReturnsAccepted":"ReturnsNotAccepted"
+        },
+        "MinimumToBid":{
+            "Value":0.96,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false
+    },
+    {
+        "BestOfferEnabled":false,
+        "ItemID":"280735578731",
+        "EndTime":"2011-09-09T18:21:32.000Z",
+        "StartTime":"2011-09-06T18:21:32.000Z",
+        "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/Penny-Auction-1-Cent-Tire-Replacement-Tips-01-/280735578731",
+        "ListingType":"Chinese",
+        "Location":"Firth, NE",
+        "PaymentMethods":["PayPal", "VisaMC", "Discover"],
+        "GalleryURL":"http://thumbs4.ebaystatic.com/pict/2807355787318080_1.jpg",
+        "PictureURL":["http://i.ebayimg.com/00/$(KGrHqYOKi4E3SHG1F6nBO!MQztnE!~~_1.JPG?set_id=8800004005"],
+        "PostalCode":"68358",
+        "PrimaryCategoryID":"88433",
+        "PrimaryCategoryName":"Everything Else:Other",
+        "Quantity":1,
+        "Seller":{
+            "UserID":"yournexttire-store",
+            "FeedbackRatingStar":"Green",
+            "FeedbackScore":6931,
+            "PositiveFeedbackPercent":99.5,
+            "TopRatedSeller":true
+        },
+        "BidCount":3,
+        "ConvertedCurrentPrice":{
+            "Value":0.16,
+            "CurrencyID":"USD"
+        },
+        "CurrentPrice":{
+            "Value":0.16,
+            "CurrencyID":"USD"
+        },
+        "HighBidder":{
+            "UserID":"b***i",
+            "FeedbackPrivate":true,
+            "FeedbackRatingStar":"RedShooting",
+            "FeedbackScore":100154
+        },
+        "ListingStatus":"Completed",
+        "QuantitySold":1,
+        "ShipToLocations":["US"],
+        "Site":"US",
+        "TimeLeft":"PT0S",
+        "Title":"Penny Auction 1 Cent Tire Replacement Tips $.01",
+        "ShippingCostSummary":{
+            "ShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            },
+            "ShippingType":"Flat",
+            "ListedShippingServiceCost":{
+                "Value":0,
+                "CurrencyID":"USD"
+            }
+        },
+        "HitCount":5,
+        "PrimaryCategoryIDPath":"99:88433",
+        "Storefront":{
+            "StoreURL":"http://stores.ebay.com/id=26073877",
+            "StoreName":"yournexttire"
+        },
+        "Country":"US",
+        "ReturnPolicy":{
+            "Refund":"Money Back",
+            "ReturnsWithin":"7 Days",
+            "ReturnsAccepted":"Returns Accepted",
+            "ShippingCostPaidBy":"Seller"
+        },
+        "MinimumToBid":{
+            "Value":0.21,
+            "CurrencyID":"USD"
+        },
+        "AutoPay":false,
+        "PaymentAllowedSite":[],
+        "IntegratedMerchantCreditCardEnabled":false,
+        "HandlingTime":2
+    }
+]}

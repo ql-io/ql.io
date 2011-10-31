@@ -1,0 +1,20 @@
+{
+    "Timestamp" : "2011-10-28T18:21:51.461Z",
+    "Ack" : "Failure",
+    "Errors" : [
+        {
+            "ShortMessage" : "Missing required input element.",
+            "LongMessage" : "Required input element is missing from the request.",
+            "ErrorCode" : "1.19",
+            "SeverityCode" : "Error",
+            "ErrorParameters" : [
+                {
+                    "Value" : "ItemID",
+                    "ParamID" : "0"
+                }
+            ],
+            "ErrorClassification" : "RequestError"
+        }],
+    "Build" : "E745_CORE_BUNDLED_14011937_R1",
+    "Version" : "745"
+}

@@ -1,0 +1,1448 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GetMyeBayBuyingResponse xmlns="urn:ebay:apis:eBLBaseComponents">
+    <Timestamp>2011-10-28T22:56:49.660Z</Timestamp>
+    <Ack>Success</Ack>
+    <CorrelationID></CorrelationID>
+    <Version>745</Version>
+    <Build>E745_CORE_BUNDLED_14023289_R1</Build>
+    <WatchList>
+        <ItemArray>
+            <Item>
+                <ItemID>110763457898</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-10-24T17:34:38.000Z</StartTime>
+                    <EndTime>2011-10-29T17:34:38.000Z</EndTime>
+                    <ViewItemURL>http://www.ebay.com/itm/American-Motorcycle-1902-Established-t-shirts-/110763457898
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/American-Motorcycle-1902-Established-t-shirts?item=110763457898&amp;amp;
+                        category=15687&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>31</FeedbackScore>
+                    <FeedbackRatingStar>Yellow</FeedbackRatingStar>
+                    <UserID>diecastpeople29</UserID>
+                </Seller>
+                <SellingStatus>
+                    <CurrentPrice currencyID="USD">99.99</CurrentPrice>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">9.99</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">99.99</StartPrice>
+                <TimeLeft>PT18H37M50S</TimeLeft>
+                <Title>American Motorcycle 1902 Established t-shirts</Title>
+                <QuantityAvailable>1</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/1107634578986464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <ItemID>390359315461</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-10-25T22:09:13.000Z</StartTime>
+                    <EndTime>2011-11-01T22:09:13.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/Pumpkin-Roll-Mennonite-Recipe-Grannas-Heart-Hands-one-cent-penny-auction-/390359315461
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Pumpkin-Roll-Mennonite-Recipe-Grannas-Heart-Hands-one-cent-penny-auction?item=390359315461
+                        &amp;category=20475&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>741</FeedbackScore>
+                    <FeedbackRatingStar>Purple</FeedbackRatingStar>
+                    <UserID>granna1954</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>2</BidCount>
+                    <CurrentPrice currencyID="USD">0.06</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>0</FeedbackScore>
+                        <FeedbackRatingStar>None</FeedbackRatingStar>
+                        <UserID>t***t</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <TimeLeft>P3DT23H12M25S</TimeLeft>
+                <Title>Pumpkin Roll Mennonite Recipe Grannas Heart &amp; Hands one cent penny auction</Title>
+                <QuantityAvailable>1</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/3903593154616464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <ItemID>190592960749</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-10-25T22:19:38.000Z</StartTime>
+                    <EndTime>2011-11-01T22:19:38.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/Uncle-Toms-Recipe-Sweet-Baked-Onion-Rings-Penny-Auction-0-01-/190592960749
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Uncle-Toms-Recipe-For-Sweet-Baked-Onion-Rings-Penny-Auction-0-01?item=190592960749
+                        &amp;category=20475&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>3462</FeedbackScore>
+                    <FeedbackRatingStar>Red</FeedbackRatingStar>
+                    <UserID>kurycats</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>1</BidCount>
+                    <CurrentPrice currencyID="USD">0.01</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>50</FeedbackScore>
+                        <FeedbackRatingStar>Blue</FeedbackRatingStar>
+                        <UserID>jmrod17</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>Canada</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <TimeLeft>P3DT23H22M50S</TimeLeft>
+                <Title>Uncle Tom's Recipe For Sweet Baked Onion Rings Penny Auction $0.01</Title>
+                <QuantityAvailable>1</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/1905929607496464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <BuyItNowPrice currencyID="USD">2.0</BuyItNowPrice>
+                <ItemID>170708189366</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-10-06T04:27:36.000Z</StartTime>
+                    <EndTime>2011-11-05T04:27:36.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/Mysterious-gift-certificate-BIN-10-05-11-Best-offer-/170708189366
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Mysterious-gift-certificate-BIN-10-05-11-Best-offer?item=170708189366&amp;
+                        category=162030&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>FixedPriceItem</ListingType>
+                <Seller>
+                    <FeedbackScore>2</FeedbackScore>
+                    <FeedbackRatingStar>None</FeedbackRatingStar>
+                    <UserID>juan.glaxstar</UserID>
+                </Seller>
+                <SellingStatus>
+                    <CurrentPrice currencyID="USD">2.0</CurrentPrice>
+                </SellingStatus>
+                <Site>US</Site>
+                <TimeLeft>P7DT5H30M48S</TimeLeft>
+                <Title>Mysterious gift certificate BIN 10/05/11 Best offer</Title>
+                <QuantityAvailable>1</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/1707081893666464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <BuyItNowPrice currencyID="GBP">7.99</BuyItNowPrice>
+                <ItemID>320777554988</ItemID>
+                <ListingDetails>
+                    <ConvertedBuyItNowPrice currencyID="USD">12.83</ConvertedBuyItNowPrice>
+                    <StartTime>2011-10-18T13:06:21.000Z</StartTime>
+                    <EndTime>2011-11-17T13:06:21.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/NEW-ZEALAND-ALL-BLACKS-RUGBY-T-SHIRT-KIWI-ALL-SIZES-S-Black-White-Mens-/320777554988
+                        &amp;vti=Size%09S%0AColour%09Black%2FWhite%0AGender%09Mens
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/NEW-ZEALAND-ALL-BLACKS-RUGBY-T-SHIRT-KIWI-ALL-SIZES-S-Black-White-Mens?item=320777554988
+                        &amp;category=15687&amp;cmd=ViewItem?vti=Size%09S%0AColour%09Black%2FWhite%0AGender%09Mens
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>StoresFixedPrice</ListingType>
+                <Seller>
+                    <FeedbackScore>4895</FeedbackScore>
+                    <FeedbackRatingStar>Red</FeedbackRatingStar>
+                    <UserID>freedom_of_my_mind</UserID>
+                </Seller>
+                <SellingStatus>
+                    <ConvertedCurrentPrice currencyID="USD">12.83</ConvertedCurrentPrice>
+                    <CurrentPrice currencyID="GBP">7.99</CurrentPrice>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="GBP">3.5</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>UK</Site>
+                <TimeLeft>P19DT14H9M33S</TimeLeft>
+                <Title>NEW ZEALAND ALL BLACKS RUGBY T SHIRT KIWI ALL SIZES[S,Black/White,Mens]</Title>
+                <QuantityAvailable>96</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/3207775549886464_1.jpg</GalleryURL>
+                </PictureDetails>
+                <Variations>
+                    <Variation>
+                        <VariationSpecifics>
+                            <NameValueList>
+                                <Name>Size</Name>
+                                <Value>S</Value>
+                            </NameValueList>
+                            <NameValueList>
+                                <Name>Colour</Name>
+                                <Value>Black/White</Value>
+                            </NameValueList>
+                            <NameValueList>
+                                <Name>Gender</Name>
+                                <Value>Mens</Value>
+                            </NameValueList>
+                        </VariationSpecifics>
+                    </Variation>
+                </Variations>
+            </Item>
+            <Item>
+                <BuyItNowPrice currencyID="USD">14.99</BuyItNowPrice>
+                <ItemID>220660048005</ItemID>
+                <ListingDetails>
+                    <StartTime>2010-08-25T21:52:24.000Z</StartTime>
+                    <EndTime>2011-11-18T21:52:24.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/JABBAWOCKEEZ-STREET-DANCE-T-SHIRT-NEW-S-M-L-XL-NWT-XL-Short-Sleeve-Black-/220660048005
+                        &amp;vti=Size%09XL%0ASleeve+Length%09Short+Sleeve%0AMain+Color%09Black
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/JABBAWOCKEEZ-STREET-DANCE-T-SHIRT-NEW-S-M-L-XL-NWT-XL-Short-Sleeve-Black?item=220660048005
+                        &amp;category=15687&amp;cmd=ViewItem?vti=Size%09XL%0ASleeve+Length%09Short+Sleeve%0AMain+Color%09Black
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>StoresFixedPrice</ListingType>
+                <Seller>
+                    <FeedbackScore>1551</FeedbackScore>
+                    <FeedbackRatingStar>Red</FeedbackRatingStar>
+                    <UserID>acidshirts</UserID>
+                </Seller>
+                <SellingStatus>
+                    <CurrentPrice currencyID="USD">14.99</CurrentPrice>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">14.0</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <TimeLeft>P20DT22H55M36S</TimeLeft>
+                <Title>JABBAWOCKEEZ STREET DANCE T-SHIRT NEW S, M, L, XL NWT!![XL,Short Sleeve,Black]</Title>
+                <QuantityAvailable>5</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/2206600480056464_2.jpg</GalleryURL>
+                </PictureDetails>
+                <Variations>
+                    <Variation>
+                        <VariationSpecifics>
+                            <NameValueList>
+                                <Name>Size</Name>
+                                <Value>XL</Value>
+                            </NameValueList>
+                            <NameValueList>
+                                <Name>Sleeve Length</Name>
+                                <Value>Short Sleeve</Value>
+                            </NameValueList>
+                            <NameValueList>
+                                <Name>Main Color</Name>
+                                <Value>Black</Value>
+                            </NameValueList>
+                        </VariationSpecifics>
+                    </Variation>
+                </Variations>
+            </Item>
+            <Item>
+                <BuyItNowPrice currencyID="USD">8.0</BuyItNowPrice>
+                <ItemID>190592293164</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-10-24T17:35:26.000Z</StartTime>
+                    <EndTime>2011-11-23T17:35:26.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/Disney-Disneyland-SS-Womens-Gray-Navy-T-Shirt-XL-Mickey-55-/190592293164
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Disney-Disneyland-SS-Womens-Gray-Navy-T-Shirt-XL-Mickey-55?item=190592293164
+                        &amp;category=35843&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>StoresFixedPrice</ListingType>
+                <Seller>
+                    <FeedbackScore>409</FeedbackScore>
+                    <FeedbackRatingStar>Turquoise</FeedbackRatingStar>
+                    <UserID>opalise</UserID>
+                </Seller>
+                <SellingStatus>
+                    <CurrentPrice currencyID="USD">8.0</CurrentPrice>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">4.0</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <TimeLeft>P25DT18H38M38S</TimeLeft>
+                <Title>Disney Disneyland SS Womens Gray Navy T Shirt XL Mickey 55</Title>
+                <QuantityAvailable>1</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/1905922931646464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <BuyItNowPrice currencyID="EUR">5.99</BuyItNowPrice>
+                <ItemID>250494184442</ItemID>
+                <ListingDetails>
+                    <ConvertedBuyItNowPrice currencyID="USD">8.47</ConvertedBuyItNowPrice>
+                    <StartTime>2009-09-06T17:56:00.000Z</StartTime>
+                    <EndTime>2011-11-25T17:56:00.000Z</EndTime>
+                    <ViewItemURL>http://www.ebay.com/itm/Wandtattoo-Bon-Appetit-Guten-Appetit-60cm-Neu-/250494184442
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Wandtattoo-Bon-Appetit-Guten-Appetit-60cm-Neu?item=250494184442&amp;
+                        category=167470&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>StoresFixedPrice</ListingType>
+                <Seller>
+                    <FeedbackScore>24271</FeedbackScore>
+                    <FeedbackRatingStar>YellowShooting</FeedbackRatingStar>
+                    <UserID>bargain_paradise_24*7</UserID>
+                </Seller>
+                <SellingStatus>
+                    <ConvertedCurrentPrice currencyID="USD">8.47</ConvertedCurrentPrice>
+                    <CurrentPrice currencyID="EUR">5.99</CurrentPrice>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="EUR">2.2</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>Germany</Site>
+                <TimeLeft>P27DT18H59M12S</TimeLeft>
+                <Title>Wandtattoo Bon Appetit Guten Appetit 60cm Neu</Title>
+                <QuantityAvailable>2100</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/2504941844426464_15.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <BuyItNowPrice currencyID="USD">17.78</BuyItNowPrice>
+                <ItemID>380230585390</ItemID>
+                <ListingDetails>
+                    <StartTime>2010-05-04T18:25:33.000Z</StartTime>
+                    <EndTime>2011-11-25T18:25:33.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/got-chess-Mens-Tee-Shirt-PICK-Size-Small-6XL-Color-L-Short-Sleeve-Black-/380230585390
+                        &amp;vti=Size%09L%0ASleeve+Length%09Short+Sleeve%0AMain+Color%09Black
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/got-chess-Mens-Tee-Shirt-PICK-Size-Small-6XL-Color-L-Short-Sleeve-Black?item=380230585390
+                        &amp;category=15687&amp;cmd=ViewItem?vti=Size%09L%0ASleeve+Length%09Short+Sleeve%0AMain+Color%09Black
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>FixedPriceItem</ListingType>
+                <Seller>
+                    <FeedbackScore>105954</FeedbackScore>
+                    <FeedbackRatingStar>RedShooting</FeedbackRatingStar>
+                    <UserID>99voltsauctions</UserID>
+                </Seller>
+                <SellingStatus>
+                    <CurrentPrice currencyID="USD">17.78</CurrentPrice>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">6.0</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <TimeLeft>P27DT19H28M45S</TimeLeft>
+                <Title>got chess? Men's Tee Shirt PICK Size Small-6XL &amp; Color[L,Short Sleeve,Black]</Title>
+                <QuantityAvailable>998</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/3802305853906464_3.jpg</GalleryURL>
+                </PictureDetails>
+                <Variations>
+                    <Variation>
+                        <VariationSpecifics>
+                            <NameValueList>
+                                <Name>Size</Name>
+                                <Value>L</Value>
+                            </NameValueList>
+                            <NameValueList>
+                                <Name>Sleeve Length</Name>
+                                <Value>Short Sleeve</Value>
+                            </NameValueList>
+                            <NameValueList>
+                                <Name>Main Color</Name>
+                                <Value>Black</Value>
+                            </NameValueList>
+                        </VariationSpecifics>
+                    </Variation>
+                </Variations>
+            </Item>
+            <Item>
+                <BuyItNowPrice currencyID="USD">17.78</BuyItNowPrice>
+                <ItemID>310218058352</ItemID>
+                <ListingDetails>
+                    <StartTime>2010-05-04T18:25:42.000Z</StartTime>
+                    <EndTime>2011-11-25T18:25:42.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/got-violin-Mens-Tee-Shirt-PICK-Size-Small-6XL-Color-L-Short-Sleeve-Black-/310218058352
+                        &amp;vti=Size%09L%0ASleeve+Length%09Short+Sleeve%0AMain+Color%09Black
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/got-violin-Mens-Tee-Shirt-PICK-Size-Small-6XL-Color-L-Short-Sleeve-Black?item=310218058352
+                        &amp;category=15687&amp;cmd=ViewItem?vti=Size%09L%0ASleeve+Length%09Short+Sleeve%0AMain+Color%09Black
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>FixedPriceItem</ListingType>
+                <Seller>
+                    <FeedbackScore>105954</FeedbackScore>
+                    <FeedbackRatingStar>RedShooting</FeedbackRatingStar>
+                    <UserID>99voltsauctions</UserID>
+                </Seller>
+                <SellingStatus>
+                    <CurrentPrice currencyID="USD">17.78</CurrentPrice>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">6.0</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <TimeLeft>P27DT19H28M54S</TimeLeft>
+                <Title>got violin? Men's Tee Shirt PICK Size Small-6XL &amp; Color[L,Short Sleeve,Black]</Title>
+                <QuantityAvailable>999</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/3102180583526464_3.jpg</GalleryURL>
+                </PictureDetails>
+                <Variations>
+                    <Variation>
+                        <VariationSpecifics>
+                            <NameValueList>
+                                <Name>Size</Name>
+                                <Value>L</Value>
+                            </NameValueList>
+                            <NameValueList>
+                                <Name>Sleeve Length</Name>
+                                <Value>Short Sleeve</Value>
+                            </NameValueList>
+                            <NameValueList>
+                                <Name>Main Color</Name>
+                                <Value>Black</Value>
+                            </NameValueList>
+                        </VariationSpecifics>
+                    </Variation>
+                </Variations>
+            </Item>
+            <Item>
+                <BuyItNowPrice currencyID="USD">16.99</BuyItNowPrice>
+                <ItemID>370523281409</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-06-30T01:31:48.000Z</StartTime>
+                    <EndTime>2011-11-27T01:31:48.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/Youre-Jealous-Voices-Talk-Me-Funny-SS-LS-T-Shirts-Long-Sleeve-2XL-/370523281409
+                        &amp;vti=Sleeve+Length%09Long+Sleeve%0ASize+%28Men%27s%29%092XL
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Youre-Jealous-Voices-Talk-To-Me-Funny-SS-LS-T-Shirts-Long-Sleeve-2XL?item=370523281409
+                        &amp;category=15687&amp;cmd=ViewItem?vti=Sleeve+Length%09Long+Sleeve%0ASize+%28Men%27s%29%092XL
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>FixedPriceItem</ListingType>
+                <Seller>
+                    <FeedbackScore>7347</FeedbackScore>
+                    <FeedbackRatingStar>Green</FeedbackRatingStar>
+                    <UserID>wildwomantees</UserID>
+                </Seller>
+                <SellingStatus>
+                    <CurrentPrice currencyID="USD">16.99</CurrentPrice>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">10.89</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <TimeLeft>P29DT2H35M</TimeLeft>
+                <Title>You're Jealous Voices Talk To Me Funny SS/LS T-Shirts[Long Sleeve,2XL]</Title>
+                <QuantityAvailable>49</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/3705232814096464_1.jpg</GalleryURL>
+                </PictureDetails>
+                <Variations>
+                    <Variation>
+                        <VariationSpecifics>
+                            <NameValueList>
+                                <Name>Sleeve Length</Name>
+                                <Value>Long Sleeve</Value>
+                            </NameValueList>
+                            <NameValueList>
+                                <Name>Size (Men's)</Name>
+                                <Value>2XL</Value>
+                            </NameValueList>
+                        </VariationSpecifics>
+                    </Variation>
+                </Variations>
+            </Item>
+            <Item>
+                <BuyItNowPrice currencyID="USD">14.99</BuyItNowPrice>
+                <ItemID>150682308427</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-10-24T00:09:52.000Z</StartTime>
+                    <EndTime>2011-10-27T00:09:52.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/Cobra-Golf-T-Shirt-All-Sizes-New-S-Short-Sleeve-White-/150682308427&amp;
+                        vti=Sizes%09S%0ASleeve+Length%09Short+Sleeve%0AColors%09White
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Cobra-Golf-T-Shirt-All-Sizes-New-S-Short-Sleeve-White?item=150682308427&amp;
+                        category=15687&amp;cmd=ViewItem?vti=Sizes%09S%0ASleeve+Length%09Short+Sleeve%0AColors%09White
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>FixedPriceItem</ListingType>
+                <Seller>
+                    <FeedbackScore>3601</FeedbackScore>
+                    <FeedbackRatingStar>Red</FeedbackRatingStar>
+                    <UserID>spectrum-trading</UserID>
+                </Seller>
+                <SellingStatus>
+                    <CurrentPrice currencyID="USD">14.99</CurrentPrice>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <TimeLeft>PT0S</TimeLeft>
+                <Title>Cobra Golf T Shirt All Sizes - New[S,Short Sleeve,White]</Title>
+                <QuantityAvailable>72</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/1506823084276464_1.jpg</GalleryURL>
+                </PictureDetails>
+                <Variations>
+                    <Variation>
+                        <VariationSpecifics>
+                            <NameValueList>
+                                <Name>Sizes</Name>
+                                <Value>S</Value>
+                            </NameValueList>
+                            <NameValueList>
+                                <Name>Sleeve Length</Name>
+                                <Value>Short Sleeve</Value>
+                            </NameValueList>
+                            <NameValueList>
+                                <Name>Colors</Name>
+                                <Value>White</Value>
+                            </NameValueList>
+                        </VariationSpecifics>
+                    </Variation>
+                </Variations>
+            </Item>
+            <Item>
+                <ItemID>110759937440</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-10-17T17:36:47.000Z</StartTime>
+                    <EndTime>2011-10-24T17:36:47.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/J-CREW-2-Perfect-Fit-Long-Sleeved-T-Shirts-Tee-LARGE-Navy-White-EUC-100-Cotton-/110759937440
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/J-CREW-2-Perfect-Fit-Long-Sleeved-T-Shirts-Tee-LARGE-Navy-White-EUC-100-Cotton?item=110759937440
+                        &amp;category=63869&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>836</FeedbackScore>
+                    <FeedbackRatingStar>Purple</FeedbackRatingStar>
+                    <UserID>coke_slurpee</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>7</BidCount>
+                    <CurrentPrice currencyID="USD">16.39</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>5152</FeedbackScore>
+                        <FeedbackRatingStar>Green</FeedbackRatingStar>
+                        <UserID>p***e</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">3.99</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">7.99</StartPrice>
+                <TimeLeft>PT0S</TimeLeft>
+                <Title>J CREW 2 Perfect Fit Long-Sleeved T-Shirts Tee LARGE Navy White EUC 100% Cotton</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/1107599374406464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <ItemID>140625700110</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-10-23T17:36:45.000Z</StartTime>
+                    <EndTime>2011-10-24T17:36:45.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/SUN-DROP-XL-XLARGE-Shirt-Leg-Warmers-Headband-T-Shirt-Halloween-Costume-/140625700110
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/SUN-DROP-XL-XLARGE-Shirt-Leg-Warmers-Headband-T-Shirt-Halloween-Costume?item=140625700110
+                        &amp;category=63869&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>2126</FeedbackScore>
+                    <FeedbackRatingStar>Red</FeedbackRatingStar>
+                    <UserID>little*buys</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>8</BidCount>
+                    <CurrentPrice currencyID="USD">64.0</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>35</FeedbackScore>
+                        <FeedbackRatingStar>Yellow</FeedbackRatingStar>
+                        <UserID>h***7</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">4.99</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">29.99</StartPrice>
+                <TimeLeft>PT0S</TimeLeft>
+                <Title>SUN DROP XL XLARGE * Shirt + Leg Warmers + Headband * T-Shirt Halloween Costume</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/1406257001106464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <ItemID>200658112307</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-09-29T16:15:32.000Z</StartTime>
+                    <EndTime>2011-10-04T16:15:32.000Z</EndTime>
+                    <ViewItemURL>http://www.ebay.com/itm/1-000-us-wheat-pennies-/200658112307</ViewItemURL>
+                    <ViewItemURLForNaturalSearch>http://cgi.ebay.com/1-000-us-wheat-pennies?item=200658112307&amp;
+                        category=11944&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>129</FeedbackScore>
+                    <FeedbackRatingStar>Turquoise</FeedbackRatingStar>
+                    <UserID>vickisuhl</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>6</BidCount>
+                    <CurrentPrice currencyID="USD">39.99</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>12858</FeedbackScore>
+                        <FeedbackRatingStar>YellowShooting</FeedbackRatingStar>
+                        <UserID>e***e</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">4.75</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">24.99</StartPrice>
+                <TimeLeft>PT0S</TimeLeft>
+                <Title>1,000 us wheat pennies!!!</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/2006581123076464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <ItemID>300605910278</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-10-02T18:08:27.000Z</StartTime>
+                    <EndTime>2011-10-03T18:08:27.000Z</EndTime>
+                    <ViewItemURL>http://www.ebay.com/itm/50-2002-D-bank-wrapped-BU-Lincoln-Pennies-/300605910278
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/50-2002-D-bank-wrapped-BU-Lincoln-Pennies?item=300605910278&amp;category=11944&amp;
+                        cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>13455</FeedbackScore>
+                    <FeedbackRatingStar>YellowShooting</FeedbackRatingStar>
+                    <UserID>guru1</UserID>
+                </Seller>
+                <SellingStatus>
+                    <CurrentPrice currencyID="USD">2.95</CurrentPrice>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">3.95</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">2.95</StartPrice>
+                <TimeLeft>PT0S</TimeLeft>
+                <Title>(50)2002-D bank wrapped BU Lincoln Pennies</Title>
+                <QuantityAvailable>1</QuantityAvailable>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/3006059102786464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <ItemID>320762747552</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-09-19T23:48:36.000Z</StartTime>
+                    <EndTime>2011-09-26T23:48:36.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/1907-INDIAN-HEAD-CENT-PENNY-4028-FULL-LIBERTY-VERY-FINE-VF-COIN-/320762747552
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/1907-INDIAN-HEAD-CENT-PENNY-4028-FULL-LIBERTY-VERY-FINE-VF-COIN?item=320762747552
+                        &amp;category=41086&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>5590</FeedbackScore>
+                    <FeedbackRatingStar>Green</FeedbackRatingStar>
+                    <UserID>coinsrus66</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>5</BidCount>
+                    <CurrentPrice currencyID="USD">1.27</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>55</FeedbackScore>
+                        <FeedbackRatingStar>Blue</FeedbackRatingStar>
+                        <UserID>9***n</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <TimeLeft>PT0S</TimeLeft>
+                <Title>1907 INDIAN HEAD CENT PENNY 4028 FULL LIBERTY VERY FINE VF COIN</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/3207627475526464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <ItemID>320756798762</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-09-08T22:10:30.000Z</StartTime>
+                    <EndTime>2011-09-15T22:10:30.000Z</EndTime>
+                    <ViewItemURL>http://www.ebay.com/itm/Volkswagen-Jetta-/320756798762</ViewItemURL>
+                    <ViewItemURLForNaturalSearch>http://cgi.ebay.com/Volkswagen-Jetta?item=320756798762&amp;category=6007&amp;
+                        cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>8</FeedbackScore>
+                    <FeedbackRatingStar>None</FeedbackRatingStar>
+                    <UserID>all-type-of-injectors</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>15</BidCount>
+                    <CurrentPrice currencyID="USD">7700.0</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>0</FeedbackScore>
+                        <FeedbackRatingStar>None</FeedbackRatingStar>
+                        <UserID>m***1</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <Site>eBayMotors</Site>
+                <StartPrice currencyID="USD">200.0</StartPrice>
+                <TimeLeft>PT0S</TimeLeft>
+                <Title>Volkswagen : Jetta</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/3207567987626464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <ItemID>280735578731</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-09-06T18:21:32.000Z</StartTime>
+                    <EndTime>2011-09-09T18:21:32.000Z</EndTime>
+                    <ViewItemURL>http://www.ebay.com/itm/Penny-Auction-1-Cent-Tire-Replacement-Tips-01-/280735578731
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Penny-Auction-1-Cent-Tire-Replacement-Tips-01?item=280735578731&amp;
+                        category=88433&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>6950</FeedbackScore>
+                    <FeedbackRatingStar>Green</FeedbackRatingStar>
+                    <UserID>yournexttire-store</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>3</BidCount>
+                    <CurrentPrice currencyID="USD">0.16</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>100146</FeedbackScore>
+                        <FeedbackRatingStar>RedShooting</FeedbackRatingStar>
+                        <UserID>b***i</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <TimeLeft>PT0S</TimeLeft>
+                <Title>Penny Auction 1 Cent Tire Replacement Tips $.01</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/2807355787316464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <ItemID>280735561377</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-09-06T17:46:34.000Z</StartTime>
+                    <EndTime>2011-09-09T17:46:34.000Z</EndTime>
+                    <ViewItemURL>http://www.ebay.com/itm/Penny-Auction-1-Cent-Stud-Tire-Info-01-/280735561377
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Penny-Auction-1-Cent-How-to-Stud-a-Tire-Info-01?item=280735561377&amp;
+                        category=88433&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>6950</FeedbackScore>
+                    <FeedbackRatingStar>Green</FeedbackRatingStar>
+                    <UserID>yournexttire-store</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>3</BidCount>
+                    <CurrentPrice currencyID="USD">0.16</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>100146</FeedbackScore>
+                        <FeedbackRatingStar>RedShooting</FeedbackRatingStar>
+                        <UserID>b***i</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <TimeLeft>PT0S</TimeLeft>
+                <Title>Penny Auction 1 Cent How to Stud a Tire Info $.01</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/2807355613776464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <ItemID>180715921167</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-08-26T22:08:01.000Z</StartTime>
+                    <EndTime>2011-09-02T22:08:01.000Z</EndTime>
+                    <ViewItemURL>http://www.ebay.com/itm/Mysterious-gift-certificate-BID-07-26-2011-/180715921167
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Mysterious-gift-certificate-BID-07-26-2011?item=180715921167&amp;category=31411&amp;
+                        cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>14</FeedbackScore>
+                    <FeedbackRatingStar>Yellow</FeedbackRatingStar>
+                    <UserID>sunflowers.flor</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>19</BidCount>
+                    <CurrentPrice currencyID="USD">0.91</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>24</FeedbackScore>
+                        <FeedbackRatingStar>Yellow</FeedbackRatingStar>
+                        <UserID>o***o</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <TimeLeft>PT0S</TimeLeft>
+                <Title>Mysterious gift certificate BID 07/26/2011</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/1807159211676464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <ItemID>180716796542</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-08-28T22:39:58.000Z</StartTime>
+                    <EndTime>2011-08-29T22:39:58.000Z</EndTime>
+                    <ViewItemURL>http://www.ebay.com/itm/Cupcake-eBook-Penny-Auction-Recipe-FREE-SHIPPING-/180716796542
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Cupcake-eBook-Penny-Auction-Recipe-FREE-SHIPPING?item=180716796542&amp;
+                        category=20475&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>30</FeedbackScore>
+                    <FeedbackRatingStar>Yellow</FeedbackRatingStar>
+                    <UserID>buyersluckydelight</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>7</BidCount>
+                    <CurrentPrice currencyID="USD">0.6</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>78</FeedbackScore>
+                        <FeedbackRatingStar>Blue</FeedbackRatingStar>
+                        <UserID>4***n</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <TimeLeft>PT0S</TimeLeft>
+                <Title>Cupcake eBook Penny Auction Recipe FREE SHIPPING!!</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/1807167965426464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <ItemID>180716782615</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-08-28T21:45:28.000Z</StartTime>
+                    <EndTime>2011-08-29T21:45:28.000Z</EndTime>
+                    <ViewItemURL>
+                        http://www.ebay.com/itm/Roasted-Chicken-Recipe-w-Free-Shipping-Penny-Auction-/180716782615
+                    </ViewItemURL>
+                    <ViewItemURLForNaturalSearch>
+                        http://cgi.ebay.com/Roasted-Chicken-Recipe-w-Free-Shipping-Penny-Auction?item=180716782615&amp;
+                        category=20475&amp;cmd=ViewItem
+                    </ViewItemURLForNaturalSearch>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>28</FeedbackScore>
+                    <FeedbackRatingStar>Yellow</FeedbackRatingStar>
+                    <UserID>rapidrodriguez</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>1</BidCount>
+                    <CurrentPrice currencyID="USD">0.01</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>236</FeedbackScore>
+                        <FeedbackRatingStar>Turquoise</FeedbackRatingStar>
+                        <UserID>m***m</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <TimeLeft>PT0S</TimeLeft>
+                <Title>Roasted Chicken Recipe w/ Free Shipping Penny Auction</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/1807167826156464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+        </ItemArray>
+        <PaginationResult>
+            <TotalNumberOfPages>1</TotalNumberOfPages>
+            <TotalNumberOfEntries>23</TotalNumberOfEntries>
+        </PaginationResult>
+    </WatchList>
+    <BidList>
+        <ItemArray>
+            <Item>
+                <BiddingDetails>
+                    <MaxBid currencyID="USD">0.01</MaxBid>
+                    <QuantityBid>1</QuantityBid>
+                    <QuantityWon>0</QuantityWon>
+                </BiddingDetails>
+                <ItemID>390359315461</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-10-25T22:09:13.000Z</StartTime>
+                    <EndTime>2011-11-01T22:09:13.000Z</EndTime>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>741</FeedbackScore>
+                    <FeedbackRatingStar>Purple</FeedbackRatingStar>
+                    <UserID>granna1954</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>2</BidCount>
+                    <CurrentPrice currencyID="USD">0.06</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>0</FeedbackScore>
+                        <FeedbackRatingStar>None</FeedbackRatingStar>
+                        <UserID>t***t</UserID>
+                    </HighBidder>
+                    <ReserveMet>true</ReserveMet>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <TimeLeft>P3DT23H12M25S</TimeLeft>
+                <Title>Pumpkin Roll Mennonite Recipe Grannas Heart &amp; Hands one cent penny auction</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/3903593154616464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <BiddingDetails>
+                    <MaxBid currencyID="USD">0.01</MaxBid>
+                    <QuantityBid>1</QuantityBid>
+                    <QuantityWon>1</QuantityWon>
+                </BiddingDetails>
+                <ItemID>190592960749</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-10-25T22:19:38.000Z</StartTime>
+                    <EndTime>2011-11-01T22:19:38.000Z</EndTime>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>3462</FeedbackScore>
+                    <FeedbackRatingStar>Red</FeedbackRatingStar>
+                    <UserID>kurycats</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>1</BidCount>
+                    <CurrentPrice currencyID="USD">0.01</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>50</FeedbackScore>
+                        <FeedbackRatingStar>Blue</FeedbackRatingStar>
+                        <UserID>jmrod17</UserID>
+                    </HighBidder>
+                    <ReserveMet>true</ReserveMet>
+                </SellingStatus>
+                <ShippingDetails>
+                    <ShippingServiceOptions>
+                        <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                    </ShippingServiceOptions>
+                </ShippingDetails>
+                <Site>Canada</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <TimeLeft>P3DT23H22M50S</TimeLeft>
+                <Title>Uncle Tom's Recipe For Sweet Baked Onion Rings Penny Auction $0.01</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/1905929607496464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+        </ItemArray>
+        <PaginationResult>
+            <TotalNumberOfPages>1</TotalNumberOfPages>
+            <TotalNumberOfEntries>2</TotalNumberOfEntries>
+        </PaginationResult>
+    </BidList>
+    <BestOfferList>
+        <ItemArray>
+            <Item>
+                <BuyItNowPrice currencyID="USD">2.0</BuyItNowPrice>
+                <ItemID>170708189366</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-10-06T04:27:36.000Z</StartTime>
+                </ListingDetails>
+                <Seller>
+                    <FeedbackScore>2</FeedbackScore>
+                    <FeedbackRatingStar>None</FeedbackRatingStar>
+                    <UserID>juan.glaxstar</UserID>
+                </Seller>
+                <SellingStatus>
+                    <CurrentPrice currencyID="USD">2.0</CurrentPrice>
+                </SellingStatus>
+                <Site>US</Site>
+                <TimeLeft>P7DT5H30M48S</TimeLeft>
+                <Title>Mysterious gift certificate BIN 10/05/11 Best offer</Title>
+                <BestOfferDetails>
+                    <BestOffer currencyID="USD">0.99</BestOffer>
+                    <BestOfferStatus>Expired</BestOfferStatus>
+                </BestOfferDetails>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/1707081893666464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+        </ItemArray>
+        <PaginationResult>
+            <TotalNumberOfPages>1</TotalNumberOfPages>
+            <TotalNumberOfEntries>1</TotalNumberOfEntries>
+        </PaginationResult>
+    </BestOfferList>
+    <WonList>
+        <OrderTransactionArray>
+            <OrderTransaction>
+                <Transaction>
+                    <CreatedDate>2011-09-08T16:16:24.000Z</CreatedDate>
+                    <Item>
+                        <BiddingDetails>
+                            <MaxBid currencyID="USD">0.01</MaxBid>
+                            <QuantityBid>1</QuantityBid>
+                            <QuantityWon>0</QuantityWon>
+                        </BiddingDetails>
+                        <ItemID>250888486629</ItemID>
+                        <ListingDetails>
+                            <StartTime>2011-09-07T16:16:21.000Z</StartTime>
+                            <EndTime>2011-09-08T16:16:21.000Z</EndTime>
+                            <ViewItemURL>
+                                http://www.ebay.com/itm/Mysterious-gift-certificate-BID-09-07-2011-/250888486629
+                            </ViewItemURL>
+                            <ViewItemURLForNaturalSearch>
+                                http://cgi.ebay.com/Mysterious-gift-certificate-BID-09-07-2011?item=250888486629&amp;
+                                category=31411&amp;cmd=ViewItem
+                            </ViewItemURLForNaturalSearch>
+                        </ListingDetails>
+                        <ListingType>Chinese</ListingType>
+                        <Seller>
+                            <Email>bellindira@yahoo.com</Email>
+                            <UserID>bcastillo</UserID>
+                        </Seller>
+                        <SellingStatus>
+                            <BidCount>1</BidCount>
+                            <CurrentPrice currencyID="USD">0.01</CurrentPrice>
+                        </SellingStatus>
+                        <ShippingDetails>
+                            <ShippingServiceOptions>
+                                <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                            </ShippingServiceOptions>
+                        </ShippingDetails>
+                        <Site>US</Site>
+                        <StartPrice currencyID="USD">0.01</StartPrice>
+                        <Title>Mysterious gift certificate BID 09/07/2011</Title>
+                        <PictureDetails>
+                            <GalleryURL>http://thumbs.ebaystatic.com/pict/2508884866296464_1.jpg</GalleryURL>
+                        </PictureDetails>
+                    </Item>
+                    <QuantityPurchased>1</QuantityPurchased>
+                    <Status>
+                        <PaymentHoldStatus>None</PaymentHoldStatus>
+                    </Status>
+                    <TransactionID>0</TransactionID>
+                    <BuyerPaidStatus>NotPaid</BuyerPaidStatus>
+                    <TransactionPlatform>eBay</TransactionPlatform>
+                    <TotalTransactionPrice currencyID="USD">0.01</TotalTransactionPrice>
+                </Transaction>
+            </OrderTransaction>
+            <OrderTransaction>
+                <Transaction>
+                    <CreatedDate>2011-10-13T00:12:17.000Z</CreatedDate>
+                    <Item>
+                        <BiddingDetails>
+                            <MaxBid currencyID="USD">0.01</MaxBid>
+                            <QuantityBid>1</QuantityBid>
+                            <QuantityWon>0</QuantityWon>
+                        </BiddingDetails>
+                        <ItemID>250905280495</ItemID>
+                        <ListingDetails>
+                            <StartTime>2011-10-06T00:12:14.000Z</StartTime>
+                            <EndTime>2011-10-13T00:12:14.000Z</EndTime>
+                            <ViewItemURL>
+                                http://www.ebay.com/itm/Mysterious-gift-certificate-BID-10-05-2011-/250905280495
+                            </ViewItemURL>
+                            <ViewItemURLForNaturalSearch>
+                                http://cgi.ebay.com/Mysterious-gift-certificate-BID-10-05-2011?item=250905280495&amp;
+                                category=31411&amp;cmd=ViewItem
+                            </ViewItemURLForNaturalSearch>
+                        </ListingDetails>
+                        <ListingType>Chinese</ListingType>
+                        <Seller>
+                            <Email>bellindira@yahoo.com</Email>
+                            <UserID>bcastillo</UserID>
+                        </Seller>
+                        <SellingStatus>
+                            <BidCount>1</BidCount>
+                            <CurrentPrice currencyID="USD">0.01</CurrentPrice>
+                        </SellingStatus>
+                        <ShippingDetails>
+                            <ShippingServiceOptions>
+                                <ShippingServiceCost currencyID="USD">0.0</ShippingServiceCost>
+                            </ShippingServiceOptions>
+                        </ShippingDetails>
+                        <Site>US</Site>
+                        <StartPrice currencyID="USD">0.01</StartPrice>
+                        <Title>Mysterious gift certificate BID 10/05/2011</Title>
+                        <PictureDetails>
+                            <GalleryURL>http://thumbs.ebaystatic.com/pict/2509052804956464_1.jpg</GalleryURL>
+                        </PictureDetails>
+                    </Item>
+                    <QuantityPurchased>1</QuantityPurchased>
+                    <Status>
+                        <PaymentHoldStatus>None</PaymentHoldStatus>
+                    </Status>
+                    <TransactionID>0</TransactionID>
+                    <BuyerPaidStatus>MarkedAsPaid</BuyerPaidStatus>
+                    <PaidTime>2011-10-21T16:50:33.000Z</PaidTime>
+                    <TransactionPlatform>eBay</TransactionPlatform>
+                    <TotalTransactionPrice currencyID="USD">0.01</TotalTransactionPrice>
+                </Transaction>
+            </OrderTransaction>
+        </OrderTransactionArray>
+        <PaginationResult>
+            <TotalNumberOfPages>1</TotalNumberOfPages>
+            <TotalNumberOfEntries>2</TotalNumberOfEntries>
+        </PaginationResult>
+    </WonList>
+    <LostList>
+        <ItemArray>
+            <Item>
+                <BiddingDetails>
+                    <MaxBid currencyID="USD">0.86</MaxBid>
+                    <QuantityBid>1</QuantityBid>
+                    <QuantityWon>0</QuantityWon>
+                </BiddingDetails>
+                <ItemID>180715921167</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-08-26T22:08:01.000Z</StartTime>
+                    <EndTime>2011-09-02T22:08:01.000Z</EndTime>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>14</FeedbackScore>
+                    <FeedbackRatingStar>Yellow</FeedbackRatingStar>
+                    <UserID>sunflowers.flor</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>19</BidCount>
+                    <CurrentPrice currencyID="USD">0.91</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>24</FeedbackScore>
+                        <FeedbackRatingStar>Yellow</FeedbackRatingStar>
+                        <UserID>o***o</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <Title>Mysterious gift certificate BID 07/26/2011</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/1807159211676464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <BiddingDetails>
+                    <MaxBid currencyID="USD">0.6</MaxBid>
+                    <QuantityBid>1</QuantityBid>
+                    <QuantityWon>0</QuantityWon>
+                </BiddingDetails>
+                <ItemID>250887882622</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-09-06T16:35:06.000Z</StartTime>
+                    <EndTime>2011-09-07T16:35:06.000Z</EndTime>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>123</FeedbackScore>
+                    <FeedbackRatingStar>Turquoise</FeedbackRatingStar>
+                    <UserID>oceanwatches</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>12</BidCount>
+                    <CurrentPrice currencyID="USD">0.7</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>121</FeedbackScore>
+                        <FeedbackRatingStar>Turquoise</FeedbackRatingStar>
+                        <UserID>d***a</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <Title>1 cent penny auction Libra dog badge digital picture</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/2508878826226464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <BiddingDetails>
+                    <MaxBid currencyID="USD">0.11</MaxBid>
+                    <QuantityBid>1</QuantityBid>
+                    <QuantityWon>0</QuantityWon>
+                </BiddingDetails>
+                <ItemID>280735561377</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-09-06T17:46:34.000Z</StartTime>
+                    <EndTime>2011-09-09T17:46:34.000Z</EndTime>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>6950</FeedbackScore>
+                    <FeedbackRatingStar>Green</FeedbackRatingStar>
+                    <UserID>yournexttire-store</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>3</BidCount>
+                    <CurrentPrice currencyID="USD">0.16</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>100146</FeedbackScore>
+                        <FeedbackRatingStar>RedShooting</FeedbackRatingStar>
+                        <UserID>b***i</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <Title>Penny Auction 1 Cent How to Stud a Tire Info $.01</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/2807355613776464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+            <Item>
+                <BiddingDetails>
+                    <MaxBid currencyID="USD">0.11</MaxBid>
+                    <QuantityBid>1</QuantityBid>
+                    <QuantityWon>0</QuantityWon>
+                </BiddingDetails>
+                <ItemID>280735578731</ItemID>
+                <ListingDetails>
+                    <StartTime>2011-09-06T18:21:32.000Z</StartTime>
+                    <EndTime>2011-09-09T18:21:32.000Z</EndTime>
+                </ListingDetails>
+                <ListingType>Chinese</ListingType>
+                <Seller>
+                    <FeedbackScore>6950</FeedbackScore>
+                    <FeedbackRatingStar>Green</FeedbackRatingStar>
+                    <UserID>yournexttire-store</UserID>
+                </Seller>
+                <SellingStatus>
+                    <BidCount>3</BidCount>
+                    <CurrentPrice currencyID="USD">0.16</CurrentPrice>
+                    <HighBidder>
+                        <FeedbackScore>100146</FeedbackScore>
+                        <FeedbackRatingStar>RedShooting</FeedbackRatingStar>
+                        <UserID>b***i</UserID>
+                    </HighBidder>
+                </SellingStatus>
+                <Site>US</Site>
+                <StartPrice currencyID="USD">0.01</StartPrice>
+                <Title>Penny Auction 1 Cent Tire Replacement Tips $.01</Title>
+                <PictureDetails>
+                    <GalleryURL>http://thumbs.ebaystatic.com/pict/2807355787316464_1.jpg</GalleryURL>
+                </PictureDetails>
+            </Item>
+        </ItemArray>
+        <PaginationResult>
+            <TotalNumberOfPages>1</TotalNumberOfPages>
+            <TotalNumberOfEntries>4</TotalNumberOfEntries>
+        </PaginationResult>
+    </LostList>
+    <FavoriteSearches>
+        <TotalAvailable>4</TotalAvailable>
+        <FavoriteSearch>
+            <SearchName>0.99 BIN</SearchName>
+            <SearchQuery>http://shop.ebay.com/i.html?LH_Price=0.01..0.99%40c&amp;LH_BIN=1&amp;LH_IncludeSIF=1&amp;LH_FS=1&amp;_kw=a&amp;
+                _dmd=1&amp;_fcid=51&amp;_in_kw=1&amp;_ipg=50&amp;_localstpos=&amp;_mPrRngCbx=1&amp;_okw=a&amp;_sop=2&amp;_sticky=1&amp;_stpos=&amp;gbr=1&amp;
+                _trksid=m194
+            </SearchQuery>
+            <ItemSort>CurrentBid</ItemSort>
+            <SortOrder>Ascending</SortOrder>
+            <ItemType>FixedPricedItem</ItemType>
+            <PriceMin>0.01</PriceMin>
+            <SearchFlag>LocalSearch</SearchFlag>
+        </FavoriteSearch>
+        <FavoriteSearch>
+            <SearchName>abercrombie</SearchName>
+            <SearchQuery>http://shop.ebay.com/?_from=R40&amp;_nkw=abercrombie&amp;_sacat=See-All-Categories&amp;_trksid=m194
+            </SearchQuery>
+            <QueryKeywords>abercrombie</QueryKeywords>
+        </FavoriteSearch>
+        <FavoriteSearch>
+            <SearchName>kodak pulse, Under $120.00</SearchName>
+            <SearchQuery>http://shop.ebay.com/i.html?_nkw=kodak%20pulse&amp;_in_kw=1&amp;_ex_kw=&amp;_sacat=See-All-Categories&amp;
+                _okw=kodak%20pulse&amp;_oexkw=&amp;_adv=1&amp;_mPrRngCbx=1&amp;_udlo=&amp;_udhi=120&amp;_ftrt=901&amp;_ftrv=1&amp;_sabdlo=&amp;_sabdhi=&amp;
+                _samilow=&amp;_samihi=&amp;_sadis=200&amp;_fpos=Zip%20code&amp;_fsct=&amp;LH_SALE_CURRENCY=0&amp;_sop=12&amp;_dmd=1&amp;_ipg=50&amp;
+                _trksid=m194
+            </SearchQuery>
+            <QueryKeywords>kodak pulse</QueryKeywords>
+            <ItemSort>BestMatch</ItemSort>
+            <MaxDistance>200</MaxDistance>
+            <PostalCode>Zip code</PostalCode>
+            <PriceMax>120.0</PriceMax>
+        </FavoriteSearch>
+        <FavoriteSearch>
+            <SearchName>kodak pulse, Under £120</SearchName>
+            <SearchQuery>http://shop.ebay.com/i.html?_nkw=kodak%20pulse%2C%20Under%20%C2%A3120&amp;_in_kw=1&amp;_ex_kw=&amp;
+                _sacat=See-All-Categories&amp;_okw=kodak%20pulse%2C%20Under%20%C2%A3120&amp;_oexkw=&amp;_adv=1&amp;_udlo=&amp;_udhi=&amp;
+                _ftrt=901&amp;_ftrv=1&amp;_sabdlo=&amp;_sabdhi=&amp;_samilow=&amp;_samihi=&amp;_sadis=200&amp;_fpos=Zip%20code&amp;_fsct=&amp;
+                LH_SALE_CURRENCY=0&amp;_sop=12&amp;_dmd=1&amp;_ipg=50&amp;_trksid=m194
+            </SearchQuery>
+            <QueryKeywords>kodak pulse, Under £120</QueryKeywords>
+            <ItemSort>BestMatch</ItemSort>
+            <MaxDistance>200</MaxDistance>
+            <PostalCode>Zip code</PostalCode>
+        </FavoriteSearch>
+    </FavoriteSearches>
+    <FavoriteSellers>
+        <TotalAvailable>12</TotalAvailable>
+        <FavoriteSeller>
+            <UserID>deniseromanow</UserID>
+        </FavoriteSeller>
+        <FavoriteSeller>
+            <UserID>easyelc</UserID>
+        </FavoriteSeller>
+        <FavoriteSeller>
+            <UserID>fitness2002</UserID>
+            <StoreName>Sporternährung online Discounter</StoreName>
+        </FavoriteSeller>
+        <FavoriteSeller>
+            <UserID>garrett6208</UserID>
+            <StoreName>Savvy savage prints</StoreName>
+        </FavoriteSeller>
+        <FavoriteSeller>
+            <UserID>housefulloftoys</UserID>
+        </FavoriteSeller>
+        <FavoriteSeller>
+            <UserID>justujoehira</UserID>
+            <StoreName>grooming city</StoreName>
+        </FavoriteSeller>
+        <FavoriteSeller>
+            <UserID>medstdnt23</UserID>
+        </FavoriteSeller>
+        <FavoriteSeller>
+            <UserID>rubywruby</UserID>
+        </FavoriteSeller>
+        <FavoriteSeller>
+            <UserID>shelltell33</UserID>
+            <StoreName>S&amp;S MEDIA EXPRESS</StoreName>
+        </FavoriteSeller>
+        <FavoriteSeller>
+            <UserID>sib-usa</UserID>
+            <StoreName>sib-usa</StoreName>
+        </FavoriteSeller>
+        <FavoriteSeller>
+            <UserID>thedealrack</UserID>
+            <StoreName>The Deal Rack</StoreName>
+        </FavoriteSeller>
+        <FavoriteSeller>
+            <UserID>tungstenmasters</UserID>
+            <StoreName>TungstenMasters</StoreName>
+        </FavoriteSeller>
+    </FavoriteSellers>
+</GetMyeBayBuyingResponse>

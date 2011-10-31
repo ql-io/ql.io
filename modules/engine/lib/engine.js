@@ -1,0 +1,440 @@
+/*
+ * Copyright 2011 eBay Software Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * This module executes ql scripts
+ */
+
+"use strict";
+
+var logger = require('winston'),
+    compiler = require('ql.io-compiler'),
+    configLoader = require(__dirname + '/engine/config.js'),
+    tableLoader = require(__dirname + '/engine/load.js'),
+    routeLoader = require(__dirname + '/engine/load-routes.js'),
+    show = require(__dirname + '/engine/show.js'),
+    describe = require(__dirname + '/engine/describe.js'),
+    create = require(__dirname + '/engine/create.js'),
+    select = require(__dirname + '/engine/select.js'),
+    insert = require(__dirname + '/engine/insert.js'),
+    async = require('async'),
+    _ = require('underscore'),
+    jsonfill = require(__dirname + '/engine/jsonfill.js'),
+    eventTypes = require(__dirname + '/engine/event-types.js'),
+    assert = require('assert'),
+    sys = require('sys'),
+    httpRequest = require(__dirname + '/engine/http.request.js'),
+    logUtil = require(__dirname + '/engine/log-util.js');
+
+process.on('uncaughtException', function(error) {
+    logger.error(error.stack || sys.inspect(error, false, 10));
+})
+
+/**
+ * Create a new instance of the engine with global options.
+ *
+ * The following are the options supported.
+ *
+ * - config: Path to the configuration file
+ *
+ * - tables: Path to the directory containing table definition files.
+ *
+ */
+var Engine = module.exports = function(opts) {
+
+    //
+    // Holder for global opts.
+    global.opts = opts || {};
+
+    //
+    // Setup a logger.
+    // In stead of create new logger instances, just refer to global.opts.logger.
+    //
+    logger = global.opts.logger || logger;
+    logger.setLevels(global.opts['log levels'] || logger.config.syslog.levels);
+    global.opts.logger = logger;
+
+    // Load config
+    global.opts.config = _.isObject(global.opts.config) ? global.opts.config : configLoader.load(global.opts);
+
+    var tablesDir = global.opts ? global.opts.tables : undefined;
+    var config = global.opts ? global.opts.config : {};
+    var routesDir = global.opts ? global.opts.routes : undefined;
+
+    // Delete tables and routes - this allows engine invocations from inside app modules for
+    // monkey patching or auth
+    if(global.opts.tables) {
+        delete global.opts.tables;
+    }
+    if(global.opts.routes) {
+        delete global.opts.routes;
+    }
+    var tables = tableLoader.load(tablesDir, config);
+    var routes = routeLoader.load(routesDir);
+
+    this.routes = function() {
+        return routes;
+    }
+
+    if(global.opts['console log']) {
+        var procEmitter = process.EventEmitter(), buf;
+        procEmitter.on(eventTypes.BEGIN_EVENT, function(packet) {
+            buf = packet.startTime + '|' + packet.uuid + '|' + packet.txType + '-' + packet.txName + '|' + packet.parentEventId + '-' + packet.eventId;
+            logger.info(buf);
+        })
+        procEmitter.on(eventTypes.END_EVENT, function(packet) {
+            buf = packet.startTime + '|' + packet.uuid + '|' + packet.txType + '-' + packet.txName + '|' + packet.parentEventId + '-' + packet.eventId;
+            logger.info(buf);
+        })
+        procEmitter.on(eventTypes.HEART_BEAT, function(packet) {
+            buf = packet.startTime + '|' + packet.uuid + '|' + packet.txType + '-' + packet.txName + '|' + packet.parentEventId + '-' + packet.eventId;
+            logger.info(buf);
+        })
+        procEmitter.on(eventTypes.EVENT, function(packet) {
+            buf = packet.startTime + '|' + packet.uuid + '|' + packet.txType + '-' + packet.txName + '|' + packet.parentEventId + '-' + packet.eventId;
+            logger.info(buf);
+        })
+        procEmitter.on(eventTypes.WARNING, function(packet) {
+            buf = packet.startTime + '|' + packet.uuid + '|' + packet.txType + '-' + packet.txName + '|' + packet.parentEventId + '-' + packet.eventId;
+            logger.info(buf);
+        })
+        procEmitter.on(eventTypes.ERROR, function(packet) {
+            buf = packet.startTime + '|' + packet.uuid + '|' + packet.txType + '-' + packet.txName + '|' + packet.parentEventId + '-' + packet.eventId;
+            logger.info(buf);
+        })
+    }
+    /**
+     * Executes the given statement or script.
+     */
+    this.exec = function() {
+        var opts, cb, route, script, context = {}, cooked, execState, parentEvent, emitter,
+            request, start = Date.now(), tempResources = {}, last, packet, requestId = '';
+        if(arguments.length === 2 && _.isString(arguments[0]) && _.isFunction(arguments[1])) {
+            script = arguments[0];
+            cb = arguments[1];
+            request = {
+                headers: {},
+                params: {}
+            };
+        }
+        else if(arguments.length === 1) {
+            opts = arguments[0];
+            cb = opts.cb;
+            script = opts.script;
+            context = opts.context || {};
+            emitter = opts.emitter;
+            parentEvent = opts.parentEvent;
+            route = opts.route;
+            request = opts.request || { headers: {}, params: {}};
+            if (route) {
+                _.extend(context, opts.request.routeParams || {});
+            }
+        }
+        else {
+            assert.ok(false, "Incorrect arguments");
+        }
+
+        assert.ok(cb, "Missing callback");
+        assert.ok(script, "Missing script");
+        var engineEvent = logUtil.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
+            if(emitter) {
+                packet = {
+                    type: eventTypes.SCRIPT_DONE,
+                    elapsed: Date.now() - start,
+                    data: 'Done'
+                };
+                if(cooked) {
+                    last = _.last(cooked);
+                    packet.line = last.line;
+                }
+                emitter.emit(eventTypes.SCRIPT_DONE, packet);
+            }
+            if(results && requestId) {
+                results.headers = results.headers || {};
+                results.headers['request-id'] = requestId;
+            }
+            cb(err, results);
+        });
+        logUtil.emitEvent(engineEvent.event, route ? 'route:' + route : 'script:' + script);
+
+        if(emitter) {
+            emitter.emit(eventTypes.SCRIPT_ACK, {
+                type: eventTypes.SCRIPT_ACK,
+                data: 'Got it'
+            });
+        }
+        try {
+            // We don't cache here since the parser does the caching.
+            cooked = route ? script : compiler.compile(script);
+            if(emitter) {
+                emitter.emit(eventTypes.SCRIPT_COMPILE_OK, {
+                    type: eventTypes.SCRIPT_COMPILE_OK,
+                    data: 'No compilation errors'
+                });
+            }
+        }
+        catch(err) {
+            if(emitter) {
+                emitter.emit(eventTypes.SCRIPT_COMPILE_ERROR, {
+                    type: eventTypes.SCRIPT_COMPILE_ERROR,
+                    data: err
+                });
+            }
+            return engineEvent.cb(err, null);
+        }
+
+        if (emitter) {
+            emitter.on(eventTypes.REQUEST_ID_RECEIVED, function (reqId) {
+                if (reqId) {
+                    requestId += (reqId + ']');
+                }
+            });
+        }
+
+        try {
+            if(cooked.length > 1) {
+                // Pass 3: Create the execution tree. The execution tree consists of forks and joins.
+                execState = {};
+                _.each(cooked, function(line) {
+                    if(line.type !== 'comment') {
+                        execState[line.id.toString()] = {
+                            state: eventTypes.STATEMENT_WAITING,
+                            waits: line.dependsOn ? line.dependsOn.length : 0};
+                    }
+                });
+
+                // Sweep the statements till we're done.
+                var sweepCounter = 0;
+                try {
+                    sweep({
+                        cooked: cooked,
+                        execState: execState,
+                        sweepCounter: sweepCounter,
+                        tables: tables,
+                        tempResources: tempResources,
+                        context: context,
+                        request: request,
+                        emitter: emitter,
+                        start: start,
+                        cb: engineEvent.cb
+                    });
+                }
+                catch(err) {
+                    return engineEvent.cb(err, null);
+                }
+            }
+            else {
+                execOne({
+                    tables: tables,
+                    tempResources: tempResources,
+                    context: context,
+                    request: request,
+                    emitter: emitter
+                }, cooked[0], function(err, results) {
+                    if(err) {
+                        logUtil.emitError(engineEvent.event, sys.inspect(err, false, 10));
+                    }
+                    return engineEvent.cb(err, results);
+                });
+            }
+        }
+        catch(err) {
+            return engineEvent.cb(err, null);
+        }
+    };
+}
+
+/**
+ * This function recursively executes statements until the dependencies for the return statement
+ * are met.
+ *
+ * @ignore
+ * @param opts
+ */
+function sweep(opts) {
+    if(opts.done) {
+        return;
+    }
+    opts.sweepCounter++;
+    var pending = 0, skip = false, last, state, id;
+    _.each(opts.cooked, function(line) {
+        if(line.type !== 'comment') {
+            id = line.id;
+            state = opts.execState[id];
+            if(state.state === eventTypes.STATEMENT_WAITING && state.waits == 0 && line.type !== 'return') {
+                pending++;
+                state.state = eventTypes.STATEMENT_IN_FLIGHT;
+                var step = function (line, state) {
+                    execOne(opts, line, function(err, result) {
+                        if(err) {
+                            // Skip the remaining statements and return error
+                            skip = true;
+                            return opts.cb(err);
+                        }
+                        opts.latest = line;
+                        opts.latestResult = result;
+
+                        state.state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
+                        pending--;
+                        _.each(line.listeners, function(listener) {
+                            --opts.execState[listener].waits;
+                        });
+
+                        sweep(opts);
+                    });
+                }
+                // TODO: Execute only if there are dependencies
+                step(line, state);
+            }
+            else if(state.state == eventTypes.STATEMENT_IN_FLIGHT) {
+                // This line is in-flight.
+                pending++;
+            }
+        }
+    });
+
+    last = _.last(opts.cooked);
+    state = opts.execState[last.id];
+    if(pending === 0 && state.waits > 0 && last.type === 'return') {
+        return opts.cb({
+            message: 'Script has unmet dependencies. The return statement depends on one/more other statement(s), but those are not in-progress.'
+        });
+    }
+    if(pending == 0 && state.waits == 0) {
+        if(last.type === 'return') {
+            if(state.state === eventTypes.STATEMENT_WAITING) {
+                opts.execState[last.id].state = eventTypes.STATEMENT_IN_FLIGHT;
+                execOne(opts, last, function(err, results) {
+                    opts.execState[last.id].state = eventTypes.STATEMENT_SUCCESS;
+                    return opts.cb(err, results);
+                });
+            }
+        }
+        // Single statement (sans create/comments) - return the last result
+        else {
+            opts.done = true;
+            return opts.cb(undefined, opts.latestResult);
+        }
+    }
+}
+
+function execOne(opts, statement, cb) {
+    var packet = {
+        line: statement.line,
+        type: eventTypes.STATEMENT_IN_FLIGHT
+    };
+    var start = Date.now();
+    if(opts.emitter) {
+        opts.emitter.emit(eventTypes.STATEMENT_IN_FLIGHT, packet);
+    }
+
+    try {
+        _execOne(opts, statement, function(err, results) {
+            if(opts.emitter) {
+                packet.elapsed = Date.now() - start;
+                packet.type = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
+                opts.emitter.emit(packet.type, packet);
+            }
+            cb(err, results);
+        });
+    }
+    catch(e) {
+        if(opts.emitter) {
+            packet.elapsed = Date.now() - start;
+            packet.type = eventTypes.STATEMENT_ERROR;
+            opts.emitter.emit(packet.type, packet);
+        }
+        cb(e);
+    }
+}
+/**
+ * Exec one statement
+ *
+ * @param opts args
+ * @param statement
+ * @param cb
+ * @ignore
+ */
+function _execOne(opts, statement, cb) {
+    var lhs, obj;
+    switch(statement.type) {
+        case 'create' :
+            create.exec(opts, statement, cb);
+            break;
+        case 'define' :
+            obj = jsonfill.fill(statement.object,
+                httpRequest.prepareParams(opts.context,
+                    opts.request.headers,
+                    opts.request.params,
+                    opts.request.routeParams));
+
+            opts.context[statement.assign] = obj;
+            cb(undefined, opts.context);
+            break;
+        case 'select' :
+            select.exec(opts, statement, cb);
+            break;
+        case 'insert' :
+            insert.exec(opts, statement, cb);
+            break;
+        case 'show' :
+            show.exec(opts, statement, cb);
+            break;
+        case 'describe':
+            describe.exec(opts, statement, cb);
+            break;
+        case 'return':
+            //
+            // TODO: This code needs to refactored when the result is a statement, along with
+            // selects in  "in" clauses. Such statements should be scheduled sooner. What we have
+            // here below is sub-optimal.
+            // lhs can be a reference to an object in the context or a JS object.
+            if(statement.rhs.type === 'select') {
+                select.exec(opts, statement.rhs, function(err, result) {
+                    if(err) {
+                        cb(err);
+                    }
+                    else {
+                        cb(undefined, result);
+                    }
+                });
+            }
+            else {
+                lhs = statement.rhs.ref ? opts.context[statement.rhs.ref] : statement.rhs.object;
+                if(_.isNull(lhs)) {
+                    cb({
+                        message: 'Unresolved reference in return'
+                    })
+                }
+                else {
+                    var ret = {
+                        headers: {
+                            'content-type': 'application/json'
+                        },
+                        body: jsonfill.fill(lhs, httpRequest.prepareParams(opts.context,
+                            opts.request.headers,
+                            opts.request.params,
+                            opts.request.routeParams))
+                    };
+                    cb(undefined, ret);
+                }
+            }
+    }
+}
+
+// Export event types
+Engine.Events = {};
+_.extend(Engine.Events, eventTypes);
