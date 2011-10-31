@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var ql = require(__dirname + '/peg/ql.js'),
+var ql = require('./peg/ql.js'),
     _ = require('underscore')
 
 "use strict"
