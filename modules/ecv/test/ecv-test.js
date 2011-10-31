@@ -21,7 +21,7 @@ var testCase = require('nodeunit').testCase,
     ecv = require('lib/ecv.js'),
     Console = require('ql.io-console');
 
-var port = 3000;
+var port = 9091;
 
 module.exports = testCase({
     'check ecv': function(test) {
