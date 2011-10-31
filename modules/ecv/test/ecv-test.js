@@ -24,32 +24,14 @@ var testCase = require('nodeunit').testCase,
 var port = 3000;
 
 module.exports = testCase({
-
-    setUp: function (callback) {
-            c = new Console({
-                'enable console': false,
-                connection: 'close'
-            });
-            ecv.enable(c.app, port);
-            c.app.listen(port);
-            callback();
-        }
-        ,
-        tearDown: function (callback) {
-            c.app.close();
-            callback();
-        },
-
-    'check test app': function(test) {
-        var interval = setInterval(function() {
-            test.ok(false, 'test app does not work');
-            test.done();
-            clearInterval(interval);
-            clearInterval(testInterval);
-        }, 3000);
-
-        var testInterval = setInterval(function() {
-            var re = new RegExp('status=AVAILABLE&ServeTraffic=true&ip=127\\.0\\.0\\.1&hostname=localhost&port=' + port +'&time=.*');
+    'check ecv': function(test) {
+        var c = new Console({
+            'enable console': false,
+            connection: 'close'
+        });
+        ecv.enable(c.app, port);
+        c.app.listen(port, function() {
+            var re = new RegExp('status=AVAILABLE&ServeTraffic=true&ip=127\\.0\\.0\\.1&hostname=localhost&port=' + port + '&time=.*');
             try {
                 var options = {
                     host: 'localhost',
@@ -60,24 +42,24 @@ module.exports = testCase({
                 var request = http.request(options, function(res) {
                     var response = '';
                     res.on('data', function(chunk) {
-                         response += chunk;
+                        response += chunk;
                     });
                     res.on('end', function() {
                         test.ok(response.toString().match(re),
-                                'expected:status=AVAILABLE&ServeTraffic=true&ip=127.0.0.1&hostname=localhost&port=' + port+'&time=.*');
+                            'expected:status=AVAILABLE&ServeTraffic=true&ip=127.0.0.1&hostname=localhost&port=' + port + '&time=.*');
                         test.done();
-                        clearInterval(interval);
+                        c.app.close();
                     });
                 });
                 request.on('error', function(err) {
                     console.log('Error with uri - ' + request.uri + ' - ' + err.message);
                 });
                 request.end();
-                clearInterval(testInterval);
             }
             catch(e) {
                 console.log(e);
+                test.ok(false);
             }
-        }, 1000);
+        });
     }
 });
