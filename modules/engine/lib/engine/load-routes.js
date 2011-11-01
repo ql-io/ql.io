@@ -16,7 +16,7 @@
 
 "use strict";
 
-var logUtil = require(__dirname + '/log-util.js'),
+var logUtil = require('./log-util.js'),
     compiler = require('ql.io-compiler'),
     fs = require('fs'),
     url = require('url'),

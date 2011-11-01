@@ -16,10 +16,10 @@
 
 "use strict";
 
-var httpRequest = require(__dirname + '/http.request.js'),
-    logUtil = require(__dirname + '/log-util.js'),
-    jsonfill = require(__dirname + '/jsonfill.js'),
-    project = require(__dirname + '/project.js'),
+var httpRequest = require('./http.request.js'),
+    logUtil = require('./log-util.js'),
+    jsonfill = require('./jsonfill.js'),
+    project = require('./project.js'),
     _ = require('underscore'),
     async = require('async'),
     assert = require('assert'),

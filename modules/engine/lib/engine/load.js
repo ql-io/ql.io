@@ -16,7 +16,7 @@
 
 "use strict";
 
-var brew = require(__dirname + '/brew.js'),
+var brew = require('./brew.js'),
     fs = require('fs'),
     assert = require('assert'),
     sys = require('sys');

@@ -1,4 +1,5 @@
-MODULES	= modules/uri-template modules/mutable-uri modules/compiler modules/mon modules/engine modules/ecv
+MODULES	= modules/uri-template modules/mutable-uri modules/compiler modules/mon modules/engine \
+            modules/ecv modules/console
 
 DIRS	= $(MODULES)
  
@@ -14,6 +15,11 @@ install:
 
 .PHONY : test
 test:
+	-rm -rf reports 
+	mkdir -p test
+	-for d in $(DIRS); do (cd $$d; $(MAKE) test ); done
+
+test-part:
 	-rm -rf reports 
 	mkdir -p test
 	-for d in $(DIRS); do (cd $$d; $(MAKE) test-part ); done

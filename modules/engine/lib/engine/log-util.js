@@ -16,7 +16,7 @@
 
 "use strict";
 
-var eventTypes = require(__dirname + '/event-types.js'),
+var eventTypes = require('./event-types.js'),
     uuid = require('node-uuid'),
     sys = require('sys');
 
