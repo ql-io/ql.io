@@ -84,6 +84,6 @@ function unhappy(res, tosend) {
         'content-type': 'text/plain',
         'cache-control': 'no-cache'
     })
-    res.write('status=WARNING&ServeTraffic=true&ip=127.0.0.1&hostname=localhost&port=' + tosend.port + '&time=' + tosend.date.toString());
+    res.write('status=WARNING&ServeTraffic=false&ip=127.0.0.1&hostname=localhost&port=' + tosend.port + '&time=' + tosend.date.toString());
     res.end();
 }
