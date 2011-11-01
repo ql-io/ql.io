@@ -2,7 +2,7 @@
     "author": "ql.io",
     "description": "Provides ECV check for ql.io servers",
     "name": "ql.io-ecv",
-    "version": "0.2.8",
+    "version": "0.2.9",
     "repository": {
         "type": "git",
         "url": "https://github.com/ql-io/ql.io"
