@@ -1,0 +1,13 @@
+.CodeMirror {
+        border: 1px solid #eee;
+}
+.CodeMirror-scroll {
+    height: auto;
+    overflow-y: hidden;
+    overflow-x: auto;
+}
+
+.cm-ql-keyword {color: #00f}
+.cm-ql-string {color: #a11}
+.cm-ql-comment {color: #a50}
+.cm-comment {color: #a50}

@@ -1,0 +1,72 @@
+<script id="trace-template" type="x-tmpl-mustache">
+<table class="desc-table">
+    {{#req}}
+    <tr>
+        <td colspan="2">Request</td>
+    </tr>
+    <tr>
+        <td>URI</td>
+        <td><pre>{{uri}}</pre></td>
+    </tr>
+    <tr>
+        <td>Headers</td>
+        <td><pre>{{^headers}}None specific{{/headers}}{{#headers}}{{name}}: {{value}}<br/>{{/headers}}</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>Body</td>
+        <td>
+            <pre>{{^body}}None{{/body}}{{body}}</pre>
+        </td>
+    </tr>
+    {{/req}}
+    {{#res}}
+    <tr>
+        <td colspan="2">Response</td>
+    </tr>
+    <tr>
+        <td>Status</td>
+        <td>{{status}}</td>
+    </tr>
+    <tr>
+        <td>Headers</td>
+        <td><pre>{{^headers}}None specific{{/headers}}{{#headers}}{{name}}: {{value}}<br/>{{/headers}}</pre>
+    </tr>
+    <tr>
+        <td>Body</td>
+        <td><pre>{{^body}}None{{/body}}{{body}}</pre></td>
+    </tr>
+    {{/res}}
+</table>
+</script>
+
+<script id="results-split-template" type="html">
+<div id="split-panel">
+    <div id="split-left" class="SplitterPane"></div>
+
+    <div id="trace-panel" class="SplitterPane">
+        <div id="trace-data">
+            Click on the gutter
+        </div>
+    </div>
+</div>
+</script>
+<script id="results-normal-template" type="html">
+    <div class='progress results' id='results'> </div>
+</script>
+
+<div id="conn-status"></div>
+<div id="query">
+    <textarea class="query-input" id="query-input"><%=script%></textarea>
+</div>
+<div><span id="ua-advice">Use latest versions of Firefox or Chrome.</span></div>
+
+<div>
+    <div class="parse-status" id="parse-status"></div>
+    <div class="util-links" id="util-links">
+        <a id="run-again" href="#" class="button">run again</a>
+        <a id="copy-uri" href="#" class="button">copy uri</a>
+    </div>
+</div>
+<div id="results-placeholder">
+</div>
