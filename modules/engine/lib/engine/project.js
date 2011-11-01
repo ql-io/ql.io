@@ -16,7 +16,7 @@
 
 "use strict";
 
-var jsonfill = require(__dirname + '/jsonfill.js'),
+var jsonfill = require('./jsonfill.js'),
     sys = require('sys'),
     _ = require('underscore');
 

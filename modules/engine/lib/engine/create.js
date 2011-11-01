@@ -20,7 +20,7 @@
 
 "use strict";
 
-var brew = require(__dirname + '/brew.js'),
+var brew = require('./brew.js'),
     _ = require('underscore'),
     assert = require('assert'),
     sys = require('sys');

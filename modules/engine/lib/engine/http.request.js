@@ -16,10 +16,10 @@
 
 "use strict";
 
-var strTemplate = require(__dirname + '/peg/str-template.js'),
-    project = require(__dirname + '/project.js'),
-    eventTypes = require(__dirname + '/event-types.js'),
-    logUtil = require(__dirname + '/log-util.js'),
+var strTemplate = require('./peg/str-template.js'),
+    project = require('./project.js'),
+    eventTypes = require('./event-types.js'),
+    logUtil = require('./log-util.js'),
     uriTemplate = require('ql.io-uri-template'),
     MutableURI = require('ql.io-mutable-uri'),
     http = require('http'),

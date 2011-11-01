@@ -20,24 +20,24 @@
 
 "use strict";
 
-var logger = require('winston'),
+var configLoader = require('./engine/config.js'),
+    tableLoader = require('./engine/load.js'),
+    routeLoader = require('./engine/load-routes.js'),
+    show = require('./engine/show.js'),
+    describe = require('./engine/describe.js'),
+    create = require('./engine/create.js'),
+    select = require('./engine/select.js'),
+    insert = require('./engine/insert.js'),
+    jsonfill = require('./engine/jsonfill.js'),
+    eventTypes = require('./engine/event-types.js'),
+    httpRequest = require('./engine/http.request.js'),
+    logUtil = require('./engine/log-util.js'),
+    logger = require('winston'),
     compiler = require('ql.io-compiler'),
-    configLoader = require(__dirname + '/engine/config.js'),
-    tableLoader = require(__dirname + '/engine/load.js'),
-    routeLoader = require(__dirname + '/engine/load-routes.js'),
-    show = require(__dirname + '/engine/show.js'),
-    describe = require(__dirname + '/engine/describe.js'),
-    create = require(__dirname + '/engine/create.js'),
-    select = require(__dirname + '/engine/select.js'),
-    insert = require(__dirname + '/engine/insert.js'),
     async = require('async'),
     _ = require('underscore'),
-    jsonfill = require(__dirname + '/engine/jsonfill.js'),
-    eventTypes = require(__dirname + '/engine/event-types.js'),
     assert = require('assert'),
-    sys = require('sys'),
-    httpRequest = require(__dirname + '/engine/http.request.js'),
-    logUtil = require(__dirname + '/engine/log-util.js');
+    sys = require('sys');
 
 process.on('uncaughtException', function(error) {
     logger.error(error.stack || sys.inspect(error, false, 10));

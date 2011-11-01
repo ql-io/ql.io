@@ -20,7 +20,7 @@
 
 "use strict";
 
-var strTemplate = require(__dirname + '/peg/str-template.js'),
+var strTemplate = require('./peg/str-template.js'),
     compiler = require('ql.io-compiler'),
     uriTemplate = require('ql.io-uri-template'),
     assert = require('assert'),
