@@ -9,8 +9,8 @@ install:
 	npm link ql.io-compiler;\
 	npm install;\
 	npm link;\
-	mkdir -p docs;\
-	node_modules/.bin/dox --title ql.io --desc "Engine APIs" lib/*.js > docs/engine.html;
+	mkdir -p docs;
+	# node_modules/.bin/dox --title ql.io --desc "Engine APIs" lib/*.js > docs/engine.html;
 
 .PHONY : test
 test: 
