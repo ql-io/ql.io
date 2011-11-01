@@ -15,7 +15,7 @@
  */
 
 var sys = require('sys'),
-    MutableURI = require('lib/ql.uri'),
+    MutableURI = require(__dirname + '/../lib/ql.uri'),
     _ = require('underscore');
 
 module.exports = {
