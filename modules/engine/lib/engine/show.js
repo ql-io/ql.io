@@ -20,7 +20,7 @@ var _ = require('underscore'),
     assert = require('assert');
 
 /**
- * Implements LIST TABLES
+ * Implements SHOW TABLES
  *
  * @param statement
  * @param cb
