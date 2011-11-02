@@ -143,7 +143,7 @@ module.exports = {
             p1: 'v1',
             p2: ['v2-1', 'v2-2']
         });
-        test.equals(uri, 'http://www.subbu.org?p1=v1&p2=v2-1,v2-2');
+        test.equals(uri, 'http://www.subbu.org?p1=v1&p2=v2-1%2Cv2-2');
         test.done();
     },
 
@@ -232,7 +232,7 @@ module.exports = {
         });
         test.ok(_.isArray(uri), 'Expected an array');
         test.equals(uri.length, 2, 'Expected two URIs');
-        test.equals(uri[0], 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-1,v3-2');
+        test.equals(uri[0], 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-1%2Cv3-2');
         test.equals(uri[1], 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-3');
         test.done();
     },
@@ -247,8 +247,8 @@ module.exports = {
         });
         test.ok(_.isArray(uri), 'Expected an array');
         test.equals(uri.length, 3, 'Expected two URIs');
-        test.equals(uri[0], 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-1,v3-2');
-        test.equals(uri[1], 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-3,v3-4');
+        test.equals(uri[0], 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-1%2Cv3-2');
+        test.equals(uri[1], 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-3%2Cv3-4');
         test.equals(uri[2], 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-5');
         test.done();
     },
@@ -261,7 +261,19 @@ module.exports = {
             p2: 'v2',
             p3: ['v3-1', 'v3-2', 'v3-3']
         });
-        test.equals(uri, 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-1,v3-2,v3-3');
+        test.equals(uri, 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-1%2Cv3-2%2Cv3-3');
+        test.done();
+    },
+
+    'encode': function(test) {
+        var str = "http://www.foo.com?p1={p1}&p2={p2}&p3={5|p3}";
+        var template = uriTemplate.parse(str);
+        var uri = template.format({
+            p1: 'this is a value',
+            p2: 'this+is+a+value',
+            p3: 'this/is/another/value'
+        });
+        test.equals(uri, 'http://www.foo.com?p1=this%20is%20a%20value&p2=this%2Bis%2Ba%2Bvalue&p3=this%2Fis%2Fanother%2Fvalue');
         test.done();
     }
 };

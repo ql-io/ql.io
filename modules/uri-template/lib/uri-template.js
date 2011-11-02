@@ -141,11 +141,11 @@ module.exports = (function(){
                   var j;
                   if(str.constructor === Array) {
                       for(j = 0; j < str.length; j++) {
-                          str[j] = str[j] + (encode ? encodeURI(val) : val);
+                          str[j] = str[j] + (encode ? encodeURIComponent(val) : val);
                       }
                   }
                   else {
-                      str = str + (encode ? encodeURI(val) : val);
+                      str = str + (encode ? encodeURIComponent(val) : val);
                   }
                   return str;
               }
