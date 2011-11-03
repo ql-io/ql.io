@@ -139,10 +139,12 @@ function project(columns, items) {
 // Given an item, filter it by column names, and attach the projected properties to the holder.
 function projectEach(item, columns) {
     // If columns have aliases, each row in the result set will be an object. If not, an array.
-    var holder = columns[0].alias ? {} : [];
+    var holder = columns[0].alias ? {} : [], name, flatten, obj;
     _.each(columns, function(column) {
         // Flatten results as the selector may include '..'
-        var obj = jsonPath.eval(item, column.name.trim(), {flatten: true});
+        name = column.name.trim();
+        flatten = name.indexOf('..') >= 0;
+        obj = jsonPath.eval(item, name, {flatten: flatten});
         if(obj == false) obj = undefined;
         if(obj && _.isArray(obj) && obj.length == 1) {
             obj = obj[0];
