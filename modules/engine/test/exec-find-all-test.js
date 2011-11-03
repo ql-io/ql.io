@@ -80,5 +80,45 @@ module.exports = {
 
             });
         });
-    }
+    },
+
+    'find-all-flatten' : function(test) {
+            // Start a file server
+            var server = http.createServer(function(req, res) {
+                var file = __dirname + '/mock/' + req.url;
+                var stat = fs.statSync(file);
+                res.writeHead(200, {
+                    'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                    'Content-Length' : stat.size
+                });
+                var readStream = fs.createReadStream(file);
+                util.pump(readStream, res, function(e) {
+                    if(e) {
+                        console.log(e.stack || e);
+                    }
+                    res.end();
+                });
+            });
+            server.listen(3000, function() {
+                // Do the test here.
+                var engine = new Engine({
+                    connection : 'close'
+                });
+                var script = fs.readFileSync(__dirname + '/mock/find-all-flatten.ql', 'UTF-8');
+                engine.exec(script, function(err, results) {
+                    if(err) {
+                        console.log(err.stack || err);
+                        test.ok(false, 'Grrr');
+                        test.done();
+                    }
+                    else {
+                        results = results.body;
+                        test.ok(_.isArray(results));
+                        test.equals(results.length, 32);
+                        test.done();
+                    }
+                    server.close();
+                });
+            });
+        }
 }

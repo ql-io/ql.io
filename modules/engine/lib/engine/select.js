@@ -231,7 +231,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                                     path = path.substr(from.alias.length + 1);
                                 }
                                 var expected = cond.rhs.value;
-                                var result = jsonPath.eval(row, path);
+                                var result = jsonPath.eval(row, path, {flatten: true});
                                 if(result && _.isArray(result) && result.length == 1 && result[0] === expected) {
                                     filtered.push(row);
                                 }
