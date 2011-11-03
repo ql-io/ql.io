@@ -22,10 +22,15 @@ ids = "{GetMultipleItemsResponse.$..ItemID}";
 txb = "{GetMyeBayBuyingResponse.$..OrderTransaction}";
 txs = "{GetMyeBaySellingResponse.$..OrderTransaction}";
 
+be = "{GetMyeBayBuyingResponse.Errors}";
+se = "{GetMyeBaySellingResponse.Errors}";
+
 return {
   "i1": "{i1}",
   "i2": "{GetMyeBaySellingResponse.$..ItemID}",
   "ids": "{ids}",
   "txb": "{txb}",
-  "txs": "{txs}"
+  "txs": "{txs}",
+  "be": "{be}",
+  "se": "{se}"
 }
