@@ -15,7 +15,7 @@
  */
 
 var _ = require('underscore'),
-    Engine = require('lib/engine'),
+    Engine = require('../lib/engine'),
     EventEmitter = require('events').EventEmitter,
     sys = require('sys'),
     http = require('http'),
@@ -73,7 +73,8 @@ module.exports = {
 
                     test.equals(results.txb.length, 2);
                     test.equals(results.txs.length, 2);
-
+                    test.ok(results.be === undefined);
+                    test.ok(results.se === undefined);
                     test.done();
                 }
                 server.close();
