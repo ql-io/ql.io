@@ -110,7 +110,7 @@ function projectOne(name, items) {
     }
 }
 function projectOne_(name, item) {
-    var obj = jsonPath.eval(item, name.trim());
+    var obj = jsonPath.eval(item, name.trim(), {flatten: true});
     // JSONPath returns false when there is no match. This leads to 'false' values. Switch to undefined.
     if(obj) {
         return obj.length > 1 ? obj : obj[0];
@@ -141,9 +141,10 @@ function projectEach(item, columns) {
     // If columns have aliases, each row in the result set will be an object. If not, an array.
     var holder = columns[0].alias ? {} : [];
     _.each(columns, function(column) {
-        var obj = jsonPath.eval(item, column.name.trim());
+        // Flatten results as the selector may include '..'
+        var obj = jsonPath.eval(item, column.name.trim(), {flatten: true});
         if(obj == false) obj = undefined;
-        if(obj && _.isArray(obj)) {
+        if(obj && _.isArray(obj) && obj.length == 1) {
             obj = obj[0];
         }
         if(column.alias) {
