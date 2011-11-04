@@ -231,6 +231,24 @@
     }
     main.joiner = join;
 
+    // Reset the joiningColumn to the alias where columns are aliased
+    // The joining column is an index by default.
+    var joiningColumn;
+    if(main.columns[join.whereCriteria[0].rhs.joiningColumn].alias) {
+        for(var i = 0; i < main.columns.length; i++) {
+            if(main.columns[i].name === main.joiner.whereCriteria[0].rhs.value) {
+                joiningColumn = main.columns[i].alias;
+                break;
+            }
+        }
+        if(joiningColumn) {
+            main.joiner.whereCriteria[0].rhs.joiningColumn = joiningColumn;
+        }
+        else {
+            throw new this.SyntaxError("Line " + main.line + ": Joining column " + joiningColumn + " could not resolved. File a bug.");
+        }
+    }
+
     // Verify that all columns have prefixes
     for(var i = 0; i < main.columns.length; i++) {
         var prefixed = false;
