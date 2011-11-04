@@ -42,14 +42,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
         if(statement.joiner) {
             // Do the join now - we fill the joining column in into the joiner statement and execute it one for each
             // row from the main's results.
-
-            joiningColumn = statement.joiner.whereCriteria[0].rhs.joiningColumn
-            if(statement.columns[joiningColumn].alias) {
-                joiningColumn = statement.joiner.whereCriteria[0].rhs.value;
-                if(joiningColumn.indexOf(statement.fromClause[0].alias + '.') === 0) {
-                    joiningColumn = joiningColumn.substr(statement.fromClause[0].alias.length + 1);
-                }
-            }
+            joiningColumn = statement.joiner.whereCriteria[0].rhs.joiningColumn;
 
             // Prepare the joins
             funcs = [];
