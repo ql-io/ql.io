@@ -1,3 +1,5 @@
+var _ = require('underscore');
+
 exports['patch response'] = function(args) {
     var body = args.body;
     var items = [];
@@ -8,9 +10,9 @@ exports['patch response'] = function(args) {
             var result = body.findItemsByKeywordsResponse.searchResult.item[i];
             if (result) {
                 var item = {};
-                for (var p in result) {
-                    item['_' + p + '_'] = result[p]; // rename vars for the test
-                }
+                _.each(result, function(v, k) {
+                    item['_' + k + '_'] = v; // rename vars for the test
+                });
                 items.push(item);
             }
         }
