@@ -29,16 +29,18 @@ module.exports = {
     'response-patch-test': function(test) {
         var script = "select * from ebay.finding.items.rp where keywords = 'ferrari' limit 2;"
 
-	engine.exec(script, function(err, result) {
-	    if (err) {
-		logger.debug("ERROR: " + JSON.stringify(err));
+        // the normal result (without body patching) would reside in item, but the table def returns items,
+        // so if the result.body is not empty, then the body patch worked.
+        engine.exec(script, function(err, result) {
+            if (err) {
+                logger.debug("ERROR: " + JSON.stringify(err));
                 test.ok(false);
-		test.done();
-	    } else if (result) {
-		logger.debug("RESULT: " + JSON.stringify(result));
+                test.done();
+            } else if (result) {
+                logger.debug("RESULT: " + JSON.stringify(result));
                 test.ok(result.body);
-		test.done();
-	    }
-	});
+                test.done();
+            }
+        });
     }
 }
