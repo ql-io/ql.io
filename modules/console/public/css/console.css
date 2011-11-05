@@ -192,3 +192,12 @@ div#trace-data table tbody tr td pre {
     opacity: 0.5;
     filter: alpha(opacity = 50); /* IE */
 }
+
+.red {
+    color: red;
+}
+
+.green {
+    color: green;
+}
+
