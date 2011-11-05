@@ -409,6 +409,16 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
             }
             if(res.statusCode >= 200 && res.statusCode <= 300) {
                 if(respJson) {
+                    if(resource.monkeyPatch && resource.monkeyPatch['patch response']) {
+                        try {
+                           respJson = resource.monkeyPatch['patch response']({
+                               body: respJson
+                           });
+                        }
+                        catch(e) {
+                            return httpReqTx.cb(e);
+                        }
+                    }
                     // Projections
                     project.run(resource.resultSet, statement, respJson, function(filtered) {
                         return httpReqTx.cb(undefined, {
