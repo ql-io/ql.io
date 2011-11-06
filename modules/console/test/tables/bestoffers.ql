@@ -9,6 +9,6 @@ create table ebay.trading.bestoffers
                    'X-EBAY-API-CERT-NAME'= '{config.tables.ebay.trading.bestoffers.certname}'
      using defaults format = 'JSON', lang= 'en_US', limit = 10, offset = 0,
                     eBayAuthToken = '{config.tables.ebay.trading.bestoffers.eBayAuthToken}',
-                    appid = 'SubbuAll-5dfd-458a-9c9e-76e0aebe845f'
+                    appid = 'Qlio1a92e-fea5-485d-bcdb-1140ee96527'
      using bodyTemplate 'getbestoffers.xml.mu' type 'application/xml'
 
