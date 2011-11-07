@@ -9,5 +9,5 @@ create table ebay.trading.getitem
                 'X-EBAY-API-CERT-NAME'= '{config.tables.ebay.trading.bestoffers.certname}',
                 'X-EBAY-API-CALL-NAME'= 'getItem'
   using defaults format = "JSON", globalid = "EBAY-US", currency = "USD", itemSearchScope = "",
-                 limit = 10, offset = 0, appid = "SubbuAll-5dfd-458a-9c9e-76e0aebe845f"
+                 limit = 10, offset = 0, appid = "Qlio1a92e-fea5-485d-bcdb-1140ee96527"
   using bodyTemplate "getitem.xml.mu" type 'application/xml'

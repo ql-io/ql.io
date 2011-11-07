@@ -82,7 +82,7 @@ exports.go = function(options) {
         });
     }
     catch(e) {
-        logger.log('Failed to load ' + root + name);
+        logger.error('Failed to load ' + root + name);
         cb(e);
     }
 }
