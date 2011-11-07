@@ -11,6 +11,7 @@ module.exports = (function(){
     parse: function(input, startRule) {
       var parseFunctions = {
         "URITemplate": parse_URITemplate,
+        "blockMerge": parse_blockMerge,
         "digits": parse_digits,
         "expression": parse_expression,
         "literal": parse_literal,
@@ -234,6 +235,14 @@ module.exports = (function(){
                       var str = '', i, j, val, split = false, arr;
                       return _format('', values, defaults);
                   },
+                  merge: function() {
+                      for(i = 0; i < o.length; i++) {
+                          if(o[i].merge) {
+                              return o[i].merge;
+                          }
+                      }
+                      return 'field';
+                  },
                   stream: o
               }
           })(result1)
@@ -379,15 +388,20 @@ module.exports = (function(){
         }
 
 
-        var result2 = parse_required();
-        if (result2 !== null) {
-          var result0 = result2;
+        var result3 = parse_required();
+        if (result3 !== null) {
+          var result0 = result3;
         } else {
-          var result1 = parse_multivalued();
-          if (result1 !== null) {
-            var result0 = result1;
+          var result2 = parse_blockMerge();
+          if (result2 !== null) {
+            var result0 = result2;
           } else {
-            var result0 = null;;
+            var result1 = parse_multivalued();
+            if (result1 !== null) {
+              var result0 = result1;
+            } else {
+              var result0 = null;;
+            };
           };
         }
 
@@ -422,7 +436,49 @@ module.exports = (function(){
         var result2 = result1 !== null
           ? (function() {
               return {
-                required: true
+                  required: true
+              }
+          })()
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_blockMerge() {
+        var cacheKey = 'blockMerge@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        if (input.substr(pos, 1) === "#") {
+          var result1 = "#";
+          pos += 1;
+        } else {
+          var result1 = null;
+          if (reportMatchFailures) {
+            matchFailed("\"#\"");
+          }
+        }
+        var result2 = result1 !== null
+          ? (function() {
+              return {
+                  merge: 'block'
               }
           })()
           : null;
@@ -478,7 +534,7 @@ module.exports = (function(){
         var result2 = result1 !== null
           ? (function(d) {
               var ret = {
-                multivalued: true
+                  multivalued: true
               }
               d = parseInt(d);
               if(d > 0) {

@@ -275,5 +275,15 @@ module.exports = {
         });
         test.equals(uri, 'http://www.foo.com?p1=this%20is%20a%20value&p2=this%2Bis%2Ba%2Bvalue&p3=this%2Fis%2Fanother%2Fvalue');
         test.done();
+    },
+
+    'merge': function(test) {
+        var str = "http://www.foo.com?p1={p1}&p2={p2}&p3={#p3}";
+        var template = uriTemplate.parse(str);
+        test.equals(template.merge(), 'block');
+        str = "http://www.foo.com?p1={p1}&p2={p2}&p3={p3}";
+        template = uriTemplate.parse(str);
+        test.ok(template.merge(), 'field');
+        test.done();
     }
 };

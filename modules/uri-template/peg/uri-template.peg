@@ -125,6 +125,14 @@ URITemplate  = c:( literal / expression )* {
             var str = '', i, j, val, split = false, arr;
             return _format('', values, defaults);
         },
+        merge: function() {
+            for(i = 0; i < o.length; i++) {
+                if(o[i].merge) {
+                    return o[i].merge;
+                }
+            }
+            return 'field';
+        },
         stream: o
     }
 }
@@ -148,17 +156,23 @@ expression =  "{" op:operator* v:variable "}" {
     return token;
 }
 
-operator = required / multivalued
+operator = required / blockMerge / multivalued
 
 required = '^' {
     return {
-      required: true
+        required: true
+    }
+}
+
+blockMerge = '#' {
+    return {
+        merge: 'block'
     }
 }
 
 multivalued = d:digits? '|' {
     var ret = {
-      multivalued: true
+        multivalued: true
     }
     d = parseInt(d);
     if(d > 0) {

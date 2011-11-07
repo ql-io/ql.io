@@ -37,7 +37,7 @@ var strTemplate = require('./peg/str-template.js'),
 
 exports.exec = function(args) {
     var request, resource, statement, params, resourceUri, template, cb, holder,
-        validator, parentEvent, emitter, tasks, globalOpts;
+        validator, parentEvent, emitter, tasks, globalOpts, merge;
 
     resource = args.resource;
     request = args.request; // headers and params extracted from an incoming request (if any)
@@ -78,6 +78,9 @@ exports.exec = function(args) {
         global.opts.logger.warn(sys.inspect(err, false, 10));
         return cb(err, null);
     }
+
+    // If 'block', merge en block, if not merge field by field.
+    merge = template.merge();
 
     // Format the URI. If a token is single valued, but we have multiple values in the params array,
     // this returns multiple values so that we can split the job.
@@ -160,7 +163,7 @@ exports.exec = function(args) {
                         //
                         // In such cases, we need to merge values of the each object in the results
                         // array. Note that merging may result in single props becoming arrays
-                        ret.body = mergeArray(results, 'body');
+                        ret.body = mergeArray(results, 'body', merge);
                     }
                     else {
                         var result = results[0];
@@ -596,40 +599,48 @@ function ip() {
     return os.hostname();
 }
 
-function mergeArray(arr, prop) {
+function mergeArray(arr, prop, merge) {
     var merged;
-    if(arr.length > 0 && arr[0][prop] && _.isArray(arr[0][prop])) {
+    if(merge === 'block') {
         merged = [];
+        _.each(arr, function(source) {
+            merged.push(source[prop]);
+        })
     }
     else {
-        merged = {};
-    }
-    _.each(arr, function(source) {
-        source = source[prop];
-        if(_.isArray(source)) {
-            merged = merged.concat(source);
+        if(arr.length > 0 && arr[0][prop] && _.isArray(arr[0][prop])) {
+            merged = [];
         }
         else {
-            _.each(source, function(val, prop) {
-                if(merged[prop]) {
-                    if(_.isArray(merged[prop])) {
-                        if(_.isArray(val)) {
-                            merged[prop] = merged[prop].concat(val)
+            merged = {};
+        }
+        _.each(arr, function(source) {
+            source = source[prop];
+            if(_.isArray(source)) {
+                merged = merged.concat(source);
+            }
+            else {
+                _.each(source, function(val, prop) {
+                    if(merged[prop]) {
+                        if(_.isArray(merged[prop])) {
+                            if(_.isArray(val)) {
+                                merged[prop] = merged[prop].concat(val)
+                            }
+                            else {
+                                merged[prop].push(val);
+                            }
                         }
                         else {
+                            merged[prop] = [merged[prop]];
                             merged[prop].push(val);
                         }
                     }
                     else {
-                        merged[prop] = [merged[prop]];
-                        merged[prop].push(val);
+                        merged[prop] = val;
                     }
-                }
-                else {
-                    merged[prop] = val;
-                }
-            })
-        }
-    });
-    return merged;
+                })
+            }
+        });
+    }
+   return merged;
 }
