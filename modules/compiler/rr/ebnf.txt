@@ -1,0 +1,190 @@
+start    ::= line* return?
+line     ::= ( assign | comment )
+assign   ::= output? statementOrObject ';'?
+statementOrObject
+         ::= statement
+           | value
+statement
+         ::= selectStatement
+           | showStatement
+           | describeStatement
+           | insertStatement
+           | deleteStatement
+           | createStatement
+output   ::= word '='
+comment  ::= '--' sp [#x20-#xFFFF]* crlf?
+createStatement
+         ::= 'create' 'table' nonAliasSource act*
+type     ::= 'select'
+           | 'insert'
+           | 'delete'
+           | 'update'
+uri      ::= quotedWord
+act      ::= 'on' type actname uri withAliases? usingHeaders? usingDefaults? usingMonkeyPatch? usingBodyTemplate? authenticateUsing? resultSet?
+actname  ::= getfrom
+           | postto
+           | putto
+           | delete
+getfrom  ::= 'get' 'from'
+postto   ::= 'post' 'to'
+putto    ::= 'put' 'to'
+delete   ::= 'delete'
+usingDefaults
+         ::= 'using' 'defaults' nvps
+usingHeaders
+         ::= 'using' 'headers' nvps
+usingMonkeyPatch
+         ::= 'using' 'patch' quotedWord
+usingBodyTemplate
+         ::= 'using' 'bodyTemplate' quotedWord 'type' quotedWord
+withAliases
+         ::= 'with' 'aliases' nvps
+authenticateUsing
+         ::= ( 'authenticate' | 'auth' ) 'using' quotedWord
+resultSet
+         ::= 'resultset' quotedWord
+nvps     ::= nvp cnvp*
+cnvp     ::= ',' nvp
+nvp      ::= ( lhs | quotedWord )  '='  rhs
+selectStatement
+         ::= 'select'  columnsClause  'from'  fromClause  whereClause*  limit*  offset*
+showStatement
+         ::= 'show'  'tables'
+describeStatement
+         ::= ( 'describe' | 'desc' )  source
+insertStatement
+         ::= 'insert'  'in' 'to'  source  '('  columnsClause  ')'  'values'  '(' csv ')'
+deleteStatement
+         ::= 'delete'  'from'  source  whereClause
+columnsClause
+         ::= all
+           | fields
+fromClause
+         ::= source+ commaSource*
+source   ::= aliasSource
+           | nonAliasSource
+commaSource
+         ::=  comma  source
+aliasSource
+         ::= identifier  'as'  identifier
+nonAliasSource
+         ::= identifier
+whereClause
+         ::= 'where'  whereCriteria
+limit    ::= 'limit'  digits
+offset   ::= 'offset'  digits
+whereCriteria
+         ::= cond andCond*
+and      ::= 'and'
+cond     ::= eqCond
+           | inCond
+           | udf
+andCond  ::=  and  cond
+eqCond   ::=  lhs  operator  rhs
+inCond   ::= identifier  'in'  '('  ( selectStatement | csv )  ')'
+udf      ::= identifier  '('  udfParams?  ')'
+udfParams
+         ::= udfParam  ( comma  udfParam )*
+udfParam ::= aliasedRef
+           | quotedWord
+           | quotedDigits
+csv      ::=  csvMember  commaCsvMember*
+commaCsvMember
+         ::=  comma  csvMember
+csvMember
+         ::= quotedWord
+           | quotedDigits
+           | ref
+ref      ::= identifier
+lhs      ::= field
+operator ::=  '='
+           |  'in'
+rhs      ::= aliasedRef
+           | quotedWord
+           | quotedDigits
+           | digits
+aliasedRef
+         ::= selector ( '.' selector )*
+all      ::= '*'
+fields   ::= field (  comma  field )*
+field    ::= aliasField
+           | nonAliasField
+aliasField
+         ::= fieldName  'as'  identifier
+nonAliasField
+         ::= fieldName
+fieldName
+         ::= selector ( '.' selector )*
+selector ::= word '[' ( digits | '"' qword '"' | "'" qword "'" ) ']'
+           | word
+comma    ::= ','
+identifier
+         ::= word ( '.' word )*
+word     ::= [a-zA-Z$:] [a-zA-Z_0-9:]*
+quotedWord
+         ::= sQuotedWord
+           | dQuotedWord
+sQuotedWord
+         ::= "'" qword "'"
+dQuotedWord
+         ::= '"' qword '"'
+qword    ::= ( [ -!] | [#-&] | [(-~] | [a-zA-Z] | [a-zA-Z_0-9] )*
+quotedDigits
+         ::= sQuotedDigits
+           | dQuotedDigits
+sQuotedDigits
+         ::= "'" digits "'"
+dQuotedDigits
+         ::= '"' digits '"'
+return   ::= 'return'  retval  route?  ';'?
+retval   ::= statement
+           | retref
+           | value
+retref   ::= word
+route    ::= 'via'  'route'  quotedWord  'using'  'method'  ( 'get' | 'post' | 'put' | 'delete' | 'patch' )
+value    ::= object
+           | stringval
+           | numberval
+           | arrayval
+           | trueval
+           | falseval
+           | nullval
+stringval
+         ::= string
+numberval
+         ::= number
+arrayval ::= array
+trueval  ::= true
+falseval ::= false
+nullval  ::= null
+object   ::= struct
+struct   ::=  '{'  members?  '}'
+members  ::= pair  comma  members
+           |  pair
+pair     ::=  string  ':'  value
+array    ::= '['  elements?  ']'
+elements ::= value  comma  elements
+           | value
+string   ::= dquote ( [ -!] | [#-[] | [#x5D-#xFFFF] | ['\'] )* dquote
+number   ::= int frac exp
+           | int frac
+           | int exp
+           | int
+int      ::= digits
+           | '-' digits
+frac     ::= '.' digits
+exp      ::= e digits
+e        ::= 'e'
+           | 'e' '+'
+           | 'e' '-'
+           | 'E'
+           | 'E' '+'
+           | 'E' '-'
+digits   ::= [0-9]+
+true     ::= 'true'
+false    ::= 'false'
+null     ::= 'null'
+comma    ::= ','
+dquote   ::= ["]
+sp       ::= ( [#x9] | [ ] )*
+crlf     ::= [#xD#xA]
