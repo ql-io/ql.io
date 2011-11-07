@@ -3,7 +3,7 @@ var MutableURI = require('ql.io-mutable-uri'),
     mustache = require('mustache');
 
 exports['patch uri'] = function(args) {
-    return new MutableURI('https://api.ebay.com/ws/api.dll?appid=SubbuAll-5dfd-458a-9c9e-76e0aebe845f&version=723');
+    return new MutableURI('https://api.ebay.com/ws/api.dll?appid=Qlio1a92e-fea5-485d-bcdb-1140ee96527&version=723');
 }
 
 exports['patch headers'] = function(args) {
