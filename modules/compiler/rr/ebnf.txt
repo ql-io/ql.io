@@ -1,0 +1,87 @@
+start    ::= line* return?
+line     ::= ( assign | comment )
+assign   ::= ( word '=' )? (statement | value) ';'?
+statement
+         ::= selectStatement
+           | showStatement
+           | describeStatement
+           | insertStatement
+           | deleteStatement
+           | createStatement
+comment  ::= '--' sp [#x20-#xFFFF]* crlf?
+createStatement
+         ::= 'create' 'table' table act*
+selectStatement
+         ::= 'select'  columnsClause  'from'  fromClause  whereClause*  limit*  offset*
+showStatement
+         ::= 'show' 'tables'
+describeStatement
+         ::= ( 'describe' | 'desc' )  table
+insertStatement
+         ::= 'insert'  'in' 'to'  table  '('  columnsClause  ')'  'values'  '(' csv ')'
+
+deleteStatement
+         ::= 'delete'  'from'  table  whereClause
+
+act      ::= 'on' ('select' | 'insert' | 'delete' | 'update') ( ('get' 'from')| ('post' 'to') |
+             'put to' | 'delete') uri withAliases? usingHeaders? usingDefaults? usingMonkeyPatch? usingBodyTemplate? authenticateUsing? resultSet?
+
+usingDefaults
+         ::= 'using' 'defaults' nvps
+usingHeaders
+         ::= 'using' 'headers' nvps
+usingMonkeyPatch
+         ::= 'using' 'patch' moduleName
+usingBodyTemplate
+         ::= 'using' 'bodyTemplate' templateFile 'type' mediaType
+withAliases
+         ::= 'with' 'aliases' nvps
+authenticateUsing
+         ::= ( 'authenticate' | 'auth' ) 'using' moduleName
+resultSet
+         ::= 'resultset' quotedWord
+nvps     ::= (( lhs | quotedWord )  '='  rhs) (',' (( lhs | quotedWord )  '='  rhs))*
+
+columnsClause
+         ::= '*'  | ((fieldName  'as'  identifier) | fieldName) (  ','  ((fieldName  'as'  identifier) | fieldName) )*
+fromClause
+         ::= table+ (','  table)*
+table   ::= (identifier  'as'  identifier) | identifier
+
+whereClause
+         ::= 'where'  whereCriteria
+limit    ::= 'limit'  digits
+offset   ::= 'offset'  digits
+whereCriteria
+         ::= cond ('and' cond)*
+cond     ::= eqCond
+           | inCond
+           | udf
+eqCond   ::=  lhs  ('=' | 'in') rhs
+inCond   ::= identifier  'in'  '('  ( selectStatement | csv )  ')'
+udf      ::= identifier  '('  ((aliasedRef | quotedWord | quotedDigits)  ( ',' (aliasedRef | quotedWord | quotedDigits) )*)?  ')'
+
+csv      ::=  (quotedWord | quotedDigits | identifier)  (','  (quotedWord | quotedDigits | identifier))*
+
+lhs      ::= field
+
+rhs      ::= aliasedRef
+           | quotedWord
+           | quotedDigits
+           | digits
+aliasedRef
+         ::= selector ( '.' selector )*
+
+fieldName
+         ::= selector ( '.' selector )*
+selector ::= word '[' ( digits | '"' qword '"' | "'" qword "'" ) ']'
+           | word
+identifier
+         ::= word ( '.' word )*
+word     ::= [a-zA-Z$:] [a-zA-Z_0-9:]*
+
+return   ::= 'return'  (statement | ref | json)  route?  ';'?
+
+route    ::= 'via'  'route'  uriPath 'using'  'method'  ( 'get' | 'post' | 'put' | 'delete' | 'patch' )
+
+value    ::= json | string | number | array | true | false | null
