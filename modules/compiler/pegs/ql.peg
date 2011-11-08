@@ -285,12 +285,13 @@
 
 ///////////////////////////////////////////////////////////
 
-start = crlf* larr:linecrlf* r:return? crlf* {
+start = crlf* larr:linecrlf* insig r:return? insig crlf* insig carr:comment* insig crlf*{
   ret = [];
   ret = ret.concat(larr);
   if(r) {
     ret.push(r);
   }
+  ret = ret.concat(carr);
   return ret;
 }
 

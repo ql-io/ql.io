@@ -411,6 +411,48 @@ return {"result" : "{fields}"};\
             test.done();
         }
         catch(e) {
+            test.fail(e);
+            test.done();
+        }
+    },
+
+    'comment-at-end': function(test) {
+        var script = 'foo = select * from foo;\n\
+                      return foo;\n\
+                      -- a comment';
+        var cooked;
+        try {
+            cooked = compiler.compile(script);
+            test.equals(cooked.length, 3);
+            test.equals(cooked[2].type, 'comment');
+            test.equals(cooked[2].text, 'a comment');
+            test.done();
+        }
+        catch(e) {
+            console.log(e.stack);
+            test.fail(e);
+            test.done();
+        }
+    },
+
+    'crlf-at-end': function(test) {
+        var script = 'foo = select * from foo;\n\
+        a = {};\n\
+        -- \n\
+        -- a\n\
+        return foo;\n\
+        -- a comment\n\
+        \n\
+        ';
+        var cooked;
+        try {
+            cooked = compiler.compile(script);
+            test.equals(cooked.length, 6);
+            test.equals(cooked[5].type, 'comment');
+            test.equals(cooked[5].text, 'a comment');
+            test.done();
+        }
+        catch(e) {
             console.log(e.stack);
             test.fail(e);
             test.done();
