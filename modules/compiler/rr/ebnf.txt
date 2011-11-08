@@ -1,9 +1,6 @@
 start    ::= line* return?
 line     ::= ( assign | comment )
-assign   ::= output? statementOrObject ';'?
-statementOrObject
-         ::= statement
-           | value
+assign   ::= ( word '=' )? (statement | value) ';'?
 statement
          ::= selectStatement
            | showStatement
@@ -11,180 +8,80 @@ statement
            | insertStatement
            | deleteStatement
            | createStatement
-output   ::= word '='
 comment  ::= '--' sp [#x20-#xFFFF]* crlf?
 createStatement
-         ::= 'create' 'table' nonAliasSource act*
-type     ::= 'select'
-           | 'insert'
-           | 'delete'
-           | 'update'
-uri      ::= quotedWord
-act      ::= 'on' type actname uri withAliases? usingHeaders? usingDefaults? usingMonkeyPatch? usingBodyTemplate? authenticateUsing? resultSet?
-actname  ::= getfrom
-           | postto
-           | putto
-           | delete
-getfrom  ::= 'get' 'from'
-postto   ::= 'post' 'to'
-putto    ::= 'put' 'to'
-delete   ::= 'delete'
+         ::= 'create' 'table' table act*
+selectStatement
+         ::= 'select'  columnsClause  'from'  fromClause  whereClause*  limit*  offset*
+showStatement
+         ::= 'show' 'tables'
+describeStatement
+         ::= ( 'describe' | 'desc' )  table
+insertStatement
+         ::= 'insert'  'in' 'to'  table  '('  columnsClause  ')'  'values'  '(' csv ')'
+
+deleteStatement
+         ::= 'delete'  'from'  table  whereClause
+
+act      ::= 'on' ('select' | 'insert' | 'delete' | 'update') ( ('get' 'from')| ('post' 'to') |
+             'put to' | 'delete') uri withAliases? usingHeaders? usingDefaults? usingMonkeyPatch? usingBodyTemplate? authenticateUsing? resultSet?
+
 usingDefaults
          ::= 'using' 'defaults' nvps
 usingHeaders
          ::= 'using' 'headers' nvps
 usingMonkeyPatch
-         ::= 'using' 'patch' quotedWord
+         ::= 'using' 'patch' moduleName
 usingBodyTemplate
-         ::= 'using' 'bodyTemplate' quotedWord 'type' quotedWord
+         ::= 'using' 'bodyTemplate' templateFile 'type' mediaType
 withAliases
          ::= 'with' 'aliases' nvps
 authenticateUsing
-         ::= ( 'authenticate' | 'auth' ) 'using' quotedWord
+         ::= ( 'authenticate' | 'auth' ) 'using' moduleName
 resultSet
          ::= 'resultset' quotedWord
-nvps     ::= nvp cnvp*
-cnvp     ::= ',' nvp
-nvp      ::= ( lhs | quotedWord )  '='  rhs
-selectStatement
-         ::= 'select'  columnsClause  'from'  fromClause  whereClause*  limit*  offset*
-showStatement
-         ::= 'show'  'tables'
-describeStatement
-         ::= ( 'describe' | 'desc' )  source
-insertStatement
-         ::= 'insert'  'in' 'to'  source  '('  columnsClause  ')'  'values'  '(' csv ')'
-deleteStatement
-         ::= 'delete'  'from'  source  whereClause
+nvps     ::= (( lhs | quotedWord )  '='  rhs) (',' (( lhs | quotedWord )  '='  rhs))*
+
 columnsClause
-         ::= all
-           | fields
+         ::= '*'  | ((fieldName  'as'  identifier) | fieldName) (  ','  ((fieldName  'as'  identifier) | fieldName) )*
 fromClause
-         ::= source+ commaSource*
-source   ::= aliasSource
-           | nonAliasSource
-commaSource
-         ::=  comma  source
-aliasSource
-         ::= identifier  'as'  identifier
-nonAliasSource
-         ::= identifier
+         ::= table+ (','  table)*
+table   ::= (identifier  'as'  identifier) | identifier
+
 whereClause
          ::= 'where'  whereCriteria
 limit    ::= 'limit'  digits
 offset   ::= 'offset'  digits
 whereCriteria
-         ::= cond andCond*
-and      ::= 'and'
+         ::= cond ('and' cond)*
 cond     ::= eqCond
            | inCond
            | udf
-andCond  ::=  and  cond
-eqCond   ::=  lhs  operator  rhs
+eqCond   ::=  lhs  ('=' | 'in') rhs
 inCond   ::= identifier  'in'  '('  ( selectStatement | csv )  ')'
-udf      ::= identifier  '('  udfParams?  ')'
-udfParams
-         ::= udfParam  ( comma  udfParam )*
-udfParam ::= aliasedRef
-           | quotedWord
-           | quotedDigits
-csv      ::=  csvMember  commaCsvMember*
-commaCsvMember
-         ::=  comma  csvMember
-csvMember
-         ::= quotedWord
-           | quotedDigits
-           | ref
-ref      ::= identifier
+udf      ::= identifier  '('  ((aliasedRef | quotedWord | quotedDigits)  ( ',' (aliasedRef | quotedWord | quotedDigits) )*)?  ')'
+
+csv      ::=  (quotedWord | quotedDigits | identifier)  (','  (quotedWord | quotedDigits | identifier))*
+
 lhs      ::= field
-operator ::=  '='
-           |  'in'
+
 rhs      ::= aliasedRef
            | quotedWord
            | quotedDigits
            | digits
 aliasedRef
          ::= selector ( '.' selector )*
-all      ::= '*'
-fields   ::= field (  comma  field )*
-field    ::= aliasField
-           | nonAliasField
-aliasField
-         ::= fieldName  'as'  identifier
-nonAliasField
-         ::= fieldName
+
 fieldName
          ::= selector ( '.' selector )*
 selector ::= word '[' ( digits | '"' qword '"' | "'" qword "'" ) ']'
            | word
-comma    ::= ','
 identifier
          ::= word ( '.' word )*
 word     ::= [a-zA-Z$:] [a-zA-Z_0-9:]*
-quotedWord
-         ::= sQuotedWord
-           | dQuotedWord
-sQuotedWord
-         ::= "'" qword "'"
-dQuotedWord
-         ::= '"' qword '"'
-qword    ::= ( [ -!] | [#-&] | [(-~] | [a-zA-Z] | [a-zA-Z_0-9] )*
-quotedDigits
-         ::= sQuotedDigits
-           | dQuotedDigits
-sQuotedDigits
-         ::= "'" digits "'"
-dQuotedDigits
-         ::= '"' digits '"'
-return   ::= 'return'  retval  route?  ';'?
-retval   ::= statement
-           | retref
-           | value
-retref   ::= word
-route    ::= 'via'  'route'  quotedWord  'using'  'method'  ( 'get' | 'post' | 'put' | 'delete' | 'patch' )
-value    ::= object
-           | stringval
-           | numberval
-           | arrayval
-           | trueval
-           | falseval
-           | nullval
-stringval
-         ::= string
-numberval
-         ::= number
-arrayval ::= array
-trueval  ::= true
-falseval ::= false
-nullval  ::= null
-object   ::= struct
-struct   ::=  '{'  members?  '}'
-members  ::= pair  comma  members
-           |  pair
-pair     ::=  string  ':'  value
-array    ::= '['  elements?  ']'
-elements ::= value  comma  elements
-           | value
-string   ::= dquote ( [ -!] | [#-[] | [#x5D-#xFFFF] | ['\'] )* dquote
-number   ::= int frac exp
-           | int frac
-           | int exp
-           | int
-int      ::= digits
-           | '-' digits
-frac     ::= '.' digits
-exp      ::= e digits
-e        ::= 'e'
-           | 'e' '+'
-           | 'e' '-'
-           | 'E'
-           | 'E' '+'
-           | 'E' '-'
-digits   ::= [0-9]+
-true     ::= 'true'
-false    ::= 'false'
-null     ::= 'null'
-comma    ::= ','
-dquote   ::= ["]
-sp       ::= ( [#x9] | [ ] )*
-crlf     ::= [#xD#xA]
+
+return   ::= 'return'  (statement | ref | json)  route?  ';'?
+
+route    ::= 'via'  'route'  uriPath 'using'  'method'  ( 'get' | 'post' | 'put' | 'delete' | 'patch' )
+
+value    ::= json | string | number | array | true | false | null
