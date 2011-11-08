@@ -196,30 +196,76 @@ module.exports = (function(){
         var savedPos0 = pos;
         var savedPos1 = pos;
         var result3 = [];
-        var result10 = parse_crlf();
-        while (result10 !== null) {
-          result3.push(result10);
-          var result10 = parse_crlf();
+        var result18 = parse_crlf();
+        while (result18 !== null) {
+          result3.push(result18);
+          var result18 = parse_crlf();
         }
         if (result3 !== null) {
           var result4 = [];
-          var result9 = parse_linecrlf();
-          while (result9 !== null) {
-            result4.push(result9);
-            var result9 = parse_linecrlf();
+          var result17 = parse_linecrlf();
+          while (result17 !== null) {
+            result4.push(result17);
+            var result17 = parse_linecrlf();
           }
           if (result4 !== null) {
-            var result8 = parse_return();
-            var result5 = result8 !== null ? result8 : '';
+            var result5 = parse_insig();
             if (result5 !== null) {
-              var result6 = [];
-              var result7 = parse_crlf();
-              while (result7 !== null) {
-                result6.push(result7);
-                var result7 = parse_crlf();
-              }
+              var result16 = parse_return();
+              var result6 = result16 !== null ? result16 : '';
               if (result6 !== null) {
-                var result1 = [result3, result4, result5, result6];
+                var result7 = parse_insig();
+                if (result7 !== null) {
+                  var result8 = [];
+                  var result15 = parse_crlf();
+                  while (result15 !== null) {
+                    result8.push(result15);
+                    var result15 = parse_crlf();
+                  }
+                  if (result8 !== null) {
+                    var result9 = parse_insig();
+                    if (result9 !== null) {
+                      var result10 = [];
+                      var result14 = parse_comment();
+                      while (result14 !== null) {
+                        result10.push(result14);
+                        var result14 = parse_comment();
+                      }
+                      if (result10 !== null) {
+                        var result11 = parse_insig();
+                        if (result11 !== null) {
+                          var result12 = [];
+                          var result13 = parse_crlf();
+                          while (result13 !== null) {
+                            result12.push(result13);
+                            var result13 = parse_crlf();
+                          }
+                          if (result12 !== null) {
+                            var result1 = [result3, result4, result5, result6, result7, result8, result9, result10, result11, result12];
+                          } else {
+                            var result1 = null;
+                            pos = savedPos1;
+                          }
+                        } else {
+                          var result1 = null;
+                          pos = savedPos1;
+                        }
+                      } else {
+                        var result1 = null;
+                        pos = savedPos1;
+                      }
+                    } else {
+                      var result1 = null;
+                      pos = savedPos1;
+                    }
+                  } else {
+                    var result1 = null;
+                    pos = savedPos1;
+                  }
+                } else {
+                  var result1 = null;
+                  pos = savedPos1;
+                }
               } else {
                 var result1 = null;
                 pos = savedPos1;
@@ -237,14 +283,15 @@ module.exports = (function(){
           pos = savedPos1;
         }
         var result2 = result1 !== null
-          ? (function(larr, r) {
+          ? (function(larr, r, carr) {
             ret = [];
             ret = ret.concat(larr);
             if(r) {
               ret.push(r);
             }
+            ret = ret.concat(carr);
             return ret;
-          })(result1[1], result1[2])
+          })(result1[1], result1[3], result1[7])
           : null;
         if (result2 !== null) {
           var result0 = result2;
