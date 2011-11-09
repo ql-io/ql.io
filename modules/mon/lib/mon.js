@@ -18,6 +18,8 @@
 
 var cluster = require('cluster'),
     os = require('os'),
+    fs = require('fs'),
+    util = require('util'),
     express = require('express'),
     procEmitter = process.EventEmitter(),
     WebSocketServer = require('websocket').server,
@@ -129,7 +131,48 @@ function launchMon(master, port, url, options) {
         } else {
             res.render('in-flight.ejs', getInflight(master));
         }
-    })
+    });
+
+    app.get(/^\/logs?(?:\/(\d+)(?:\.\.(\d+))?)?/, function(req, res) {
+        var root, paths, logs, stats;
+        var file = process.cwd() + req.url;
+        if(req.url === '/logs') {
+            root = process.cwd() + '/logs';
+            paths = fs.readdirSync(root);
+            logs = [];
+            paths.forEach(function(filename) {
+                stats = fs.statSync(root + '/' + filename);
+                logs.push({
+                    filename: filename,
+                    stats: stats
+                })
+            });
+            res.render('logs.ejs', {
+                logs: logs,
+                master: {
+                    os: os.type(),
+                    started: master.stats.start.toUTCString(),
+                    host: os.hostname(),
+                    state: master.state,
+                    pid: master.pid
+                }
+            });
+        }
+        else {
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : 'text/plain',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        }
+    });
 
     var hashSlash = url.substr(-1) === '/';
 

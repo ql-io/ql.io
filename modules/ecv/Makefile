@@ -1,9 +1,11 @@
 all: clean install test
 
 clean:
-	-rm -fr node_modules
+	-rm -fr node_modules;\
+	-rm -r logs
 
 install:
+	mkdir logs;\
 	npm link ql.io-console;\
 	npm install;\
 	npm link; \
