@@ -65,3 +65,11 @@ table.in-flight td {
     vertical-align: top;
     overflow-x: hidden;
 }
+
+table.logs {
+    width: 100%;
+}
+
+table.logs thead {
+    font-weight: bold;
+}

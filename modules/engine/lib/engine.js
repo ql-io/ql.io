@@ -59,14 +59,6 @@ var Engine = module.exports = function(opts) {
     // Holder for global opts.
     global.opts = opts || {};
 
-    //
-    // Setup a logger.
-    // In stead of create new logger instances, just refer to global.opts.logger.
-    //
-    logger = global.opts.logger || logger;
-    logger.setLevels(global.opts['log levels'] || logger.config.syslog.levels);
-    global.opts.logger = logger;
-
     // Load config
     global.opts.config = _.isObject(global.opts.config) ? global.opts.config : configLoader.load(global.opts);
 
@@ -89,33 +81,6 @@ var Engine = module.exports = function(opts) {
         return routes;
     }
 
-    if(global.opts['console log']) {
-        var procEmitter = process.EventEmitter(), buf;
-        procEmitter.on(eventTypes.BEGIN_EVENT, function(packet) {
-            buf = packet.startTime + '|' + packet.uuid + '|' + packet.txType + '-' + packet.txName + '|' + packet.parentEventId + '-' + packet.eventId;
-            logger.info(buf);
-        })
-        procEmitter.on(eventTypes.END_EVENT, function(packet) {
-            buf = packet.startTime + '|' + packet.uuid + '|' + packet.txType + '-' + packet.txName + '|' + packet.parentEventId + '-' + packet.eventId;
-            logger.info(buf);
-        })
-        procEmitter.on(eventTypes.HEART_BEAT, function(packet) {
-            buf = packet.startTime + '|' + packet.uuid + '|' + packet.txType + '-' + packet.txName + '|' + packet.parentEventId + '-' + packet.eventId;
-            logger.info(buf);
-        })
-        procEmitter.on(eventTypes.EVENT, function(packet) {
-            buf = packet.startTime + '|' + packet.uuid + '|' + packet.txType + '-' + packet.txName + '|' + packet.parentEventId + '-' + packet.eventId;
-            logger.info(buf);
-        })
-        procEmitter.on(eventTypes.WARNING, function(packet) {
-            buf = packet.startTime + '|' + packet.uuid + '|' + packet.txType + '-' + packet.txName + '|' + packet.parentEventId + '-' + packet.eventId;
-            logger.info(buf);
-        })
-        procEmitter.on(eventTypes.ERROR, function(packet) {
-            buf = packet.startTime + '|' + packet.uuid + '|' + packet.txType + '-' + packet.txName + '|' + packet.parentEventId + '-' + packet.eventId;
-            logger.info(buf);
-        })
-    }
     /**
      * Executes the given statement or script.
      */

@@ -1,0 +1,13 @@
+start    ::= URITemplate
+URITemplate
+         ::= ( literal | expression )*
+literal  ::= [^#x5E "'<>`{|}]
+expression
+         ::= '{' operator* variable '}'
+operator ::= '^'
+           | '#'
+           | (digits? '|')
+
+
+variable ::= literal*
+digits   ::= [0-9]*
