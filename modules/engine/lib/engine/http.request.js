@@ -145,40 +145,35 @@ exports.exec = function(args) {
             return cb(err, results);
         }
         else {
-            if(err) {
-                return cb(err);
-            }
-            else {
-                // Assume that they all share the same media type
-                var ret = {
-                    headers: {
-                        'content-type':  'application/json'
-                    },
-                    body: []
-                };
-                if(_.isArray(results)) {
-                    if(results.length > 1) {
-                        // This happens when the request is sliced into multiple requests, with each
-                        // returning a similar object.
-                        //
-                        // In such cases, we need to merge values of the each object in the results
-                        // array. Note that merging may result in single props becoming arrays
-                        ret.body = mergeArray(results, 'body', merge);
-                    }
-                    else {
-                        var result = results[0];
-                        if(result) {
-                            ret.body = result.body;
-                        }
-                        else {
-                            ret.body = undefined;
-                        }
-                    }
-                    return cb(err, ret);
+            // Assume that they all share the same media type
+            var ret = {
+                headers: {
+                    'content-type':  'application/json'
+                },
+                body: []
+            };
+            if(_.isArray(results)) {
+                if(results.length > 1) {
+                    // This happens when the request is sliced into multiple requests, with each
+                    // returning a similar object.
+                    //
+                    // In such cases, we need to merge values of the each object in the results
+                    // array. Note that merging may result in single props becoming arrays
+                    ret.body = mergeArray(results, 'body', merge);
                 }
                 else {
-                    return cb(err, results);
+                    var result = results[0];
+                    if(result) {
+                        ret.body = result.body;
+                    }
+                    else {
+                        ret.body = undefined;
+                    }
                 }
+                return cb(err, ret);
+            }
+            else {
+                return cb(err, results);
             }
         }
     });
@@ -330,7 +325,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                 name: n,
                 value: v
             });
-        })
+        });
         emitter.emit(packet.type, packet);
     }
 
@@ -367,6 +362,13 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
             // TODO: Handle redirects
 
             mediaType = sniffMediaType(mediaType, resource, statement, res, respData);
+
+            // TODO: Log level?
+            // TODO: For now, log verbose
+            logUtil.emitEvent(httpReqTx.event, new Date() + ' ' + resourceUri + '  ' +
+                sys.inspect(options) + ' ' +
+                res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
+                sys.inspect(res.headers));
 
             // Parse
             try {

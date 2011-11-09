@@ -47,9 +47,25 @@ var Console = module.exports = function(config) {
     config = config || {};
 
     global.opts = config;
-    global.opts.logger = winston;
+    global.opts.logger = new (winston.Logger)({
+        transports: [
+          new (winston.transports.File)({
+              filename: process.cwd() + '/logs/ql.io.log',
+              maxsize: 1024000 * 5
+          })
+        ]
+      });
+
     global.opts.logger.setLevels(global.opts['log levels'] || winston.config.syslog.levels);
     var logger = global.opts.logger
+
+    var procEmitter = process.EventEmitter();
+    function writer(event, message) {
+        if(message) {
+            logger.info(message);
+        }
+    }
+    procEmitter.on(Engine.Events.EVENT, writer);
 
     if(config.tables) {
         logger.info('Loading tables from ' + config.tables);
