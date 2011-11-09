@@ -304,7 +304,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     options = {
         host: useProxy ? proxyHost : host,
         port: useProxy? proxyPort : port,
-        path: useProxy? host + path : path,
+        path: useProxy? uri.scheme() + '//' + host + path : path,
         method: resource.method || 'GET',
         headers: h
     };
