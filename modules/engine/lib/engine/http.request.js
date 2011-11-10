@@ -75,7 +75,7 @@ exports.exec = function(args) {
         template = uriTemplate.parse(resourceUri);
     }
     catch(err) {
-        global.opts.logger.warn(sys.inspect(err, false, 10));
+        global.opts.logger.warning(sys.inspect(err, false, 10));
         return cb(err, null);
     }
 
@@ -251,7 +251,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                 template = uriTemplate.parse(body.content || resource.body.content);
             }
             catch(err) {
-                global.opts.logger.warn(sys.inspect(err, false, 10));
+                global.opts.logger.warning(sys.inspect(err, false, 10));
                 return cb(err, null);
             }
             requestBody = formatUri(template, params, resource.defaults);
