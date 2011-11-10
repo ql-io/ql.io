@@ -1,0 +1,18 @@
+{
+    "proxy":{
+        "open.api.ebay.com":{
+            "host":"ne.vip.ebay.com",
+            "port":"80"
+        },
+        "*" : {
+            "host":"unknown.vip.ebay.com",
+            "port":"80"
+        },
+        "svcs.ebay.com" : {
+
+        }
+    },
+    "ebay":{
+        "apikey":"Qlio1a92e-fea5-485d-bcdb-1140ee96527"
+    }
+}
