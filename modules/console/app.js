@@ -172,6 +172,7 @@ var Console = module.exports = function(config) {
     var routes = engine.routes();
     _.each(routes, function(verbRoutes, uri) {
         _.each(verbRoutes, function(verbRouteVariants, verb) {
+            procEmitter.emit(Engine.Events.EVENT, {}, new Date() + ' Adding route ' + uri + ' for ' + verb);
             app[verb](uri, function(req, res) {
                 var holder = {
                     params: {},
