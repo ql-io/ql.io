@@ -295,10 +295,21 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     assert.ok(port, 'Port of URI [' + resourceUri + '] is invalid')
     path = (heirpart.path().value || '') + (uri.querystring() || '');
 
-    if(globalOpts && globalOpts.config && globalOpts.config.proxy) {
-        useProxy = true;
-        proxyHost = globalOpts.config.proxy.host;
-        proxyPort = globalOpts.config.proxy.port;
+    if (globalOpts && globalOpts.config && globalOpts.config.proxy) {
+        var proxyConfig = globalOpts.config.proxy;
+        if (proxyConfig[host] && !proxyConfig[host].host) {
+            useProxy = false;
+        }
+        else if (proxyConfig[host] && proxyConfig[host].host) {
+            proxyHost = proxyConfig[host].host;
+            proxyPort = proxyConfig[host].port;
+            useProxy = true;
+        }
+        else if (proxyConfig['*']) {
+            proxyHost = proxyConfig['*'].host;
+            proxyPort = proxyConfig['*'].port;
+            useProxy = true;
+        }
     }
 
     options = {
