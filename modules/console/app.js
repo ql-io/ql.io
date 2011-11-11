@@ -68,6 +68,16 @@ var Console = module.exports = function(config) {
     procEmitter.on(Engine.Events.SCRIPT_DONE, function(event, message) {
         logger.info(JSON.stringify(event));
     });
+    procEmitter.on(Engine.Events.ERROR, function(event, message) {
+        if(message) {
+            logger.error(message);
+        }
+    });
+    procEmitter.on(Engine.Events.WARNING, function(event, message) {
+        if(message) {
+            logger.warning(message);
+        }
+    });
 
     if(config.tables) {
         logger.info('Loading tables from ' + config.tables);
