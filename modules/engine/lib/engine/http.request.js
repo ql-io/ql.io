@@ -181,7 +181,7 @@ exports.exec = function(args) {
 
 function sendOneRequest(args, resourceUri, params, holder, cb) {
     var h, requestBody, mediaType = 'application/json', override, client, isTls, options, auth,
-        clientRequest, template;
+        clientRequest, template, start = Date.now();
     var respData, respJson, uri, heirpart, authority, host, port, path, useProxy = false, proxyHost, proxyPort;
 
     var httpReqTx = logUtil.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
@@ -210,8 +210,8 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
             v = compiled.format(params);
         }
         catch(e) {
-            // Ignore as we want to treat non-conformat strings as opaque
-            console.log(e.stack || e);
+            // Ignore as we want to treat non-conformant strings as opaque
+            logUtil.emitWarning(httpReqTx.event, new Date() + ' unable to parse header ' + v + ' error: ' + e.stack || e);
         }
         h[k.toLowerCase()] = v;
     });
@@ -379,7 +379,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
             logUtil.emitEvent(httpReqTx.event, new Date() + ' ' + resourceUri + '  ' +
                 sys.inspect(options) + ' ' +
                 res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
-                sys.inspect(res.headers));
+                sys.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
 
             // Parse
             try {
@@ -470,7 +470,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
         clientRequest.write(requestBody);
     }
     clientRequest.on('error', function(err) {
-        console.log('Error with uri - ' + resourceUri + ' - ' + err.message);
+        logUtil.emitError(httpReqTx.event, new Date() + ' error with uri - ' + resourceUri + ' - ' + err.message + ' ' + (Date.now() - start) + 'msec');
         err.uri = uri;
         return httpReqTx.cb(err, undefined);
     });

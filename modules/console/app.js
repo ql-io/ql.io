@@ -57,15 +57,17 @@ var Console = module.exports = function(config) {
       });
 
     global.opts.logger.setLevels(global.opts['log levels'] || winston.config.syslog.levels);
-    var logger = global.opts.logger
+    var logger = global.opts.logger;
 
     var procEmitter = process.EventEmitter();
-    function writer(event, message) {
+    procEmitter.on(Engine.Events.EVENT, function(event, message) {
         if(message) {
             logger.info(message);
         }
-    }
-    procEmitter.on(Engine.Events.EVENT, writer);
+    });
+    procEmitter.on(Engine.Events.SCRIPT_DONE, function(event, message) {
+        logger.info(JSON.stringify(event));
+    });
 
     if(config.tables) {
         logger.info('Loading tables from ' + config.tables);
