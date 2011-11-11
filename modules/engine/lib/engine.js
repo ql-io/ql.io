@@ -117,6 +117,7 @@ var Engine = module.exports = function(opts) {
         var engineEvent = logUtil.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
             if(emitter) {
                 packet = {
+                    script: route || script,
                     type: eventTypes.SCRIPT_DONE,
                     elapsed: Date.now() - start,
                     data: 'Done'
