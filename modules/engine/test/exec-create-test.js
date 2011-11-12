@@ -15,33 +15,54 @@
  */
 
 var _ = require('underscore'),
-    Engine = require('lib/engine'),
-    sys = require('sys');
+    Engine = require('../lib/engine'),
+    sys = require('sys'),
+    http = require('http'),
+    fs = require('fs'),
+    util = require('util');
 
 var engine = new Engine({
     config: __dirname + '/config/dev.json',
     connection: 'close'
 });
 
-exports['temp-table'] = function(test) {
-    var script;
-    script = "create table items\n\
-        on select get from 'http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID=EBAY-US&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT=XML&REST-PAYLOAD&keywords={^keywords}&outputSelector%280%29=SellerInfo&sortOrder=BestMatch'\n\
-            using defaults apikey =  '{config.ebay.apikey}'\n\
-            resultset 'findItemsByKeywordsResponse.searchResult.item'\n\
-        select * from items where keywords = 'iPhone 5'";
-    engine.exec(script, function(err, result) {
-        if(err) {
-            console.log(err.stack || sys.inspect(err, false, 10));
-            test.fail('got error');
-            test.done();
-        }
-        else {
-            test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
-            test.ok(_.isArray(result.body), 'expected an array');
-            test.ok(result.body.length > 0, 'expected some items');
-            test.ok(!_.isArray(result.body[0]), 'expected object in the array');
-            test.done();
-        }
+     exports['temp-table'] = function(test) {
+     var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+            // Do the test here.
+            var engine = new Engine({
+                connection : 'close'
+            });
+            var script = fs.readFileSync(__dirname + '/mock/create.ql', 'UTF-8');
+   
+       	    engine.exec(script, function(err, result) {
+         	if(err) {
+        	    console.log(err.stack || sys.inspect(err, false, 10));
+        	    test.fail('got error');
+        	    test.done();
+        	}
+        	else {
+		   test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
+        	   test.ok(_.isArray(result.body), 'expected an array');
+        	   test.ok(result.body.length > 0, 'expected some items');
+        	   test.ok(!_.isArray(result.body[0]), 'expected object in the array');
+        	   test.done();
+        	}
+		server.close();
+	     });
     });
 }
