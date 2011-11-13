@@ -74,7 +74,7 @@ var wrapEvent = exports.wrapEvent = function(parent, txType, txName, cb) {
         cb: function(e, r) {
             var message = 'Success';
             if (e) {
-                procEmitter.emit(eventTypes.ERROR, event, sys.inspect(e, false, null));
+                procEmitter.emit(eventTypes.ERROR, event, e);
                 message = 'Failure'
             }
             endEvent(event);

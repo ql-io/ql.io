@@ -41,7 +41,7 @@ exports.load = function(opts) {
             data = JSON.parse(text);
         }
         catch(e) {
-            logUtil.emitError({}, new Date() + ' error loading config file: ' + file);
+            logUtil.emitError({}, 'error loading config file: ' + file);
             console.log(e.stack || e);
             return;
         }

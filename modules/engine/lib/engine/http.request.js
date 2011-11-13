@@ -75,7 +75,7 @@ exports.exec = function(args) {
         template = uriTemplate.parse(resourceUri);
     }
     catch(err) {
-        global.opts.logger.warning(sys.inspect(err, false, 10));
+        global.opts.logger.warning(err);
         return cb(err, null);
     }
 
@@ -211,7 +211,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
         }
         catch(e) {
             // Ignore as we want to treat non-conformant strings as opaque
-            logUtil.emitWarning(httpReqTx.event, new Date() + ' unable to parse header ' + v + ' error: ' + e.stack || e);
+            logUtil.emitWarning(httpReqTx.event, 'unable to parse header ' + v + ' error: ' + e.stack || e);
         }
         h[k.toLowerCase()] = v;
     });
@@ -251,7 +251,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                 template = uriTemplate.parse(body.content || resource.body.content);
             }
             catch(err) {
-                global.opts.logger.warning(sys.inspect(err, false, 10));
+                global.opts.logger.warning(err);
                 return cb(err, null);
             }
             requestBody = formatUri(template, params, resource.defaults);
@@ -376,7 +376,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
 
             // TODO: Log level?
             // TODO: For now, log verbose
-            logUtil.emitEvent(httpReqTx.event, new Date() + ' ' + resourceUri + '  ' +
+            logUtil.emitEvent(httpReqTx.event, resourceUri + '  ' +
                 sys.inspect(options) + ' ' +
                 res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
                 sys.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
@@ -470,7 +470,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
         clientRequest.write(requestBody);
     }
     clientRequest.on('error', function(err) {
-        logUtil.emitError(httpReqTx.event, new Date() + ' error with uri - ' + resourceUri + ' - ' + err.message + ' ' + (Date.now() - start) + 'msec');
+        logUtil.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' + err.message + ' ' + (Date.now() - start) + 'msec');
         err.uri = uri;
         return httpReqTx.cb(err, undefined);
     });
