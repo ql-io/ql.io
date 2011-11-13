@@ -62,11 +62,21 @@ var Console = module.exports = function(config) {
     var procEmitter = process.EventEmitter();
     procEmitter.on(Engine.Events.EVENT, function(event, message) {
         if(message) {
-            logger.info(message);
+            logger.info(new Date() + ' - ' + message);
         }
     });
     procEmitter.on(Engine.Events.SCRIPT_DONE, function(event, message) {
-        logger.info(JSON.stringify(event));
+        logger.info(new Date() + ' - ' + JSON.stringify(event));
+    });
+    procEmitter.on(Engine.Events.ERROR, function(event, message) {
+        if(message) {
+            logger.error(new Date() + ' - ' + message.stack || message);
+        }
+    });
+    procEmitter.on(Engine.Events.WARNING, function(event, message) {
+        if(message) {
+            logger.warning(new Date() + ' - ' + message.stack || message);
+        }
     });
 
     if(config.tables) {
