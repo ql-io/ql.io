@@ -470,7 +470,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
         clientRequest.write(requestBody);
     }
     clientRequest.on('error', function(err) {
-        logUtil.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' + err.message + ' ' + sys.inspect(options, true, 10) + ' ' + (Date.now() - start) + 'msec');
+        logUtil.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' + err.message + ' ' + sys.inspect(clientRequest, true, 10) + ' ' + (Date.now() - start) + 'msec');
         err.uri = uri;
         return httpReqTx.cb(err, undefined);
     });
