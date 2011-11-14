@@ -75,7 +75,7 @@ exports.exec = function(args) {
         template = uriTemplate.parse(resourceUri);
     }
     catch(err) {
-        global.opts.logger.warning(sys.inspect(err, false, 10));
+        global.opts.logger.warning(err);
         return cb(err, null);
     }
 
@@ -89,17 +89,17 @@ exports.exec = function(args) {
     // Preconditions - done by the monkey patch
     if(resource.monkeyPatch && resource.monkeyPatch['patch uri']) {
         var temp = [];
-        _.each(resourceUri, function(u) {
-            try {
-                var patched = patchUri(u, statement, params, resource.monkeyPatch['patch uri']);
-                if(patched) {
-                    temp = temp.concat(patched);
-                }
-            }
-            catch(e) {
-                return cb(e);
-            }
-        });
+        try {
+            _.each(resourceUri, function(u) {
+                    var patched = patchUri(u, statement, params, resource.monkeyPatch['patch uri']);
+                    if(patched) {
+                        temp = temp.concat(patched);
+                    }
+            });
+        }
+        catch(e) {
+            return cb(e);
+        }
         resourceUri = temp; // Swap updated URIs
     }
 
@@ -109,23 +109,23 @@ exports.exec = function(args) {
     }
 
     // Invoke UDFs - defined by monkey patch
-    _.each(statement.whereCriteria, function(c) {
-        if(c.operator === 'udf') {
-            if(resource.monkeyPatch && resource.monkeyPatch['udf']) {
-                try {
-                    holder[c.name] = resource.monkeyPatch.udf[c.name](c.args);
+    try {
+        _.each(statement.whereCriteria, function(c) {
+            if(c.operator === 'udf') {
+                if(resource.monkeyPatch && resource.monkeyPatch['udf']) {
+                        holder[c.name] = resource.monkeyPatch.udf[c.name](c.args);
                 }
-                catch(e) {
-                    return cb(e.stack || e);
+                else {
+                    throw {
+                        message: 'udf ' + c.name + ' not defined'
+                    };
                 }
             }
-            else {
-                return cb({
-                    message: 'udf ' + c.name + ' not defined'
-                });
-            }
-        }
-    });
+        });
+    }
+    catch(e) {
+        return cb(e.stack || e);
+    }
 
     // if template.format() returns multiple URIs, we need to execute all of them in parallel,
     // join on the response, and then send the response to the caller.
@@ -211,7 +211,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
         }
         catch(e) {
             // Ignore as we want to treat non-conformant strings as opaque
-            logUtil.emitWarning(httpReqTx.event, new Date() + ' unable to parse header ' + v + ' error: ' + e.stack || e);
+            logUtil.emitWarning(httpReqTx.event, 'unable to parse header ' + v + ' error: ' + e.stack || e);
         }
         h[k.toLowerCase()] = v;
     });
@@ -251,7 +251,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                 template = uriTemplate.parse(body.content || resource.body.content);
             }
             catch(err) {
-                global.opts.logger.warning(sys.inspect(err, false, 10));
+                global.opts.logger.warning(err);
                 return cb(err, null);
             }
             requestBody = formatUri(template, params, resource.defaults);
@@ -376,7 +376,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
 
             // TODO: Log level?
             // TODO: For now, log verbose
-            logUtil.emitEvent(httpReqTx.event, new Date() + ' ' + resourceUri + '  ' +
+            logUtil.emitEvent(httpReqTx.event, resourceUri + '  ' +
                 sys.inspect(options) + ' ' +
                 res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
                 sys.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
@@ -470,7 +470,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
         clientRequest.write(requestBody);
     }
     clientRequest.on('error', function(err) {
-        logUtil.emitError(httpReqTx.event, new Date() + ' error with uri - ' + resourceUri + ' - ' + err.message + ' ' + (Date.now() - start) + 'msec');
+        logUtil.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' + err.message + ' ' + (Date.now() - start) + 'msec');
         err.uri = uri;
         return httpReqTx.cb(err, undefined);
     });
