@@ -304,6 +304,10 @@ var Console = module.exports = function(config) {
                         events.push(event);
                     })
                 }
+                connection.sendUTF(JSON.stringify({
+                    type: 'events',
+                    data: '{}'
+                }));
             }
             else if (event.type === 'script') {
                 emitter = new EventEmitter();
