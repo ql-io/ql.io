@@ -36,10 +36,11 @@ var strTemplate = require('./peg/str-template.js'),
     os = require('os');
 
 exports.exec = function(args) {
-    var request, resource, statement, params, resourceUri, template, cb, holder,
+    var request, context, resource, statement, params, resourceUri, template, cb, holder,
         validator, parentEvent, emitter, tasks, globalOpts, merge;
 
     resource = args.resource;
+    context = args.context;
     request = args.request; // headers and params extracted from an incoming request (if any)
     statement = args.statement;
     cb = args.callback;
@@ -55,6 +56,9 @@ exports.exec = function(args) {
         request.routeParams,
         request.body,
         args.params);
+    if(context) {
+        params.__proto__ = context;
+    }
 
     // Validate all params
     if(resource.monkeyPatch && resource.monkeyPatch['validate param']) {

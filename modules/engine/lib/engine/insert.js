@@ -55,6 +55,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
     });
 
     httpRequest.exec({
+        context: opts.context,
         resource: table.insert,
         params: values,
         request: request,

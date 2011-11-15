@@ -271,6 +271,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                     params[offset] = statement.offset;
 
                     httpRequest.exec({
+                        context: opts.context,
                         resource: resource.select,
                         params: params,
                         request: request,
