@@ -110,14 +110,9 @@ function projectOne(name, items) {
     }
 }
 function projectOne_(name, item) {
-    var obj = jsonPath.eval(item, name.trim(), {flatten: true});
+    var obj = jsonPath.eval(item, name.trim(), {flatten: true, wrap: false});
     // JSONPath returns false when there is no match. This leads to 'false' values. Switch to undefined.
-    if(obj) {
-        return obj.length > 1 ? obj : obj[0];
-    }
-    else {
-        return undefined;
-    }
+    return obj ? obj : undefined;
 }
 
 function project(columns, items) {
