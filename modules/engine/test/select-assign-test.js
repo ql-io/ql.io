@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-var Engine = require('lib/engine'),
+"use strict";
+
+var Engine = require('../lib/engine'),
     _ = require('underscore'),
     sys = require('sys'),
     logger = require('winston');

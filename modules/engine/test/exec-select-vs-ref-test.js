@@ -57,7 +57,7 @@ module.exports = {
                     test.ok(_.isArray(results.be1));
                     test.ok(_.isUndefined(results.be1[0]));
                     test.ok(_.isUndefined(results.be2));
-                    test.deepEqual(results.me1[0][0], results.me2);
+                    test.deepEqual(results.me1[0], results.me2);
                     test.done();
                 }
                 server.close();

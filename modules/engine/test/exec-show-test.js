@@ -15,7 +15,7 @@
  */
 
 var _ = require('underscore'),
-    Engine = require('lib/engine'),
+    Engine = require('../lib/engine'),
     logger = require('winston');
 
 logger.remove(logger.transports.Console);

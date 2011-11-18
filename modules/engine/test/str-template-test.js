@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-var strTemplate = require('lib/engine/peg/str-template'),
+"use strict";
+
+var strTemplate = require('../lib/engine/peg/str-template'),
     sys = require('sys'),
     _ = require('underscore');
 
