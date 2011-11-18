@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+"use strict";
+
 var _ = require('underscore'),
-    Engine = require('lib/engine'),
+    Engine = require('../lib/engine'),
     sys = require('sys');
 
 var engine = new Engine({

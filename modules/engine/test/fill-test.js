@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+"use strict";
+
 var _ = require('underscore'),
-    jsonfill = require('lib/engine/jsonfill');
+    jsonfill = require('../lib/engine/jsonfill');
 
 exports['fill1'] = function (test) {
     var context, obj, filled;

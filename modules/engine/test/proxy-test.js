@@ -14,10 +14,11 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
+
 "use strict"
 
 var _ = require('underscore'),
-    Engine = require('lib/engine'),
+    Engine = require('../lib/engine'),
     sys = require('sys'),
     EventEmitter = require('events').EventEmitter();
 
