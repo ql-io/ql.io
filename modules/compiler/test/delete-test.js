@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+"use strict";
+
 var compiler = require('lib/compiler');
 
 exports['delete'] = function (test) {

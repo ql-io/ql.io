@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+"use strict"
+
 var sys = require('sys'),
     MutableURI = require(__dirname + '/../lib/ql.uri'),
     _ = require('underscore');

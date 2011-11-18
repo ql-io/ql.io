@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+"use strict";
+
 var _ = require('underscore'),
-    Engine = require('lib/engine'),
+    Engine = require('../lib/engine'),
     sys = require('sys'),
-    EventEmitter = require('events').EventEmitter();
-logger = require('winston');
+    EventEmitter = require('events').EventEmitter(),
+    logger = require('winston');
 
 logger.remove(logger.transports.Console);
 logger.add(logger.transports.Console, {level: 'error'});
@@ -71,4 +73,4 @@ module.exports = {
             }
         });
     }
-}
+};

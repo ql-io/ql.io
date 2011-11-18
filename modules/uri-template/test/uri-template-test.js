@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+"use strict"
+
 var uriTemplate = require(__dirname + '/../lib/uri-template'),
     sys = require('sys'),
     _ = require('underscore');
