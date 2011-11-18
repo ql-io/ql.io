@@ -369,8 +369,14 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                 })
                 emitter.emit(eventTypes.STATEMENT_RESPONSE, packet);
 
-                if(res.headers[requestId.name])  {
-                   emitter.emit(eventTypes.REQUEST_ID_RECEIVED, res.headers[requestId.name]);
+                if (res.headers[requestId.name]) {
+                    emitter.emit(eventTypes.REQUEST_ID_RECEIVED, res.headers[requestId.name]);
+                }
+                else {
+                    // Send back the uuid created in ql.io, if the underlying api
+                    // doesn't support the request tracing or the table is not configured with
+                    // the right name of the header.
+                    emitter.emit(eventTypes.REQUEST_ID_RECEIVED, h[requestId.name]);
                 }
             }
 

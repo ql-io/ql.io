@@ -27,37 +27,38 @@ var engine = new Engine({
 module.exports = {
     'mint-request-id': function(test) {
         var script = "create table header.replace\n\
-            on select get from 'http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID={globalid}&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT={format}&REST-PAYLOAD&keywords={^keywords}&paginationInput.entriesPerPage={limit}&paginationInput.pageNumber={pageNumber}&outputSelector%280%29=SellerInfo&sortOrder={sortOrder}'\n\
-                 with aliases format = 'RESPONSE-DATA-FORMAT', json = 'JSON', xml = 'XML'\n\
-                 using defaults format = 'JSON', globalid = 'EBAY-US', sortorder ='BestMatch',\n\
-                       apikey =  '{config.ebay.apikey}', limit = 10,\n\
-                       pageNumber = 1\n\
-                 resultset 'findItemsByKeywordsResponse.searchResult.item'\n\
-            select * from header.replace where keywords = 'ferrari' limit 1";
-        var emitter = new EventEmitter();
-        var headers;
-        emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
-            headers = v.headers;
-        });
-        engine.exec({
-            script: script,
-            emitter: emitter,
-            cb: function(err, result) {
-                if (err) {
-                    console.log(err.stack || err);
-                    test.ok(false);
-                }
-                else {
-                    var reqId = _.detect(headers, function(v) {
-                        return v.name == 'request-id'
-                    });
-                    test.ok(reqId && reqId.value);
-                }
-                test.done();
-            }
-        });
+                   on select get from 'http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID={globalid}&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT={format}&REST-PAYLOAD&keywords={^keywords}&paginationInput.entriesPerPage={limit}&paginationInput.pageNumber={pageNumber}&outputSelector%280%29=SellerInfo&sortOrder={sortOrder}'\n\
+                        with aliases format = 'RESPONSE-DATA-FORMAT', json = 'JSON', xml = 'XML'\n\
+                        using defaults format = 'JSON', globalid = 'EBAY-US', sortorder ='BestMatch',\n\
+                              apikey =  '{config.ebay.apikey}', limit = 10,\n\
+                              pageNumber = 1\n\
+                        resultset 'findItemsByKeywordsResponse.searchResult.item'\n\
+                   select * from header.replace where keywords = 'ferrari' limit 1";
+           var emitter = new EventEmitter();
+           var headers;
+           emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
+               headers = v.headers;
+           });
+           engine.exec({
+               script: script,
+               emitter: emitter,
+               cb: function(err, result) {
+                   if (err) {
+                       console.log(err.stack || err);
+                       test.ok(false);
+                   }
+                   else {
+                       var reqId = _.detect(headers, function(v) {
+                           return v.name == 'request-id'
+                       });
+                       test.ok(reqId && reqId.value);
+                       test.ok(result.headers["request-id"]);
+                       test.ok(reqId.value+']' === result.headers["request-id"]);
+                   }
+                   test.done();
+               }
+           });
     },
-
     'incoming-request-id-from-ddl': function(test) {
         var script = "create table header.replace\n\
             on select get from 'http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID={globalid}&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT={format}&REST-PAYLOAD&keywords={^keywords}&paginationInput.entriesPerPage={limit}&paginationInput.pageNumber={pageNumber}&outputSelector%280%29=SellerInfo&sortOrder={sortOrder}'\n\
