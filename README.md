@@ -1,4 +1,6 @@
 
+![ql.io](http://ql.io/ql.io-large.png)
+
 ql.io is a a data-retrieval and aggregation gateway to make orchestrating across HTTP APIs (from
 SOAP-style to RESTful) as simple as SQL and JSON.
 
@@ -10,6 +12,15 @@ following:
     git clone git@github.com:ql-io/ql.io.git
     cd ql.io
     make install
+
+To run tests
+
+    make test
+
+ql.io source is organized into several modules that you can test independently.
+
+    cd modules/engine
+    make test
 
 If you are interested in using ql.io as a stand-alone server, setup a new ql.io app and start the
 server.
