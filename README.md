@@ -1,18 +1,21 @@
 
-![ql.io](http://ql.io/ql.io-large.png)
+[![ql.io](http://ql.io/ql.io-large.png)](http://ql.io)
 
 ql.io is a a data-retrieval and aggregation gateway to make orchestrating across HTTP APIs (from
-SOAP-style to RESTful) as simple as SQL and JSON.
-
-See [ql.io](http://ql.io) for docs, demos and examples.
+SOAP-style to RESTful) as simple as SQL and JSON. See [ql.io](http://ql.io) for docs, demos and
+examples.
 
 ## How to Build ql.io
-To build ql.io on your own, you need node (version 4.x) and npm. Once you have these set up, do the
-following:
+
+To build ql.io on your own, you need node (version 0.4.12) and npm. Support for node 0.6.x is
+coming soon. Once you have these set up, do the following:
 
     git clone git@github.com:ql-io/ql.io.git
     cd ql.io
     make install
+
+These steps will link ql.io modules locally so can you refer to those modules from your apps using
+`npm link`.
 
 To run tests
 
