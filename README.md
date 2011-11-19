@@ -11,9 +11,19 @@ following:
     cd ql.io
     make install
 
-If you are interested in using ql.io as a stand-alone server,
+If you are interested in using ql.io as a stand-alone server, setup a new ql.io app and start the
+server.
 
-> STEPS TBD
+**TODO: This step will change once the repo is public**
+
+    git clone https://github.com/ql-io/ql.io-template myapp
+    cd myapp
+    make
+    bin/start.sh
+
+Using latest versions of Firefox or Chrome, go to
+[href="http://localhost:3000](http://localhost:3000) to see ql.io's Web Console. See the
+[Quickstart Guide](http://ql.io/docs/quickstart) for more details.</p>
 
 If you are interested in using ql.io in your node app, use
 
