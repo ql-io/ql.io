@@ -6,7 +6,7 @@ SOAP-style to RESTful) as simple as SQL and JSON.
 
 See [ql.io](http://ql.io) for docs, demos and examples.
 
-# How to Build ql.io
+## How to Build ql.io
 To build ql.io on your own, you need node (version 4.x) and npm. Once you have these set up, do the
 following:
 
@@ -23,7 +23,7 @@ ql.io source is organized into several modules that you can test independently.
     cd modules/engine
     make test
 
-# Using ql.io as a Stand-Alone Server
+## Using ql.io as a Stand-Alone Server
 
 If you are interested in using ql.io as a stand-alone server, setup a new ql.io app and start the
 server.
@@ -39,7 +39,7 @@ Using latest versions of Firefox or Chrome, go to
 [href="http://localhost:3000](http://localhost:3000) to see ql.io's Web Console. See the
 [Quickstart Guide](http://ql.io/docs/quickstart) for more details.</p>
 
-# Using ql.io in a Node App
+## Using ql.io in a Node App
 
 If you are interested in using ql.io in your node app, use
 
@@ -56,10 +56,10 @@ After that you can simply execute the core engine.
        // process error or results
     });
 
-# Making Contributions
+## Making Contributions
 
 We're working on getting a CLA in place.
 
-# Discussions
+## Discussions
 
 Subscribe to the [google group](http://groups.google.com/group/qlio).
