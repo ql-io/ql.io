@@ -5,6 +5,8 @@ ql.io is a a data-retrieval and aggregation gateway to make orchestrating across
 SOAP-style to RESTful) as simple as SQL and JSON. See [ql.io](http://ql.io) for docs, demos and
 examples.
 
+# See http://66.211.164.71/ for work-in-progress docs/demos/examples.
+
 ## How to Build ql.io
 
 To build ql.io on your own, you need node (version 0.4.12) and npm. Support for node 0.6.x is
