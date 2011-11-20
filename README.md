@@ -39,7 +39,7 @@ server.
     bin/start.sh
 
 Using latest versions of Firefox or Chrome, go to
-[href="http://localhost:3000](http://localhost:3000) to see ql.io's Web Console. See the
+[http://localhost:3000](http://localhost:3000) to see ql.io's Web Console. See the
 [Quickstart Guide](http://ql.io/docs/quickstart) for more details.</p>
 
 ## Using ql.io in a Node App
