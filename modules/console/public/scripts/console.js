@@ -160,7 +160,7 @@ $(document).ready(function() {
                 doWs(statement, escaped, compiled);
             }
             catch(e) {
-                doXhr(statement, esescaped, compiled);
+                doXhr(statement, escaped, compiled);
             }
         }
         else {
@@ -169,11 +169,14 @@ $(document).ready(function() {
     }
 
     function doXhr(statement, escaped, compiled) {
-        var mediaType, link, execState, data, x, i, status;
+        var mediaType, link, execState, data, x, i, status, event
 
         $('#conn-status').html('Not connected. Use latest versions of Firefox or Chrome for better experience.');
 
+        emitter = new EventEmitter();
+        wireup(emitter);
         var url = '/q?s=' + escaped;
+        url = subscribe(undefined, url);
         x = $.ajax({
             type: 'GET',
             processData: false,
@@ -190,17 +193,9 @@ $(document).ready(function() {
                         execState = decodeURIComponent(execState);
                         execState = JSON.parse(execState);
                         try {
-                            for(i = 0; i < compiled.length; i++) {
-                                status = execState[compiled[i].line];
-                                if(status) {
-                                    if(status.status === 'ql-statement-error') {
-                                        markers.push(editor.setMarker(compiled[i].line - 1, status.elapsed + ' ms', 'red'));
-                                    }
-                                    else if(status.status === 'ql.io-statement-success') {
-                                        markers.push(editor.setMarker(compiled[i].line - 1, status.elapsed + ' ms', 'green'));
-
-                                    }
-                                }
+                            for(i = 0; i < execState.length; i++) {
+                                event = execState[i];
+                                emitter.emit(event.type, event);
                             }
                         }
                         catch(e) {
@@ -228,6 +223,7 @@ $(document).ready(function() {
                 if(mediaType == 'application/json') {
                     data = JSON.parse(req.responseText);
                     $('#results').attr('class', 'results tree json').text(formatter.jsonToHTML(data));
+                    $("#results").treeview();
                 }
                 else if(mediaType === 'text/html') {
                     $('#results').attr('class', 'results').html(data);
@@ -280,37 +276,7 @@ $(document).ready(function() {
             socket.onclose = function() {
                 $('#conn-status').html('Disconnected.');
             }
-            emitter.on('ql.io-script-ack', function() {
-            });
-            emitter.on('ql.io-statement-error', function(data) {
-                var state = JSON.parse(data);
-                markers.push(editor.setMarker(state.line - 1, state.elapsed + ' ms', 'red'));
-            });
-            emitter.on('ql.io-statement-in-flight', function(data) {
-                var state = JSON.parse(data);
-                markers.push(editor.setMarker(state.line - 1, '&#9992', 'in-progress'));
-            });
-            emitter.on('ql.io-statement-request', function(data) {
-                var req = JSON.parse(data);
-                var key = req.line + '';
-                runState[key] = runState[key] || {};
-                runState[key].req = req;
-                $("#trace-panel").show();
-            });
-            emitter.on('ql.io-statement-response', function(data) {
-                var res = JSON.parse(data);
-                var key = res.line + '';
-                runState[key] = runState[key] || {};
-                runState[key].res = res;
-            });
-            emitter.on('ql.io-statement-success', function(data) {
-                var state = JSON.parse(data);
-                markers.push(editor.setMarker(state.line - 1, state.elapsed + ' ms', 'green'));
-            });
-            emitter.on('ql.io-script-done', function(data) {
-                var state = JSON.parse(data);
-                markers.push(editor.setMarker(state.line - 1, state.elapsed + ' ms', 'green'));
-            });
+            wireup(emitter);
             emitter.on('ql.io-script-result', function(raw) {
                 data = JSON.parse(raw);
                 var body = data ? data.body : err.body;
@@ -347,7 +313,7 @@ $(document).ready(function() {
     }
 
     // Tell the server what notifications to receive
-    function subscribe(socket) {
+    function subscribe(socket, uri) {
         var events = ['ql.io-script-ack', 'ql.io-script-compile-error', 'ql.io-script-compile-ok',
             'ql.io-statement-error', 'ql.io-statement-in-flight', 'ql.io-statement-success',
             'ql.io-statement-request', 'ql.io-statement-response', 'ql.io-script-done'];
@@ -355,7 +321,12 @@ $(document).ready(function() {
             type: 'events',
             data: JSON.stringify(events)
         }
-        socket.send(JSON.stringify(packet));
+        if(socket) {
+            return socket.send(JSON.stringify(packet));
+        }
+        else if(uri) {
+            return uri + '&events=' +  JSON.stringify(packet);
+        }
     }
 
     function probeWs(socket, cb) {
@@ -383,5 +354,31 @@ $(document).ready(function() {
         catch(e) {
             cb('Not supported');
         }
+    }
+
+    function wireup(emitter) {
+        emitter.on('ql.io-statement-error', function (data) {
+            markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'red'));
+        });
+        emitter.on('ql.io-statement-in-flight', function (data) {
+            markers.push(editor.setMarker(data.line - 1, '&#9992', 'in-progress'));
+        });
+        emitter.on('ql.io-statement-request', function (data) {
+            var key = data.line + '';
+            runState[key] = runState[key] || {};
+            runState[key].req = data`;
+            $("#trace-panel").show();
+        });
+        emitter.on('ql.io-statement-response', function (data) {
+            var key = data.line + '';
+            runState[key] = runState[key] || {};
+            runState[key].res = data;
+        });
+        emitter.on('ql.io-statement-success', function (data) {
+            markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
+        });
+        emitter.on('ql.io-script-done', function (data) {
+            markers.push(editor.setMarker(data.line - 1, state.elapsed + ' ms', 'green'));
+        });
     }
 });
