@@ -59,7 +59,7 @@ var Console = module.exports = function(config) {
     global.opts.logger.setLevels(global.opts['log levels'] || winston.config.syslog.levels);
     var logger = global.opts.logger;
 
-    var procEmitter = process.EventEmitter();
+    procEmitter.setMaxListeners(20);
     procEmitter.on(Engine.Events.EVENT, function(event, message) {
         if(message) {
             logger.info(new Date() + ' - ' + message);
@@ -140,8 +140,7 @@ var Console = module.exports = function(config) {
                     '^': [
                         assetHandler.yuiCssOptimize,
                         assetHandler.fixVendorPrefixes,
-                        assetHandler.fixGradients,
-                        assetHandler.replaceImageRefToBase64(root)
+                        assetHandler.fixGradients
                     ]
                 }
             }
@@ -228,9 +227,9 @@ var Console = module.exports = function(config) {
                     holder.body = req.body;
                 }
 
-                var execState = {};
+                var execState = [];
                 emitter = new EventEmitter();
-                setupExecStateEmitter(emitter, execState);
+                setupExecStateEmitter(emitter, execState, req.param('events'));
                 setupCounters(emitter);
                 engine.exec({
                     script: route.script,
@@ -267,9 +266,9 @@ var Console = module.exports = function(config) {
 
             collectHttpHeaders(req, holder);
 
-            var execState = {};
+            var execState = [];
             emitter = new EventEmitter();
-            setupExecStateEmitter(emitter, execState);
+            setupExecStateEmitter(emitter, execState, req.param('events'));
             setupCounters(emitter);
             engine.exec({
                 script: query,
@@ -315,7 +314,7 @@ var Console = module.exports = function(config) {
                     // Writes events to the client
                     connection.sendUTF(JSON.stringify({
                         type: packet.type,
-                        data: JSON.stringify(packet)
+                        data: packet
                     }))
                 }
                 _.each(events, function(event) {
@@ -336,7 +335,7 @@ var Console = module.exports = function(config) {
                             };
                             connection.sendUTF(JSON.stringify({
                                 type: Engine.Events.SCRIPT_RESULT,
-                                data: JSON.stringify(packet)
+                                data: packet
                             }));
                         }
                         else {
@@ -389,18 +388,21 @@ var Console = module.exports = function(config) {
         });
     }
 
-    function setupExecStateEmitter(emitter, execState) {
-        emitter.on(Engine.Events.STATEMENT_SUCCESS, function(packet) {
-            execState[packet.line + ''] = {
-                status: Engine.Events.STATEMENT_SUCCESS,
-                elapsed: packet.elapsed
-            }
-        });
-        emitter.on(Engine.Events.STATEMENT_ERROR, function(packet) {
-            execState[packet.line + ''] = {
-                status: Engine.Events.STATEMENT_ERROR,
-                elapsed: packet.elapsed
-            }
+    function setupExecStateEmitter(emitter, execState, eventParam) {
+        var obj, events;
+        try {
+            obj = JSON.parse(eventParam);
+            obj = obj.data;
+            events = JSON.parse(obj);
+        }
+        catch(e) {
+            events = [];
+        }
+
+        _.each(events, function(event) {
+            emitter.on(event, function(packet) {
+                execState.push(packet);
+            });
         });
     }
 
@@ -446,14 +448,17 @@ var Console = module.exports = function(config) {
             //
             res._header = undefined;
             var contentType = results.headers['content-type'];
-            res.writeHead(200, {
+            var h = {
                 'content-type' : cb ? 'application/javascript' : contentType,
-                'Link' : headers.format('Link', {
+                'Request-Id' : results.headers['request-id']
+            };
+            if(execState.length > 0) {
+                h['Link'] = headers.format('Link', {
                     href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
                     rel : ['execstate']
-                }),
-                'Request-Id' : results.headers['request-id']
-            });
+                });
+            }
+            res.writeHead(200, h);
             if (cb) {
                 res.write(cb + '(');
             }
