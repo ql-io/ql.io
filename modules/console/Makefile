@@ -1,7 +1,7 @@
 all: clean install test
 
 clean:
-	-rm -fr node_modules;\
+	-rm -fr node_modules
 	-rm -r logs
 
 install:

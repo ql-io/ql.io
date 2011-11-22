@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
+"use strict";
+
 var _ = require('underscore'),
-    Engine = require('lib/engine'),
-    eventTypes = require('lib/engine/event-types'),
+    Engine = require('../lib/engine'),
     sys = require('sys'),
     MutableURI = require('ql.io-mutable-uri'),
-    EventEmitter = require('events').EventEmitter();
-logger = require('winston');
+    EventEmitter = require('events').EventEmitter(),
+    logger = require('winston');
 
 logger.remove(logger.transports.Console);
 logger.add(logger.transports.Console, {level: 'error'});
@@ -156,7 +157,7 @@ module.exports = {
                     count++;
                 }
                 var emitter = new EventEmitter.EventEmitter();
-                emitter.addListener(eventTypes.STATEMENT_REQUEST, listener);
+                emitter.addListener(Engine.Events.STATEMENT_REQUEST, listener);
 
                 // We need to test that two HTTP requests are made for the following statement below.
                 var q = "select ViewItemURLForNaturalSearch from ebay.shopping.item where itemId in ('" + list.body[0] + "', '" + list.body[1] + "') and includeSelector = 'ShippingCosts'";
@@ -190,7 +191,7 @@ module.exports = {
                     count++;
                 }
                 var emitter = new EventEmitter.EventEmitter();
-                emitter.addListener(eventTypes.STATEMENT_REQUEST, listener);
+                emitter.addListener(Engine.Events.STATEMENT_REQUEST, listener);
 
                 // We need to test that two HTTP requests are made for the following statement below.
                 var q = "create table myitemdetails \
@@ -230,7 +231,7 @@ module.exports = {
                     count++;
                 }
                 var emitter = new EventEmitter.EventEmitter();
-                emitter.addListener(eventTypes.STATEMENT_REQUEST, listener);
+                emitter.addListener(Engine.Events.STATEMENT_REQUEST, listener);
 
                 // We need to test that two HTTP requests are made for the following statement below.
                 var q = "create table myitemdetails \
@@ -366,7 +367,7 @@ module.exports = {
             parsed = new MutableURI(payload.uri);
         }
         var emitter = new EventEmitter.EventEmitter();
-        emitter.addListener(eventTypes.STATEMENT_REQUEST, listener);
+        emitter.addListener(Engine.Events.STATEMENT_REQUEST, listener);
 
         engine.exec({
             emitter: emitter,

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+"use strict";
+
 var compiler = require('lib/compiler'),
     sys = require('sys');
 
@@ -24,7 +26,6 @@ module.exports = {
         var e = [
             {
                 type: 'select',
-                line: 1,
                 fromClause: [
                     {'name': 'foo' }
                 ],
@@ -45,7 +46,6 @@ module.exports = {
         var e = [
             {
                 type: 'select',
-                line: 1,
                 fromClause: [
                     {'name': 'ebay.finding.items' }
                 ],
@@ -798,7 +798,6 @@ module.exports = {
         var e = [
             {
                 type: 'select',
-                line: 1,
                 fromClause: [
                     {'name': 'someXml' }
                 ],

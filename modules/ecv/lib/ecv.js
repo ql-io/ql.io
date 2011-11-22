@@ -22,8 +22,8 @@ var http = require('http');
  * The ECV check sends a "show tables" request to the running server. Anything other than a valid JSON response is
  * treated as an error.
  */
-exports.enable = function(app, port) {
-    app.get('/ecv', function(req, res) {
+exports.enable = function(app, port, path) {
+    app.get(path || '/ecv', function(req, res) {
         var tosend = {
             date : new Date ,
             port : port

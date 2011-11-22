@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+"use strict";
+
 var compiler = require('lib/compiler'),
     sys = require('sys');
 

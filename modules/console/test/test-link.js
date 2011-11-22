@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-"use strict"
+"use strict";
 
-var http = require('http');
+var http = require('http'),
+    Console = require('../app.js'),
+    headers = require('headers');
 
-var Console = require('../app.js');
-
+// Check the Link header
 module.exports = {
-    'fill-return-headers': function(test) {
+    'no-link': function(test) {
         var c = new Console({
-            routes: __dirname + '/fill-return/obj',
+            tables: __dirname + '/tables',
+            routes: __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
             'enable console': false,
             connection: 'close'
         });
@@ -33,11 +36,10 @@ module.exports = {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/fill-return',
+                path: "/q?s=select%20*%20from%20finditems%20where%20keywords%3D'ipad'",
                 method: 'GET',
                 headers: {
-                    h1: 'v1',
-                    h2: 'v2',
+                    host: 'localhost',
                     connection: 'close'
                 }
             };
@@ -50,11 +52,9 @@ module.exports = {
                     data = data + chunk;
                 })
                 res.on('end', function() {
-                    var resp = JSON.parse(data);
-                    test.deepEqual(resp, {
-                        'h1' : 'v1',
-                        'h2' : 'v2'
-                    })
+                    var results = JSON.parse(data);
+                    test.ok(results.length > 0);
+                    test.ok(!res.headers.link)
                     app.close();
                     test.done();
                 });
@@ -63,78 +63,52 @@ module.exports = {
         });
     },
 
-    'fill-return-path-segments': function(test) {
+    'link': function(test) {
+
         var c = new Console({
-            routes: __dirname + '/fill-return/obj',
+            tables: __dirname + '/tables',
+            routes: __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
             'enable console': false,
             connection: 'close'
         });
 
         var app = c.app;
-        app.listen(3000, function() {
+        var path = '/q?s=' + encodeURIComponent('select * from finditems where keywords="ipad"');
+        var events = ['ql.io-script-ack', 'ql.io-script-compile-error', 'ql.io-script-compile-ok',
+            'ql.io-statement-error', 'ql.io-statement-in-flight', 'ql.io-statement-success',
+            'ql.io-statement-request', 'ql.io-statement-response', 'ql.io-script-done'];
+        var packet = {
+            type: 'events',
+            data: JSON.stringify(events)
+        }
+        path = path + '&events=' +  encodeURIComponent(JSON.stringify(packet));
+        app.listen(3000, function () {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/fill-return/v1/v2',
+                path: path,
                 method: 'GET',
                 headers: {
+                    host: 'localhost',
                     connection: 'close'
                 }
             };
-            var req = http.request(options, function(res) {
+            var req = http.request(options, function (res) {
                 res.setEncoding('utf8');
                 test.equals(res.statusCode, 200);
                 test.equals(res.headers['content-type'], 'application/json');
                 var data = '';
-                res.on('data', function(chunk) {
+                res.on('data', function (chunk) {
                     data = data + chunk;
                 })
-                res.on('end', function() {
-                    var resp = JSON.parse(data);
-                    test.deepEqual(resp, {
-                        'h1' : 'v1',
-                        'h2' : 'v2'
-                    })
-                    app.close();
-                    test.done();
-                });
-            });
-            req.end();
-        });
-    },
-
-    'fill-return-query-params': function(test) {
-        var c = new Console({
-            routes: __dirname + '/fill-return/obj',
-            'enable console': false,
-            connection: 'close'
-        });
-
-        var app = c.app;
-        app.listen(3000, function() {
-            var options = {
-                host: 'localhost',
-                port: 3000,
-                path: '/fill-returnp?p1=v1&p2=v2',
-                method: 'GET',
-                headers: {
-                    connection: 'close'
-                }
-            };
-            var req = http.request(options, function(res) {
-                res.setEncoding('utf8');
-                test.equals(res.statusCode, 200);
-                test.equals(res.headers['content-type'], 'application/json');
-                var data = '';
-                res.on('data', function(chunk) {
-                    data = data + chunk;
-                })
-                res.on('end', function() {
-                    var resp = JSON.parse(data);
-                    test.deepEqual(resp, {
-                        'h1' : 'v1',
-                        'h2' : 'v2'
-                    })
+                res.on('end', function () {
+                    var results = JSON.parse(data);
+                    test.ok(results.length > 0);
+                    test.ok(res.headers['link']);
+                    var link = res.headers['link'];
+                    link = headers.parse('Link', link);
+                    test.equals(link.href.indexOf('data:application/json,'), 0);
                     app.close();
                     test.done();
                 });

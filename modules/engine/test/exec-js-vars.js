@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-var Engine = require('lib/engine');
+"use strict";
+
+var Engine = require('../lib/engine');
 
 var engine = new Engine(),
     sys = require('sys');

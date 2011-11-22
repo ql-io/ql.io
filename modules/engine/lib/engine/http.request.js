@@ -36,10 +36,11 @@ var strTemplate = require('./peg/str-template.js'),
     os = require('os');
 
 exports.exec = function(args) {
-    var request, resource, statement, params, resourceUri, template, cb, holder,
+    var request, context, resource, statement, params, resourceUri, template, cb, holder,
         validator, parentEvent, emitter, tasks, globalOpts, merge;
 
     resource = args.resource;
+    context = args.context;
     request = args.request; // headers and params extracted from an incoming request (if any)
     statement = args.statement;
     cb = args.callback;
@@ -55,6 +56,9 @@ exports.exec = function(args) {
         request.routeParams,
         request.body,
         args.params);
+    if(context) {
+        params.__proto__ = context;
+    }
 
     // Validate all params
     if(resource.monkeyPatch && resource.monkeyPatch['validate param']) {
@@ -75,7 +79,7 @@ exports.exec = function(args) {
         template = uriTemplate.parse(resourceUri);
     }
     catch(err) {
-        global.opts.logger.warning(sys.inspect(err, false, 10));
+        global.opts.logger.warning(err);
         return cb(err, null);
     }
 
@@ -89,17 +93,17 @@ exports.exec = function(args) {
     // Preconditions - done by the monkey patch
     if(resource.monkeyPatch && resource.monkeyPatch['patch uri']) {
         var temp = [];
-        _.each(resourceUri, function(u) {
-            try {
-                var patched = patchUri(u, statement, params, resource.monkeyPatch['patch uri']);
-                if(patched) {
-                    temp = temp.concat(patched);
-                }
-            }
-            catch(e) {
-                return cb(e);
-            }
-        });
+        try {
+            _.each(resourceUri, function(u) {
+                    var patched = patchUri(u, statement, params, resource.monkeyPatch['patch uri']);
+                    if(patched) {
+                        temp = temp.concat(patched);
+                    }
+            });
+        }
+        catch(e) {
+            return cb(e);
+        }
         resourceUri = temp; // Swap updated URIs
     }
 
@@ -109,23 +113,23 @@ exports.exec = function(args) {
     }
 
     // Invoke UDFs - defined by monkey patch
-    _.each(statement.whereCriteria, function(c) {
-        if(c.operator === 'udf') {
-            if(resource.monkeyPatch && resource.monkeyPatch['udf']) {
-                try {
-                    holder[c.name] = resource.monkeyPatch.udf[c.name](c.args);
+    try {
+        _.each(statement.whereCriteria, function(c) {
+            if(c.operator === 'udf') {
+                if(resource.monkeyPatch && resource.monkeyPatch['udf']) {
+                        holder[c.name] = resource.monkeyPatch.udf[c.name](c.args);
                 }
-                catch(e) {
-                    return cb(e.stack || e);
+                else {
+                    throw {
+                        message: 'udf ' + c.name + ' not defined'
+                    };
                 }
             }
-            else {
-                return cb({
-                    message: 'udf ' + c.name + ' not defined'
-                });
-            }
-        }
-    });
+        });
+    }
+    catch(e) {
+        return cb(e.stack || e);
+    }
 
     // if template.format() returns multiple URIs, we need to execute all of them in parallel,
     // join on the response, and then send the response to the caller.
@@ -181,7 +185,7 @@ exports.exec = function(args) {
 
 function sendOneRequest(args, resourceUri, params, holder, cb) {
     var h, requestBody, mediaType = 'application/json', override, client, isTls, options, auth,
-        clientRequest, template;
+        clientRequest, template, start = Date.now();
     var respData, respJson, uri, heirpart, authority, host, port, path, useProxy = false, proxyHost, proxyPort;
 
     var httpReqTx = logUtil.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
@@ -210,8 +214,8 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
             v = compiled.format(params);
         }
         catch(e) {
-            // Ignore as we want to treat non-conformat strings as opaque
-            console.log(e.stack || e);
+            // Ignore as we want to treat non-conformant strings as opaque
+            logUtil.emitWarning(httpReqTx.event, 'unable to parse header ' + v + ' error: ' + e.stack || e);
         }
         h[k.toLowerCase()] = v;
     });
@@ -251,7 +255,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                 template = uriTemplate.parse(body.content || resource.body.content);
             }
             catch(err) {
-                global.opts.logger.warning(sys.inspect(err, false, 10));
+                global.opts.logger.warning(err);
                 return cb(err, null);
             }
             requestBody = formatUri(template, params, resource.defaults);
@@ -365,8 +369,14 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                 })
                 emitter.emit(eventTypes.STATEMENT_RESPONSE, packet);
 
-                if(res.headers[requestId.name])  {
-                   emitter.emit(eventTypes.REQUEST_ID_RECEIVED, res.headers[requestId.name]);
+                if (res.headers[requestId.name]) {
+                    emitter.emit(eventTypes.REQUEST_ID_RECEIVED, res.headers[requestId.name]);
+                }
+                else {
+                    // Send back the uuid created in ql.io, if the underlying api
+                    // doesn't support the request tracing or the table is not configured with
+                    // the right name of the header.
+                    emitter.emit(eventTypes.REQUEST_ID_RECEIVED, h[requestId.name]);
                 }
             }
 
@@ -376,10 +386,10 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
 
             // TODO: Log level?
             // TODO: For now, log verbose
-            logUtil.emitEvent(httpReqTx.event, new Date() + ' ' + resourceUri + '  ' +
+            logUtil.emitEvent(httpReqTx.event, resourceUri + '  ' +
                 sys.inspect(options) + ' ' +
                 res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
-                sys.inspect(res.headers));
+                sys.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
 
             // Parse
             try {
@@ -470,7 +480,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
         clientRequest.write(requestBody);
     }
     clientRequest.on('error', function(err) {
-        console.log('Error with uri - ' + resourceUri + ' - ' + err.message);
+        logUtil.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' + err.message + ' ' + sys.inspect(clientRequest, true, 10) + ' ' + (Date.now() - start) + 'msec');
         err.uri = uri;
         return httpReqTx.cb(err, undefined);
     });

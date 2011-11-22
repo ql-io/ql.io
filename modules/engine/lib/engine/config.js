@@ -20,7 +20,8 @@
 
 "use strict";
 
-var fs = require('fs');
+var fs = require('fs'),
+    logUtil = require('./log-util.js');
 
 exports.load = function(opts) {
     opts = opts || {};
@@ -40,7 +41,7 @@ exports.load = function(opts) {
             data = JSON.parse(text);
         }
         catch(e) {
-            logger.error('Error loading config file: ' + file);
+            logUtil.emitError({}, 'error loading config file: ' + file);
             console.log(e.stack || e);
             return;
         }

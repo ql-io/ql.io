@@ -40,7 +40,7 @@ var configLoader = require('./engine/config.js'),
     sys = require('sys');
 
 process.on('uncaughtException', function(error) {
-    logger.error(error.stack || sys.inspect(error, false, 10));
+    logger.error(error);
 })
 
 /**
@@ -117,6 +117,7 @@ var Engine = module.exports = function(opts) {
         var engineEvent = logUtil.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
             if(emitter) {
                 packet = {
+                    script: route || script,
                     type: eventTypes.SCRIPT_DONE,
                     elapsed: Date.now() - start,
                     data: 'Done'
@@ -210,7 +211,7 @@ var Engine = module.exports = function(opts) {
                     emitter: emitter
                 }, cooked[0], function(err, results) {
                     if(err) {
-                        logUtil.emitError(engineEvent.event, sys.inspect(err, false, 10));
+                        logUtil.emitError(engineEvent.event, err);
                     }
                     return engineEvent.cb(err, results);
                 });
