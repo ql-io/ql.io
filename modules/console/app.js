@@ -126,7 +126,9 @@ var Console = module.exports = function(config) {
                     'console.css',
                     'codemirror.css',
                     'qlio-editor.css',
-                    'treeview.css'
+                    'treeview.css',
+                    'jquery.splitter.css',
+                    'jquery-ui.css'
                 ],
                 'preManipulate': {
                     // Regexp to match user-agents including MSIE.
@@ -341,7 +343,7 @@ var Console = module.exports = function(config) {
                         else {
                             connection.sendUTF(JSON.stringify({
                                 type: Engine.Events.SCRIPT_RESULT,
-                                data: JSON.stringify(results)
+                                data: results
                             }));
                         }
                         emitter = undefined;

@@ -222,7 +222,7 @@ $(document).ready(function() {
                 mediaType = x.getResponseHeader('content-type');
                 if(mediaType == 'application/json') {
                     data = JSON.parse(req.responseText);
-                    $('#results').attr('class', 'results tree json').text(formatter.jsonToHTML(data));
+                    $('#results').attr('class', 'results tree json').html(formatter.jsonToHTML(data));
                     $("#results").treeview();
                 }
                 else if(mediaType === 'text/html') {
@@ -277,13 +277,11 @@ $(document).ready(function() {
                 $('#conn-status').html('Disconnected.');
             }
             wireup(emitter);
-            emitter.on('ql.io-script-result', function(raw) {
-                data = JSON.parse(raw);
-                var body = data ? data.body : err.body;
+            emitter.on('ql.io-script-result', function(data) {
                 var contentType = data.headers && data.headers['content-type'];
                 if(contentType === 'application/json') {
                     try {
-                        $('#results').attr('class', 'results tree json').html(formatter.jsonToHTML(body));
+                        $('#results').attr('class', 'results tree json').html(formatter.jsonToHTML(data.body));
                         $("#results").treeview();
                     }
                     catch(e) {
@@ -366,7 +364,7 @@ $(document).ready(function() {
         emitter.on('ql.io-statement-request', function (data) {
             var key = data.line + '';
             runState[key] = runState[key] || {};
-            runState[key].req = data`;
+            runState[key].req = data;
             $("#trace-panel").show();
         });
         emitter.on('ql.io-statement-response', function (data) {
@@ -378,7 +376,7 @@ $(document).ready(function() {
             markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
         });
         emitter.on('ql.io-script-done', function (data) {
-            markers.push(editor.setMarker(data.line - 1, state.elapsed + ' ms', 'green'));
+            markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
         });
     }
 });
