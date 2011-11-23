@@ -222,7 +222,7 @@ $(document).ready(function() {
                 mediaType = x.getResponseHeader('content-type');
                 if(mediaType == 'application/json') {
                     data = JSON.parse(req.responseText);
-                    $('#results').attr('class', 'results tree json').text(formatter.jsonToHTML(data));
+                    $('#results').attr('class', 'results tree json').html(formatter.jsonToHTML(data));
                     $("#results").treeview();
                 }
                 else if(mediaType === 'text/html') {
@@ -277,13 +277,11 @@ $(document).ready(function() {
                 $('#conn-status').html('Disconnected.');
             }
             wireup(emitter);
-            emitter.on('ql.io-script-result', function(raw) {
-                data = JSON.parse(raw);
-                var body = data ? data.body : err.body;
+            emitter.on('ql.io-script-result', function(data) {
                 var contentType = data.headers && data.headers['content-type'];
                 if(contentType === 'application/json') {
                     try {
-                        $('#results').attr('class', 'results tree json').html(formatter.jsonToHTML(body));
+                        $('#results').attr('class', 'results tree json').html(formatter.jsonToHTML(data.body));
                         $("#results").treeview();
                     }
                     catch(e) {

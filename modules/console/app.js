@@ -343,7 +343,7 @@ var Console = module.exports = function(config) {
                         else {
                             connection.sendUTF(JSON.stringify({
                                 type: Engine.Events.SCRIPT_RESULT,
-                                data: JSON.stringify(results)
+                                data: results
                             }));
                         }
                         emitter = undefined;
