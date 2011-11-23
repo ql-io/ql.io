@@ -366,7 +366,7 @@ $(document).ready(function() {
         emitter.on('ql.io-statement-request', function (data) {
             var key = data.line + '';
             runState[key] = runState[key] || {};
-            runState[key].req = data`;
+            runState[key].req = data;
             $("#trace-panel").show();
         });
         emitter.on('ql.io-statement-response', function (data) {
