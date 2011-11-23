@@ -59,6 +59,9 @@ var Engine = module.exports = function(opts) {
     // Holder for global opts.
     global.opts = opts || {};
 
+    // Initialize the logger
+    global.opts.logger = global.opts.logger || logger;
+
     // Load config
     global.opts.config = _.isObject(global.opts.config) ? global.opts.config : configLoader.load(global.opts);
 
