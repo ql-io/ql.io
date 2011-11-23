@@ -378,7 +378,7 @@ $(document).ready(function() {
             markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
         });
         emitter.on('ql.io-script-done', function (data) {
-            markers.push(editor.setMarker(data.line - 1, state.elapsed + ' ms', 'green'));
+            markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
         });
     }
 });
