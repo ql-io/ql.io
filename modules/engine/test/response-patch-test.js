@@ -19,7 +19,10 @@
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
     sys = require('sys'),
-    logger = require('winston');
+    logger = require('winston'),
+    http = require('http'),
+    fs = require('fs'),
+    util = require('util');
 
 var engine = new Engine({
     tables : __dirname + '/tables',
@@ -27,22 +30,41 @@ var engine = new Engine({
     'connection': 'close'
 });
 
-module.exports = {
-    'response-patch-test': function(test) {
-        var script = "select * from ebay.finding.items.rp where keywords = 'ferrari' limit 2;"
+//module.exports = {
+  //  'response-patch-test': function(test) {
+       var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+            // Do the test here.
+         var script = fs.readFileSync(__dirname + '/mock/ResponsePatch.ql', 'UTF-8');
 
         // the normal result (without body patching) would reside in item, but the table def returns items,
         // so if the result.body is not empty, then the body patch worked.
-        engine.exec(script, function(err, result) {
-            if (err) {
-                logger.debug("ERROR: " + JSON.stringify(err));
-                test.ok(false);
-                test.done();
-            } else if (result) {
-                logger.debug("RESULT: " + JSON.stringify(result));
-                test.ok(result.body);
-                test.done();
-            }
-        });
-    }
-}
+	    engine.exec(script, function(err, result) {
+           	 if (err) {
+                     logger.debug("ERROR: " + JSON.stringify(err));
+               	     // test.ok(false);
+                     // test.done();
+                 } else if (result) {
+                     logger.debug("RESULT: " + JSON.stringify(result));
+                     // test.ok(result.body);
+                     //  test.done();
+                 }
+	        server.close();
+             });
+          });
+    //}
+//}

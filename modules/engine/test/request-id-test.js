@@ -19,6 +19,9 @@
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
     sys = require('sys'),
+    fs = require('fs'),
+    http = require('http'),
+    util = require('util'),
     EventEmitter = require('events').EventEmitter;
 
 var engine = new Engine({
@@ -28,20 +31,33 @@ var engine = new Engine({
 
 module.exports = {
     'mint-request-id': function(test) {
-        var script = "create table header.replace\n\
-                   on select get from 'http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID={globalid}&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT={format}&REST-PAYLOAD&keywords={^keywords}&paginationInput.entriesPerPage={limit}&paginationInput.pageNumber={pageNumber}&outputSelector%280%29=SellerInfo&sortOrder={sortOrder}'\n\
-                        with aliases format = 'RESPONSE-DATA-FORMAT', json = 'JSON', xml = 'XML'\n\
-                        using defaults format = 'JSON', globalid = 'EBAY-US', sortorder ='BestMatch',\n\
-                              apikey =  '{config.ebay.apikey}', limit = 10,\n\
-                              pageNumber = 1\n\
-                        resultset 'findItemsByKeywordsResponse.searchResult.item'\n\
-                   select * from header.replace where keywords = 'ferrari' limit 1";
-           var emitter = new EventEmitter();
-           var headers;
-           emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
+         var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+            // Do the test here.
+            var engine = new Engine({
+                connection : 'close'
+            });
+	    var script = fs.readFileSync(__dirname + '/mock/finditems.ql', 'UTF-8');
+            var emitter = new EventEmitter();
+            var headers;
+            emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
                headers = v.headers;
-           });
-           engine.exec({
+            });
+            engine.exec({
                script: script,
                emitter: emitter,
                cb: function(err, result) {
@@ -58,141 +74,184 @@ module.exports = {
                        test.ok(reqId.value+']' === result.headers["request-id"]);
                    }
                    test.done();
+		   server.close();
                }
-           });
+            });
+	});
     },
     'incoming-request-id-from-ddl': function(test) {
-        var script = "create table header.replace\n\
-            on select get from 'http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID={globalid}&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT={format}&REST-PAYLOAD&keywords={^keywords}&paginationInput.entriesPerPage={limit}&paginationInput.pageNumber={pageNumber}&outputSelector%280%29=SellerInfo&sortOrder={sortOrder}'\n\
-                 with aliases format = 'RESPONSE-DATA-FORMAT', json = 'JSON', xml = 'XML'\n\
-                 using headers 'request-id' = 'my-own-request-id'\n\
-                 using defaults format = 'JSON', globalid = 'EBAY-US', sortorder ='BestMatch',\n\
-                       apikey =  '{config.ebay.apikey}', limit = 10,\n\
-                       pageNumber = 1\n\
-                 resultset 'findItemsByKeywordsResponse.searchResult.item'\n\
-            select * from header.replace where keywords = 'ferrari' limit 1";
-        var emitter = new EventEmitter();
-        var headers;
-        emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
-            headers = v.headers;
-        });
-        var testok;
-        engine.exec({
-            script: script,
-            emitter: emitter,
-            cb: function(err, result) {
-                if (err) {
-                    console.log(err.stack || err);
-                    test.ok(false);
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
                 }
-                else {
-                    var reqId = _.detect(headers, function(v) {
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+            // Do the test here.
+            var engine = new Engine({
+                connection : 'close'
+            });
+            var script = fs.readFileSync(__dirname + '/mock/finditems-reqid.ql', 'UTF-8');
+            var emitter = new EventEmitter();
+            var headers;
+            emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
+              headers = v.headers;
+            });
+            var testok;
+            engine.exec({
+               script: script,
+               emitter: emitter,
+               cb: function(err, result) {
+                  if (err) {
+                     console.log(err.stack || err);
+                     test.ok(false);
+                   }
+                  else {
+                     var reqId = _.detect(headers, function(v) {
                         return v.name === 'request-id'
-                    });
-                    var sentReqId = reqId && reqId.value;
-                    test.ok(~sentReqId.indexOf('my-own-request-id!ql.io!'));
-                }
-                test.done();
-            }
-        });
+                     });
+                     var sentReqId = reqId && reqId.value;
+                     test.ok(~sentReqId.indexOf('my-own-request-id!ql.io!'));
+                   }
+                   test.done();
+	           server.close();
+               }
+            });
+       });
     },
-
     'incoming-request-id-from-request': function(test) {
-        var script = "create table header.replace\n\
-            on select get from 'http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID={globalid}&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT={format}&REST-PAYLOAD&keywords={^keywords}&paginationInput.entriesPerPage={limit}&paginationInput.pageNumber={pageNumber}&outputSelector%280%29=SellerInfo&sortOrder={sortOrder}'\n\
-                 with aliases format = 'RESPONSE-DATA-FORMAT', json = 'JSON', xml = 'XML'\n\
-                 using defaults format = 'JSON', globalid = 'EBAY-US', sortorder ='BestMatch',\n\
-                       apikey =  '{config.ebay.apikey}', limit = 10,\n\
-                       pageNumber = 1\n\
-                 resultset 'findItemsByKeywordsResponse.searchResult.item'\n\
-            select * from header.replace where keywords = 'ferrari' limit 1";
-        var emitter = new EventEmitter();
-        var headers;
-        emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
-            headers = v.headers;
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
         });
-        engine.exec({
-            script: script,
-            emitter: emitter,
-            request: {
-                params: {
+        server.listen(3000, function() {
+            // Do the test here.
+            var engine = new Engine({
+                connection : 'close'
+            });
+            var script = fs.readFileSync(__dirname + '/mock/finditems.ql', 'UTF-8');
+
+            var emitter = new EventEmitter();
+            var headers;
+            emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
+               headers = v.headers;
+            });
+            engine.exec({
+               script: script,
+               emitter: emitter,
+               request: {
+                  params: {
                     'request-id' : 'my-own-request-id'
-                }
-            },
-            cb: function(err, result) {
-                if (err) {
-                    console.log(err.stack || err);
-                    test.ok(false);
-                }
-                else {
-                    var reqId = _.detect(headers, function(v) {
+                  }
+               },
+               cb: function(err, result) {
+                  if (err) {
+                     console.log(err.stack || err);
+                     test.ok(false);
+                   }
+                  else {
+                     var reqId = _.detect(headers, function(v) {
                         return v.name === 'request-id'
-                    });
-                    var sentReqId = reqId && reqId.value;
-                    test.ok(~sentReqId.indexOf('my-own-request-id!ql.io!'));
-                }
-                test.done();
-            }
+                      });
+                     var sentReqId = reqId && reqId.value;
+                     test.ok(~sentReqId.indexOf('my-own-request-id!ql.io!'));
+                   }
+                  test.done();
+		  server.close();
+               }
+            });
         });
     },
     'incoming-x-request-id-from-request': function(test) {
-        var script = "create table header.replace\n\
-            on select get from 'http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID={globalid}&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT={format}&REST-PAYLOAD&keywords={^keywords}&paginationInput.entriesPerPage={limit}&paginationInput.pageNumber={pageNumber}&outputSelector%280%29=SellerInfo&sortOrder={sortOrder}'\n\
-                 with aliases format = 'RESPONSE-DATA-FORMAT', json = 'JSON', xml = 'XML'\n\
-                 using defaults format = 'JSON', globalid = 'EBAY-US', sortorder ='BestMatch',\n\
-                       apikey =  '{config.ebay.apikey}', limit = 10,\n\
-                       pageNumber = 1\n\
-                 resultset 'findItemsByKeywordsResponse.searchResult.item'\n\
-            select * from header.replace where keywords = 'ferrari' limit 1";
-        var emitter = new EventEmitter();
-        var request_headers, response_headers;
-        emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
-            request_headers = v.headers;
-        });
-
-        emitter.on(Engine.Events.STATEMENT_RESPONSE, function(v) {
-            response_headers = v.headers;
-        });
-
-        var engine = new Engine({
-            config: __dirname + '/config/dev.json',
-            'connection': 'close',
-            'request-id': 'x-ebay-soa-request-id'
-        });
-        engine.exec({
-            script: script,
-            emitter: emitter,
-            request: {
-                headers: {
-                    'request-id' : 'my-own-request-id'
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+	    res.writeHead(200, req.headers, {
+                'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                'Content-Length' : stat.size
+	    });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
                 }
-            },
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+           var script = fs.readFileSync(__dirname + '/mock/finditems.ql', 'UTF-8');
+	   var emitter = new EventEmitter();
+           var request_headers, response_headers;
+           emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
+              request_headers = v.headers;
+           });
 
-            cb: function(err, result) {
-                if (err) {
-                    console.log(err.stack || sys.inspect(err, false, 10));
-                    test.ok(false);
-                }
-                else {
-                    var reqId = _.detect(request_headers, function(v) {
+           emitter.on(Engine.Events.STATEMENT_RESPONSE, function(v) {
+              response_headers = v.headers;
+           });
+ 
+           var engine = new Engine({
+              config: __dirname + '/config/dev.json',
+              'connection': 'close',
+              'request-id': 'x-ebay-soa-request-id'
+            });
+            engine.exec({
+               script: script,
+               emitter: emitter,
+               request: {
+                  headers: {
+                      'request-id' : 'my-own-request-id'
+                   }
+                },
+
+               cb: function(err, result) {
+                  if (err) {
+                      console.log(err.stack || sys.inspect(err, false, 10));
+                      test.ok(false);
+                   }
+                  else {
+                     var reqId = _.detect(request_headers, function(v) {
                         return v.name === 'x-ebay-soa-request-id'
-                    });
-                    var sentReqId = reqId && reqId.value;
-                    test.ok(~sentReqId.indexOf('my-own-request-id!ql.io!'));
+                     });
+                     var sentReqId = reqId && reqId.value;
+                     test.ok(~sentReqId.indexOf('my-own-request-id!ql.io!'));
 
-                    var responseReqId = _.detect(response_headers, function(v) {
-                        return v.name === 'x-ebay-soa-request-id'
-                    });
-                    var receivedReqId = responseReqId && responseReqId.value;
-                    test.ok(~receivedReqId.indexOf('my-own-request-id!ql.io!'));
+                     var responseReqId = _.detect(response_headers, function(v) {
+		         return v.name === 'x-ebay-soa-request-id'
 
-                    var requestId = result.headers['request-id'];
-                    test.ok(requestId && ~requestId.indexOf('my-own-request-id!ql.io!'));
+                     });
+                     var receivedReqId = responseReqId && responseReqId.value;
+                     test.ok(~receivedReqId.indexOf('my-own-request-id!ql.io!'));
 
-                }
-                test.done();
-            }
-        });
+                     var requestId = result.headers['request-id'];
+                     test.ok(requestId && ~requestId.indexOf('my-own-request-id!ql.io!'));
+
+                   }
+                   test.done();
+		   server.close();
+               }
+           });
+       });
     },
     'request-id-from-join-stmt' : function(test) {
         var script = "create table header.replace\n\
@@ -278,4 +337,4 @@ module.exports = {
             }
         });
     }
-}
+} 
