@@ -27,7 +27,7 @@ var brew = require('./brew.js'),
 
 exports.exec = function(opts, statement, cb, parentEvent) {
     brew.go({
-        path: __dirname,
+        path: process.cwd() + '/',
         name: '',
         statement: statement,
         cb: function(err, resource) {
