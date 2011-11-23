@@ -289,10 +289,10 @@ $(document).ready(function() {
                     }
                 }
                 else if(contentType === 'text/html') {
-                    $('#results').attr('class', 'results html').html(body);
+                    $('#results').attr('class', 'results html').html(data.body);
                 }
                 else {
-                    $('#results').attr('class', 'results code json').text(body);
+                    $('#results').attr('class', 'results code json').text(data.body);
                 }
                 $('#results').animate({
                     opacity: 1.0
