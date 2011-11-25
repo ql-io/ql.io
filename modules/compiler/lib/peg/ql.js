@@ -7662,6 +7662,8 @@ module.exports = (function(){
 
           type: 'select',
 
+          line: statement.line,
+
           columns: [],
 
           extras: [], // used only during selection

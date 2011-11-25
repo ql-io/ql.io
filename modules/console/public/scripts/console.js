@@ -1,6 +1,6 @@
 $(document).ready(function() {
-    var oldInput, parseTimer, compiler, editor, markers = [], headers, mustache, split = false,
-        runState = {}, socket, emitter, state, results, html, waitOnLoad = false, wsEnabled,
+    var oldInput, parseTimer, compiler, editor, markers = [], headers, mustache,
+        runState, socket, emitter, state, results, html, waitOnLoad = false, wsEnabled,
         EventEmitter = require('events').EventEmitter, formatter = new JSONFormatter();
 
     // IE8 is not supported
@@ -13,7 +13,17 @@ $(document).ready(function() {
             }).dialog('open');
     }
 
-    $("#trace-panel").hide();
+    $(window).resize(function() {
+        $("#top-pane").width("99%");
+        $("#bottom-pane").width("100%");
+        $(".hsplitbar").width("100%");
+    });
+    // Splitter to show har data
+    $("#splitter").splitter({
+        splitHorizontal: true,
+        resizeTo: window,
+        sizeBottom: true
+    });
 
     compiler = require('ql.io-compiler');
     headers = require('headers');
@@ -25,7 +35,7 @@ $(document).ready(function() {
             a = /\+/g,  // Regex for replacing addition symbol with a space
             r = /([^&=]+)=?([^&]*)/g,
             d = function (s) {
-                return decodeURIComponent(s.replace(a, " "));
+                return decodeURIComponent(s.replace(a, ' '));
             },
             q = window.location.search.substring(1);
 
@@ -42,27 +52,7 @@ $(document).ready(function() {
         onChange: function() {
             scheduleParse();
         },
-        onGutterClick: function(e, line) {
-            state = runState[(line + 1) + ''];
-            if(state) {
-                if(!split) {
-                    results = $('#results');
-                    $('#results-placeholder').html($('#results-split-template').html());
-                    $("#split-panel").splitter({
-                        type: "v",
-                        outline: true,
-                        minRight: 10,
-                        anchorToWindow: true,
-                        accessKey: "T"
-                    });
-                    results.appendTo('#split-left');
-                    split = true;
-                }
-                html = mustache.to_html($('#trace-template').html(), state);
-                $('#trace-data').html(html);
-            }
-        },
-        mode: "text/x-qlio"
+        mode: 'text/x-qlio'
     });
 
     $('#util-links').hide();
@@ -123,8 +113,10 @@ $(document).ready(function() {
         }
 
         // Reset state
-        runState = {},split = false;
-        $('#results-placeholder').html($('#results-normal-template').html());
+        runState = {
+            version: '1.2',
+            entries: []
+        }
 
         if(parseTimer !== null) {
             clearTimeout(parseTimer);
@@ -147,7 +139,7 @@ $(document).ready(function() {
         $('#run-again').attr('href', share);
         $('#copy-uri').unbind(); // unbind any previous registered handler.
         $('#copy-uri').click(function() {
-            window.prompt("Copy the URI below",
+            window.prompt('Copy the URI below',
                 window.location.protocol + '//' + window.location.host + '/q?s=' + escaped);
         });
         $('#util-links').show();
@@ -171,7 +163,7 @@ $(document).ready(function() {
     function doXhr(statement, escaped, compiled) {
         var mediaType, link, execState, data, x, i, status, event
 
-        $('#conn-status').html('Not connected. Use latest versions of Firefox or Chrome for better experience.');
+        $('#conn-status').html('Use latest versions of Firefox or Chrome for better experience.');
 
         emitter = new EventEmitter();
         wireup(emitter);
@@ -206,7 +198,7 @@ $(document).ready(function() {
                 if(mediaType === 'application/json') {
                     data = JSON.parse(data);
                     $('#results').attr('class', 'results tree json').html(formatter.jsonToHTML(data));
-                    $("#results").treeview();
+                    $('#results').treeview();
                 }
                 else if(mediaType === 'text/html') {
                     $('#results').attr('class', 'results html').html(data);
@@ -223,7 +215,7 @@ $(document).ready(function() {
                 if(mediaType == 'application/json') {
                     data = JSON.parse(req.responseText);
                     $('#results').attr('class', 'results tree json').html(formatter.jsonToHTML(data));
-                    $("#results").treeview();
+                    $('#results').treeview();
                 }
                 else if(mediaType === 'text/html') {
                     $('#results').attr('class', 'results').html(data);
@@ -249,7 +241,6 @@ $(document).ready(function() {
                 var wsCtor = window['MozWebSocket'] ? MozWebSocket : WebSocket;
                 socket = new wsCtor(uri, 'ql.io-console');
                 socket.onopen = function () {
-                    $('#conn-status').html('Connected. Click on the gutter to see request/response trace.');
                     subscribe(socket);
                     var packet = {
                         type: 'script',
@@ -266,7 +257,6 @@ $(document).ready(function() {
                 socket.send(JSON.stringify(packet));
             }
             socket.onerror = function() {
-                $('#conn-status').html('Not connected');
                 doXhr(statement, escaped, compiled);
             }
             socket.onmessage = function(e) {
@@ -274,7 +264,6 @@ $(document).ready(function() {
                 emitter.emit(event.type, event.data);
             }
             socket.onclose = function() {
-                $('#conn-status').html('Disconnected.');
             }
             wireup(emitter);
             emitter.on('ql.io-script-result', function(data) {
@@ -282,7 +271,7 @@ $(document).ready(function() {
                 if(contentType === 'application/json') {
                     try {
                         $('#results').attr('class', 'results tree json').html(formatter.jsonToHTML(data.body));
-                        $("#results").treeview();
+                        $('#results').treeview();
                     }
                     catch(e) {
                         alert(e);
@@ -363,14 +352,39 @@ $(document).ready(function() {
         });
         emitter.on('ql.io-statement-request', function (data) {
             var key = data.line + '';
-            runState[key] = runState[key] || {};
-            runState[key].req = data;
-            $("#trace-panel").show();
+            var entry = {
+                line: key,
+                id: data.id,
+                startDateTime: data.start,
+                request: {
+                    method: data.method,
+                    url: data.uri,
+                    headers: data.headers,
+                    body: data.body
+                }
+            }
+            runState.entries.push(entry);
+
+            $('#har').attr('class', 'results tree json').html(formatter.jsonToHTML(runState.entries));
+            $('#har').treeview();
         });
         emitter.on('ql.io-statement-response', function (data) {
-            var key = data.line + '';
-            runState[key] = runState[key] || {};
-            runState[key].res = data;
+            var key = data.id;
+            var entry;
+            for(var i = 0; i < runState.entries.length; i++) {
+                if(runState.entries[i].id === key) {
+                    entry = runState.entries[i];
+                    break;
+                }
+            }
+            entry.time = data.time;
+            entry.response = {
+                status: data.status,
+                headers: data.headers,
+                body: data.body
+            }
+            $('#har').attr('class', 'results tree json').html(formatter.jsonToHTML(runState.entries));
+            $('#har').treeview();
         });
         emitter.on('ql.io-statement-success', function (data) {
             markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
