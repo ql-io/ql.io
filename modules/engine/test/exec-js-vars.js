@@ -87,5 +87,37 @@ module.exports = {
                 test.done();
             }
         });
+    },
+    'return obj': function(test) {
+        var script = 'a = true;\n\
+            b = false;\n\
+            c = [1,2,3,4];\n\
+            d = [1, true, 3, false];\n\
+            e = "hello";\n\
+            f = {\n\
+              "a": "A",\n\
+              "b": "B",\n\
+              "carr": ["a", "b", "c"]\n\
+            };\n\
+            g = {};\n\
+            return f;';
+        engine.exec(script, function(err, result) {
+            if(err) {
+                test.fail('got error: ' + err.stack);
+                test.done();
+            }
+            else {
+                test.deepEqual(result.body, {
+                    "a": "A",
+                    "b": "B",
+                    "carr": [
+                        "a",
+                        "b",
+                        "c"
+                    ]
+                });
+                test.done();
+            }
+        });
     }
 };
