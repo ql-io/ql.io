@@ -5977,7 +5977,7 @@ module.exports = (function(){
         var result1 = parse_number();
         var result2 = result1 !== null
           ? (function(n) {
-            return parseFloat(n);
+            return parseFloat(append(n));
           })(result1)
           : null;
         if (result2 !== null) {
@@ -6743,7 +6743,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(c) {
-            return append('' + c);
+            return append(c);
           })(result1)
           : null;
         if (result2 !== null) {
@@ -6771,7 +6771,29 @@ module.exports = (function(){
         }
 
 
-        var result4 = parse_digits();
+        var savedPos1 = pos;
+        if (input.substr(pos, 1) === "+") {
+          var result7 = "+";
+          pos += 1;
+        } else {
+          var result7 = null;
+          if (reportMatchFailures) {
+            matchFailed("\"+\"");
+          }
+        }
+        var result5 = result7 !== null ? result7 : '';
+        if (result5 !== null) {
+          var result6 = parse_digits();
+          if (result6 !== null) {
+            var result4 = [result5, result6];
+          } else {
+            var result4 = null;
+            pos = savedPos1;
+          }
+        } else {
+          var result4 = null;
+          pos = savedPos1;
+        }
         if (result4 !== null) {
           var result0 = result4;
         } else {
@@ -6833,7 +6855,8 @@ module.exports = (function(){
           }
         }
         if (result1 !== null) {
-          var result2 = parse_digits();
+          var result3 = parse_digits();
+          var result2 = result3 !== null ? result3 : '';
           if (result2 !== null) {
             var result0 = [result1, result2];
           } else {
@@ -6866,7 +6889,8 @@ module.exports = (function(){
         var savedPos0 = pos;
         var result1 = parse_e();
         if (result1 !== null) {
-          var result2 = parse_digits();
+          var result3 = parse_int();
+          var result2 = result3 !== null ? result3 : '';
           if (result2 !== null) {
             var result0 = [result1, result2];
           } else {
@@ -6897,157 +6921,73 @@ module.exports = (function(){
 
 
         if (input.substr(pos, 1) === "e") {
-          var result14 = "e";
+          var result6 = "e";
           pos += 1;
         } else {
-          var result14 = null;
+          var result6 = null;
           if (reportMatchFailures) {
             matchFailed("\"e\"");
           }
         }
-        if (result14 !== null) {
-          var result0 = result14;
+        if (result6 !== null) {
+          var result0 = result6;
         } else {
-          var savedPos3 = pos;
-          if (input.substr(pos, 1) === "e") {
-            var result12 = "e";
-            pos += 1;
+          if (input.substr(pos, 2) === "e+") {
+            var result5 = "e+";
+            pos += 2;
           } else {
-            var result12 = null;
+            var result5 = null;
             if (reportMatchFailures) {
-              matchFailed("\"e\"");
+              matchFailed("\"e+\"");
             }
           }
-          if (result12 !== null) {
-            if (input.substr(pos, 1) === "+") {
-              var result13 = "+";
-              pos += 1;
-            } else {
-              var result13 = null;
-              if (reportMatchFailures) {
-                matchFailed("\"+\"");
-              }
-            }
-            if (result13 !== null) {
-              var result11 = [result12, result13];
-            } else {
-              var result11 = null;
-              pos = savedPos3;
-            }
+          if (result5 !== null) {
+            var result0 = result5;
           } else {
-            var result11 = null;
-            pos = savedPos3;
-          }
-          if (result11 !== null) {
-            var result0 = result11;
-          } else {
-            var savedPos2 = pos;
-            if (input.substr(pos, 1) === "e") {
-              var result9 = "e";
-              pos += 1;
+            if (input.substr(pos, 2) === "e-") {
+              var result4 = "e-";
+              pos += 2;
             } else {
-              var result9 = null;
+              var result4 = null;
               if (reportMatchFailures) {
-                matchFailed("\"e\"");
+                matchFailed("\"e-\"");
               }
             }
-            if (result9 !== null) {
-              if (input.substr(pos, 1) === "-") {
-                var result10 = "-";
-                pos += 1;
-              } else {
-                var result10 = null;
-                if (reportMatchFailures) {
-                  matchFailed("\"-\"");
-                }
-              }
-              if (result10 !== null) {
-                var result8 = [result9, result10];
-              } else {
-                var result8 = null;
-                pos = savedPos2;
-              }
-            } else {
-              var result8 = null;
-              pos = savedPos2;
-            }
-            if (result8 !== null) {
-              var result0 = result8;
+            if (result4 !== null) {
+              var result0 = result4;
             } else {
               if (input.substr(pos, 1) === "E") {
-                var result7 = "E";
+                var result3 = "E";
                 pos += 1;
               } else {
-                var result7 = null;
+                var result3 = null;
                 if (reportMatchFailures) {
                   matchFailed("\"E\"");
                 }
               }
-              if (result7 !== null) {
-                var result0 = result7;
+              if (result3 !== null) {
+                var result0 = result3;
               } else {
-                var savedPos1 = pos;
-                if (input.substr(pos, 1) === "E") {
-                  var result5 = "E";
-                  pos += 1;
+                if (input.substr(pos, 2) === "E+") {
+                  var result2 = "E+";
+                  pos += 2;
                 } else {
-                  var result5 = null;
+                  var result2 = null;
                   if (reportMatchFailures) {
-                    matchFailed("\"E\"");
+                    matchFailed("\"E+\"");
                   }
                 }
-                if (result5 !== null) {
-                  if (input.substr(pos, 1) === "+") {
-                    var result6 = "+";
-                    pos += 1;
-                  } else {
-                    var result6 = null;
-                    if (reportMatchFailures) {
-                      matchFailed("\"+\"");
-                    }
-                  }
-                  if (result6 !== null) {
-                    var result4 = [result5, result6];
-                  } else {
-                    var result4 = null;
-                    pos = savedPos1;
-                  }
+                if (result2 !== null) {
+                  var result0 = result2;
                 } else {
-                  var result4 = null;
-                  pos = savedPos1;
-                }
-                if (result4 !== null) {
-                  var result0 = result4;
-                } else {
-                  var savedPos0 = pos;
-                  if (input.substr(pos, 1) === "E") {
-                    var result2 = "E";
-                    pos += 1;
-                  } else {
-                    var result2 = null;
-                    if (reportMatchFailures) {
-                      matchFailed("\"E\"");
-                    }
-                  }
-                  if (result2 !== null) {
-                    if (input.substr(pos, 1) === "-") {
-                      var result3 = "-";
-                      pos += 1;
-                    } else {
-                      var result3 = null;
-                      if (reportMatchFailures) {
-                        matchFailed("\"-\"");
-                      }
-                    }
-                    if (result3 !== null) {
-                      var result1 = [result2, result3];
-                    } else {
-                      var result1 = null;
-                      pos = savedPos0;
-                    }
+                  if (input.substr(pos, 2) === "E-") {
+                    var result1 = "E-";
+                    pos += 2;
                   } else {
                     var result1 = null;
-                    pos = savedPos0;
+                    if (reportMatchFailures) {
+                      matchFailed("\"E-\"");
+                    }
                   }
                   if (result1 !== null) {
                     var result0 = result1;
@@ -7526,25 +7466,35 @@ module.exports = (function(){
 
       var str = '';
 
-      for(var i = 0; i < arr.length; i++) {
+      if(typeOf(arr) === 'array') {
 
-         if(typeOf(arr[i]) == 'array') {
+        for(var i = 0; i < arr.length; i++) {
 
-           str += append(arr[i]);
+           if(typeOf(arr[i]) == 'array') {
 
-         }
+             str += append(arr[i]);
 
-         else if (typeof arr[i] === 'object') {
+           }
 
-           str += JSON.stringify(arr[i].object);
+           else if (typeof arr[i] === 'object') {
 
-         }
+             str += JSON.stringify(arr[i].object);
 
-         else {
+           }
 
-           str += arr[i];
+           else {
+
+             str += arr[i];
+
+           }
 
         }
+
+      }
+
+      else {
+
+        str = str + arr;
 
       }
 
