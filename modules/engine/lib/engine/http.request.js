@@ -80,7 +80,7 @@ exports.exec = function(args) {
         template = uriTemplate.parse(resourceUri);
     }
     catch(err) {
-        global.opts.logger.warning(err);
+        global.opts.logger.warn(err);
         return cb(err, null);
     }
 
@@ -185,7 +185,7 @@ exports.exec = function(args) {
 }
 
 function sendOneRequest(args, resourceUri, params, holder, cb) {
-    var h, requestBody, mediaType = 'application/json', override, client, isTls, options, auth,
+    var h, requestBody, mediaType = 'application/json', overrideStatus, client, isTls, options, auth,
         clientRequest, template, start = Date.now();
     var respData, respJson, uri, heirpart, authority, host, port, path, useProxy = false, proxyHost, proxyPort;
 
@@ -256,7 +256,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                 template = uriTemplate.parse(body.content || resource.body.content);
             }
             catch(err) {
-                global.opts.logger.warning(err);
+                global.opts.logger.warn(err);
                 return cb(err, null);
             }
             requestBody = formatUri(template, params, resource.defaults);
@@ -429,10 +429,10 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                 return httpReqTx.cb(e);
             }
 
-            override = res.statusCode;
+            overrideStatus = res.statusCode;
             if(resource.monkeyPatch && resource.monkeyPatch['patch status']) {
                 try {
-                    override = resource.monkeyPatch['patch status']({
+                    overrideStatus = resource.monkeyPatch['patch status']({
                         status: res.statusCode,
                         headers: res.headers,
                         body: respJson || respData
@@ -442,7 +442,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                     return httpReqTx.cb(e);
                 }
             }
-            if(res.statusCode >= 200 && res.statusCode <= 300) {
+            if(overrideStatus >= 200 && overrideStatus <= 300) {
                 if(respJson) {
                     if(resource.monkeyPatch && resource.monkeyPatch['patch response']) {
                         try {
@@ -507,7 +507,7 @@ function prepareParams() {
                 params[p] = v;
             }
         });
-    })
+    });
     return params;
 }
 

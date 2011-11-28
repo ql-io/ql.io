@@ -75,7 +75,7 @@ var Console = module.exports = function(config) {
     });
     procEmitter.on(Engine.Events.WARNING, function(event, message) {
         if(message) {
-            logger.warning(new Date() + ' - ' + message.stack || message);
+            logger.warn(new Date() + ' - ' + message.stack || message);
         }
     });
 

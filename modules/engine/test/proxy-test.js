@@ -16,7 +16,7 @@
  */
 "use strict"
 
-var Engine = require('lib/engine'),
+var Engine = require('../lib/engine'),
     http = require('http'),
     fs = require('fs'),
     util = require('util'),

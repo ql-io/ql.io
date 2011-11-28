@@ -1,9 +1,11 @@
 *.iml
 .DS_Store
 .idea
+*.log
 temp
 node_modules
 pids
 reports
 target
 docs
+logs
