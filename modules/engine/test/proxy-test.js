@@ -29,6 +29,33 @@ logger.add(logger.transports.Console, {level:'error'});
 module.exports = {
 
     'with-proxy':function (test) {
+        var proxy_server = http.createServer(
+            function (req, res) {
+                var url = URL.parse(req.url, false);
+                var options = {
+                    host:url.hostname,
+                    port:3000,
+                    path:url.pathname,
+                    method:req.method,
+                    headers:req.headers
+                };
+
+                var proxy_request = http.request(options, function (proxy_response) {
+                    proxy_response.on('data', function (chunk) {
+                        res.write(chunk, 'binary');
+                    });
+                    proxy_response.on('end', function () {
+                        res.end();
+                    });
+                });
+                req.addListener('data', function (chunk) {
+                    proxy_request.write(chunk, 'binary');
+                });
+                req.addListener('end', function () {
+                    proxy_request.end();
+                });
+            });
+        proxy_server.listen(3003);
 
         var server = http.createServer(function (req, res) {
             var file = __dirname + '/mock' + req.url;
@@ -56,33 +83,6 @@ module.exports = {
             var script = fs.readFileSync(__dirname + '/mock/proxy.ql', 'UTF-8');
             script = script.replace("127.0.0.1", "localhost");
 
-            var proxy_server = http.createServer(
-                function (req, res) {
-                    var url = URL.parse(req.url, false);
-                    var options = {
-                        host:url.hostname,
-                        port:3000,
-                        path:url.pathname,
-                        method:req.method,
-                        headers:req.headers
-                    };
-
-                    var proxy_request = http.request(options, function (proxy_response) {
-                        proxy_response.on('data', function (chunk) {
-                            res.write(chunk, 'binary');
-                        });
-                        proxy_response.on('end', function () {
-                            res.end();
-                        });
-                    });
-                    req.addListener('data', function (chunk) {
-                        proxy_request.write(chunk, 'binary');
-                    });
-                    req.addListener('end', function () {
-                        proxy_request.end();
-                    });
-                });
-            proxy_server.listen(3003);
 
             engine.exec({
                 script:script,
@@ -107,6 +107,33 @@ module.exports = {
     },
 
     'with-proxy-star':function (test) {
+        var proxy_server = http.createServer(
+            function (req, res) {
+                var url = URL.parse(req.url, false);
+                var options = {
+                    host:url.hostname,
+                    port:3000,
+                    path:url.pathname,
+                    method:req.method,
+                    headers:req.headers
+                };
+
+                var proxy_request = http.request(options, function (proxy_response) {
+                    proxy_response.on('data', function (chunk) {
+                        res.write(chunk, 'binary');
+                    });
+                    proxy_response.on('end', function () {
+                        res.end();
+                    });
+                });
+                req.addListener('data', function (chunk) {
+                    proxy_request.write(chunk, 'binary');
+                });
+                req.addListener('end', function () {
+                    proxy_request.end();
+                });
+            });
+        proxy_server.listen(3004);
 
         var server = http.createServer(function (req, res) {
             var file = __dirname + '/mock' + req.url;
@@ -132,33 +159,6 @@ module.exports = {
             });
 
             var script = fs.readFileSync(__dirname + '/mock/proxy.ql', 'UTF-8');
-            var proxy_server = http.createServer(
-                function (req, res) {
-                    var url = URL.parse(req.url, false);
-                    var options = {
-                        host:url.hostname,
-                        port:3000,
-                        path:url.pathname,
-                        method:req.method,
-                        headers:req.headers
-                    };
-
-                    var proxy_request = http.request(options, function (proxy_response) {
-                        proxy_response.on('data', function (chunk) {
-                            res.write(chunk, 'binary');
-                        });
-                        proxy_response.on('end', function () {
-                            res.end();
-                        });
-                    });
-                    req.addListener('data', function (chunk) {
-                        proxy_request.write(chunk, 'binary');
-                    });
-                    req.addListener('end', function () {
-                        proxy_request.end();
-                    });
-                });
-            proxy_server.listen(3004);
 
             engine.exec({
                 script:script,
