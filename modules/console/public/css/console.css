@@ -194,4 +194,9 @@ pre, code {
 
 #har-title {
     font-size: small;
+    padding: 1px;
+    color: white;
+    font-weight: bold;
+    background-color: rgba(38, 38, 38, 0.73);
+    box-shadow: 0px 5px 5px lightgray;
 }
