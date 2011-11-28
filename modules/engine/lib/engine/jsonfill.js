@@ -57,7 +57,7 @@ function fill(obj, bag) {
 }
 
 function lookup(key, bag) {
-    var ref, index, obj = bag[key] || key, path, resource, stripped = 0, i;
+    var ref, index, obj = key, path, resource, stripped = 0, i;
     if(key && _.isString(key) && key.indexOf("{") === 0 && key.indexOf("}") === key.length - 1) {
         ref = key.substring(1, key.length - 1);
         path = ref;

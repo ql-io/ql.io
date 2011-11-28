@@ -16,7 +16,7 @@
 
 "use strict";
 
-var compiler = require('lib/compiler'),
+var compiler = require('../lib/compiler'),
     _ = require('underscore'),
     sys = require('sys');
 
@@ -459,5 +459,27 @@ return {"result" : "{fields}"};\
             test.fail(e);
             test.done();
         }
+    },
+
+    'number-parsing': function(test) {
+        var script = 'a = 1;\n\
+        b = +1;\n\
+        c = -1;\n\
+        d = 1.234;\n\
+        e = -1.234;\n\
+        f = 1e;\n\
+        g = 1e1;\n\
+        h = 1e+1;\n\
+        i = 1e-1;\n\
+        j = 1.0e-1;\n\
+        return j';
+        var cooked;
+        var res = [1, 1, -1, 1.234, -1.234, 1, 10, 10, 0.1, 0.01];
+        cooked = compiler.compile(script);
+        for(var i = 0; i < i.length; i++) {
+            test.equals(cooked[i].type, 'define');
+            test.equals(cooked[i].object, res[i]);
+        }
+        test.done();
     }
 };

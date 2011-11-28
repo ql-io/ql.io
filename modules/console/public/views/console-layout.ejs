@@ -1,20 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%=title%></title>
-  <link rel="shortcut icon" href="/images/favicon.ico" />
-  <link rel="stylesheet" type="text/css" href="/css/all.css"/>
-  <script type="text/javascript" src="/scripts/jquery-min.js"></script>
-  <script type="text/javascript" src="/scripts/jquery-ui.min.js"></script>
-  <link rel="stylesheet" type="text/css" />
+    <title><%=title%></title>
+    <link rel="shortcut icon" href="/images/favicon.ico"/>
+    <link rel="stylesheet" type="text/css" href="/css/all.css"/>
+    <script type="text/javascript" src="/scripts/jquery-min.js"></script>
+    <script type="text/javascript" src="/scripts/jquery-ui.min.js"></script>
 </head>
 
 <body>
-    <%- partial("header") %>
-    <%- body %>
-    <%- partial("footer") %>
 
-    <script type="text/javascript" src="/scripts/compiler.js"></script>
-    <script type="text/javascript" src="/scripts/all.js"></script>
+<script type="text/javascript">
+</script>
+
+<div id="splitter">
+    <div id="top-pane">
+        <%- partial("header") %>
+        <%- body %>
+        <%- partial("footer") %>
+    </div>
+
+    <div id="bottom-pane">
+        <div id="har-view">
+            <div id="har-title">Req/resp traces</div>
+            <div id="har"></div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript" src="/scripts/compiler.js"></script>
+<script type="text/javascript" src="/scripts/all.js"></script>
 </body>
 </html>

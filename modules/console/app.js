@@ -102,7 +102,7 @@ var Console = module.exports = function(config) {
     app.use(bodyParser); // parses the body for application/x-www-form-urlencoded and application/json
 
     if(config['enable console']) {
-        var assetManagerGroups = {
+        var qlAssets = {
             'js': {
                 'stale': true, // If set to false, this adds a watch file listener - which messes up shutdown via cluster.
                 'route': /\/scripts\/all.js/,
@@ -127,7 +127,6 @@ var Console = module.exports = function(config) {
                     'codemirror.css',
                     'qlio-editor.css',
                     'treeview.css',
-                    'jquery.splitter.css',
                     'jquery-ui.css'
                 ],
                 'preManipulate': {
@@ -147,9 +146,9 @@ var Console = module.exports = function(config) {
                 }
             }
         };
-        var assetsManagerMiddleware = assetManager(assetManagerGroups);
+        var qlAssetLoader = assetManager(qlAssets);
+        app.use(qlAssetLoader);
 
-        app.use(assetsManagerMiddleware);
         app.set('views', __dirname + '/public/views');
         app.use(express.static(__dirname + '/public'));
         app.set('view engine', 'html');

@@ -33,6 +33,7 @@ var strTemplate = require('./peg/str-template.js'),
     mustache = require('mustache'),
     async = require('async'),
     headers = require('headers'),
+    uuid = require('node-uuid'),
     os = require('os');
 
 exports.exec = function(args) {
@@ -327,14 +328,20 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
 
     // Emit
     if(emitter) {
+        var uniqueId = uuid();
         var packet = {
             line: statement.line,
+            id: uniqueId,
             uuid: httpReqTx.event.uuid,
+            method: options.method,
             uri: resourceUri,
             headers: [],
-            body: requestBody,
+            start: toISO(new Date()),
             type: eventTypes.STATEMENT_REQUEST
         };
+        if(requestBody) {
+            packet.body = requestBody;
+        }
         _.each(h, function(v, n) {
             packet.headers.push({
                 name: n,
@@ -356,8 +363,10 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                 var packet = {
                     line: statement.line,
                     uuid: httpReqTx.event.uuid,
+                    id: uniqueId,
                     status: res.statusCode,
                     headers: [],
+                    time: new Date() - start,
                     body: respData,
                     type: eventTypes.STATEMENT_RESPONSE
                 };
@@ -667,4 +676,16 @@ function mergeArray(arr, prop, merge) {
         });
     }
    return merged;
+}
+
+function pad(n) {
+    return n < 10 ? '0' + n : n
+}
+function toISO(d) {
+    return d.getUTCFullYear() + '-'
+        + pad(d.getUTCMonth() + 1) + '-'
+        + pad(d.getUTCDate()) + 'T'
+        + pad(d.getUTCHours()) + ':'
+        + pad(d.getUTCMinutes()) + ':'
+        + pad(d.getUTCSeconds()) + 'Z'
 }

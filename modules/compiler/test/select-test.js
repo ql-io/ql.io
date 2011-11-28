@@ -211,6 +211,7 @@ module.exports = {
                 ],
                 "joiner": {
                     "type": "select",
+                    "line": 1,
                     "columns": [
                         {name: "g.geometry.location"},
                         {name: "g.address"}

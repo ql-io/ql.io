@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2011 eBay Software Foundation
  *
@@ -34,16 +35,21 @@
   }
   function append(arr) {
     var str = '';
-    for(var i = 0; i < arr.length; i++) {
-       if(typeOf(arr[i]) == 'array') {
-         str += append(arr[i]);
-       }
-       else if (typeof arr[i] === 'object') {
-         str += JSON.stringify(arr[i].object);
-       }
-       else {
-         str += arr[i];
+    if(typeOf(arr) === 'array') {
+      for(var i = 0; i < arr.length; i++) {
+         if(typeOf(arr[i]) == 'array') {
+           str += append(arr[i]);
+         }
+         else if (typeof arr[i] === 'object') {
+           str += JSON.stringify(arr[i].object);
+         }
+         else {
+           str += arr[i];
+         }
       }
+    }
+    else {
+      str = str + arr;
     }
     return str;
   }
@@ -102,6 +108,7 @@
     };
     join = {
         type: 'select',
+        line: statement.line,
         columns: [],
         extras: [], // used only during selection
         whereCriteria: []
@@ -750,7 +757,7 @@ stringval = s:string {
 }
 
 numberval = n:number {
-  return parseFloat(n);
+  return parseFloat(append(n));
 }
 
 arrayval = n:array {
@@ -786,16 +793,16 @@ elements = (value insig comma insig elements) / value
 string = dquote ([\u0020-\u0021]/[\u0023-\u005B]/[\u005D-\uFFFF]/['\\'])* dquote
 
 number = c:((int frac exp) / (int frac) / (int exp) / (int)) {
-  return append('' + c);
+  return append(c);
 }
 
-int = digits / ('-' digits)
+int =('+'? digits) / ('-' digits)
 
-frac = '.' digits
+frac = '.' digits?
 
-exp = e digits
+exp = e int?
 
-e = 'e' / ('e' '+') / ('e' '-') / 'E' / ('E' '+') / ('E' '-')
+e = ('e') / ('e+') / ('e-') / 'E' / ('E+') / ('E-')
 
 digits = d:[0-9]+ {
   return parseInt(append(d));
