@@ -75,8 +75,8 @@ function loadInternal(path, prefix, routes) {
                 cooked = compiler.compile(script);
             }
             catch(e) {
-                global.opts.logger.warning('Error loading route ' + (path + filename));
-                global.opts.logger.warning(e.stack || e);
+                global.opts.logger.warn('Error loading route ' + (path + filename));
+                global.opts.logger.warn(e.stack || e);
                 cooked = undefined;
             }
             if (cooked &&
