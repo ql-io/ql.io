@@ -46,8 +46,6 @@ textarea.query-input {
 .parse-status {
     font-family: 'Droid Sans Mono', 'DejaVu Sans Mono', 'Monaco', Courier, monospace;
     color: red;
-    width: 60%;
-    float: left;
     padding: 10px 0;
 }
 
