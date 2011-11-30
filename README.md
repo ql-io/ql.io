@@ -34,11 +34,9 @@ ql.io source is organized into several modules that you can test independently.
 If you are interested in using ql.io as a stand-alone server, setup a new ql.io app and start the
 server.
 
-**TODO: This step will change once the repo is public**
-
-    git clone https://github.com/ql-io/ql.io-template myapp
+    mkdir myapp
     cd myapp
-    make
+    curl https://raw.github.com/ql-io/ql.io/master/modules/template/init.sh | bash
     bin/start.sh
 
 Using latest versions of Firefox or Chrome, go to
