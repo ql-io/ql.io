@@ -1,11 +1,8 @@
 
-[![ql.io](http://ql.io/ql.io-large.png)](http://ql.io)
+[![ql.io](http://ql.io/images/ql.io-large.png)](http://ql.io)
 
-ql.io is a a data-retrieval and aggregation gateway to make orchestrating across HTTP APIs (from
-SOAP-style to RESTful) as simple as SQL and JSON. See [ql.io](http://ql.io) for docs, demos and
-examples.
-
-# See http://66.211.164.71/ for work-in-progress docs/demos/examples.
+ql.io is a declarative, data-retrieval and aggregation gateway for quickly consuming HTTP APIs. See
+[ql.io](http://ql.io) for docs, demos and examples.
 
 ## How to Build ql.io
 

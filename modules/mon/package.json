@@ -2,7 +2,7 @@
     "author": "ql.io",
     "description": "This module provides a peek into the ql.io runtime",
     "name": "ql.io-mon",
-    "version": "0.2.8",
+    "version": "0.3.0",
     "repository": {
         "type": "git",
         "url": "https://github.com/ql-io/ql.io"

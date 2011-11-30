@@ -1,5 +1,6 @@
 #!/bin/bash
-
+#
+# Copyright 2011 eBay Software Foundation
 #
 # Use this script to initialize the app
 #
@@ -7,7 +8,10 @@
 #
 # curl "https://github.com/ql-io/ql.io/blob/master/template/init.sh" | sh
 #
-echo "Initializing ql.io"
-
-echo "This script does not work yet. Sorry"
+git clone git@github.com:ql-io/ql.io-template.git ql.io-template
+mv ql.io-template/* .
+mv ql.io-template/.gitignore .
+rm -rf ql.io-template
+git init
+make install
 
