@@ -52,18 +52,23 @@ Using latest versions of Firefox or Chrome, go to
 
 If you are interested in using ql.io in your node app, use
 
-    # Does not work yet
     npm install ql.io-engine
 
 After that you can simply execute the core engine.
-
-    var Engine = require('../lib/engine');
+    
+    var Engine = require('ql.io-engine');
     var engine = new Engine({
-        tables: ... path to tables ...
+        connection: 'close'
     });
-    engine.exec('your script here', function(err, res) {
-       // process error or results
-    });
+
+    var script = "create table geocoder " +
+                     "on select get from 'http://maps.googleapis.com/maps/api/geocode/json?address={address}&sensor=true' " + 
+                     "resultset 'results.geometry.location'" +
+                   "select lat as lattitude, lng as longitude from geocoder where address='Mt. Everest'";
+
+     engine.exec(script, function(err, res) {
+         console.log(res.body[0]);
+     });
 
 ## Making Contributions
 
