@@ -1,5 +1,5 @@
 This module provides a small URI template parser. ql.io uses URI templates for specifying URIs of
-APIs. See [docs](http://ql.io/docs/uri-inputs) for more examples.
+APIs. See [docs](http://ql.io/docs/uri-template) for more examples.
 
 ## Syntax Overview
 
