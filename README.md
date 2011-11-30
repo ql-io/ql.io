@@ -57,13 +57,13 @@ After that you can simply execute the core engine.
     });
 
     var script = "create table geocoder " +
-                     "on select get from 'http://maps.googleapis.com/maps/api/geocode/json?address={address}&sensor=true' " + 
-                     "resultset 'results.geometry.location'" +
-                   "select lat as lattitude, lng as longitude from geocoder where address='Mt. Everest'";
+                 "  on select get from 'http://maps.googleapis.com/maps/api/geocode/json?address={address}&sensor=true' " +
+                 "     resultset 'results.geometry.location'" +
+                 "select lat as lattitude, lng as longitude from geocoder where address='Mt. Everest'";
 
-     engine.exec(script, function(err, res) {
-         console.log(res.body[0]);
-     });
+    engine.exec(script, function(err, res) {
+        console.log(res.body[0]);
+    });
 
 ## Making Contributions
 
