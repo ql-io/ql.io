@@ -1,0 +1,15 @@
+{
+    "proxy":{
+        "localhost":{
+            "host":"localhost",
+            "port":"3003"
+        },
+        "*" : {
+            "host":"localhost",
+            "port":"3004"
+        },
+        "maps.googleapis.com" : {
+
+        }
+    }
+}
