@@ -9,14 +9,16 @@ examples.
 
 ## How to Build ql.io
 
-To build ql.io on your own, you need node (version 0.4.12) and npm. Support for node 0.6.x is
-coming soon. Once you have these set up, do the following:
+To build ql.io on your own, you need node (version 0.4.12), libexpat-dev and npm. 
+Support for node 0.6.x is coming soon. Once you have these set up, do the following:
 
     git clone git@github.com:ql-io/ql.io.git
     cd ql.io
     make install
 
-**Note** If you get "ERR! Error: EACCES, Permission denied" errors, please take a look at [npm issue #194](https://github.com/isaacs/npm/issues/194) and [what-no-sudo](http://foohack.com/2010/08/intro-to-npm/#what_no_sudo).
+**Note** If you get "ERR! Error: EACCES, Permission denied" errors, please take a look 
+at [npm issue #194](https://github.com/isaacs/npm/issues/194) and 
+[what-no-sudo](http://foohack.com/2010/08/intro-to-npm/#what_no_sudo).
 
 These steps will link ql.io modules locally so can you refer to those modules from your apps using
 `npm link`.
