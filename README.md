@@ -16,6 +16,8 @@ coming soon. Once you have these set up, do the following:
     cd ql.io
     make install
 
+**Note** If you get "ERR! Error: EACCES, Permission denied" errors, please take a look at [npm issue #194](https://github.com/isaacs/npm/issues/194) and [what-no-sudo](http://foohack.com/2010/08/intro-to-npm/#what_no_sudo).
+
 These steps will link ql.io modules locally so can you refer to those modules from your apps using
 `npm link`.
 
