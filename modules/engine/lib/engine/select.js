@@ -51,7 +51,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
                 cloned = clone(statement.joiner);
 
                 // Set the join field
-                cloned.whereCriteria[0].rhs.value = row[joiningColumn];
+                cloned.whereCriteria[0].rhs.value = (_.isArray(row) || _.isObject(row)) ? row[joiningColumn] : row;
 
                 funcs.push(function(s) {
                     return function(callback) {

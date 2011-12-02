@@ -174,6 +174,23 @@ module.exports = {
                 test.done();
             }
         });
-    }
+    },
 
+    'select-join-single-col': function(test) {
+        var q = 'select e.ItemID, e.Title, e.ViewItemURLForNaturalSearch from ebay.finding.items as f, ebay.shopping.item as e\
+                 where e.itemId = f.itemId and f.keywords="mini cooper";';
+
+       engine.exec(q, function(err, list) {
+           if(err) {
+               test.fail('got error: ' + err.stack || err);
+               test.done();
+           }
+           else {
+               test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+               test.ok(_.isArray(list.body), 'expected an array');
+               test.equals(10, list.body.length, 'expected 10 items');
+               test.done();
+           }
+       });
+    }
 }
