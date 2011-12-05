@@ -30,8 +30,8 @@ var engine = new Engine({
     'connection': 'close'
 });
 
-//module.exports = {
-  //  'response-patch-test': function(test) {
+module.exports = {
+    'response-patch-test': function(test) {
        var server = http.createServer(function(req, res) {
             var file = __dirname + '/mock/' + req.url;
             var stat = fs.statSync(file);
@@ -49,22 +49,22 @@ var engine = new Engine({
         });
         server.listen(3000, function() {
             // Do the test here.
-         var script = fs.readFileSync(__dirname + '/mock/ResponsePatch.ql', 'UTF-8');
+         var script = fs.readFileSync(__dirname + '/mock/response-patch.ql', 'UTF-8');
 
         // the normal result (without body patching) would reside in item, but the table def returns items,
         // so if the result.body is not empty, then the body patch worked.
 	    engine.exec(script, function(err, result) {
            	 if (err) {
                      logger.debug("ERROR: " + JSON.stringify(err));
-               	     // test.ok(false);
-                     // test.done();
+               	      test.ok(false);
+                      test.done();
                  } else if (result) {
                      logger.debug("RESULT: " + JSON.stringify(result));
-                     // test.ok(result.body);
-                     //  test.done();
+                     test.ok(result.body);
+                     test.done();
                  }
 	        server.close();
              });
           });
-    //}
-//}
+    }
+}
