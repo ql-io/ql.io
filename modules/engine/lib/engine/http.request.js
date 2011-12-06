@@ -407,12 +407,13 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                     respJson = expat.toJson(respData, {object: true});
                 }
                 else if(mediaType.subtype === 'json') {
-                    respJson = JSON.parse(respData);
+
+                    respJson = (!respData || /^\s*$/.test(respData))? {} : JSON.parse(respData);
                 }
                 else if(mediaType.type === 'text') {
                     // Try JSON
                     try {
-                        respJson = JSON.parse(respData);
+                        respJson =  (!respData || /^\s*$/.test(respData))? {} : JSON.parse(respData);
                     }
                     catch(e) {
                         try {
