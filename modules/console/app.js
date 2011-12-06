@@ -100,7 +100,8 @@ var Console = module.exports = function(config) {
 
     var bodyParser = connect.bodyParser();
     app.use(bodyParser); // parses the body for application/x-www-form-urlencoded and application/json
-
+    var respHeaders = require(__dirname + '/lib/middleware/respheaders');
+    app.use(respHeaders());
     if(config['enable console']) {
         var qlAssets = {
             'js': {

@@ -45,6 +45,9 @@ module.exports = {
                 res.setEncoding('utf8');
                 test.equals(res.statusCode, 200);
                 test.equals(res.headers['content-type'], 'application/json');
+                test.ok(res.headers['date']);
+                test.ok(res.headers['x-powered-by']);
+                test.ok(res.headers['server']);
                 var data = '';
                 res.on('data', function(chunk) {
                     data = data + chunk;
