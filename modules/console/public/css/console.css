@@ -198,3 +198,10 @@ pre, code {
     background-color: rgba(38, 38, 38, 0.73);
     box-shadow: 0px 5px 5px lightgray;
 }
+
+.CodeMirror-scroll {
+  height: auto;
+  overflow-y: hidden;
+  overflow-x: auto;
+  width: 100%
+}

@@ -1,7 +1,7 @@
 {
     "author": "ql.io",
     "name": "ql.io-console",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "repository": {
         "type": "git",
         "url": "ssh://gitolite@crpgit.corp.ebay.com/ql.io.git"
@@ -11,6 +11,7 @@
     },
     "main": "app.js",
     "dependencies": {
+        "npm": "",
         "connect": "1.6.1",
         "express": "2.4.7",
         "ejs": "0.4.3",

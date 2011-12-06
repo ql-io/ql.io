@@ -48,6 +48,8 @@ $(document).ready(function() {
     editor = CodeMirror.fromTextArea(document.getElementById('query-input'), {
         lineNumbers: true,
         matchBrackets: true,
+        lineWrapping: true,
+        fixedGutter: true,
         indentUnit: 4,
         onChange: function() {
             scheduleParse();
