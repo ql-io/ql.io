@@ -146,7 +146,8 @@ exports.exec = function(args) {
         }(uri));
     });
     async.parallel(tasks, function(err, results) {
-        if(err) {
+        // In the case of scatter-gather, ignore errors and process the rest.
+        if(err && resourceUri.length === 1) {
             return cb(err, results);
         }
         else {
@@ -175,7 +176,7 @@ exports.exec = function(args) {
                         ret.body = undefined;
                     }
                 }
-                return cb(err, ret);
+                return cb(undefined, ret);
             }
             else {
                 return cb(err, results);
@@ -633,7 +634,11 @@ function ip() {
     return os.hostname();
 }
 
-function mergeArray(arr, prop, merge) {
+function mergeArray(uarr, prop, merge) {
+    // Remove undefineds.
+    var arr = _.filter(uarr, function(ele) {
+        return ele;
+    });
     var merged;
     if(merge === 'block') {
         merged = [];
