@@ -403,17 +403,19 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
 
             // Parse
             try {
-                if(mediaType.subtype === 'xml') {
+                if(!respData || /^\s*$/.test(respData)){
+                    respJson = {};
+                }
+                else if(mediaType.subtype === 'xml') {
                     respJson = expat.toJson(respData, {object: true});
                 }
                 else if(mediaType.subtype === 'json') {
-
-                    respJson = (!respData || /^\s*$/.test(respData))? {} : JSON.parse(respData);
+                    respJson = JSON.parse(respData);
                 }
                 else if(mediaType.type === 'text') {
                     // Try JSON
                     try {
-                        respJson =  (!respData || /^\s*$/.test(respData))? {} : JSON.parse(respData);
+                        respJson = JSON.parse(respData);
                     }
                     catch(e) {
                         try {
