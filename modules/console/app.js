@@ -431,7 +431,8 @@ var Console = module.exports = function(config) {
     function handleResponseCB(req, res, execState, err, results) {
         var cb = req.param('callback');
         if (err) {
-            res.writeHead(400, {
+            var status = err.status || 400;
+            res.writeHead(status, {
                 'content-type' : 'application/json'
             });
             if (cb) {

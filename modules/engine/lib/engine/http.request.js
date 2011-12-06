@@ -497,6 +497,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
         logUtil.emitEvent(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
             err.message + ' ' + sys.inspect(clientRequest, true, 10) + ' ' + (Date.now() - start) + 'msec');
         err.uri = uri;
+        err.status = 502;
         return httpReqTx.cb(err, undefined);
     });
     clientRequest.end();
