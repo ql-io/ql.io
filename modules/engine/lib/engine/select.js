@@ -216,7 +216,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                     var filtered;
                     if(statement.whereCriteria && statement.whereCriteria.length > 0) {
                         filtered = [];
-                        // Wrap into an object if source is not an array. Otherwise we will end up
+                        // Wrap into an array if source is not an array. Otherwise we will end up
                         // iterating over its props.
                         resource = _.isArray(resource) ? resource : [resource];
 
