@@ -174,7 +174,17 @@ var Engine = module.exports = function(opts) {
         }
 
         try {
-            if(cooked.length > 1) {
+            var onlyComments = true;
+            // Look for a non comment statement from the last
+            for (var len = cooked.length; len--;) {
+                var line = cooked[len];
+                if(line.type !== 'comment') {
+                    onlyComments = false;
+                    break;
+                }
+            }
+
+            if(cooked.length > 1 && !onlyComments) {
                 // Pass 3: Create the execution tree. The execution tree consists of forks and joins.
                 execState = {};
                 _.each(cooked, function(line) {
@@ -275,7 +285,15 @@ function sweep(opts) {
         }
     });
 
-    last = _.last(opts.cooked);
+    // Look for the first non-comment statement from the last
+    for (var len = opts.cooked.length; len--;) {
+        var line = opts.cooked[len];
+        if(line.type !== 'comment') {
+            last = line;
+            break;
+        }
+    }
+
     state = opts.execState[last.id];
     if(pending === 0 && state.waits > 0 && last.type === 'return') {
         return opts.cb({
