@@ -174,6 +174,7 @@ var Engine = module.exports = function(opts) {
         }
 
         try {
+            // TODO This logic to be moved to compiler
             var onlyComments = true;
             // Look for a non comment statement from the last
             for (var len = cooked.length; len--;) {
@@ -285,6 +286,7 @@ function sweep(opts) {
         }
     });
 
+    // TODO This logic to be moved to compiler
     // Look for the first non-comment statement from the last
     for (var len = opts.cooked.length; len--;) {
         var line = opts.cooked[len];
