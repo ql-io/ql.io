@@ -18,6 +18,7 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
+    fs = require('fs'),
     sys = require('sys');
 
 var engine = new Engine({
@@ -180,17 +181,36 @@ module.exports = {
         var q = 'select e.ItemID, e.Title, e.ViewItemURLForNaturalSearch from ebay.finding.items as f, ebay.shopping.item as e\
                  where e.itemId = f.itemId and f.keywords="mini cooper";';
 
-       engine.exec(q, function(err, list) {
-           if(err) {
-               test.fail('got error: ' + err.stack || err);
-               test.done();
-           }
-           else {
-               test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
-               test.ok(_.isArray(list.body), 'expected an array');
-               test.equals(10, list.body.length, 'expected 10 items');
-               test.done();
-           }
-       });
+        engine.exec(q, function(err, list) {
+            if(err) {
+                test.fail('got error: ' + err.stack || err);
+                test.done();
+            }
+            else {
+                test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+                test.ok(_.isArray(list.body), 'expected an array');
+                test.equals(10, list.body.length, 'expected 10 items');
+                test.done();
+            }
+        });
+    },
+
+    'select-join-array-object' : function(test) {
+        fs.readFile(__dirname + '/mock/join-array-object.ql', 'UTF-8', function(err, script) {
+            engine.exec(script, function (err, list) {
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
+                    test.done();
+                }
+                else {
+                    test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+                    test.ok(list.body.j1);
+                    test.equals(list.body.j1.length, 2);
+                    test.ok(list.body.j2);
+                    test.equals(list.body.j2.length, 1);
+                    test.done();
+                }
+            });
+        })
     }
 }

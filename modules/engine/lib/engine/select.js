@@ -216,6 +216,10 @@ function execInternal(opts, statement, cb, parentEvent) {
                     var filtered;
                     if(statement.whereCriteria && statement.whereCriteria.length > 0) {
                         filtered = [];
+                        // Wrap into an object if source is not an array. Otherwise we will end up
+                        // iterating over its props.
+                        resource = _.isArray(resource) ? resource : [resource];
+
                         _.each(resource, function(row) {
                             _.each(statement.whereCriteria, function(cond) {
                                 assert.ok(cond.operator === '=', 'Local filtering supported for = only');
