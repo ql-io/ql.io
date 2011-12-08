@@ -71,10 +71,10 @@ var Engine = module.exports = function(opts) {
 
     // Delete tables and routes - this allows engine invocations from inside app modules for
     // monkey patching or auth
-    if(global.opts.tables) {
+    if (global.opts.tables) {
         delete global.opts.tables;
     }
-    if(global.opts.routes) {
+    if (global.opts.routes) {
         delete global.opts.routes;
     }
     var tables = tableLoader.load(tablesDir, config);
@@ -90,7 +90,7 @@ var Engine = module.exports = function(opts) {
     this.exec = function() {
         var opts, cb, route, script, context = {}, cooked, execState, parentEvent, emitter,
             request, start = Date.now(), tempResources = {}, last, packet, requestId = '';
-        if(arguments.length === 2 && _.isString(arguments[0]) && _.isFunction(arguments[1])) {
+        if (arguments.length === 2 && _.isString(arguments[0]) && _.isFunction(arguments[1])) {
             script = arguments[0];
             cb = arguments[1];
             request = {
@@ -98,7 +98,7 @@ var Engine = module.exports = function(opts) {
                 params: {}
             };
         }
-        else if(arguments.length === 1) {
+        else if (arguments.length === 1) {
             opts = arguments[0];
             cb = opts.cb;
             script = opts.script;
@@ -118,20 +118,20 @@ var Engine = module.exports = function(opts) {
         assert.ok(cb, "Missing callback");
         assert.ok(script, "Missing script");
         var engineEvent = logUtil.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
-            if(emitter) {
+            if (emitter) {
                 packet = {
                     script: route || script,
                     type: eventTypes.SCRIPT_DONE,
                     elapsed: Date.now() - start,
                     data: 'Done'
                 };
-                if(cooked) {
+                if (cooked) {
                     last = _.last(cooked);
                     packet.line = last.line;
                 }
                 emitter.emit(eventTypes.SCRIPT_DONE, packet);
             }
-            if(results && requestId) {
+            if (results && requestId) {
                 results.headers = results.headers || {};
                 results.headers['request-id'] = requestId;
             }
@@ -139,7 +139,7 @@ var Engine = module.exports = function(opts) {
         });
         logUtil.emitEvent(engineEvent.event, route ? 'route:' + route : 'script:' + script);
 
-        if(emitter) {
+        if (emitter) {
             emitter.emit(eventTypes.SCRIPT_ACK, {
                 type: eventTypes.SCRIPT_ACK,
                 data: 'Got it'
@@ -148,7 +148,7 @@ var Engine = module.exports = function(opts) {
         try {
             // We don't cache here since the parser does the caching.
             cooked = route ? script : compiler.compile(script);
-            if(emitter) {
+            if (emitter) {
                 emitter.emit(eventTypes.SCRIPT_COMPILE_OK, {
                     type: eventTypes.SCRIPT_COMPILE_OK,
                     data: 'No compilation errors'
@@ -156,12 +156,13 @@ var Engine = module.exports = function(opts) {
             }
         }
         catch(err) {
-            if(emitter) {
+            if (emitter) {
                 emitter.emit(eventTypes.SCRIPT_COMPILE_ERROR, {
                     type: eventTypes.SCRIPT_COMPILE_ERROR,
                     data: err
                 });
             }
+            logUtil.emitError(engineEvent.event, err);
             return engineEvent.cb(err, null);
         }
 
@@ -174,11 +175,11 @@ var Engine = module.exports = function(opts) {
         }
 
         try {
-            if(cooked.length > 1) {
+            if (cooked.length > 1) {
                 // Pass 3: Create the execution tree. The execution tree consists of forks and joins.
                 execState = {};
                 _.each(cooked, function(line) {
-                    if(line.type !== 'comment') {
+                    if (line.type !== 'comment') {
                         execState[line.id.toString()] = {
                             state: eventTypes.STATEMENT_WAITING,
                             waits: line.dependsOn ? line.dependsOn.length : 0};
@@ -202,6 +203,7 @@ var Engine = module.exports = function(opts) {
                     });
                 }
                 catch(err) {
+                    logUtil.emitError(engineEvent.event, err);
                     return engineEvent.cb(err, null);
                 }
             }
@@ -213,7 +215,7 @@ var Engine = module.exports = function(opts) {
                     request: request,
                     emitter: emitter
                 }, cooked[0], function(err, results) {
-                    if(err) {
+                    if (err) {
                         logUtil.emitError(engineEvent.event, err);
                     }
                     return engineEvent.cb(err, results);
@@ -221,6 +223,7 @@ var Engine = module.exports = function(opts) {
             }
         }
         catch(err) {
+            logUtil.emitError(engineEvent.event, err);
             return engineEvent.cb(err, null);
         }
     };
@@ -234,21 +237,21 @@ var Engine = module.exports = function(opts) {
  * @param opts
  */
 function sweep(opts) {
-    if(opts.done) {
+    if (opts.done) {
         return;
     }
     opts.sweepCounter++;
     var pending = 0, skip = false, last, state, id;
     _.each(opts.cooked, function(line) {
-        if(line.type !== 'comment') {
+        if (line.type !== 'comment') {
             id = line.id;
             state = opts.execState[id];
-            if(state.state === eventTypes.STATEMENT_WAITING && state.waits == 0 && line.type !== 'return') {
+            if (state.state === eventTypes.STATEMENT_WAITING && state.waits == 0 && line.type !== 'return') {
                 pending++;
                 state.state = eventTypes.STATEMENT_IN_FLIGHT;
                 var step = function (line, state) {
                     execOne(opts, line, function(err, result) {
-                        if(err) {
+                        if (err) {
                             // Skip the remaining statements and return error
                             skip = true;
                             return opts.cb(err);
@@ -268,7 +271,7 @@ function sweep(opts) {
                 // TODO: Execute only if there are dependencies
                 step(line, state);
             }
-            else if(state.state == eventTypes.STATEMENT_IN_FLIGHT) {
+            else if (state.state == eventTypes.STATEMENT_IN_FLIGHT) {
                 // This line is in-flight.
                 pending++;
             }
@@ -277,14 +280,14 @@ function sweep(opts) {
 
     last = _.last(opts.cooked);
     state = opts.execState[last.id];
-    if(pending === 0 && state.waits > 0 && last.type === 'return') {
+    if (pending === 0 && state.waits > 0 && last.type === 'return') {
         return opts.cb({
             message: 'Script has unmet dependencies. The return statement depends on one/more other statement(s), but those are not in-progress.'
         });
     }
-    if(pending == 0 && state.waits == 0) {
-        if(last.type === 'return') {
-            if(state.state === eventTypes.STATEMENT_WAITING) {
+    if (pending == 0 && state.waits == 0) {
+        if (last.type === 'return') {
+            if (state.state === eventTypes.STATEMENT_WAITING) {
                 opts.execState[last.id].state = eventTypes.STATEMENT_IN_FLIGHT;
                 execOne(opts, last, function(err, results) {
                     opts.execState[last.id].state = eventTypes.STATEMENT_SUCCESS;
@@ -306,13 +309,13 @@ function execOne(opts, statement, cb) {
         type: eventTypes.STATEMENT_IN_FLIGHT
     };
     var start = Date.now();
-    if(opts.emitter) {
+    if (opts.emitter) {
         opts.emitter.emit(eventTypes.STATEMENT_IN_FLIGHT, packet);
     }
 
     try {
         _execOne(opts, statement, function(err, results) {
-            if(opts.emitter) {
+            if (opts.emitter) {
                 packet.elapsed = Date.now() - start;
                 packet.type = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
                 opts.emitter.emit(packet.type, packet);
@@ -321,7 +324,7 @@ function execOne(opts, statement, cb) {
         });
     }
     catch(e) {
-        if(opts.emitter) {
+        if (opts.emitter) {
             packet.elapsed = Date.now() - start;
             packet.type = eventTypes.STATEMENT_ERROR;
             opts.emitter.emit(packet.type, packet);
@@ -339,7 +342,7 @@ function execOne(opts, statement, cb) {
  */
 function _execOne(opts, statement, cb) {
     var lhs, obj;
-    switch(statement.type) {
+    switch (statement.type) {
         case 'create' :
             create.exec(opts, statement, cb);
             break;
@@ -371,9 +374,9 @@ function _execOne(opts, statement, cb) {
             // selects in  "in" clauses. Such statements should be scheduled sooner. What we have
             // here below is sub-optimal.
             // lhs can be a reference to an object in the context or a JS object.
-            if(statement.rhs.type === 'select') {
+            if (statement.rhs.type === 'select') {
                 select.exec(opts, statement.rhs, function(err, result) {
-                    if(err) {
+                    if (err) {
                         cb(err);
                     }
                     else {
@@ -383,7 +386,7 @@ function _execOne(opts, statement, cb) {
             }
             else {
                 lhs = statement.rhs.ref ? opts.context[statement.rhs.ref] : statement.rhs.object;
-                if(_.isNull(lhs)) {
+                if (_.isNull(lhs)) {
                     cb({
                         message: 'Unresolved reference in return'
                     })
