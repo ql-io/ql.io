@@ -77,7 +77,7 @@ exports.go = function(options) {
 
                     break;
                 default:
-                    logger.warn("Unsupported statement in " + root + name);
+                    logger.warning("Unsupported statement in " + root + name);
             }
         });
     }
@@ -123,7 +123,7 @@ function _process(verb, type, bag, root, name, meta, cb) {
             });
         }
         catch(e) {
-            logger.warn(e.message || e);
+            logger.warning(e.message || e);
             return cb(e);
         }
     }
