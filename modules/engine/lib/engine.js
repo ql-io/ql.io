@@ -32,7 +32,7 @@ var configLoader = require('./engine/config.js'),
     eventTypes = require('./engine/event-types.js'),
     httpRequest = require('./engine/http.request.js'),
     logUtil = require('./engine/log-util.js'),
-    logger = require('winston'),
+    winston = require('winston'),
     compiler = require('ql.io-compiler'),
     async = require('async'),
     _ = require('underscore'),
@@ -40,7 +40,7 @@ var configLoader = require('./engine/config.js'),
     sys = require('sys');
 
 process.on('uncaughtException', function(error) {
-    logger.error(error);
+    winston.error(error);
 })
 
 /**
@@ -59,8 +59,16 @@ var Engine = module.exports = function(opts) {
     // Holder for global opts.
     global.opts = opts || {};
 
-    // Initialize the logger
-    global.opts.logger = global.opts.logger || logger;
+    global.opts.logger = new (winston.Logger)({
+        transports: [
+            new (winston.transports.File)({
+                filename: process.cwd() + '/logs/ql.io.log',
+                maxsize: 1024000 * 5
+            })
+        ]
+    });
+
+    global.opts.logger.setLevels(global.opts['log levels'] || winston.config.syslog.levels);
 
     // Load config
     global.opts.config = _.isObject(global.opts.config) ? global.opts.config : configLoader.load(global.opts);
@@ -191,6 +199,7 @@ var Engine = module.exports = function(opts) {
         }
 
         try {
+            // TODO This logic to be moved to compiler
             var onlyComments = true;
             // Look for a non comment statement from the last
             for (var len = cooked.length; len--;) {
@@ -304,6 +313,7 @@ function sweep(opts) {
         }
     });
 
+    // TODO This logic to be moved to compiler
     // Look for the first non-comment statement from the last
     for (var len = opts.cooked.length; len--;) {
         var line = opts.cooked[len];
