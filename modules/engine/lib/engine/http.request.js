@@ -29,7 +29,6 @@ var strTemplate = require('./peg/str-template.js'),
     assert = require('assert'),
     sys = require('sys'),
     _ = require('underscore'),
-    expat = require('xml2json'),
     mustache = require('mustache'),
     async = require('async'),
     headers = require('headers'),
@@ -408,19 +407,20 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                     respJson = {};
                 }
                 else if(mediaType.subtype === 'xml') {
-                    respJson = expat.toJson(respData, {object: true});
+                    respJson = args.xformers['xml'].toJson(respData);
                 }
                 else if(mediaType.subtype === 'json') {
-                    respJson = JSON.parse(respData);
+                    respJson = args.xformers['json'].toJson(respData);
                 }
                 else if(mediaType.type === 'text') {
                     // Try JSON
                     try {
-                        respJson = JSON.parse(respData);
+                        respJson = args.xformers['json'].toJson(respData);
                     }
                     catch(e) {
+                        // Try XML
                         try {
-                            respJson = expat.toJson(respData, {object: true});
+                            respJson = args.xformers['xml'].toJson(respData);
                         }
                         catch(e) {
                             e.body = respData;
