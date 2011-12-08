@@ -42,7 +42,6 @@ module.exports = {
                 test.done();
             }
             else {
-
                 test.equals(list.headers['content-type'], 'application/json', 'HTML expected');
                 test.ok(_.isArray(list.body), 'expected an array');
                 test.ok(list.body.length > 0, 'expected some items');
@@ -459,6 +458,36 @@ module.exports = {
                 test.ok(_.isObject(list.body[0]), 'expected object in the array');
                 test.ok(list.body[0].id);
                 test.ok(list.body[0].t);
+                test.done();
+            }
+        });
+    },
+
+    'only-comments': function(test) {
+        var q = " --blah \n     \
+                  --blah \n     \
+                  -- blah";
+        engine.exec(q, function(err, list) {
+            test.fail('nothing to execute and return');
+
+        });
+        test.ok(true);
+        test.done();
+    },
+
+    'select-within-comments': function(test) {
+        var q = " --blah \n     \
+                  --blah \n     \
+                  -- blah \n    \
+                  select * from ebay.finding.items where keywords = 12345 \n \
+                  -- blah";
+        engine.exec(q, function(err, list) {
+            if(err) {
+                test.fail('got error: ' + err.stack || err);
+                test.done();
+            }
+            else {
+                test.ok(list.body.length > 0, 'expected some items');
                 test.done();
             }
         });

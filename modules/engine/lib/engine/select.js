@@ -31,6 +31,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
     assert.ok(opts.tables, 'Argument tables can not be undefined');
     assert.ok(statement, 'Argument statement can not be undefined');
     assert.ok(cb, 'Argument cb can not be undefined');
+    assert.ok(opts.xformers, 'No xformers set');
 
     var funcs, cloned, joiningColumn, selectEvent, i;
     selectEvent = logUtil.wrapEvent(parentEvent, 'QlIoSelect', null, cb);
@@ -216,6 +217,10 @@ function execInternal(opts, statement, cb, parentEvent) {
                     var filtered;
                     if(statement.whereCriteria && statement.whereCriteria.length > 0) {
                         filtered = [];
+                        // Wrap into an array if source is not an array. Otherwise we will end up
+                        // iterating over its props.
+                        resource = _.isArray(resource) ? resource : [resource];
+
                         _.each(resource, function(row) {
                             _.each(statement.whereCriteria, function(cond) {
                                 assert.ok(cond.operator === '=', 'Local filtering supported for = only');
@@ -273,6 +278,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                     httpRequest.exec({
                         context: opts.context,
                         resource: resource.select,
+                        xformers: opts.xformers,
                         params: params,
                         request: request,
                         statement: statement,

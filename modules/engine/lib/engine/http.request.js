@@ -29,7 +29,6 @@ var strTemplate = require('./peg/str-template.js'),
     assert = require('assert'),
     sys = require('sys'),
     _ = require('underscore'),
-    expat = require('xml2json'),
     mustache = require('mustache'),
     async = require('async'),
     headers = require('headers'),
@@ -80,7 +79,7 @@ exports.exec = function(args) {
         template = uriTemplate.parse(resourceUri);
     }
     catch(err) {
-        global.opts.logger.warn(err);
+        global.opts.logger.warning(err);
         return cb(err, null);
     }
 
@@ -146,7 +145,8 @@ exports.exec = function(args) {
         }(uri));
     });
     async.parallel(tasks, function(err, results) {
-        if(err) {
+        // In the case of scatter-gather, ignore errors and process the rest.
+        if(err && resourceUri.length === 1) {
             return cb(err, results);
         }
         else {
@@ -175,7 +175,7 @@ exports.exec = function(args) {
                         ret.body = undefined;
                     }
                 }
-                return cb(err, ret);
+                return cb(undefined, ret);
             }
             else {
                 return cb(err, results);
@@ -257,7 +257,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                 template = uriTemplate.parse(body.content || resource.body.content);
             }
             catch(err) {
-                global.opts.logger.warn(err);
+                global.opts.logger.warning(err);
                 return cb(err, null);
             }
             requestBody = formatUri(template, params, resource.defaults);
@@ -407,19 +407,20 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                     respJson = {};
                 }
                 else if(mediaType.subtype === 'xml') {
-                    respJson = expat.toJson(respData, {object: true});
+                    respJson = args.xformers['xml'].toJson(respData);
                 }
                 else if(mediaType.subtype === 'json') {
-                    respJson = JSON.parse(respData);
+                    respJson = args.xformers['json'].toJson(respData);
                 }
                 else if(mediaType.type === 'text') {
                     // Try JSON
                     try {
-                        respJson = JSON.parse(respData);
+                        respJson = args.xformers['json'].toJson(respData);
                     }
                     catch(e) {
+                        // Try XML
                         try {
-                            respJson = expat.toJson(respData, {object: true});
+                            respJson = args.xformers['xml'].toJson(respData);
                         }
                         catch(e) {
                             e.body = respData;
@@ -496,6 +497,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
         logUtil.emitEvent(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
             err.message + ' ' + sys.inspect(clientRequest, true, 10) + ' ' + (Date.now() - start) + 'msec');
         err.uri = uri;
+        err.status = 502;
         return httpReqTx.cb(err, undefined);
     });
     clientRequest.end();
@@ -636,7 +638,11 @@ function ip() {
     return os.hostname();
 }
 
-function mergeArray(arr, prop, merge) {
+function mergeArray(uarr, prop, merge) {
+    // Remove undefineds.
+    var arr = _.filter(uarr, function(ele) {
+        return ele;
+    });
     var merged;
     if(merge === 'block') {
         merged = [];

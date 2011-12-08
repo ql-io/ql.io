@@ -44,8 +44,8 @@ module.exports = {
         var errorGot = false;
 
         var errorHandler = function(ctx, msg) {
-            ctx = ctx || {};
             unregisterListener(Engine.Events.ERROR, errorHandler);
+            ctx = ctx || {};
             test.equals(ctx.type, 'QlIoHttpRequest', 'QlIoHttpRequest expected');
             test.equals(JSON.stringify(msg), '{"headers":{"content-type":"application/json"},"body":{}}');
             errorGot = true;
@@ -89,8 +89,8 @@ module.exports = {
         var errorGot = false;
 
         var errorHandler = function(ctx, msg) {
-            ctx = ctx || {};
             unregisterListener(Engine.Events.ERROR, errorHandler);
+            ctx = ctx || {};
             test.equals(ctx.type, 'QlIoHttpRequest', 'QlIoHttpRequest expected');
             test.ok(msg.stack, 'Error stack expected');
             test.ok(msg.stack.indexOf('ECONNREFUSED') != -1, 'Expected ECONNREFUSED in error');
@@ -123,8 +123,8 @@ module.exports = {
         var errorGot = false;
 
         var errorHandler = function(ctx, msg) {
-            ctx = ctx || {};
             unregisterListener(Engine.Events.ERROR, errorHandler);
+            ctx = ctx || {};
             test.equals(ctx.type, 'API', 'API expected');
             test.equals(msg.type, 'undefined_method');
             errorGot = true;

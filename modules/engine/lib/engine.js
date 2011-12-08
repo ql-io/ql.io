@@ -18,7 +18,7 @@
  * This module executes ql scripts
  */
 
-"use strict";
+'use strict';
 
 var configLoader = require('./engine/config.js'),
     tableLoader = require('./engine/load.js'),
@@ -32,7 +32,7 @@ var configLoader = require('./engine/config.js'),
     eventTypes = require('./engine/event-types.js'),
     httpRequest = require('./engine/http.request.js'),
     logUtil = require('./engine/log-util.js'),
-    logger = require('winston'),
+    winston = require('winston'),
     compiler = require('ql.io-compiler'),
     async = require('async'),
     _ = require('underscore'),
@@ -40,7 +40,7 @@ var configLoader = require('./engine/config.js'),
     sys = require('sys');
 
 process.on('uncaughtException', function(error) {
-    logger.error(error);
+    winston.error(error);
 })
 
 /**
@@ -59,8 +59,16 @@ var Engine = module.exports = function(opts) {
     // Holder for global opts.
     global.opts = opts || {};
 
-    // Initialize the logger
-    global.opts.logger = global.opts.logger || logger;
+    global.opts.logger = new (winston.Logger)({
+        transports: [
+            new (winston.transports.File)({
+                filename: process.cwd() + '/logs/ql.io.log',
+                maxsize: 1024000 * 5
+            })
+        ]
+    });
+
+    global.opts.logger.setLevels(global.opts['log levels'] || winston.config.syslog.levels);
 
     // Load config
     global.opts.config = _.isObject(global.opts.config) ? global.opts.config : configLoader.load(global.opts);
@@ -82,6 +90,21 @@ var Engine = module.exports = function(opts) {
 
     this.routes = function() {
         return routes;
+    }
+
+    var xformers = {
+        'xml': require('./xformers/xml.js'),
+        'json': require('./xformers/json.js')
+    }
+
+    /**
+     * Specify a transformer for response data.
+     *
+     * @param type
+     * @param xformer
+     */
+    this.use = function(type, xformer) {
+        xformers[type] = xformer;
     }
 
     /**
@@ -115,8 +138,10 @@ var Engine = module.exports = function(opts) {
             assert.ok(false, "Incorrect arguments");
         }
 
-        assert.ok(cb, "Missing callback");
-        assert.ok(script, "Missing script");
+        assert.ok(cb, 'Missing callback');
+        assert.ok(script, 'Missing script');
+        assert.ok(xformers, 'Missing xformers');
+
         var engineEvent = logUtil.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
             if (emitter) {
                 packet = {
@@ -175,7 +200,18 @@ var Engine = module.exports = function(opts) {
         }
 
         try {
-            if (cooked.length > 1) {
+            // TODO This logic to be moved to compiler
+            var onlyComments = true;
+            // Look for a non comment statement from the last
+            for (var len = cooked.length; len--;) {
+                var line = cooked[len];
+                if (line.type !== 'comment') {
+                    onlyComments = false;
+                    break;
+                }
+            }
+
+            if (cooked.length > 1 && !onlyComments) {
                 // Pass 3: Create the execution tree. The execution tree consists of forks and joins.
                 execState = {};
                 _.each(cooked, function(line) {
@@ -194,6 +230,7 @@ var Engine = module.exports = function(opts) {
                         execState: execState,
                         sweepCounter: sweepCounter,
                         tables: tables,
+                        xformers: xformers,
                         tempResources: tempResources,
                         context: context,
                         request: request,
@@ -210,6 +247,7 @@ var Engine = module.exports = function(opts) {
             else {
                 execOne({
                     tables: tables,
+                    xformers: xformers,
                     tempResources: tempResources,
                     context: context,
                     request: request,
@@ -278,7 +316,16 @@ function sweep(opts) {
         }
     });
 
-    last = _.last(opts.cooked);
+    // TODO This logic to be moved to compiler
+    // Look for the first non-comment statement from the last
+    for (var len = opts.cooked.length; len--;) {
+        var line = opts.cooked[len];
+        if (line.type !== 'comment') {
+            last = line;
+            break;
+        }
+    }
+
     state = opts.execState[last.id];
     if (pending === 0 && state.waits > 0 && last.type === 'return') {
         return opts.cb({
@@ -371,7 +418,7 @@ function _execOne(opts, statement, cb) {
         case 'return':
             //
             // TODO: This code needs to refactored when the result is a statement, along with
-            // selects in  "in" clauses. Such statements should be scheduled sooner. What we have
+            // selects in  'in' clauses. Such statements should be scheduled sooner. What we have
             // here below is sub-optimal.
             // lhs can be a reference to an object in the context or a JS object.
             if (statement.rhs.type === 'select') {

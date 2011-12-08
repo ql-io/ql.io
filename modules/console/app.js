@@ -45,18 +45,9 @@ var skipHeaders = ['connection', 'host', 'referer', 'content-length', 'accept', 
 var Console = module.exports = function(config) {
 
     config = config || {};
-
     global.opts = config;
-    global.opts.logger = new (winston.Logger)({
-        transports: [
-          new (winston.transports.File)({
-              filename: process.cwd() + '/logs/ql.io.log',
-              maxsize: 1024000 * 5
-          })
-        ]
-      });
 
-    global.opts.logger.setLevels(global.opts['log levels'] || winston.config.syslog.levels);
+    var engine = new Engine(config);
     var logger = global.opts.logger;
 
     procEmitter.setMaxListeners(20);
@@ -75,7 +66,7 @@ var Console = module.exports = function(config) {
     });
     procEmitter.on(Engine.Events.WARNING, function(event, message) {
         if(message) {
-            logger.warn(new Date() + ' - ' + message.stack || message);
+            logger.warning(new Date() + ' - ' + message.stack || message);
         }
     });
 
@@ -88,8 +79,6 @@ var Console = module.exports = function(config) {
     if(config.config) {
         logger.info('Loading config from ' + config.config);
     }
-
-    var engine = new Engine(config);
 
     var app = this.app = express.createServer();
 
@@ -431,7 +420,8 @@ var Console = module.exports = function(config) {
     function handleResponseCB(req, res, execState, err, results) {
         var cb = req.param('callback');
         if (err) {
-            res.writeHead(400, {
+            var status = err.status || 400;
+            res.writeHead(status, {
                 'content-type' : 'application/json'
             });
             if (cb) {

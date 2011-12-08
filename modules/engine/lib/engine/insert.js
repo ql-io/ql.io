@@ -57,6 +57,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
     httpRequest.exec({
         context: opts.context,
         resource: table.insert,
+        xformers: opts.xformers,
         params: values,
         request: request,
         statement: statement,
