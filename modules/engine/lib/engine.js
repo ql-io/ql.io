@@ -18,7 +18,7 @@
  * This module executes ql scripts
  */
 
-"use strict";
+'use strict';
 
 var configLoader = require('./engine/config.js'),
     tableLoader = require('./engine/load.js'),
@@ -84,6 +84,21 @@ var Engine = module.exports = function(opts) {
         return routes;
     }
 
+    var xformers = {
+        'xml': require('./xformers/xml.js'),
+        'json': require('./xformers/json.js')
+    }
+
+    /**
+     * Specify a transformer for response data.
+     *
+     * @param type
+     * @param xformer
+     */
+    this.use = function(type, xformer) {
+        xformers[type] = xformer;
+    }
+
     /**
      * Executes the given statement or script.
      */
@@ -115,8 +130,10 @@ var Engine = module.exports = function(opts) {
             assert.ok(false, "Incorrect arguments");
         }
 
-        assert.ok(cb, "Missing callback");
-        assert.ok(script, "Missing script");
+        assert.ok(cb, 'Missing callback');
+        assert.ok(script, 'Missing script');
+        assert.ok(xformers, 'Missing xformers');
+
         var engineEvent = logUtil.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
             if(emitter) {
                 packet = {
@@ -204,6 +221,7 @@ var Engine = module.exports = function(opts) {
                         execState: execState,
                         sweepCounter: sweepCounter,
                         tables: tables,
+                        xformers: xformers,
                         tempResources: tempResources,
                         context: context,
                         request: request,
@@ -219,6 +237,7 @@ var Engine = module.exports = function(opts) {
             else {
                 execOne({
                     tables: tables,
+                    xformers: xformers,
                     tempResources: tempResources,
                     context: context,
                     request: request,
@@ -388,7 +407,7 @@ function _execOne(opts, statement, cb) {
         case 'return':
             //
             // TODO: This code needs to refactored when the result is a statement, along with
-            // selects in  "in" clauses. Such statements should be scheduled sooner. What we have
+            // selects in  'in' clauses. Such statements should be scheduled sooner. What we have
             // here below is sub-optimal.
             // lhs can be a reference to an object in the context or a JS object.
             if(statement.rhs.type === 'select') {

@@ -4,14 +4,13 @@
     "version": "0.3.2",
     "repository": {
         "type": "git",
-        "url": "ssh://gitolite@crpgit.corp.ebay.com/ql.io.git"
+        "url": "https://github.com/ql-io/ql.io"
     },
     "engines": {
         "node": ">= 0.4.9 < 0.5.0"
     },
     "main": "app.js",
     "dependencies": {
-        "npm": "",
         "connect": "1.6.1",
         "express": "2.4.7",
         "ejs": "0.4.3",
