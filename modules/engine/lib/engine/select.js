@@ -31,6 +31,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
     assert.ok(opts.tables, 'Argument tables can not be undefined');
     assert.ok(statement, 'Argument statement can not be undefined');
     assert.ok(cb, 'Argument cb can not be undefined');
+    assert.ok(opts.xformers, 'No xformers set');
 
     var funcs, cloned, joiningColumn, selectEvent, i;
     selectEvent = logUtil.wrapEvent(parentEvent, 'QlIoSelect', null, cb);
@@ -277,6 +278,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                     httpRequest.exec({
                         context: opts.context,
                         resource: resource.select,
+                        xformers: opts.xformers,
                         params: params,
                         request: request,
                         statement: statement,
