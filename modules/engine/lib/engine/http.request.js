@@ -37,7 +37,7 @@ var strTemplate = require('./peg/str-template.js'),
 
 exports.exec = function(args) {
     var request, context, resource, statement, params, resourceUri, template, cb, holder,
-        validator, parentEvent, emitter, tasks, globalOpts, merge;
+        parentEvent, emitter, tasks, globalOpts;
 
     resource = args.resource;
     context = args.context;
@@ -56,21 +56,17 @@ exports.exec = function(args) {
         request.routeParams,
         request.body,
         args.params);
+    // Apps can pass a holder with state - chain it up.
     if(context) {
         params.__proto__ = context;
     }
 
-    // Validate all params
-    if(resource.monkeyPatch && resource.monkeyPatch['validate param']) {
-        validator = resource.monkeyPatch['validate param'];
-        if(validator) {
-            try {
-                validateParams(statement, params, validator);
-            }
-            catch(e) {
-                return cb(e);
-            }
-        }
+    // Validate all params - make sure to wrap user code in try/catch
+    try {
+        validateParams(resource, params, statement);
+    }
+    catch(e) {
+        return cb(e);
     }
 
     // Parse the uri template (hits a cache)
@@ -83,30 +79,17 @@ exports.exec = function(args) {
         return cb(err, null);
     }
 
-    // If 'block', merge en block, if not merge field by field.
-    merge = template.merge();
-
     // Format the URI. If a token is single valued, but we have multiple values in the params array,
     // this returns multiple values so that we can split the job.
     resourceUri = formatUri(template, params, resource.defaults);
 
-    // Preconditions - done by the monkey patch
-    if(resource.monkeyPatch && resource.monkeyPatch['patch uri']) {
-        var temp = [];
-        try {
-            _.each(resourceUri, function(u) {
-                    var patched = patchUri(u, statement, params, resource.monkeyPatch['patch uri']);
-                    if(patched) {
-                        temp = temp.concat(patched);
-                    }
-            });
-        }
-        catch(e) {
-            return cb(e);
-        }
-        resourceUri = temp; // Swap updated URIs
+    // Monkey patch URIs - useful if there is a mismatch between statements and URIs
+    try {
+        resourceUri = patchUris(resource, resourceUri, statement, params);
     }
-
+    catch(e) {
+        return cb(e);
+    }
     // If there are no URIs, just return now
     if(!resourceUri || resourceUri.length === 0) {
         return cb(undefined, {});
@@ -114,18 +97,7 @@ exports.exec = function(args) {
 
     // Invoke UDFs - defined by monkey patch
     try {
-        _.each(statement.whereCriteria, function(c) {
-            if(c.operator === 'udf') {
-                if(resource.monkeyPatch && resource.monkeyPatch['udf']) {
-                        holder[c.name] = resource.monkeyPatch.udf[c.name](c.args);
-                }
-                else {
-                    throw {
-                        message: 'udf ' + c.name + ' not defined'
-                    };
-                }
-            }
-        });
+        invokeUdf(statement, resource, holder);
     }
     catch(e) {
         return cb(e.stack || e);
@@ -133,7 +105,6 @@ exports.exec = function(args) {
 
     // if template.format() returns multiple URIs, we need to execute all of them in parallel,
     // join on the response, and then send the response to the caller.
-    // Just run them in parallel
     tasks = [];
     _.each(resourceUri, function(uri) {
         tasks.push(function(uri) {
@@ -164,7 +135,7 @@ exports.exec = function(args) {
                     //
                     // In such cases, we need to merge values of the each object in the results
                     // array. Note that merging may result in single props becoming arrays
-                    ret.body = mergeArray(results, 'body', merge);
+                    ret.body = mergeArray(results, 'body', template.merge());
                 }
                 else {
                     var result = results[0];
@@ -185,9 +156,8 @@ exports.exec = function(args) {
 }
 
 function sendOneRequest(args, resourceUri, params, holder, cb) {
-    var h, requestBody, mediaType = 'application/json', overrideStatus, client, isTls, options, auth,
-        clientRequest, template, start = Date.now();
-    var respData, respJson, uri, heirpart, authority, host, port, path, useProxy = false, proxyHost, proxyPort;
+    var h, requestBody, client, isTls, options, template;
+    var uri, heirpart, authority, host, port, path, useProxy = false, proxyHost, proxyPort;
 
     var httpReqTx = logUtil.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
     var resource = args.resource;
@@ -283,25 +253,21 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
         }
     }
 
-    // TODO: Validate if everything required is set
-    // TODO: Remove unset params
-    // TODO: Local filtering
-
     // Now try to get a representation of the resource
     isTls = resourceUri.indexOf('https://') == 0;
     uri = new URI(resourceUri, false);
 
     heirpart = uri.heirpart();
-    assert.ok(heirpart, 'URI [' + resourceUri + '] is invalid')
+    assert.ok(heirpart, 'URI [' + resourceUri + '] is invalid');
     authority = heirpart.authority();
-    assert.ok(authority, 'URI [' + resourceUri + '] is invalid')
+    assert.ok(authority, 'URI [' + resourceUri + '] is invalid');
     host = authority.host();
-    assert.ok(host, 'Host of URI [' + resourceUri + '] is invalid')
+    assert.ok(host, 'Host of URI [' + resourceUri + '] is invalid');
     port = authority.port() || (isTls ? 443 : 80);
-    assert.ok(port, 'Port of URI [' + resourceUri + '] is invalid')
+    assert.ok(port, 'Port of URI [' + resourceUri + '] is invalid');
     path = (heirpart.path().value || '') + (uri.querystring() || '');
 
-    if (globalOpts && globalOpts.config && globalOpts.config.proxy) {
+    if(globalOpts && globalOpts.config && globalOpts.config.proxy) {
         var proxyConfig = globalOpts.config.proxy;
         if (proxyConfig[host] && !proxyConfig[host].host) {
             useProxy = false;
@@ -327,7 +293,15 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     };
     client = isTls ? https : http;
 
-    // Emit
+    // Send
+    sendMessage(client, emitter, statement, httpReqTx, options, resourceUri, requestBody, h,
+        requestId,  resource, args.xformers, 0);
+}
+
+function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri, requestBody, h,
+                     requestId, resource, xformers, retry) {
+    var status, clientRequest, start = Date.now(), mediaType, respData, respJson, uri;
+
     if(emitter) {
         var uniqueId = uuid();
         var packet = {
@@ -379,7 +353,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                 })
                 emitter.emit(eventTypes.STATEMENT_RESPONSE, packet);
 
-                if (res.headers[requestId.name]) {
+                if(res.headers[requestId.name]) {
                     emitter.emit(eventTypes.REQUEST_ID_RECEIVED, res.headers[requestId.name]);
                 }
                 else {
@@ -394,8 +368,6 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
 
             mediaType = sniffMediaType(mediaType, resource, statement, res, respData);
 
-            // TODO: Log level?
-            // TODO: For now, log verbose
             logUtil.emitEvent(httpReqTx.event, resourceUri + '  ' +
                 sys.inspect(options) + ' ' +
                 res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
@@ -403,57 +375,27 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
 
             // Parse
             try {
-                if(!respData || /^\s*$/.test(respData)){
-                    respJson = {};
-                }
-                else if(mediaType.subtype === 'xml') {
-                    respJson = args.xformers['xml'].toJson(respData);
-                }
-                else if(mediaType.subtype === 'json') {
-                    respJson = args.xformers['json'].toJson(respData);
-                }
-                else if(mediaType.type === 'text') {
-                    // Try JSON
-                    try {
-                        respJson = args.xformers['json'].toJson(respData);
-                    }
-                    catch(e) {
-                        // Try XML
-                        try {
-                            respJson = args.xformers['xml'].toJson(respData);
-                        }
-                        catch(e) {
-                            e.body = respData;
-                            return httpReqTx.cb(e);
-                        }
-                    }
-                }
+                respJson = jsonify(respData, mediaType, xformers);
             }
             catch(e) {
                 e.body = respData;
                 return httpReqTx.cb(e);
             }
 
-            overrideStatus = res.statusCode;
-            if(resource.monkeyPatch && resource.monkeyPatch['patch status']) {
-                try {
-                    overrideStatus = resource.monkeyPatch['patch status']({
-                        status: res.statusCode,
-                        headers: res.headers,
-                        body: respJson || respData
-                    })
-                }
-                catch(e) {
-                    return httpReqTx.cb(e);
-                }
+            try {
+                status = getStatus(res, resource, respJson, respData);
             }
-            if(overrideStatus >= 200 && overrideStatus <= 300) {
+            catch(e) {
+                return httpReqTx.cb(e);
+            }
+
+            if(status >= 200 && status <= 300) {
                 if(respJson) {
                     if(resource.monkeyPatch && resource.monkeyPatch['patch response']) {
                         try {
-                           respJson = resource.monkeyPatch['patch response']({
-                               body: respJson
-                           });
+                            respJson = resource.monkeyPatch['patch response']({
+                                body: respJson
+                            });
                         }
                         catch(e) {
                             return httpReqTx.cb(e);
@@ -495,10 +437,18 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     }
     clientRequest.on('error', function(err) {
         logUtil.emitEvent(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
-            err.message + ' ' + sys.inspect(clientRequest, true, 10) + ' ' + (Date.now() - start) + 'msec');
-        err.uri = uri;
-        err.status = 502;
-        return httpReqTx.cb(err, undefined);
+            err.message + ' ' + (Date.now() - start) + 'msec');
+        // For select, retry once on network error
+        if(retry === 0 && statement.type === 'select') {
+            logUtil.emitEvent(httpReqTx.event, 'retrying - ' + resourceUri + ' - ' + (Date.now() - start) + 'msec');
+            sendMessage(client, emitter, statement, httpReqTx, options, resourceUri, requestBody, h,
+                    requestId,  resource, xformers, 1);
+        }
+        else {
+            err.uri = uri;
+            err.status = 502;
+            return httpReqTx.cb(err);
+        }
     });
     clientRequest.end();
 }
@@ -517,47 +467,73 @@ function prepareParams() {
     return params;
 }
 
-function validateParams(statement, params, fn) {
-    var name, value, isValid;
-    assert.ok(_.isFunction(fn), 'Validator is not a function');
-    for(name in params) {
-        if(params.hasOwnProperty(name)) {
-            value = params[name];
-            isValid = fn({
-                statement: statement,
-                params: params
-            }, name, value);
-            if(!isValid) {
-                throw 'Value of ' + name + '"' + value + '" is not valid';
+function validateParams(resource, params, statement) {
+    var validator;
+    if(resource.monkeyPatch && resource.monkeyPatch['validate param']) {
+        validator = resource.monkeyPatch['validate param'];
+        if(validator) {
+            assert.ok(_.isFunction(validator), 'Validator is not a function');
+            var name, value, isValid;
+            for(name in params) {
+                if(params.hasOwnProperty(name)) {
+                    value = params[name];
+                    isValid = validator({
+                        statement: statement,
+                        params: params
+                    }, name, value);
+                    if(!isValid) {
+                        throw 'Value of ' + name + '"' + value + '" is not valid';
+                    }
+                }
             }
         }
     }
 }
 
-function patchUri(uri, statement, params, fn) {
-    var parsed;
-    parsed = new MutableURI(uri);
-    var ret = fn({
-        uri: parsed,
-        statement: statement,
-        params: params
-    });
-
-    if(ret) {
-        if(_.isArray(ret)) {
-            var arr = [];
-            _.each(ret, function(p) {
-                arr.push(p.format());
+function patchUris(resource, resourceUri, statement, params) {
+    var temp = resourceUri, parsed, patched, arr;
+    if(resource.monkeyPatch && resource.monkeyPatch['patch uri']) {
+        temp = [];
+        _.each(resourceUri, function (u) {
+            parsed = new MutableURI(u);
+            patched = resource.monkeyPatch['patch uri']({
+                uri: parsed,
+                statement: statement,
+                params: params
             });
-            return arr;
-        }
-        else {
-            return ret.format();
-        }
+
+            if(patched) {
+                if(_.isArray(patched)) {
+                    arr = [];
+                    _.each(patched, function(p) {
+                        arr.push(p.format());
+                    });
+                    patched = arr;
+                }
+                else {
+                    patched = patched.format();
+                }
+                temp = temp.concat(patched);
+            }
+        });
     }
-    else {
-        return ret;
-    }
+
+    return temp;
+}
+
+function invokeUdf(statement, resource, holder) {
+    _.each(statement.whereCriteria, function (c) {
+        if(c.operator === 'udf') {
+            if(resource.monkeyPatch && resource.monkeyPatch['udf']) {
+                holder[c.name] = resource.monkeyPatch.udf[c.name](c.args);
+            }
+            else {
+                throw {
+                    message: 'udf ' + c.name + ' not defined'
+                };
+            }
+        }
+    });
 }
 
 function patchHeaders(uri, statement, params, headers, fn) {
@@ -631,6 +607,42 @@ function sniffMediaType(mediaType, resource, statement, res, respData) {
     return headers.parse('content-type', mediaType);
 }
 
+
+function jsonify(respData, mediaType, xformers) {
+    var respJson;
+    if(!respData || /^\s*$/.test(respData)) {
+        respJson = {};
+    }
+    else if(mediaType.subtype === 'xml') {
+        respJson = xformers['xml'].toJson(respData);
+    }
+    else if(mediaType.subtype === 'json') {
+        respJson = xformers['json'].toJson(respData);
+    }
+    else if(mediaType.type === 'text') {
+        // Try JSON
+        try {
+            respJson = xformers['json'].toJson(respData);
+        }
+        catch(e) {
+            // Try XML
+            respJson = xformers['xml'].toJson(respData);
+        }
+    }
+    return respJson;
+}
+function getStatus(res, resource, respJson, respData) {
+    var overrideStatus = res.statusCode;
+    if(resource.monkeyPatch && resource.monkeyPatch['patch status']) {
+        overrideStatus = resource.monkeyPatch['patch status']({
+            status: res.statusCode,
+            headers: res.headers,
+            body: respJson || respData
+        })
+    }
+    return overrideStatus;
+}
+
 function ip() {
     // TODO Change the implementation to return the IP Address using
     // os.getNetworkInterfaces() call once we upgrade to node 0.5.5.
@@ -691,11 +703,12 @@ function mergeArray(uarr, prop, merge) {
 function pad(n) {
     return n < 10 ? '0' + n : n
 }
+
 function toISO(d) {
     return d.getUTCFullYear() + '-'
         + pad(d.getUTCMonth() + 1) + '-'
         + pad(d.getUTCDate()) + 'T'
         + pad(d.getUTCHours()) + ':'
         + pad(d.getUTCMinutes()) + ':'
-        + pad(d.getUTCSeconds()) + 'Z'
+        + pad(d.getUTCSeconds()) + 'Z';
 }
