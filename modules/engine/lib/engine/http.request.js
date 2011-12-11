@@ -437,9 +437,10 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
     }
     clientRequest.on('error', function(err) {
         logUtil.emitEvent(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
-            err.message + ' ' + sys.inspect(clientRequest, true, 10) + ' ' + (Date.now() - start) + 'msec');
+            err.message + ' ' + (Date.now() - start) + 'msec');
         // For select, retry once on network error
         if(retry === 0 && statement.type === 'select') {
+            logUtil.emitEvent(httpReqTx.event, 'retrying - ' + resourceUri + ' - ' + (Date.now() - start) + 'msec');
             sendMessage(client, emitter, statement, httpReqTx, options, resourceUri, requestBody, h,
                     requestId,  resource, xformers, 1);
         }
