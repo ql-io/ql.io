@@ -132,6 +132,10 @@ var Engine = module.exports = function(opts) {
             request = opts.request || { headers: {}, params: {}};
             if (route) {
                 _.extend(context, opts.request.routeParams || {});
+                if(opts.request.body){
+                    opts.request.params = opts.request.params || {};
+                    opts.request.params.body = opts.request.body;
+                }
             }
         }
         else {
