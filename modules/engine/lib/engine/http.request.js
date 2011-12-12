@@ -237,7 +237,6 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
         else {
             holder.statement = statement;
             holder.params = params;
-            holder.body = args.request.body; // body received as part of the original request
 
             requestBody = mustache.to_html(body.content || resource.body.content, holder);
         }

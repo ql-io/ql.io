@@ -20,7 +20,8 @@ var _ = require('underscore'),
     sys = require('sys'),
     Console = require('../app.js'),
     http = require('http'),
-    express = require('express');
+    express = require('express'),
+    url = require('url');
 
 module.exports = {
     'check delete call' : function(test) {
@@ -262,6 +263,102 @@ module.exports = {
                 });
                 req.write('itemId=1818&userId=someone');
                 req.end();
+            });
+        });
+    },
+    'check post for no mu' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.get('/bing/bong', function(req, res) {
+                req.on('data', function(chunk) {
+                    // do nothing
+                });
+                req.on('end', function() {
+                    res.send(JSON.stringify(url.parse(req.url,true).query));
+                });
+            });
+
+            testHttpapp.listen(80126, function() {
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/bing/bong',
+                    method : 'POST',
+                    headers : {
+                        'content-type' : 'application/json'
+                    }
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        test.deepEqual(JSON.parse(data), {"val":{"QueryKeywords":"ipod"}});
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.write('{"keywords":"ipod"}');
+                req.end();
+
+            });
+        });
+    },
+    'check put for no mu' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.get('/bing/bong', function(req, res) {
+                req.on('data', function(chunk) {
+                    // do nothing
+                });
+                req.on('end', function() {
+                    res.send(JSON.stringify(url.parse(req.url,true).query));
+                });
+            });
+
+            testHttpapp.listen(80126, function() {
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/bing/bong',
+                    method : 'PUT',
+                    headers : {
+                        'content-type' : 'application/json'
+                    }
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        test.deepEqual(JSON.parse(data), {"val":{"QueryKeywords":"ipod"}});
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.write('{"keywords":"ipod"}');
+                req.end();
+
             });
         });
     }
