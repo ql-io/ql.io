@@ -1,4 +1,4 @@
-QueryKeywords = "{body.keywords}";
+QueryKeywords = "{keywords}";
 val = select * from testing.for.no.mu.post;
 return {
 "val" : "{val}"
