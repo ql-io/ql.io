@@ -31,7 +31,7 @@ var configLoader = require('./engine/config.js'),
     jsonfill = require('./engine/jsonfill.js'),
     eventTypes = require('./engine/event-types.js'),
     httpRequest = require('./engine/http.request.js'),
-    logUtil = require('./engine/log-util.js'),
+    logger = require('./engine/log-util.js'),
     winston = require('winston'),
     compiler = require('ql.io-compiler'),
     async = require('async'),
@@ -55,20 +55,8 @@ process.on('uncaughtException', function(error) {
  */
 var Engine = module.exports = function(opts) {
 
-    //
     // Holder for global opts.
     global.opts = opts || {};
-
-    global.opts.logger = new (winston.Logger)({
-        transports: [
-            new (winston.transports.File)({
-                filename: process.cwd() + '/logs/ql.io.log',
-                maxsize: 1024000 * 5
-            })
-        ]
-    });
-
-    global.opts.logger.setLevels(global.opts['log levels'] || winston.config.syslog.levels);
 
     // Load config
     global.opts.config = _.isObject(global.opts.config) ? global.opts.config : configLoader.load(global.opts);
@@ -142,7 +130,7 @@ var Engine = module.exports = function(opts) {
         assert.ok(script, 'Missing script');
         assert.ok(xformers, 'Missing xformers');
 
-        var engineEvent = logUtil.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
+        var engineEvent = logger.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
             if(emitter) {
                 packet = {
                     script: route || script,
@@ -162,7 +150,7 @@ var Engine = module.exports = function(opts) {
             }
             cb(err, results);
         });
-        logUtil.emitEvent(engineEvent.event, route ? 'route:' + route : 'script:' + script);
+        logger.emitEvent(engineEvent.event, route ? 'route:' + route : 'script:' + script);
 
         if(emitter) {
             emitter.emit(eventTypes.SCRIPT_ACK, {
@@ -187,7 +175,7 @@ var Engine = module.exports = function(opts) {
                     data: err
                 });
             }
-            logUtil.emitError(engineEvent.event, err);
+            logger.emitError(engineEvent.event, err);
             return engineEvent.cb(err, null);
         }
 
@@ -230,7 +218,7 @@ var Engine = module.exports = function(opts) {
                         });
                     }
                     catch (err) {
-                        logUtil.emitError(engineEvent.event, err);
+                        logger.emitError(engineEvent.event, err);
                         return engineEvent.cb(err, null);
                     }
                 }
@@ -245,14 +233,14 @@ var Engine = module.exports = function(opts) {
                     emitter: emitter
                 }, cooked[0], function(err, results) {
                     if(err) {
-                        logUtil.emitError(engineEvent.event, err);
+                        logger.emitError(engineEvent.event, err);
                     }
                     return engineEvent.cb(err, results);
                 });
             }
         }
         catch(err) {
-            logUtil.emitError(engineEvent.event, err);
+            logger.emitError(engineEvent.event, err);
             return engineEvent.cb(err, null);
         }
     };
@@ -261,6 +249,8 @@ var Engine = module.exports = function(opts) {
 /**
  * This function recursively executes statements until the dependencies for the return statement
  * are met.
+ *
+ * Precondition: opts.cooked must have at least one executable statement
  *
  * @ignore
  * @param opts

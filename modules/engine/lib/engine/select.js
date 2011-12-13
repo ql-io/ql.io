@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright 2011 eBay Software Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
 "use strict";
 
 var httpRequest = require('./http.request.js'),
-    logUtil = require('./log-util.js'),
+    logger = require('./log-util.js'),
     jsonfill = require('./jsonfill.js'),
     project = require('./project.js'),
     _ = require('underscore'),
@@ -34,7 +34,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
     assert.ok(opts.xformers, 'No xformers set');
 
     var funcs, cloned, joiningColumn, selectEvent, i;
-    selectEvent = logUtil.wrapEvent(parentEvent, 'QlIoSelect', null, cb);
+    selectEvent = logger.wrapEvent(parentEvent, 'QlIoSelect', null, cb);
 
     execInternal(opts, statement, function(err, results) {
         if(err) {
@@ -117,7 +117,7 @@ function execInternal(opts, statement, cb, parentEvent) {
     var tables = opts.tables, tempResources = opts.tempResources, context = opts.context,
         request = opts.request, emitter = opts.emitter;
 
-    var selectExecTx = logUtil.wrapEvent(parentEvent, 'QlIoSelectExec', null, cb);
+    var selectExecTx = logger.wrapEvent(parentEvent, 'QlIoSelectExec', null, cb);
     //
     // Analyze where conditions and fetch any dependent data
     var name, ret, params, value, i, r, p, max, resource, apiTx;
@@ -210,7 +210,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                 }
                 resource = context[name];
                 if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
-                    apiTx = logUtil.wrapEvent(selectExecTx.event, 'API', name, selectExecTx.cb);
+                    apiTx = logger.wrapEvent(selectExecTx.event, 'API', name, selectExecTx.cb);
                     resource = jsonfill.unwrap(resource);
 
                     // Local filtering (rudimentary)
@@ -257,7 +257,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                 else {
                     // Get the resource
                     resource = tempResources[from.name] || tables[from.name];
-                    apiTx = logUtil.wrapEvent(selectExecTx.event, 'API', from.name, selectExecTx.cb);
+                    apiTx = logger.wrapEvent(selectExecTx.event, 'API', from.name, selectExecTx.cb);
                     if(!resource) {
                         return apiTx.cb({
                             message: 'No such resource ' + from.name
