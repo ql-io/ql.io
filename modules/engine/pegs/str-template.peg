@@ -16,108 +16,107 @@
 
 // Tokenize strings for '{' and '}'
 {
-function typeOf(value) {
-    var s = typeof value;
-    if(s === 'object') {
-      if(value) {
-        if(typeof value.length === 'number' &&
-          !(value.propertyIsEnumerable('length')) &&
-          typeof value.splice === 'function') {
-          s = 'array';
+    function typeOf(value) {
+        var s = typeof value;
+        if(s === 'object') {
+            if(value) {
+                if(typeof value.length === 'number' &&
+                    !(value.propertyIsEnumerable('length')) &&
+                    typeof value.splice === 'function') {
+                    s = 'array';
+                }
+            }
+            else {
+                s = 'null';
+            }
         }
-      }
-      else {
-        s = 'null';
-      }
+        return s;
     }
-    return s;
-  }
-function append(arr) {
-    var str = '';
-    for(var i = 0; i < arr.length; i++) {
-       if(typeOf(arr[i]) == 'array') {
-         str += append(arr[i]);
-       }
-       else if (typeof arr[i] === 'object') {
-         str += JSON.stringify(arr[i].object);
-       }
-       else {
-         str += arr[i];
-      }
+    function append(arr) {
+        var str = '';
+        for(var i = 0; i < arr.length; i++) {
+            if(typeOf(arr[i]) == 'array') {
+                str += append(arr[i]);
+            }
+            else if (typeof arr[i] === 'object') {
+                str += JSON.stringify(arr[i].object);
+            }
+            else {
+                str += arr[i];
+            }
+        }
+        return str;
     }
-    return str;
-  }
 }
 start = template
 
 template  = c:( expression / literal )* {
-  var o = [];
-  o.push(c[0]);
-  var current = 0;
-  for(var i = 1; i < c.length; i++) {
-    if(typeof c[i] === 'string' && typeof o[current] === 'string') {
-      o[current] = o[current] + c[i];
+    var o = [];
+    o.push(c[0]);
+    var current = 0;
+    for(var i = 1; i < c.length; i++) {
+        if(typeof c[i] === 'string' && typeof o[current] === 'string') {
+            o[current] = o[current] + c[i];
+        }
+        else {
+            o.push(c[i]);
+            current++;
+        }
     }
-    else {
-      o.push(c[i]);
-      current++;
+    return {
+        format: function(bag, keep) {
+            var str = '', i, j, ref, current;
+            for(i = 0; i < o.length; i++) {
+                if(typeof o[i] === 'string') {
+                    str = str + o[i];
+                }
+                else {
+                    current = o[i].variable;
+                    ref = bag;
+                    for(j = 0; j < current.length; j++) {
+                        ref = ref[current[j]];
+                        if(ref === undefined) {
+                            break;
+                        }
+                    }
+                    if(ref) {
+                        str = str + ref;
+                    }
+                    else if(keep) {
+                        str = str + '{' + o[i].variable + '}'
+                    }
+                }
+            }
+            return str;
+        },
+        stream: o
     }
-  }
-  return {
-    format: function(bag, keep) {
-      var str = '', i, j, ref, current;
-      for(i = 0; i < o.length; i++) {
-          if(typeof o[i] === 'string') {
-              str = str + o[i];
-          }
-          else {
-              current = o[i].variable;
-              ref = bag;
-              for(j = 0; j < current.length; j++) {
-                  ref = ref[current[j]];
-                  if(ref === undefined) {
-                      break;
-                  }
-              }
-              if(ref) {
-                  str = str + ref;
-              }
-              else if(keep) {
-                  str = str + '{' + o[i].variable + '}'
-              }
-          }
-      }
-      return str;
-    },
-    stream: o
-  }
 }
 
 literal = ([^"'<>\'`'] / ' ')
 
 expression =  "{" v:variable "}" {
-  return {
-    variable: v
-  }
+    return {
+        variable: v
+    }
 }
 
 operator = '^'
 
-
 identifier = obj:(word ('.' word)*) {
-  return append(obj);
+    return append(obj);
 }
 
 word = chars:([a-zA-Z$][a-zA-Z_0-9]*)  {
-  var ret = chars[0];
-  for(i = 1; i < chars.length; i++) {
-    ret = ret + chars[i].join('');
-  }
-  return ret;
+    var ret = chars[0];
+    for(i = 1; i < chars.length; i++) {
+        ret = ret + chars[i].join('');
+    }
+    return ret;
 }
 
 variable = l:identifier* {
-  var r = '';
-  for(i = 0; i < l.length; i++) { r += l[i]; }
-  return r.split('.');
+    var r = '';
+    for(i = 0; i < l.length; i++) { r += l[i]; }
+    return r.split('.');
 }
