@@ -16,6 +16,11 @@
 
 'use strict';
 
-exports.toJson = function(data) {
-    return JSON.parse(data);
+exports.toJson = function(data, respCb, errorCb) {
+    try{
+        return respCb(JSON.parse(data));
+    }
+    catch(error){
+        return errorCb(error);
+    }
 }
