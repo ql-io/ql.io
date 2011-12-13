@@ -200,18 +200,7 @@ var Engine = module.exports = function(opts) {
         }
 
         try {
-            // TODO This logic to be moved to compiler
-            var onlyComments = true;
-            // Look for a non comment statement from the last
-            for (var len = cooked.length; len--;) {
-                var line = cooked[len];
-                if(line.type !== 'comment') {
-                    onlyComments = false;
-                    break;
-                }
-            }
-
-            if(cooked.length > 1 && !onlyComments) {
+            if(cooked.length > 1) {
                 // Pass 3: Create the execution tree. The execution tree consists of forks and joins.
                 execState = {};
                 _.each(cooked, function(line) {
@@ -222,26 +211,28 @@ var Engine = module.exports = function(opts) {
                     }
                 });
 
-                // Sweep the statements till we're done.
-                var sweepCounter = 0;
-                try {
-                    sweep({
-                        cooked: cooked,
-                        execState: execState,
-                        sweepCounter: sweepCounter,
-                        tables: tables,
-                        xformers: xformers,
-                        tempResources: tempResources,
-                        context: context,
-                        request: request,
-                        emitter: emitter,
-                        start: start,
-                        cb: engineEvent.cb
-                    });
-                }
-                catch(err) {
-                    logUtil.emitError(engineEvent.event, err);
-                    return engineEvent.cb(err, null);
+                if (!_.isEmpty(execState)) {
+                    // Sweep the statements till we're done.
+                    var sweepCounter = 0;
+                    try {
+                        sweep({
+                            cooked:cooked,
+                            execState:execState,
+                            sweepCounter:sweepCounter,
+                            tables:tables,
+                            xformers:xformers,
+                            tempResources:tempResources,
+                            context:context,
+                            request:request,
+                            emitter:emitter,
+                            start:start,
+                            cb:engineEvent.cb
+                        });
+                    }
+                    catch (err) {
+                        logUtil.emitError(engineEvent.event, err);
+                        return engineEvent.cb(err, null);
+                    }
                 }
             }
             else {
@@ -313,18 +304,10 @@ function sweep(opts) {
                 // This line is in-flight.
                 pending++;
             }
+            // remember the last executable statement
+            last = line;
         }
     });
-
-    // TODO This logic to be moved to compiler
-    // Look for the first non-comment statement from the last
-    for (var len = opts.cooked.length; len--;) {
-        var line = opts.cooked[len];
-        if(line.type !== 'comment') {
-            last = line;
-            break;
-        }
-    }
 
     state = opts.execState[last.id];
     if(pending === 0 && state.waits > 0 && last.type === 'return') {
