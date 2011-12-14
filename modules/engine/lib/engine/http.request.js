@@ -616,7 +616,8 @@ function jsonify(respData, mediaType, xformers, respCb, errorCb) {
         xformers['json'].toJson(respData, respCb, errorCb);
     }
     else if (mediaType.subtype === 'csv') {
-        xformers['csv'].toJson(respData, respCb, errorCb);
+        xformers['csv'].toJson(respData, respCb, errorCb,
+            (mediaType.params && mediaType.params.header != undefined));
     }
     else if (mediaType.type === 'text') {
         // Try JSON first

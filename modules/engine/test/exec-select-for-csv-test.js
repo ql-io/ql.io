@@ -17,7 +17,51 @@
 var _ = require('underscore'), Engine = require('../lib/engine'), EventEmitter = require('events').EventEmitter, sys = require('sys'), http = require('http'), fs = require('fs'), util = require('util');
 
 module.exports = {
-    'select from csv service' : function(test) {
+    'select from csv with headers' : function(test) {
+        // Start a file server
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : 'text/csv;header',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if (e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+            // Do the test here.
+            var engine = new Engine({
+                connection : 'close'
+            });
+            var script = fs.readFileSync(__dirname + '/mock/csvSelect.ql', 'UTF-8');
+            engine.exec(script, function(err, results) {
+                if (err) {
+                    console.log(err.stack || err);
+                    test.ok(false, 'Grrr');
+                    test.done();
+                }
+                else {
+                    results = results.body;
+                    test.deepEqual(results, [
+                        { id: '1', lastname: 'Dow', firstname: 'John' },
+                        { id: '101',
+                            lastname: 'AnotherDow',
+                            firstname: 'Jane' }
+                    ]);
+                    test.done();
+                }
+                server.close();
+
+            });
+        });
+    },
+    'select from csv without headers' : function(test) {
         // Start a file server
         var server = http.createServer(function(req, res) {
             var file = __dirname + '/mock/' + req.url;
@@ -49,10 +93,9 @@ module.exports = {
                 else {
                     results = results.body;
                     test.deepEqual(results, [
-                        { id: '1', lastname: 'Dow', firstname: 'John' },
-                        { id: '101',
-                            lastname: 'AnotherDow',
-                            firstname: 'Jane' }
+                        [ 'id', 'lastname', 'firstname' ],
+                        [ '1', 'Dow', 'John' ],
+                        [ '101', 'AnotherDow', 'Jane' ]
                     ]);
                     test.done();
                 }

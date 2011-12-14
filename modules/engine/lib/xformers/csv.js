@@ -18,12 +18,12 @@
 
 var csv = require('csv');
 
-exports.toJson = function(data, respCb, errorCb) {
+exports.toJson = function(data, respCb, errorCb, headers) {
     try {
         var jsonData = [];
         csv()
             .from(data, {
-                columns: true
+                columns: headers
             })
             .transform(function(lineData) {
                 jsonData.push(lineData);
