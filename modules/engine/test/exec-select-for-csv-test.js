@@ -17,7 +17,7 @@
 var _ = require('underscore'), Engine = require('../lib/engine'), EventEmitter = require('events').EventEmitter, sys = require('sys'), http = require('http'), fs = require('fs'), util = require('util');
 
 module.exports = {
-    'find-all' : function(test) {
+    'select from csv service' : function(test) {
         // Start a file server
         var server = http.createServer(function(req, res) {
             var file = __dirname + '/mock/' + req.url;
