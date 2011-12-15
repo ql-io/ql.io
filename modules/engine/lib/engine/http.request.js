@@ -326,7 +326,7 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
     }
 
     clientRequest = client.request(options, function(res) {
-        res.setEncoding('utf8');
+        setEncoding(res);
         respData = '';
         res.on('data', function (chunk) {
             respData += chunk;
@@ -577,6 +577,16 @@ function patchBody(uri, statement, params, headers, body, fn) {
 function formatUri(template, params, defaults) {
     var arr = template.format(params, defaults);
     return _.isArray(arr) ? arr : [arr];
+}
+
+function setEncoding(res){
+    var contentType = headers.parse('content-type', res.headers['content-type'] || '');
+    var encoding = contentType.subtype === 'csv' ? 'ascii' : 'utf8';
+
+    if(contentType.params && contentType.params.charset){
+        encoding = contentType.params.charset == 'us-ascii' ? 'ascii' : 'utf8';
+    }
+    res.setEncoding(encoding);
 }
 
 function sniffMediaType(mediaType, resource, statement, res, respData) {

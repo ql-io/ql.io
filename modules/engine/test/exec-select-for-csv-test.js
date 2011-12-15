@@ -103,5 +103,50 @@ module.exports = {
 
             });
         });
+    },
+    'select from utf-8 csv' : function(test) {
+        // Start a file server
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : 'text/csv;charset=utf-8',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if (e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+            // Do the test here.
+            var engine = new Engine({
+                connection : 'close'
+            });
+            var script = fs.readFileSync(__dirname + '/mock/utf8csvSelect.ql', 'UTF-8');
+            engine.exec(script, function(err, results) {
+                if (err) {
+                    console.log(err.stack || err);
+                    test.ok(false, 'Grrr');
+                    test.done();
+                }
+                else {
+                    results = results.body;
+                    test.ok(results.length === 4, "Array of length 4 expected");
+                    if (results.length === 4) {
+                        test.ok(results[0].length === 5, "Array of length 5 expected");
+                        test.ok(results[1].length === 9, "Array of length 9 expected");
+                        test.ok(results[2].length === 7, "Array of length 7 expected");
+                        test.ok(results[3].length === 3, "Array of length 3 expected");
+                    }
+                    test.done();
+                }
+                server.close();
+
+            });
+        });
     }
 }
