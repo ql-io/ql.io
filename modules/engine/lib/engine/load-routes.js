@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-"use strict";
+'use strict';
 
-var logUtil = require('./log-util.js'),
+var logEmitter =  require('./log-emitter.js'),
     compiler = require('ql.io-compiler'),
     fs = require('fs'),
     url = require('url'),
@@ -40,13 +40,13 @@ function loadInternal(path, prefix, routes) {
     assert.ok(path, 'path should not be null');
     assert.ok(routes, 'routes should not be null');
 
-    var script, stats, paths, logger = global.opts.logger;
+    var script, stats, paths;
     path = path.charAt(path.length - 1) == '/' ? path : path + '/';
     try {
         paths = fs.readdirSync(path);
     }
     catch(e) {
-        logger.error('Unable to load routes from ' + path);
+        logEmitter.emitError('Unable to load routes from ' + path);
         return;
     }
 
@@ -75,8 +75,8 @@ function loadInternal(path, prefix, routes) {
                 cooked = compiler.compile(script);
             }
             catch(e) {
-                global.opts.logger.warning('Error loading route ' + (path + filename));
-                global.opts.logger.warning(e.stack || e);
+                logEmitter.emitWarning('Error loading route ' + (path + filename));
+                logEmitter.emitWarning(e.stack || e);
                 cooked = undefined;
             }
             if (cooked &&
@@ -93,7 +93,7 @@ function loadInternal(path, prefix, routes) {
                     if (/\{.*\}/.test(v)) {
                         pieces.query[k] = v.replace(/\{/g, '').replace(/\}/g, '');
                     } else {
-                        logUtil.emitError(null, "Invalid query string, {} missing in script for query param value: "
+                        logEmitter.emitError('Invalid query string, {} missing in script for query param value: '
                             + script);
                         delete pieces.query[k];
                     }
@@ -118,12 +118,12 @@ function loadInternal(path, prefix, routes) {
                         }
                     );
                 } else {
-                    logUtil.emitError(null, "Route already defined: " + script);
+                    logEmitter.emitError("Route already defined: " + script);
                 }
             }
         }
         else {
-            logUtil.emitError(null, "Script doesn't contain route information: " + script);
+            logEmitter.emitError("Script doesn't contain route information: " + script);
         }
     });
 }

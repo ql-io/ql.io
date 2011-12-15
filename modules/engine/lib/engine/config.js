@@ -18,34 +18,33 @@
  * Loads config
  */
 
-"use strict";
+'use strict';
 
 var fs = require('fs'),
-    logUtil = require('./log-util.js');
+    logEmitter =  require('./log-emitter.js');
 
 exports.load = function(opts) {
     opts = opts || {};
-    var logger = global.opts.logger;
-    var file = opts.config, text, data = {};
+    var file = opts.config, text;
 
-    if(file) {
-        try {
-            // Load the file
-            text = fs.readFileSync(file, 'UTF-8');
-        }
-        catch(e) {
-            logger.error('Unable to load config from ' + file);
-            return {};
-        }
-        try {
-            data = JSON.parse(text);
-        }
-        catch(e) {
-            logUtil.emitError({}, 'error loading config file: ' + file);
-            console.log(e.stack || e);
-            return;
-        }
+    if(!file) {
+        return {};
+    }
+    try {
+        // Load the file
+        text = fs.readFileSync(file, 'UTF-8');
+    }
+    catch (e) {
+        logEmitter.emitError('Unable to load config from ' + file);
+        return {};
     }
 
-    return data;
+    try {
+        return JSON.parse(text);
+    }
+    catch (e) {
+        logEmitter.emitError('Error loading config file: ' + file);
+        console.log(e.stack || e);
+        return {};
+    }
 }
