@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-"use strict";
+'use strict';
 
 var eventTypes = require('./event-types.js'),
     uuid = require('node-uuid'),
@@ -88,12 +88,28 @@ exports.emitEvent = function(event, msg){
   procEmitter.emit(eventTypes.EVENT, event, msg);
 }
 
-exports.emitWarning = function(event, msg){
-  procEmitter.emit(eventTypes.WARNING, event, msg);
+exports.emitWarning = function () {
+    var event = {}, msg = 'Warning event raised without message';
+    if (arguments.length > 1) {
+        event = arguments[0];
+        msg = arguments[1];
+    }
+    else if (arguments.length === 1) {
+        msg = arguments[0];
+    }
+    procEmitter.emit(eventTypes.WARNING, event, msg);
 }
 
-exports.emitError = function(event, msg){
-  procEmitter.emit(eventTypes.ERROR, event, msg);
+exports.emitError = function () {
+    var event = {}, msg = 'Error event raised without message';
+    if (arguments.length > 1) {
+        event = arguments[0];
+        msg = arguments[1];
+    }
+    else if (arguments.length === 1) {
+        msg = arguments[0];
+    }
+    procEmitter.emit(eventTypes.ERROR, event, msg);
 }
 
 function getUTimeInSecs() {
