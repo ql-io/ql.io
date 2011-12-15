@@ -31,7 +31,7 @@ var configLoader = require('./engine/config.js'),
     jsonfill = require('./engine/jsonfill.js'),
     eventTypes = require('./engine/event-types.js'),
     httpRequest = require('./engine/http.request.js'),
-    logger = require('./engine/log-util.js'),
+    logEmitter =  require('./engine/log-emitter.js'),
     winston = require('winston'),
     compiler = require('ql.io-compiler'),
     async = require('async'),
@@ -130,7 +130,7 @@ var Engine = module.exports = function(opts) {
         assert.ok(script, 'Missing script');
         assert.ok(xformers, 'Missing xformers');
 
-        var engineEvent = logger.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
+        var engineEvent = logEmitter.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
             if(emitter) {
                 packet = {
                     script: route || script,
@@ -150,7 +150,7 @@ var Engine = module.exports = function(opts) {
             }
             cb(err, results);
         });
-        logger.emitEvent(engineEvent.event, route ? 'route:' + route : 'script:' + script);
+        logEmitter.emitEvent(engineEvent.event, route ? 'route:' + route : 'script:' + script);
 
         if(emitter) {
             emitter.emit(eventTypes.SCRIPT_ACK, {
@@ -175,7 +175,7 @@ var Engine = module.exports = function(opts) {
                     data: err
                 });
             }
-            logger.emitError(engineEvent.event, err);
+            logEmitter.emitError(engineEvent.event, err);
             return engineEvent.cb(err, null);
         }
 
@@ -218,7 +218,7 @@ var Engine = module.exports = function(opts) {
                         });
                     }
                     catch (err) {
-                        logger.emitError(engineEvent.event, err);
+                        logEmitter.emitError(engineEvent.event, err);
                         return engineEvent.cb(err, null);
                     }
                 }
@@ -233,14 +233,14 @@ var Engine = module.exports = function(opts) {
                     emitter: emitter
                 }, cooked[0], function(err, results) {
                     if(err) {
-                        logger.emitError(engineEvent.event, err);
+                        logEmitter.emitError(engineEvent.event, err);
                     }
                     return engineEvent.cb(err, results);
                 });
             }
         }
         catch(err) {
-            logger.emitError(engineEvent.event, err);
+            logEmitter.emitError(engineEvent.event, err);
             return engineEvent.cb(err, null);
         }
     };

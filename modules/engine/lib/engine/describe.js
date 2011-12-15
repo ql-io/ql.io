@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-"use strict"
+'use strict';
 
 var mustache = require('mustache'),
     assert = require('assert'),

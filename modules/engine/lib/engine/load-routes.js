@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-"use strict";
+'use strict';
 
-var logger = require('./log-util.js'),
+var logEmitter =  require('./log-emitter.js'),
     compiler = require('ql.io-compiler'),
     fs = require('fs'),
     url = require('url'),
@@ -46,7 +46,7 @@ function loadInternal(path, prefix, routes) {
         paths = fs.readdirSync(path);
     }
     catch(e) {
-        logger.emitError({}, 'Unable to load routes from ' + path);
+        logEmitter.emitError('Unable to load routes from ' + path);
         return;
     }
 
@@ -75,8 +75,8 @@ function loadInternal(path, prefix, routes) {
                 cooked = compiler.compile(script);
             }
             catch(e) {
-                logger.emitWarning({}, 'Error loading route ' + (path + filename));
-                logger.emitWarning(e.stack || e);
+                logEmitter.emitWarning('Error loading route ' + (path + filename));
+                logEmitter.emitWarning(e.stack || e);
                 cooked = undefined;
             }
             if (cooked &&
@@ -93,7 +93,7 @@ function loadInternal(path, prefix, routes) {
                     if (/\{.*\}/.test(v)) {
                         pieces.query[k] = v.replace(/\{/g, '').replace(/\}/g, '');
                     } else {
-                        logger.emitError(null, "Invalid query string, {} missing in script for query param value: "
+                        logEmitter.emitError('Invalid query string, {} missing in script for query param value: '
                             + script);
                         delete pieces.query[k];
                     }
@@ -118,12 +118,12 @@ function loadInternal(path, prefix, routes) {
                         }
                     );
                 } else {
-                    logger.emitError(null, "Route already defined: " + script);
+                    logEmitter.emitError("Route already defined: " + script);
                 }
             }
         }
         else {
-            logger.emitError(null, "Script doesn't contain route information: " + script);
+            logEmitter.emitError("Script doesn't contain route information: " + script);
         }
     });
 }

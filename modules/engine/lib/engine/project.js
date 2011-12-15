@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-"use strict";
+'use strict';
 
 var jsonfill = require('./jsonfill.js'),
     sys = require('sys'),

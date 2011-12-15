@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-"use strict";
+'use strict';
 
 var httpRequest = require('./http.request.js'),
-    logger = require('./log-util.js'),
+    logEmitter = require('./log-emitter.js'),
     jsonfill = require('./jsonfill.js'),
     _ = require('underscore'),
     async = require('async'),
@@ -33,7 +33,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
     var tables = opts.tables, context = opts.context,
         request = opts.request, emitter = opts.emitter;
 
-    var insertTx = logger.wrapEvent(parentEvent, 'QlIoInsert', null, cb);
+    var insertTx = logEmitter.wrapEvent(parentEvent, 'QlIoInsert', null, cb);
 
     // Get the table
     var table = tables[statement.source.name];

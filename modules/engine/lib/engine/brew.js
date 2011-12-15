@@ -18,7 +18,7 @@
  * Converts DDL scripts into a tables
  */
 
-"use strict";
+'use strict';
 
 var strTemplate = require('./peg/str-template.js'),
     compiler = require('ql.io-compiler'),
@@ -28,7 +28,7 @@ var strTemplate = require('./peg/str-template.js'),
     fs = require('fs'),
     normalize = require('path').normalize,
     markdown = require('markdown'),
-    logger = require('./log-util'),
+    logEmitter =  require('./log-emitter.js'),
     sys = require('sys');
 
 exports.go = function(options) {
@@ -77,12 +77,12 @@ exports.go = function(options) {
 
                     break;
                 default:
-                    logger.emitWarning({}, "Unsupported statement in " + root + name);
+                    logEmitter.emitWarning("Unsupported statement in " + root + name);
             }
         });
     }
     catch(e) {
-        logger.emitError({}, 'Failed to load ' + root + name);
+        logEmitter.emitError('Failed to load ' + root + name);
         cb(e);
     }
 }
@@ -123,7 +123,7 @@ function _process(verb, type, bag, root, name, meta, cb) {
             });
         }
         catch(e) {
-            logger.emitWarning({}, e.message || e);
+            logEmitter.emitWarning(e.message || e);
             return cb(e);
         }
     }
@@ -161,7 +161,7 @@ function _process(verb, type, bag, root, name, meta, cb) {
             verb.auth = require(verb.auth);
         }
         catch(e) {
-            logger.emitError({}, 'Failed to load ' + name);
+            logEmitter.emitError('Failed to load ' + name);
             cb(e);
         }
     }
