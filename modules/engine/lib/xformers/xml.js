@@ -18,6 +18,11 @@
 
 var expat = require('xml2json');
 
-exports.toJson = function(data) {
-    return expat.toJson(data, {object: true});
+exports.toJson = function(data, respCb, errorCb) {
+    try {
+        return respCb(expat.toJson(data, {object: true}));
+    }
+    catch(error) {
+        return errorCb(error);
+    }
 }

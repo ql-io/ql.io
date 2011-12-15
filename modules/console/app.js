@@ -213,11 +213,6 @@ var Console = module.exports = function(config) {
                 // collect headers
                 collectHttpHeaders(req, holder);
 
-                // in case parsed body is available
-                if(req.body) {
-                    holder.body = req.body;
-                }
-
                 var execState = [];
                 emitter = new EventEmitter();
                 setupExecStateEmitter(emitter, execState, req.param('events'));
@@ -226,6 +221,7 @@ var Console = module.exports = function(config) {
                     script: route.script,
                     emitter: emitter,
                     request: holder,
+                    context: req.body || {},
                     cb: function(err, results) {
                         return handleResponseCB(req, res, execState, err, results);
                     },

@@ -237,7 +237,6 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
         else {
             holder.statement = statement;
             holder.params = params;
-            holder.body = args.request.body; // body received as part of the original request
 
             requestBody = mustache.to_html(body.content || resource.body.content, holder);
         }
@@ -300,7 +299,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
 
 function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri, requestBody, h,
                      requestId, resource, xformers, retry) {
-    var status, clientRequest, start = Date.now(), mediaType, respData, respJson, uri;
+    var status, clientRequest, start = Date.now(), mediaType, respData, uri;
 
     if(emitter) {
         var uniqueId = uuid();
@@ -374,61 +373,58 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
                 sys.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
 
             // Parse
-            try {
-                respJson = jsonify(respData, mediaType, xformers);
-            }
-            catch(e) {
-                e.body = respData;
-                return httpReqTx.cb(e);
-            }
+            jsonify(respData, mediaType, xformers, function(respJson) {
+                try {
+                    status = getStatus(res, resource, respJson, respData);
+                }
+                catch(e) {
+                    return httpReqTx.cb(e);
+                }
 
-            try {
-                status = getStatus(res, resource, respJson, respData);
-            }
-            catch(e) {
-                return httpReqTx.cb(e);
-            }
-
-            if(status >= 200 && status <= 300) {
-                if(respJson) {
-                    if(resource.monkeyPatch && resource.monkeyPatch['patch response']) {
-                        try {
-                            respJson = resource.monkeyPatch['patch response']({
-                                body: respJson
+                if (status >= 200 && status <= 300) {
+                    if (respJson) {
+                        if (resource.monkeyPatch && resource.monkeyPatch['patch response']) {
+                            try {
+                                respJson = resource.monkeyPatch['patch response']({
+                                    body: respJson
+                                });
+                            }
+                            catch(e) {
+                                return httpReqTx.cb(e);
+                            }
+                        }
+                        // Projections
+                        project.run(resource.resultSet, statement, respJson, function(filtered) {
+                            return httpReqTx.cb(undefined, {
+                                headers: {
+                                    'content-type':  'application/json'
+                                },
+                                body: filtered
                             });
-                        }
-                        catch(e) {
-                            return httpReqTx.cb(e);
-                        }
+                        });
                     }
-                    // Projections
-                    project.run(resource.resultSet, statement, respJson, function(filtered) {
+                    else {
+
                         return httpReqTx.cb(undefined, {
                             headers: {
-                                'content-type':  'application/json'
+                                'content-type': mediaType
                             },
-                            body: filtered
+                            body: respData
                         });
-                    });
+                    }
                 }
                 else {
-
-                    return httpReqTx.cb(undefined, {
+                    return httpReqTx.cb({
                         headers: {
-                            'content-type': mediaType
+                            'content-type':  respJson ? 'application/json' : mediaType
                         },
-                        body: respData
+                        body: respJson || respData
                     });
                 }
-            }
-            else {
-                return httpReqTx.cb({
-                    headers: {
-                        'content-type':  respJson ? 'application/json' : mediaType
-                    },
-                    body: respJson || respData
-                });
-            }
+            }, function(error) {
+                e.body = respData;
+                return httpReqTx.cb(error);
+            });
         });
     });
 
@@ -608,29 +604,26 @@ function sniffMediaType(mediaType, resource, statement, res, respData) {
 }
 
 
-function jsonify(respData, mediaType, xformers) {
-    var respJson;
-    if(!respData || /^\s*$/.test(respData)) {
-        respJson = {};
+function jsonify(respData, mediaType, xformers, respCb, errorCb) {
+
+    if (!respData || /^\s*$/.test(respData)) {
+        respCb({});
     }
-    else if(mediaType.subtype === 'xml') {
-        respJson = xformers['xml'].toJson(respData);
+    else if (mediaType.subtype === 'xml') {
+        xformers['xml'].toJson(respData, respCb, errorCb);
     }
-    else if(mediaType.subtype === 'json') {
-        respJson = xformers['json'].toJson(respData);
+    else if (mediaType.subtype === 'json') {
+        xformers['json'].toJson(respData, respCb, errorCb);
     }
-    else if(mediaType.type === 'text') {
-        // Try JSON
-        try {
-            respJson = xformers['json'].toJson(respData);
-        }
-        catch(e) {
-            // Try XML
-            respJson = xformers['xml'].toJson(respData);
-        }
+    else if (mediaType.type === 'text') {
+        // Try JSON first
+        xformers['json'].toJson(respData, respCb, function(error) {
+            // if error Try XML
+            xformers['xml'].toJson(respData, respCb, errorCb);
+        });
     }
-    return respJson;
 }
+
 function getStatus(res, resource, respJson, respData) {
     var overrideStatus = res.statusCode;
     if(resource.monkeyPatch && resource.monkeyPatch['patch status']) {
