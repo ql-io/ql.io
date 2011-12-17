@@ -323,7 +323,7 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
     }
 
     clientRequest = client.request(options, function(res) {
-        res.setEncoding('utf8');
+        setEncoding(res);
         respData = '';
         res.on('data', function (chunk) {
             respData += chunk;
@@ -576,6 +576,16 @@ function formatUri(template, params, defaults) {
     return _.isArray(arr) ? arr : [arr];
 }
 
+function setEncoding(res){
+    var contentType = headers.parse('content-type', res.headers['content-type'] || '');
+    var encoding = contentType.subtype === 'csv' ? 'ascii' : 'utf8';
+
+    if(contentType.params && contentType.params.charset){
+        encoding = contentType.params.charset == 'us-ascii' ? 'ascii' : 'utf8';
+    }
+    res.setEncoding(encoding);
+}
+
 function sniffMediaType(mediaType, resource, statement, res, respData) {
     // 1. If there is a patch, call it to get the media type.
     mediaType = (resource.monkeyPatch && resource.monkeyPatch['patch mediaType']  &&
@@ -611,6 +621,10 @@ function jsonify(respData, mediaType, xformers, respCb, errorCb) {
     }
     else if (mediaType.subtype === 'json') {
         xformers['json'].toJson(respData, respCb, errorCb);
+    }
+    else if (mediaType.subtype === 'csv') {
+        xformers['csv'].toJson(respData, respCb, errorCb,
+            (mediaType.params && mediaType.params.header != undefined));
     }
     else if (mediaType.type === 'text') {
         // Try JSON first

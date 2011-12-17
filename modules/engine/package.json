@@ -24,7 +24,8 @@
         "async": "0.1.14",
         "dox": "0.0.5",
         "node-uuid": "",
-        "markdown": "0.3.1"
+        "markdown": "0.3.1",
+        "csv": "0.0.10"
     },
     "devDependencies": {
         "nodeunit": "0.5.1"
