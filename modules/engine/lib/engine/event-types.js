@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+'use strict';
+
 /**
  * Event emitted when the engine receives a script to execute.
  */

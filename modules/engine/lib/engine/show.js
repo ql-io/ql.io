@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-"use strict";
+'use strict';
 
 var _ = require('underscore'),
     assert = require('assert');

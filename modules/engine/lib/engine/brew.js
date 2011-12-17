@@ -18,7 +18,7 @@
  * Converts DDL scripts into a tables
  */
 
-"use strict";
+'use strict';
 
 var strTemplate = require('./peg/str-template.js'),
     compiler = require('ql.io-compiler'),
@@ -28,13 +28,13 @@ var strTemplate = require('./peg/str-template.js'),
     fs = require('fs'),
     normalize = require('path').normalize,
     markdown = require('markdown'),
+    logEmitter =  require('./log-emitter.js'),
     sys = require('sys');
 
 exports.go = function(options) {
     var statements, text, comments, resource, bag = {
         config: global.opts.config
     };
-    var logger = global.opts.logger;
     var root = options.path;
     var name = options.name;
     var script = options.script;
@@ -77,12 +77,12 @@ exports.go = function(options) {
 
                     break;
                 default:
-                    logger.warning("Unsupported statement in " + root + name);
+                    logEmitter.emitWarning("Unsupported statement in " + root + name);
             }
         });
     }
     catch(e) {
-        logger.error('Failed to load ' + root + name);
+        logEmitter.emitError('Failed to load ' + root + name);
         cb(e);
     }
 }
@@ -92,7 +92,7 @@ function _process(verb, type, bag, root, name, meta, cb) {
         return;
     }
 
-    var template, param, compiled, logger = global.opts.logger;
+    var template, param, compiled;
     // Metadata
     var len = meta.push({
         params: []
@@ -123,7 +123,7 @@ function _process(verb, type, bag, root, name, meta, cb) {
             });
         }
         catch(e) {
-            logger.warning(e.message || e);
+            logEmitter.emitWarning(e.message || e);
             return cb(e);
         }
     }
@@ -161,7 +161,7 @@ function _process(verb, type, bag, root, name, meta, cb) {
             verb.auth = require(verb.auth);
         }
         catch(e) {
-            logger.error('Failed to load ' + name);
+            logEmitter.emitError('Failed to load ' + name);
             cb(e);
         }
     }

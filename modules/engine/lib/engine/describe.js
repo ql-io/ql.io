@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-"use strict"
+'use strict';
 
 var mustache = require('mustache'),
     assert = require('assert'),
@@ -56,7 +56,7 @@ exports.exec = function(opts, statement, cb) {
     // If not cached
     table = tables[key] || tempTables[key];
     if(table) {
-        template = fs.readFile(__dirname + '/describe.html.mu', 'utf8', function(err, data) {
+        fs.readFile(__dirname + '/describe.html.mu', 'utf8', function(err, data) {
             if(err) {
                 return cb(err);
             }

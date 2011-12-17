@@ -18,11 +18,12 @@
  * This module executes select statements
  */
 
-"use strict";
+'use strict';
 
 var brew = require('./brew.js'),
     _ = require('underscore'),
     assert = require('assert'),
+    logEmitter =  require('./log-emitter.js'),
     sys = require('sys');
 
 exports.exec = function(opts, statement, cb, parentEvent) {
@@ -32,7 +33,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
         statement: statement,
         cb: function(err, resource) {
             if(err) {
-                global.opts.logger.error(err);
+                logEmitter.emitError(err);
                 return cb(err);
             }
             else {
