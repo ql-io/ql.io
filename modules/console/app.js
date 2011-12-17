@@ -58,7 +58,7 @@ var Console = module.exports = function(config) {
     });
     logger.setLevels(global.opts['log levels'] || winston.config.syslog.levels);
 
-    procEmitter.setMaxListeners(20);
+    procEmitter.setMaxListeners(22);
     procEmitter.on(Engine.Events.EVENT, function(event, message) {
         if(message) {
             logger.info(new Date() + ' - ' + message);

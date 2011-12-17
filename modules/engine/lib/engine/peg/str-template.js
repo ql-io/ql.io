@@ -125,46 +125,46 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(c) {
-            var o = [];
-            o.push(c[0]);
-            var current = 0;
-            for(var i = 1; i < c.length; i++) {
-              if(typeof c[i] === 'string' && typeof o[current] === 'string') {
-                o[current] = o[current] + c[i];
+              var o = [];
+              o.push(c[0]);
+              var current = 0;
+              for(var i = 1; i < c.length; i++) {
+                  if(typeof c[i] === 'string' && typeof o[current] === 'string') {
+                      o[current] = o[current] + c[i];
+                  }
+                  else {
+                      o.push(c[i]);
+                      current++;
+                  }
               }
-              else {
-                o.push(c[i]);
-                current++;
+              return {
+                  format: function(bag, keep) {
+                      var str = '', i, j, ref, current;
+                      for(i = 0; i < o.length; i++) {
+                          if(typeof o[i] === 'string') {
+                              str = str + o[i];
+                          }
+                          else {
+                              current = o[i].variable;
+                              ref = bag;
+                              for(j = 0; j < current.length; j++) {
+                                  ref = ref[current[j]];
+                                  if(ref === undefined) {
+                                      break;
+                                  }
+                              }
+                              if(ref) {
+                                  str = str + ref;
+                              }
+                              else if(keep) {
+                                  str = str + '{' + o[i].variable + '}'
+                              }
+                          }
+                      }
+                      return str;
+                  },
+                  stream: o
               }
-            }
-            return {
-              format: function(bag, keep) {
-                var str = '', i, j, ref, current;
-                for(i = 0; i < o.length; i++) {
-                    if(typeof o[i] === 'string') {
-                        str = str + o[i];
-                    }
-                    else {
-                        current = o[i].variable;
-                        ref = bag;
-                        for(j = 0; j < current.length; j++) {
-                            ref = ref[current[j]];
-                            if(ref === undefined) {
-                                break;
-                            }
-                        }
-                        if(ref) {
-                            str = str + ref;
-                        }
-                        else if(keep) {
-                            str = str + '{' + o[i].variable + '}'
-                        }
-                    }
-                }
-                return str;
-              },
-              stream: o
-            }
           })(result1)
           : null;
         if (result2 !== null) {
@@ -277,9 +277,9 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(v) {
-            return {
-              variable: v
-            }
+              return {
+                  variable: v
+              }
           })(result1[1])
           : null;
         if (result2 !== null) {
@@ -399,7 +399,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(obj) {
-            return append(obj);
+              return append(obj);
           })(result1)
           : null;
         if (result2 !== null) {
@@ -473,11 +473,11 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(chars) {
-            var ret = chars[0];
-            for(i = 1; i < chars.length; i++) {
-              ret = ret + chars[i].join('');
-            }
-            return ret;
+              var ret = chars[0];
+              for(i = 1; i < chars.length; i++) {
+                  ret = ret + chars[i].join('');
+              }
+              return ret;
           })(result1)
           : null;
         if (result2 !== null) {
@@ -514,9 +514,9 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(l) {
-            var r = '';
-            for(i = 0; i < l.length; i++) { r += l[i]; }
-            return r.split('.');
+              var r = '';
+              for(i = 0; i < l.length; i++) { r += l[i]; }
+              return r.split('.');
           })(result1)
           : null;
         if (result2 !== null) {
@@ -602,67 +602,67 @@ module.exports = (function(){
 
 
 
-function typeOf(value) {
+        function typeOf(value) {
 
-    var s = typeof value;
+            var s = typeof value;
 
-    if(s === 'object') {
+            if(s === 'object') {
 
-      if(value) {
+                if(value) {
 
-        if(typeof value.length === 'number' &&
+                    if(typeof value.length === 'number' &&
 
-          !(value.propertyIsEnumerable('length')) &&
+                        !(value.propertyIsEnumerable('length')) &&
 
-          typeof value.splice === 'function') {
+                        typeof value.splice === 'function') {
 
-          s = 'array';
+                        s = 'array';
+
+                    }
+
+                }
+
+                else {
+
+                    s = 'null';
+
+                }
+
+            }
+
+            return s;
 
         }
 
-      }
+        function append(arr) {
 
-      else {
+            var str = '';
 
-        s = 'null';
+            for(var i = 0; i < arr.length; i++) {
 
-      }
+                if(typeOf(arr[i]) == 'array') {
 
-    }
+                    str += append(arr[i]);
 
-    return s;
+                }
 
-  }
+                else if (typeof arr[i] === 'object') {
 
-function append(arr) {
+                    str += JSON.stringify(arr[i].object);
 
-    var str = '';
+                }
 
-    for(var i = 0; i < arr.length; i++) {
+                else {
 
-       if(typeOf(arr[i]) == 'array') {
+                    str += arr[i];
 
-         str += append(arr[i]);
+                }
 
-       }
+            }
 
-       else if (typeof arr[i] === 'object') {
+            return str;
 
-         str += JSON.stringify(arr[i].object);
-
-       }
-
-       else {
-
-         str += arr[i];
-
-      }
-
-    }
-
-    return str;
-
-  }
+        }
 
 
 

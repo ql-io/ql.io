@@ -23,7 +23,7 @@
         "websocket": "",
         "validator": "0.3.2",
         "mustache": "0.3.1-dev",
-        "xml2json": "0.2.3",
+        "xml2json": "",
         "connect-assetmanager" : "0.0.24",
         "connect-assetmanager-handlers" : "0.0.17",
         "ql.io-compiler": ""
