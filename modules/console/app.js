@@ -35,7 +35,7 @@ var http = require('http'),
     WebSocketServer = require('websocket').server;
 
 process.on('uncaughtException', function(error) {
-    global.opts.logger.error(error.stack);
+    winston.error(error.stack);
 });
 
 var skipHeaders = ['connection', 'host', 'referer', 'content-length', 'accept', 'accept-charset',
@@ -48,7 +48,15 @@ var Console = module.exports = function(config) {
     global.opts = config;
 
     var engine = new Engine(config);
-    var logger = global.opts.logger;
+    var logger = new (winston.Logger)({
+        transports: [
+            new (winston.transports.File)({
+                filename: process.cwd() + '/logs/ql.io.log',
+                maxsize: 1024000 * 5
+            })
+        ]
+    });
+    logger.setLevels(global.opts['log levels'] || winston.config.syslog.levels);
 
     procEmitter.setMaxListeners(20);
     procEmitter.on(Engine.Events.EVENT, function(event, message) {

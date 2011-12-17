@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-"use strict";
+'use strict';
 
 var strTemplate = require('./peg/str-template.js'),
     project = require('./project.js'),
     eventTypes = require('./event-types.js'),
-    logUtil = require('./log-util.js'),
+    logEmitter =  require('./log-emitter.js'),
     uriTemplate = require('ql.io-uri-template'),
     MutableURI = require('ql.io-mutable-uri'),
     http = require('http'),
@@ -45,9 +45,6 @@ exports.exec = function(args) {
     statement = args.statement;
     cb = args.callback;
     holder = {};
-    emitter = args.emitter;
-    globalOpts = global.opts;
-    parentEvent = args.event;
 
     // Prepare params (the latter ones in the arg chain override the former ones)
     params = prepareParams(resource.defaults,
@@ -75,7 +72,7 @@ exports.exec = function(args) {
         template = uriTemplate.parse(resourceUri);
     }
     catch(err) {
-        global.opts.logger.warning(err);
+        logEmitter.emitWarning(err);
         return cb(err, null);
     }
 
@@ -159,7 +156,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     var h, requestBody, client, isTls, options, template;
     var uri, heirpart, authority, host, port, path, useProxy = false, proxyHost, proxyPort;
 
-    var httpReqTx = logUtil.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
+    var httpReqTx = logEmitter.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
     var resource = args.resource;
     var statement = args.statement;
     var globalOpts = global.opts;
@@ -187,7 +184,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
         }
         catch(e) {
             // Ignore as we want to treat non-conformant strings as opaque
-            logUtil.emitWarning(httpReqTx.event, 'unable to parse header ' + v + ' error: ' + e.stack || e);
+            logEmitter.emitWarning(httpReqTx.event, 'unable to parse header ' + v + ' error: ' + e.stack || e);
         }
         h[k.toLowerCase()] = v;
     });
@@ -227,7 +224,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
                 template = uriTemplate.parse(body.content || resource.body.content);
             }
             catch(err) {
-                global.opts.logger.warning(err);
+                logEmitter.emitWarning(err);
                 return cb(err, null);
             }
             requestBody = formatUri(template, params, resource.defaults);
@@ -367,7 +364,7 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
 
             mediaType = sniffMediaType(mediaType, resource, statement, res, respData);
 
-            logUtil.emitEvent(httpReqTx.event, resourceUri + '  ' +
+            logEmitter.emitEvent(httpReqTx.event, resourceUri + '  ' +
                 sys.inspect(options) + ' ' +
                 res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
                 sys.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
@@ -432,11 +429,11 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
         clientRequest.write(requestBody);
     }
     clientRequest.on('error', function(err) {
-        logUtil.emitEvent(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
+        logEmitter.emitEvent(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
             err.message + ' ' + (Date.now() - start) + 'msec');
         // For select, retry once on network error
         if(retry === 0 && statement.type === 'select') {
-            logUtil.emitEvent(httpReqTx.event, 'retrying - ' + resourceUri + ' - ' + (Date.now() - start) + 'msec');
+            logEmitter.emitEvent(httpReqTx.event, 'retrying - ' + resourceUri + ' - ' + (Date.now() - start) + 'msec');
             sendMessage(client, emitter, statement, httpReqTx, options, resourceUri, requestBody, h,
                     requestId,  resource, xformers, 1);
         }

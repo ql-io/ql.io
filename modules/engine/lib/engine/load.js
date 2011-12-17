@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-"use strict";
+'use strict';
 
 var brew = require('./brew.js'),
     fs = require('fs'),
     assert = require('assert'),
+    logEmitter =  require('./log-emitter.js'),
     sys = require('sys');
 
 // TODO: Watch for file changes
@@ -37,13 +38,13 @@ function loadInternal(path, prefix, config, tables) {
     assert.ok(config, 'config should not be null');
     assert.ok(tables, 'tables should not be null');
 
-    var script, resource, name, stats, paths, logger = global.opts.logger;
+    var script, resource, name, stats, paths;
     path = path.charAt(path.length - 1) == '/' ? path : path + '/';
     try {
         paths = fs.readdirSync(path);
     }
     catch(e) {
-        logger.error('Unable to load tables from ' + path);
+        logEmitter.emitError('Unable to load tables from ' + path);
         return;
     }
 
@@ -69,7 +70,7 @@ function loadInternal(path, prefix, config, tables) {
 
                     cb: function(err, resource) {
                             if(err) {
-                                logger.error(err);
+                                logEmitter.emitError(err);
                             } else {
                                 assert.ok(resource, 'resource should not be null');
                                 tables[resource.name] = resource;
