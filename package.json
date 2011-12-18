@@ -1,6 +1,19 @@
 {
-  "description": "ql.io",
-  "scripts": {
-    "test": "make clean install test"
-  }
+    "author": "ql.io",
+    "name": "ql.io-dummy",
+    "version": "0.3.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ql-io/ql.io"
+    },
+    "engines": {
+        "node": ">= 0.4.9 < 0.5.0"
+    },
+    "scripts": {
+        "test": "make clean install test"
+    },
+    "dependencies": {
+    },
+    "devDependencies": {
+    }
 }
