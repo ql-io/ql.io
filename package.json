@@ -1,0 +1,6 @@
+{
+  "description": "ql.io",
+  "scripts": {
+    "test": "make clean install test"
+  }
+}
