@@ -4,6 +4,8 @@
 ql.io is a declarative, data-retrieval and aggregation gateway for quickly consuming HTTP APIs. See
 [ql.io](http://ql.io) for docs, demos and examples.
 
+![Travis status](https://secure.travis-ci.org/ql-io/ql.io.png)
+
 ## How to Build ql.io
 
 To build ql.io on your own, you need node (version 0.4.12) and npm. In Ubuntu, you need
