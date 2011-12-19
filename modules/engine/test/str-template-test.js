@@ -17,7 +17,6 @@
 "use strict";
 
 var strTemplate = require('../lib/engine/peg/str-template'),
-    sys = require('sys'),
     _ = require('underscore');
 
 module.exports = {

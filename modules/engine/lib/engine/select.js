@@ -23,8 +23,7 @@ var httpRequest = require('./http.request.js'),
     _ = require('underscore'),
     async = require('async'),
     jsonPath = require('JSONPath'),
-    assert = require('assert'),
-    sys = require('sys');
+    assert = require('assert');
 
 exports.exec = function(opts, statement, cb, parentEvent) {
 

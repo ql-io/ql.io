@@ -23,8 +23,7 @@
 var brew = require('./brew.js'),
     _ = require('underscore'),
     assert = require('assert'),
-    logEmitter =  require('./log-emitter.js'),
-    sys = require('sys');
+    logEmitter =  require('./log-emitter.js');
 
 exports.exec = function(opts, statement, cb, parentEvent) {
     brew.go({

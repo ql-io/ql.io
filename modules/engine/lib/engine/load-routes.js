@@ -21,7 +21,6 @@ var logEmitter =  require('./log-emitter.js'),
     fs = require('fs'),
     url = require('url'),
     assert = require('assert'),
-    sys = require('sys'),
     _ = require('underscore');
 
 // TODO: Watch for file changes

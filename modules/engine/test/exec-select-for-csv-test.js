@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-var _ = require('underscore'), Engine = require('../lib/engine'), EventEmitter = require('events').EventEmitter, sys = require('sys'), http = require('http'), fs = require('fs'), util = require('util');
+var _ = require('underscore'),
+    Engine = require('../lib/engine'),
+    EventEmitter = require('events').EventEmitter,
+    http = require('http'),
+    fs = require('fs'),
+    util = require('util');
 
 module.exports = {
     'select from csv with headers' : function(test) {

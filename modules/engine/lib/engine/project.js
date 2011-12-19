@@ -17,7 +17,6 @@
 'use strict';
 
 var jsonfill = require('./jsonfill.js'),
-    sys = require('sys'),
     _ = require('underscore');
 
 exports.run = run;

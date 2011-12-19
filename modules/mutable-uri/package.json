@@ -9,12 +9,12 @@
     },
     "main": "lib/ql.uri.js",
     "engines": {
-        "node": ">= 0.4.9 < 0.5.0"
+        "node": ">= 0.4.9 < 0.7.0"
     },
     "dependencies": {
-        "underscore": "1.2.0"
+        "underscore": ""
     },
     "devDependencies": {
-        "nodeunit": "0.5.5"
+        "nodeunit": ""
     }
 }

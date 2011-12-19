@@ -31,13 +31,12 @@ var configLoader = require('./engine/config.js'),
     jsonfill = require('./engine/jsonfill.js'),
     eventTypes = require('./engine/event-types.js'),
     httpRequest = require('./engine/http.request.js'),
-    logEmitter =  require('./engine/log-emitter.js'),
+    logEmitter = require('./engine/log-emitter.js'),
     winston = require('winston'),
     compiler = require('ql.io-compiler'),
     async = require('async'),
     _ = require('underscore'),
-    assert = require('assert'),
-    sys = require('sys');
+    assert = require('assert');
 
 process.on('uncaughtException', function(error) {
     winston.error(error);
