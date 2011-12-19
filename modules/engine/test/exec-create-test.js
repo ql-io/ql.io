@@ -16,7 +16,6 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
-    sys = require('sys'),
     http = require('http'),
     fs = require('fs'),
     util = require('util');
@@ -51,7 +50,7 @@ var engine = new Engine({
    
        	    engine.exec(script, function(err, result) {
          	if(err) {
-        	    console.log(err.stack || sys.inspect(err, false, 10));
+        	    console.log(err.stack || util.inspect(err, false, 10));
         	    test.fail('got error');
         	    test.done();
         	}

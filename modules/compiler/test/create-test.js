@@ -16,8 +16,7 @@
 
 "use strict";
 
-var compiler = require('lib/compiler'),
-    sys = require('sys');
+var compiler = require('../lib/compiler');
 
 exports['simple'] = function(test) {
     var q = "create table twitter.public on select get from 'http://twitter.com/statuses/public_timeline.{^format}'  using defaults format = 'json'";

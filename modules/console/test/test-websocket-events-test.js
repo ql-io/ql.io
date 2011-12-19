@@ -17,7 +17,6 @@
 "use strict"
 
 var _ = require('underscore'),
-    sys = require('sys'),
     Console = require('../app.js'),
     Engine = require('ql.io-engine'),
     EventEmitter = require('events').EventEmitter,

@@ -16,7 +16,7 @@
 
 "use strict";
 
-var compiler = require('lib/compiler');
+var compiler = require('../lib/compiler');
 
 exports['describe'] = function (test) {
     var q = "describe foo";

@@ -17,10 +17,12 @@
 'use strict';
 
 var eventTypes = require('./event-types.js'),
-    uuid = require('node-uuid'),
-    sys = require('sys');
+    uuid = require('node-uuid');
 
-var procEmitter = process.EventEmitter();
+var procEmitter = process.eventEmitter = process.eventEmitter || function() {
+    var EventEmitter = require('events').EventEmitter;
+    return new EventEmitter();
+}();
 
 function getEventId() {
     process.qlioTxIdCtr = process.qlioTxIdCtr || 1;
@@ -68,24 +70,24 @@ var endEvent = exports.endEvent = function(obj) {
 
 var wrapEvent = exports.wrapEvent = function(parent, txType, txName, cb) {
     var event = beginEvent(parent, txType, txName);
-    procEmitter.emit(eventTypes.BEGIN_EVENT, event);
+    process.eventEmitter.emit(eventTypes.BEGIN_EVENT, event);
     return {
         event: event,
         cb: function(e, r) {
             var message = 'Success';
             if (e) {
-                procEmitter.emit(eventTypes.ERROR, event, e);
+                process.eventEmitter.emit(eventTypes.ERROR, event, e);
                 message = 'Failure'
             }
             endEvent(event);
-            procEmitter.emit(eventTypes.END_EVENT, event, message); //end
+            process.eventEmitter.emit(eventTypes.END_EVENT, event, message); //end
             return cb(e, r);
         }
     }
 }
 
 exports.emitEvent = function(event, msg){
-  procEmitter.emit(eventTypes.EVENT, event, msg);
+    process.eventEmitter.emit(eventTypes.EVENT, event, msg);
 }
 
 exports.emitWarning = function () {

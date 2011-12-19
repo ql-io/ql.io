@@ -19,8 +19,7 @@
 var brew = require('./brew.js'),
     fs = require('fs'),
     assert = require('assert'),
-    logEmitter =  require('./log-emitter.js'),
-    sys = require('sys');
+    logEmitter =  require('./log-emitter.js');
 
 // TODO: Watch for file changes
 exports.load = function (rootdir, config) {

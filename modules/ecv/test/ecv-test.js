@@ -19,8 +19,7 @@
 var testCase = require('nodeunit').testCase,
     http = require('http'),
     net = require('net'),
-    sys = require('sys'),
-    ecv = require('lib/ecv.js'),
+    ecv = require('../lib/ecv.js'),
     Console = require('ql.io-console');
 
 var port = 9091;

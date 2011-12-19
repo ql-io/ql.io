@@ -16,8 +16,7 @@
 
 "use strict";
 
-var compiler = require('lib/compiler'),
-    sys = require('sys');
+var compiler = require('../lib/compiler');
 
 exports['insert'] = function(test) {
     var q = "insert into suppliers (supplier_id, supplier_name) values ('24553', 'IBM')";

@@ -16,8 +16,7 @@
 
 "use strict";
 
-var compiler = require('../lib/compiler'),
-    sys = require('sys');
+var compiler = require('../lib/compiler');
 
 module.exports = {
     'select-join-alias-remote': function(test) {

@@ -17,14 +17,13 @@
 "use strict"
 
 var _ = require('underscore'),
-    sys = require('sys'),
     Console = require('../app.js'),
     http = require('http'),
     express = require('express'),
     url = require('url');
 
 module.exports = {
-    'check delete call' : function(test) {
+    'check delete' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
             routes : __dirname + '/routes/',
@@ -71,7 +70,7 @@ module.exports = {
             });
         })
     },
-    'check post json call' : function(test) {
+    'check post json' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
             routes : __dirname + '/routes/',
@@ -120,7 +119,7 @@ module.exports = {
             });
         });
     },
-    'check post urlencoded call' : function(test) {
+    'check post urlencoded' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
             routes : __dirname + '/routes/',
@@ -169,7 +168,7 @@ module.exports = {
             });
         });
     },
-    'check post xml call' : function(test) {
+    'check post xml' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
             routes : __dirname + '/routes/',
@@ -217,7 +216,7 @@ module.exports = {
             });
         });
     },
-    'check put urlencoded call' : function(test) {
+    'check put urlencoded' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
             routes : __dirname + '/routes/',

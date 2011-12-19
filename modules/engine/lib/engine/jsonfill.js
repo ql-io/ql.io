@@ -18,7 +18,6 @@
 
 var _ = require('underscore'),
     jsonPath = require('JSONPath'),
-    sys = require('sys'),
     assert = require('assert');
 
 exports.fill = fill;

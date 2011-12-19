@@ -18,7 +18,6 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
-    sys = require('sys'),
     fs = require('fs'),
     http = require('http'),
     util = require('util'),
