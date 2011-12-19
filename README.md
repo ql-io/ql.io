@@ -73,4 +73,4 @@ We're working on getting a CLA in place.
 
 ## Discussions
 
-Subscribe to the [google group](http://groups.google.com/group/qlio).
+Subscribe to the [google group](http://groups.google.com/group/qlio). 
