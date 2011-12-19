@@ -17,7 +17,11 @@ install:
 test:
 	-rm -rf reports 
 	mkdir -p test
-	-for d in $(DIRS); do (cd $$d; $(MAKE) test ); done
+	-for d in $(DIRS); do \
+		cd $$d; \
+		$(MAKE) test || exit;\
+		cd ../..;\
+	done
 
 test-part:
 	-rm -rf reports 
