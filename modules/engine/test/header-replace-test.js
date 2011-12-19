@@ -18,7 +18,6 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
-    sys = require('sys'),
     EventEmitter = require('events').EventEmitter;
 
 var engine = new Engine({

@@ -28,8 +28,7 @@ var strTemplate = require('./peg/str-template.js'),
     fs = require('fs'),
     normalize = require('path').normalize,
     markdown = require('markdown'),
-    logEmitter =  require('./log-emitter.js'),
-    sys = require('sys');
+    logEmitter =  require('./log-emitter.js');
 
 exports.go = function(options) {
     var statements, text, comments, resource, bag = {

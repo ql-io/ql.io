@@ -7,25 +7,25 @@
         "url": "https://github.com/ql-io/ql.io"
     },
     "engines": {
-        "node": ">= 0.4.9 < 0.5.0"
+        "node": ">= 0.4.9 < 0.7.0"
     },
     "main": "app.js",
     "dependencies": {
-        "connect": "1.6.1",
-        "express": "2.4.7",
-        "ejs": "0.4.3",
-        "underscore": "1.2.1",
+        "connect": "",
+        "express": "",
+        "ejs": "",
+        "underscore": "",
         "ql.io-engine": "",
         "winston": "0.3.5",
-        "browserify": "1.7.6",
-        "uglify-js": "1.1.1",
-        "headers": "0.9.6",
+        "browserify": "",
+        "uglify-js": "",
+        "headers": "",
         "websocket": "",
-        "validator": "0.3.2",
-        "mustache": "0.3.1-dev",
+        "validator": "",
+        "mustache": "",
         "xml2json": "",
-        "connect-assetmanager" : "0.0.24",
-        "connect-assetmanager-handlers" : "0.0.17",
+        "connect-assetmanager" : "",
+        "connect-assetmanager-handlers" : "",
         "ql.io-compiler": ""
     },
     "devDependencies": {

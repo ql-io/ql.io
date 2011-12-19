@@ -29,10 +29,14 @@ var http = require('http'),
     assetManager = require('connect-assetmanager'),
     assetHandler = require('connect-assetmanager-handlers'),
     EventEmitter = require('events').EventEmitter,
-    procEmitter = process.EventEmitter(),
     Engine = require('ql.io-engine'),
     _ = require('underscore'),
     WebSocketServer = require('websocket').server;
+
+var procEmitter = process.eventEmitter = process.eventEmitter || function() {
+    var EventEmitter = require('events').EventEmitter;
+    return new EventEmitter();
+}();
 
 process.on('uncaughtException', function(error) {
     winston.error(error.stack);
@@ -58,7 +62,7 @@ var Console = module.exports = function(config) {
     });
     logger.setLevels(global.opts['log levels'] || winston.config.syslog.levels);
 
-    procEmitter.setMaxListeners(22);
+    procEmitter.setMaxListeners(25);
     procEmitter.on(Engine.Events.EVENT, function(event, message) {
         if(message) {
             logger.info(new Date() + ' - ' + message);
@@ -91,8 +95,21 @@ var Console = module.exports = function(config) {
     var app = this.app = express.createServer();
 
     // Add parser for xml
-    connect.bodyParser.parse['application/xml'] = function(reqData) {
-        return expat.toJson(reqData, {object: true});
+    connect.bodyParser.parse['application/xml'] = function(req, options, next) {
+        var buf = '';
+        req.setEncoding('utf8');
+        req.on('data', function (chunk) {
+            buf += chunk
+        });
+        req.on('end', function () {
+            try {
+                req.body = expat.toJson(buf, {object: true});
+                next();
+            }
+            catch(err) {
+                next(err);
+            }
+        });
     };
 
     var bodyParser = connect.bodyParser();
@@ -406,18 +423,38 @@ var Console = module.exports = function(config) {
         emitter.on(Engine.Events.SCRIPT_ACK, function(packet) {
             // Emit an event for stats
             procEmitter.emit(Engine.Events.SCRIPT_ACK, packet);
+
+            // Send to master
+            if(process.send) {
+                process.send({event:  Engine.Events.SCRIPT_ACK, pid: process.pid});
+            }
         });
         emitter.on(Engine.Events.STATEMENT_REQUEST, function(packet) {
             // Emit an event for stats
             procEmitter.emit(Engine.Events.STATEMENT_REQUEST, packet);
+
+            // Send to master
+            if(process.send) {
+                process.send({event:  Engine.Events.STATEMENT_REQUEST, pid: process.pid});
+            }
         });
         emitter.on(Engine.Events.STATEMENT_RESPONSE, function(packet) {
             // Emit an event for stats
             procEmitter.emit(Engine.Events.STATEMENT_RESPONSE, packet);
+
+            // Send to master
+            if(process.send) {
+                process.send({event:  Engine.Events.STATEMENT_RESPONSE, pid: process.pid});
+            }
         });
         emitter.on(Engine.Events.SCRIPT_DONE, function(packet) {
             // Emit an event for stats
             procEmitter.emit(Engine.Events.SCRIPT_DONE, packet);
+
+            // Send to master
+            if(process.send) {
+                process.send({event:  Engine.Events.SCRIPT_DONE, pid: process.pid});
+            }
         });
     }
 

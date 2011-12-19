@@ -25,7 +25,10 @@ var engine = new Engine({
     connection: 'close'
 });
 
-var procEmitter = process.EventEmitter();
+var procEmitter = process.eventEmitter = process.eventEmitter || function() {
+    var EventEmitter = require('events').EventEmitter;
+    return new EventEmitter();
+}();
 
 function registerListener(event, handler) {
     if (!procEmitter.listeners(event).length) {

@@ -19,7 +19,7 @@
 var strTemplate = require('./peg/str-template.js'),
     project = require('./project.js'),
     eventTypes = require('./event-types.js'),
-    logEmitter =  require('./log-emitter.js'),
+    logEmitter = require('./log-emitter.js'),
     uriTemplate = require('ql.io-uri-template'),
     MutableURI = require('ql.io-mutable-uri'),
     http = require('http'),
@@ -27,7 +27,7 @@ var strTemplate = require('./peg/str-template.js'),
     URI = require('uri'),
     fs = require('fs'),
     assert = require('assert'),
-    sys = require('sys'),
+    util = require('util'),
     _ = require('underscore'),
     mustache = require('mustache'),
     async = require('async'),
@@ -173,7 +173,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     };
 
     h[requestId.name]  = requestId.value;
-    h['user-agent'] = 'ql.io/node.js';
+    h['user-agent'] = 'ql.io/node.js ' + process.version;
 
     // Clone headers - also replace any tokens
     _.each(resource.headers, function(v, k) {
@@ -365,9 +365,9 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
             mediaType = sniffMediaType(mediaType, resource, statement, res, respData);
 
             logEmitter.emitEvent(httpReqTx.event, resourceUri + '  ' +
-                sys.inspect(options) + ' ' +
+                util.inspect(options) + ' ' +
                 res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
-                sys.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
+                util.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
 
             // Parse
             jsonify(respData, mediaType, xformers, function(respJson) {
@@ -378,9 +378,9 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
                     return httpReqTx.cb(e);
                 }
 
-                if (status >= 200 && status <= 300) {
-                    if (respJson) {
-                        if (resource.monkeyPatch && resource.monkeyPatch['patch response']) {
+                if(status >= 200 && status <= 300) {
+                    if(respJson) {
+                        if(resource.monkeyPatch && resource.monkeyPatch['patch response']) {
                             try {
                                 respJson = resource.monkeyPatch['patch response']({
                                     body: respJson
@@ -616,17 +616,17 @@ function jsonify(respData, mediaType, xformers, respCb, errorCb) {
     if (!respData || /^\s*$/.test(respData)) {
         respCb({});
     }
-    else if (mediaType.subtype === 'xml') {
+    else if(mediaType.subtype === 'xml') {
         xformers['xml'].toJson(respData, respCb, errorCb);
     }
-    else if (mediaType.subtype === 'json') {
+    else if(mediaType.subtype === 'json') {
         xformers['json'].toJson(respData, respCb, errorCb);
     }
-    else if (mediaType.subtype === 'csv') {
+    else if(mediaType.subtype === 'csv') {
         xformers['csv'].toJson(respData, respCb, errorCb,
             (mediaType.params && mediaType.params.header != undefined));
     }
-    else if (mediaType.type === 'text') {
+    else if(mediaType.type === 'text') {
         // Try JSON first
         xformers['json'].toJson(respData, respCb, function(error) {
             // if error Try XML

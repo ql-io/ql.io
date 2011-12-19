@@ -16,7 +16,7 @@
 
 "use strict";
 
-var compiler = require('lib/compiler');
+var compiler = require('../lib/compiler');
 
 exports['show'] = function (test) {
     var q = "show tables";

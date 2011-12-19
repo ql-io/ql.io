@@ -21,8 +21,7 @@ var httpRequest = require('./http.request.js'),
     jsonfill = require('./jsonfill.js'),
     _ = require('underscore'),
     async = require('async'),
-    assert = require('assert'),
-    sys = require('sys');
+    assert = require('assert');
 
 exports.exec = function(opts, statement, cb, parentEvent) {
 

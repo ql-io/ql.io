@@ -17,8 +17,7 @@
 "use strict";
 
 var compiler = require('../lib/compiler'),
-    _ = require('underscore'),
-    sys = require('sys');
+    _ = require('underscore');
 
 module.exports = {
     'compile-script': function(test) {
