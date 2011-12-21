@@ -325,7 +325,7 @@ assign = a:output? s:statementOrObject insig ';'? insig {
 
 statementOrObject = statement / value
 
-statement = (selectStatement / showRoutesStatement / showStatement / describeRouteStatement / describeStatement / insertStatement / deleteStatement / createStatement)
+statement = (selectStatement / showStatement / describeStatement / insertStatement / deleteStatement / createStatement)
 
 output = insig w:word insig '=' insig {
   return w;
@@ -464,26 +464,10 @@ selectStatement = 'select' insig c:columnsClause insig 'from' insig fc:fromClaus
   return s;
 }
 
-showRoutesStatement = 'show' insig 'routes' {
-  return {
-    type: 'show routes',
-    line: computeErrorPosition().line
-  }
-}
-
-
 showStatement = 'show' insig 'tables' {
   return {
     type: 'show',
     line: computeErrorPosition().line
-  }
-}
-
-describeRouteStatement = (('describe') / ('desc')) insig 'route' insig p:quotedWord insig 'using' insig 'method' insig m:('get' / 'post' / 'put' / 'delete' / 'patch') {
-  return {
-    type: 'describe route',
-    path: p,
-    method: m
   }
 }
 

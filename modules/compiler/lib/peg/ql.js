@@ -37,7 +37,6 @@ module.exports = (function(){
         "dQuotedWord": parse_dQuotedWord,
         "delete": parse_delete,
         "deleteStatement": parse_deleteStatement,
-        "describeRouteStatement": parse_describeRouteStatement,
         "describeStatement": parse_describeStatement,
         "digits": parse_digits,
         "dquote": parse_dquote,
@@ -91,7 +90,6 @@ module.exports = (function(){
         "sQuotedWord": parse_sQuotedWord,
         "selectStatement": parse_selectStatement,
         "selector": parse_selector,
-        "showRoutesStatement": parse_showRoutesStatement,
         "showStatement": parse_showStatement,
         "source": parse_source,
         "sp": parse_sp,
@@ -536,41 +534,31 @@ module.exports = (function(){
         }
 
 
-        var result8 = parse_selectStatement();
-        if (result8 !== null) {
-          var result0 = result8;
+        var result6 = parse_selectStatement();
+        if (result6 !== null) {
+          var result0 = result6;
         } else {
-          var result7 = parse_showRoutesStatement();
-          if (result7 !== null) {
-            var result0 = result7;
+          var result5 = parse_showStatement();
+          if (result5 !== null) {
+            var result0 = result5;
           } else {
-            var result6 = parse_showStatement();
-            if (result6 !== null) {
-              var result0 = result6;
+            var result4 = parse_describeStatement();
+            if (result4 !== null) {
+              var result0 = result4;
             } else {
-              var result5 = parse_describeRouteStatement();
-              if (result5 !== null) {
-                var result0 = result5;
+              var result3 = parse_insertStatement();
+              if (result3 !== null) {
+                var result0 = result3;
               } else {
-                var result4 = parse_describeStatement();
-                if (result4 !== null) {
-                  var result0 = result4;
+                var result2 = parse_deleteStatement();
+                if (result2 !== null) {
+                  var result0 = result2;
                 } else {
-                  var result3 = parse_insertStatement();
-                  if (result3 !== null) {
-                    var result0 = result3;
+                  var result1 = parse_createStatement();
+                  if (result1 !== null) {
+                    var result0 = result1;
                   } else {
-                    var result2 = parse_deleteStatement();
-                    if (result2 !== null) {
-                      var result0 = result2;
-                    } else {
-                      var result1 = parse_createStatement();
-                      if (result1 !== null) {
-                        var result0 = result1;
-                      } else {
-                        var result0 = null;;
-                      };
-                    };
+                    var result0 = null;;
                   };
                 };
               };
@@ -2319,76 +2307,6 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_showRoutesStatement() {
-        var cacheKey = 'showRoutesStatement@' + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
-
-        var savedPos0 = pos;
-        var savedPos1 = pos;
-        if (input.substr(pos, 4) === "show") {
-          var result3 = "show";
-          pos += 4;
-        } else {
-          var result3 = null;
-          if (reportMatchFailures) {
-            matchFailed("\"show\"");
-          }
-        }
-        if (result3 !== null) {
-          var result4 = parse_insig();
-          if (result4 !== null) {
-            if (input.substr(pos, 6) === "routes") {
-              var result5 = "routes";
-              pos += 6;
-            } else {
-              var result5 = null;
-              if (reportMatchFailures) {
-                matchFailed("\"routes\"");
-              }
-            }
-            if (result5 !== null) {
-              var result1 = [result3, result4, result5];
-            } else {
-              var result1 = null;
-              pos = savedPos1;
-            }
-          } else {
-            var result1 = null;
-            pos = savedPos1;
-          }
-        } else {
-          var result1 = null;
-          pos = savedPos1;
-        }
-        var result2 = result1 !== null
-          ? (function() {
-            return {
-              type: 'show routes',
-              line: computeErrorPosition().line
-            }
-          })()
-          : null;
-        if (result2 !== null) {
-          var result0 = result2;
-        } else {
-          var result0 = null;
-          pos = savedPos0;
-        }
-
-
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
-        return result0;
-      }
-
       function parse_showStatement() {
         var cacheKey = 'showStatement@' + pos;
         var cachedResult = cache[cacheKey];
@@ -2442,224 +2360,6 @@ module.exports = (function(){
               line: computeErrorPosition().line
             }
           })()
-          : null;
-        if (result2 !== null) {
-          var result0 = result2;
-        } else {
-          var result0 = null;
-          pos = savedPos0;
-        }
-
-
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
-        return result0;
-      }
-
-      function parse_describeRouteStatement() {
-        var cacheKey = 'describeRouteStatement@' + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
-
-        var savedPos0 = pos;
-        var savedPos1 = pos;
-        if (input.substr(pos, 8) === "describe") {
-          var result20 = "describe";
-          pos += 8;
-        } else {
-          var result20 = null;
-          if (reportMatchFailures) {
-            matchFailed("\"describe\"");
-          }
-        }
-        if (result20 !== null) {
-          var result3 = result20;
-        } else {
-          if (input.substr(pos, 4) === "desc") {
-            var result19 = "desc";
-            pos += 4;
-          } else {
-            var result19 = null;
-            if (reportMatchFailures) {
-              matchFailed("\"desc\"");
-            }
-          }
-          if (result19 !== null) {
-            var result3 = result19;
-          } else {
-            var result3 = null;;
-          };
-        }
-        if (result3 !== null) {
-          var result4 = parse_insig();
-          if (result4 !== null) {
-            if (input.substr(pos, 5) === "route") {
-              var result5 = "route";
-              pos += 5;
-            } else {
-              var result5 = null;
-              if (reportMatchFailures) {
-                matchFailed("\"route\"");
-              }
-            }
-            if (result5 !== null) {
-              var result6 = parse_insig();
-              if (result6 !== null) {
-                var result7 = parse_quotedWord();
-                if (result7 !== null) {
-                  var result8 = parse_insig();
-                  if (result8 !== null) {
-                    if (input.substr(pos, 5) === "using") {
-                      var result9 = "using";
-                      pos += 5;
-                    } else {
-                      var result9 = null;
-                      if (reportMatchFailures) {
-                        matchFailed("\"using\"");
-                      }
-                    }
-                    if (result9 !== null) {
-                      var result10 = parse_insig();
-                      if (result10 !== null) {
-                        if (input.substr(pos, 6) === "method") {
-                          var result11 = "method";
-                          pos += 6;
-                        } else {
-                          var result11 = null;
-                          if (reportMatchFailures) {
-                            matchFailed("\"method\"");
-                          }
-                        }
-                        if (result11 !== null) {
-                          var result12 = parse_insig();
-                          if (result12 !== null) {
-                            if (input.substr(pos, 3) === "get") {
-                              var result18 = "get";
-                              pos += 3;
-                            } else {
-                              var result18 = null;
-                              if (reportMatchFailures) {
-                                matchFailed("\"get\"");
-                              }
-                            }
-                            if (result18 !== null) {
-                              var result13 = result18;
-                            } else {
-                              if (input.substr(pos, 4) === "post") {
-                                var result17 = "post";
-                                pos += 4;
-                              } else {
-                                var result17 = null;
-                                if (reportMatchFailures) {
-                                  matchFailed("\"post\"");
-                                }
-                              }
-                              if (result17 !== null) {
-                                var result13 = result17;
-                              } else {
-                                if (input.substr(pos, 3) === "put") {
-                                  var result16 = "put";
-                                  pos += 3;
-                                } else {
-                                  var result16 = null;
-                                  if (reportMatchFailures) {
-                                    matchFailed("\"put\"");
-                                  }
-                                }
-                                if (result16 !== null) {
-                                  var result13 = result16;
-                                } else {
-                                  if (input.substr(pos, 6) === "delete") {
-                                    var result15 = "delete";
-                                    pos += 6;
-                                  } else {
-                                    var result15 = null;
-                                    if (reportMatchFailures) {
-                                      matchFailed("\"delete\"");
-                                    }
-                                  }
-                                  if (result15 !== null) {
-                                    var result13 = result15;
-                                  } else {
-                                    if (input.substr(pos, 5) === "patch") {
-                                      var result14 = "patch";
-                                      pos += 5;
-                                    } else {
-                                      var result14 = null;
-                                      if (reportMatchFailures) {
-                                        matchFailed("\"patch\"");
-                                      }
-                                    }
-                                    if (result14 !== null) {
-                                      var result13 = result14;
-                                    } else {
-                                      var result13 = null;;
-                                    };
-                                  };
-                                };
-                              };
-                            }
-                            if (result13 !== null) {
-                              var result1 = [result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13];
-                            } else {
-                              var result1 = null;
-                              pos = savedPos1;
-                            }
-                          } else {
-                            var result1 = null;
-                            pos = savedPos1;
-                          }
-                        } else {
-                          var result1 = null;
-                          pos = savedPos1;
-                        }
-                      } else {
-                        var result1 = null;
-                        pos = savedPos1;
-                      }
-                    } else {
-                      var result1 = null;
-                      pos = savedPos1;
-                    }
-                  } else {
-                    var result1 = null;
-                    pos = savedPos1;
-                  }
-                } else {
-                  var result1 = null;
-                  pos = savedPos1;
-                }
-              } else {
-                var result1 = null;
-                pos = savedPos1;
-              }
-            } else {
-              var result1 = null;
-              pos = savedPos1;
-            }
-          } else {
-            var result1 = null;
-            pos = savedPos1;
-          }
-        } else {
-          var result1 = null;
-          pos = savedPos1;
-        }
-        var result2 = result1 !== null
-          ? (function(p, m) {
-            return {
-              type: 'describe route',
-              path: p,
-              method: m
-            }
-          })(result1[4], result1[10])
           : null;
         if (result2 !== null) {
           var result0 = result2;
