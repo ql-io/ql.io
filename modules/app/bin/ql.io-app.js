@@ -18,7 +18,4 @@
 var util = require('util');
 
 var main = require('../lib/main.js');
-var app = main.exec();
-if(app) {
-    exports = app;
-}
+main.exec();
