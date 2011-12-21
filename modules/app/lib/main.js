@@ -272,10 +272,9 @@ Monitor.prototype.listen = function(cb) {
                     stats: stats
                 })
             });
-            res.render('logs.ejs', {
-                logs: logs,
-                stats: that.stats
-            });
+            var data = getStats(that.stats, req.connection);
+            data.logs = logs;
+            res.render('logs.ejs', data);
         }
         else {
             var stat = fs.statSync(file);

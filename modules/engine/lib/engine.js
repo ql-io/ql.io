@@ -36,6 +36,8 @@ var configLoader = require('./engine/config.js'),
     compiler = require('ql.io-compiler'),
     async = require('async'),
     _ = require('underscore'),
+    events = require("events"),
+    util = require('util'),
     assert = require('assert');
 
 process.on('uncaughtException', function(error) {
@@ -43,7 +45,7 @@ process.on('uncaughtException', function(error) {
 })
 
 /**
- * Create a new instance of the engine with global options.
+ * Create a new instance of the engine with global options. Engine inherits from EventEmitter.
  *
  * The following are the options supported.
  *
@@ -53,6 +55,8 @@ process.on('uncaughtException', function(error) {
  *
  */
 var Engine = module.exports = function(opts) {
+
+    events.EventEmitter.call(this);
 
     opts = opts || {};
 
@@ -241,6 +245,11 @@ var Engine = module.exports = function(opts) {
         }
     };
 }
+
+/**
+ * Inherit from EventEmitter.
+ */
+util.inherits(Engine, events.EventEmitter);
 
 /**
  * This function recursively executes statements until the dependencies for the return statement
