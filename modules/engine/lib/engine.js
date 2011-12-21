@@ -54,30 +54,22 @@ process.on('uncaughtException', function(error) {
  */
 var Engine = module.exports = function(opts) {
 
-    // Holder for global opts.
-    global.opts = opts || {};
+    opts = opts || {};
 
     // Load config
-    global.opts.config = _.isObject(global.opts.config) ? global.opts.config : configLoader.load(global.opts);
+    opts.config = opts.config || {};
+    this.config = _.isObject(opts.config) ? opts.config : configLoader.load(opts);
+    this.tables = tableLoader.load(opts.tables, this.config);
+    this.routes = routeLoader.load(opts.routes);
 
-    var tablesDir = global.opts ? global.opts.tables : undefined;
-    var config = global.opts ? global.opts.config : {};
-    var routesDir = global.opts ? global.opts.routes : undefined;
-
-    // Delete tables and routes - this allows engine invocations from inside app modules for
-    // monkey patching or auth
-    if(global.opts.tables) {
-        delete global.opts.tables;
-    }
-    if(global.opts.routes) {
-        delete global.opts.routes;
-    }
-    var tables = tableLoader.load(tablesDir, config);
-    var routes = routeLoader.load(routesDir);
-
-    this.routes = function() {
-        return routes;
-    }
+    // Settings
+    this.settings = {};
+    var that = this;
+    _.each(opts, function(v, k) {
+        if(k !== 'tables' || k !== 'routes' || k !== 'config') {
+            that.settings[k] = v;
+        }
+    });
 
     var xformers = {
         'xml': require('./xformers/xml.js'),
@@ -204,17 +196,19 @@ var Engine = module.exports = function(opts) {
                     var sweepCounter = 0;
                     try {
                         sweep({
-                            cooked:cooked,
-                            execState:execState,
-                            sweepCounter:sweepCounter,
-                            tables:tables,
-                            xformers:xformers,
-                            tempResources:tempResources,
-                            context:context,
-                            request:request,
-                            emitter:emitter,
-                            start:start,
-                            cb:engineEvent.cb
+                            cooked: cooked,
+                            execState: execState,
+                            sweepCounter: sweepCounter,
+                            tables: this.tables,
+                            settings: this.settings,
+                            config: this.config,
+                            xformers: xformers,
+                            tempResources: tempResources,
+                            context: context,
+                            request: request,
+                            emitter: emitter,
+                            start: start,
+                            cb: engineEvent.cb
                         });
                     }
                     catch (err) {
@@ -225,7 +219,9 @@ var Engine = module.exports = function(opts) {
             }
             else {
                 execOne({
-                    tables: tables,
+                    tables: this.tables,
+                    config: this.config,
+                    settings: this.settings,
                     xformers: xformers,
                     tempResources: tempResources,
                     context: context,
@@ -430,3 +426,7 @@ function _execOne(opts, statement, cb) {
 // Export event types
 Engine.Events = {};
 _.extend(Engine.Events, eventTypes);
+
+// Export log emitter
+Engine.LogEmitter = {};
+_.extend(Engine.LogEmitter, logEmitter);

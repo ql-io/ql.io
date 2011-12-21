@@ -276,6 +276,8 @@ function execInternal(opts, statement, cb, parentEvent) {
 
                     httpRequest.exec({
                         context: opts.context,
+                        config: opts.config,
+                        settings: opts.settings,
                         resource: resource.select,
                         xformers: opts.xformers,
                         params: params,

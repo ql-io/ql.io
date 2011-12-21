@@ -36,8 +36,7 @@ var strTemplate = require('./peg/str-template.js'),
     os = require('os');
 
 exports.exec = function(args) {
-    var request, context, resource, statement, params, resourceUri, template, cb, holder,
-        parentEvent, emitter, tasks, globalOpts;
+    var request, context, resource, statement, params, resourceUri, template, cb, holder, tasks;
 
     resource = args.resource;
     context = args.context;
@@ -159,16 +158,17 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     var httpReqTx = logEmitter.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
     var resource = args.resource;
     var statement = args.statement;
-    var globalOpts = global.opts;
+    var settings = args.settings || {};
+    var config = args.config || {};
     var emitter = args.emitter;
 
-    var conn = (globalOpts && globalOpts['connection']) ? globalOpts['connection'] : 'keep-alive';
+    var conn = settings['connection'] ? settings['connection'] : 'keep-alive';
     h = {
         'connection' : conn
     };
 
     var requestId = {
-        name : (globalOpts && globalOpts['request-id']) ? globalOpts['request-id'] : 'request-id',
+        name : settings['request-id'] ? settings['request-id'] : 'request-id',
         value : params['request-id'] || resource.headers['request-id'] || httpReqTx.event.uuid
     };
 
@@ -204,7 +204,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
 
     // Perform authentication
     if(resource.auth) {
-        resource.auth.auth(params, function(err, ack) {
+        resource.auth.auth(params, config, function(err, ack) {
             if(err) {
                 return cb(err);
             }
@@ -263,8 +263,8 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     assert.ok(port, 'Port of URI [' + resourceUri + '] is invalid');
     path = (heirpart.path().value || '') + (uri.querystring() || '');
 
-    if(globalOpts && globalOpts.config && globalOpts.config.proxy) {
-        var proxyConfig = globalOpts.config.proxy;
+    if(config.proxy) {
+        var proxyConfig = config.proxy;
         if (proxyConfig[host] && !proxyConfig[host].host) {
             useProxy = false;
         }

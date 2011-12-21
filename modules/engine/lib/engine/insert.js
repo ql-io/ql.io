@@ -54,6 +54,8 @@ exports.exec = function(opts, statement, cb, parentEvent) {
 
     httpRequest.exec({
         context: opts.context,
+        config: opts.config,
+        settings: opts.settings,
         resource: table.insert,
         xformers: opts.xformers,
         params: values,

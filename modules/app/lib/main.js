@@ -36,7 +36,7 @@ process.on('uncaughtException', function(error) {
     console.log(error.stack || error);
 })
 
-exports.exec = function(cb) {
+exports.exec = function(cb, opts) {
     var c, monPort, port, master;
 
     // Process command line args.
@@ -47,14 +47,19 @@ exports.exec = function(cb) {
         option('-m, --monPort <monPort>', 'port for monitoring', 3001).
         option('-t, --tables <tables>', 'path of dir containing tables', cwd + '/../tables').
         option('-r, --routes <routes>', 'path of dir containing routes', cwd + '/../routes').
-        option('-e, --disableConsole', 'disable the console', false).
-        parse(process.argv);
+        option('-e, --disableConsole', 'disable the console', false);
+    if(opts) {
+        _.each(opts, function(opt) {
+            program.option(opt[0], opt[1], opt[2], opt[3]);
+        })
+    }
+    program.parse(process.argv);
+    port = parseInt(program.port);
 
     if(program.cluster) {
         misc.ensureDir(process.cwd() + '/pids'); // Ensure pids dir
         misc.ensureDir(process.cwd() + '/logs'); // Ensure logs dir
 
-        port = parseInt(program.port);
         monPort = parseInt(program.monPort);
         master = new Master({
             pids: process.cwd() + '/pids',
@@ -75,7 +80,7 @@ exports.exec = function(cb) {
             master.listen(c.app, function() {
                 console.log('Listening on ' + port);
                 if(cb) {
-                    cb(c.app);
+                    cb(c.app, program);
                 }
             });
         }
@@ -84,7 +89,7 @@ exports.exec = function(cb) {
         c = createConsole(program);
         c.app.listen(port, function() {
             console.log('Listening on ' + port);
-            cb(c.app);
+            cb(c.app, program);
         });
     }
 }
