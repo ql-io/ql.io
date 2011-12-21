@@ -28,6 +28,8 @@ var brew = require('./brew.js'),
 exports.exec = function(opts, statement, cb, parentEvent) {
     brew.go({
         path: process.cwd() + '/',
+        config: opts.config,
+        settings: opts.settings,
         name: '',
         statement: statement,
         cb: function(err, resource) {

@@ -32,7 +32,7 @@ var strTemplate = require('./peg/str-template.js'),
 
 exports.go = function(options) {
     var statements, text, comments, resource, bag = {
-        config: global.opts.config
+        config: options.config
     };
     var root = options.path;
     var name = options.name;

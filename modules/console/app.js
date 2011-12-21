@@ -49,7 +49,6 @@ var skipHeaders = ['connection', 'host', 'referer', 'content-length', 'accept', 
 var Console = module.exports = function(config) {
 
     config = config || {};
-    global.opts = config;
 
     var engine = new Engine(config);
     var logger = new (winston.Logger)({
@@ -60,7 +59,7 @@ var Console = module.exports = function(config) {
             })
         ]
     });
-    logger.setLevels(global.opts['log levels'] || winston.config.syslog.levels);
+    logger.setLevels(config['log levels'] || winston.config.syslog.levels);
 
     procEmitter.setMaxListeners(25);
     procEmitter.on(Engine.Events.EVENT, function(event, message) {
@@ -196,7 +195,7 @@ var Console = module.exports = function(config) {
     }
 
     // register routes
-    var routes = engine.routes();
+    var routes = engine.routes;
     _.each(routes, function(verbRoutes, uri) {
         _.each(verbRoutes, function(verbRouteVariants, verb) {
             procEmitter.emit(Engine.Events.EVENT, {}, new Date() + ' Adding route ' + uri + ' for ' + verb);
