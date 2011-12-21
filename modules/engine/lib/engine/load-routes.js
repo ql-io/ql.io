@@ -113,9 +113,7 @@ function loadInternal(path, prefix, routes) {
                     routes[pieces.pathname][typeReturn.route.method].push(
                         {
                             script: cooked,
-                            query: pieces.query,
-                            routeInfo: typeReturn.route,
-                            routeScript: script
+                            query: pieces.query
                         }
                     );
                 } else {

@@ -24,7 +24,6 @@ var configLoader = require('./engine/config.js'),
     tableLoader = require('./engine/load.js'),
     routeLoader = require('./engine/load-routes.js'),
     show = require('./engine/show.js'),
-    showRoutes = require('./engine/show-routes.js'),
     describe = require('./engine/describe.js'),
     create = require('./engine/create.js'),
     select = require('./engine/select.js'),
@@ -209,7 +208,6 @@ var Engine = module.exports = function(opts) {
                             execState:execState,
                             sweepCounter:sweepCounter,
                             tables:tables,
-                            routes:routes,
                             xformers:xformers,
                             tempResources:tempResources,
                             context:context,
@@ -228,7 +226,6 @@ var Engine = module.exports = function(opts) {
             else {
                 execOne({
                     tables: tables,
-                    routes:routes,
                     xformers: xformers,
                     tempResources: tempResources,
                     context: context,
@@ -387,9 +384,6 @@ function _execOne(opts, statement, cb) {
             break;
         case 'show' :
             show.exec(opts, statement, cb);
-            break;
-        case 'show routes' :
-            showRoutes.exec(opts,statement,cb);
             break;
         case 'describe':
             describe.exec(opts, statement, cb);
