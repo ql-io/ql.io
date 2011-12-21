@@ -37,6 +37,7 @@ exports.exec = function(opts, statement, cb) {
         context[statement.assign] = routes;
     }
 
+
     cb(null, {
             headers: {
                 'content-type': 'application/json'
