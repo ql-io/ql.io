@@ -17,7 +17,7 @@
 'use strict';
 
 var http = require('http'),
-    logger = require('winston'),
+    winston = require('winston'),
     express = require('express'),
     browserify = require('browserify'),
     headers = require('headers'),
@@ -33,7 +33,7 @@ var http = require('http'),
     WebSocketServer = require('websocket').server;
 
 process.on('uncaughtException', function(error) {
-    logger.error(error.stack);
+    winston.error(error.stack);
 });
 
 var skipHeaders = ['connection', 'host', 'referer', 'content-length', 'accept', 'accept-charset',
@@ -45,12 +45,15 @@ var Console = module.exports = function(config, cb) {
     config = config || {};
 
     var engine = new Engine(config);
-    logger.add(logger.transports.File, {
-                    filename: process.cwd() + '/logs/ql.io.log',
-                    maxsize: 1024000 * 5
-                });
-    logger.remove(logger.transports.Console);
-    logger.setLevels(config['log levels'] || logger.config.syslog.levels);
+    var logger = new (winston.Logger)({
+        transports: [
+            new (winston.transports.File)({
+                filename: process.cwd() + '/logs/ql.io.log',
+                maxsize: 1024000 * 5
+            })
+        ]
+    });
+    logger.setLevels(config['log levels'] || winston.config.syslog.levels);
 
     engine.setMaxListeners(25);
     engine.on(Engine.Events.EVENT, function(event, message) {
