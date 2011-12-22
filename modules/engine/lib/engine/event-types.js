@@ -19,58 +19,53 @@
 /**
  * Event emitted when the engine receives a script to execute.
  */
-exports.SCRIPT_ACK = 'ql.io-script-ack';
+exports.SCRIPT_ACK = 'ack';
 
 /**
  * Event emitted when the script has compilation errors
  */
-exports.SCRIPT_COMPILE_ERROR = 'ql.io-script-compile-error';
-
-/**
- * Event emitted when the script has no compilation errors.
- */
-exports.SCRIPT_COMPILE_OK = 'ql.io-script-compile-ok';
+exports.SCRIPT_COMPILE_ERROR = 'compile-error';
 
 /**
  * Event emitted when the engine has executing a script, but the given statement is waiting its
  * turn.
  */
-exports.STATEMENT_WAITING = 'ql.io-statement-waiting'; // Statement waiting to be executed
+exports.STATEMENT_WAITING = 'statement-waiting';
 
 /**
  * Event emitted when a statement is currently in progress.
  */
-exports.STATEMENT_IN_FLIGHT = 'ql.io-statement-in-flight';
+exports.STATEMENT_IN_FLIGHT = 'statement-in-flight';
 
 /**
  * Event emitted when a statement execution succeeds.
  */
-exports.STATEMENT_SUCCESS = 'ql.io-statement-success';
+exports.STATEMENT_SUCCESS = 'statement-success';
 
 /**
  * Event emitted when a statement execution fails.
  */
-exports.STATEMENT_ERROR = 'ql.io-statement-error';
+exports.STATEMENT_ERROR = 'statement-error';
 
 /**
  * Event emitted when a request is sent out.
  */
-exports.STATEMENT_REQUEST = 'ql.io-statement-request';
+exports.STATEMENT_REQUEST = 'statement-request';
 
 /**
  * Event emitted when response arrives for a previously sent request.
  */
-exports.STATEMENT_RESPONSE = 'ql.io-statement-response';
+exports.STATEMENT_RESPONSE = 'statement-response';
 
 /**
  * Event emitted when script execution is done.
  */
-exports.SCRIPT_DONE = 'ql.io-script-done';
+exports.SCRIPT_DONE = 'script-done';
 
 /**
  * Event emitted when results of script execution are computed and ready.
  */
-exports.SCRIPT_RESULT = 'ql.io-script-result';
+exports.SCRIPT_RESULT = 'script-result';
 
 /**
  * Event emitted when an event starts. An event may encompass one or more activities.

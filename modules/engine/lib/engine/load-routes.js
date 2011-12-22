@@ -16,26 +16,28 @@
 
 'use strict';
 
-var logEmitter =  require('./log-emitter.js'),
-    compiler = require('ql.io-compiler'),
+var compiler = require('ql.io-compiler'),
     fs = require('fs'),
     url = require('url'),
     assert = require('assert'),
     _ = require('underscore');
 
 // TODO: Watch for file changes
-exports.load = function (rootdir) {
+exports.load = function (opts) {
+    var rootdir = opts.routes;
+    var logEmitter = opts.logEmitter;
+
     if (!rootdir) {
         return {};
     }
 
     var routes = {};
-    loadInternal(rootdir, '', routes);
+    loadInternal(rootdir, '', logEmitter, routes);
     return routes;
 
 };
 
-function loadInternal(path, prefix, routes) {
+function loadInternal(path, prefix, logEmitter, routes) {
     assert.ok(path, 'path should not be null');
     assert.ok(routes, 'routes should not be null');
 
@@ -54,7 +56,7 @@ function loadInternal(path, prefix, routes) {
         if (stats.isDirectory()) {
             loadInternal(path + filename,
                 prefix.length > 0 ? prefix + '.' + filename : filename,
-                routes);
+                logEmitter, routes);
         }
         else if (stats.isFile() && /\.ql/.test(filename)) {
             var cooked = null,

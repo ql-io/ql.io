@@ -1,0 +1,75 @@
+<h2>Master</h2>
+
+<table class='master'>
+    <tbody>
+    <tr class='odd'>
+        <td>Number of workers</td>
+        <td> <%=master.noWorkers %> (<%=master.workersKilled%> killed)</td>
+    </tr>
+    <tr>
+        <td>Number of core used </td>
+        <td> <%=master.coresUsed%></td>
+    </tr>
+    <tr class='odd'>
+        <td>Mem usage at startup </td>
+        <td> <%=master.memoryUsageAtBoot%></td>
+    </tr>
+    <tr>
+        <td>Current total mem usage </td>
+        <td> <span id='currentMemoryUsage'><%=master.currentMemoryUsage%></td>
+    </tr>
+    <tr class='odd'>
+        <td>CPU usage </td>
+        <td> <span  id='hostCpu'><%=master.hostCpu%></span>%</td>
+    </tr>
+    <tr>
+        <td>Average load </td><td>
+        <span id='averageLoad'><%=master.averageLoad%></span></td>
+    </tr>
+    <tr>
+        <td>Total inbound connections</td>
+        <td id='connectionsTotal'><%=master.connectionsTotal%></td>
+        <td>Active inbound connections</td>
+        <td id='connectionsActive'><%=master.connectionsActive%></td>
+    </tr>
+    <tr class='odd'>
+        <td>Total requests in</td>
+        <td id='inRequests'><%=master.inRequests%></td>
+        <td>Total responses out</td>
+        <td id='outResponses'><%=master.outResponses%></td>
+    </tr>
+    <tr class='odd'>
+        <td>Total requests out</td>
+        <td id='outRequests'><%=master.outRequests%></td>
+        <td>Total responses in</td>
+        <td id='inResponses'><%=master.inResponses%></td>
+    </tr>
+    <tr>
+        <td>Active inbound requests</td>
+        <td id='activeInRequests'><%=master.inRequests - master.outResponses%></td>
+        <td>Active outbound requests</td>
+        <td id='activeOutRequests'><%=master.outRequests - master.inResponses%></td>
+    </tr>
+
+    </tbody>
+</table>
+
+<h2>Logs</h2>
+
+<a href="/logs">Logs</a>
+
+<h2>Traffic Snapshot</h2>
+
+<div class='range range-max'>Pending incoming requests - max <span id='master-pending-in-max'></span></div>
+<div id='master-in-pending'></div>
+<div class='range range-min'>Pending incoming requests - min <span id='master-pending-in-min'></span></div>
+
+<div class='range range-max'>Pending outgoing requests - max <span id='master-pending-out-max'></span></div>
+<div id='master-out-pending'></div>
+<div class='range range-min'>Pending outgoing requests - min <span id='master-pending-out-min'></span></div>
+
+<p><a href='/in-flight'>In-flight Requests</a></p>
+
+<%- partial('worker.ejs', {collection: master.workers}) %>
+
+

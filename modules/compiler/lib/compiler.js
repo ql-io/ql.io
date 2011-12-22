@@ -17,7 +17,7 @@
 var ql = require('./peg/ql.js'),
     _ = require('underscore')
 
-"use strict"
+'use strict'
 
 //
 // TODO: Most of this code should move to ql.peg
@@ -60,7 +60,7 @@ function cook(compiled) {
         }
         if(line.assign) {
             if(symbols[line.assign]) {
-                throw new this.SyntaxError("Duplicate symbol " + line.assign);
+                throw new this.SyntaxError('Duplicate symbol ' + line.assign);
             }
             else {
                 symbols[line.assign] = line;
@@ -91,7 +91,7 @@ function cook(compiled) {
         }
     });
     if(count > 1 && !hasReturn) {
-        throw new this.SyntaxError("Missing return statement");
+        throw new this.SyntaxError('Missing return statement');
     }
     return cooked;
 }
@@ -190,7 +190,7 @@ function introspect(line, cooked, symbols) {
 
 // Introspect return for dependencies
 function introspectString(v, refname, index, dependency, symbols, dependsOn, id) {
-    if(v.indexOf("{") === 0 && v.indexOf("}") === v.length - 1) {
+    if(v.indexOf('{') === 0 && v.indexOf('}') === v.length - 1) {
         refname = v.substring(1, v.length - 1);
         index = refname.indexOf('.');
         if(index > 0) {

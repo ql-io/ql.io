@@ -35,6 +35,7 @@ module.exports = {
                       return {\"itemId\" : \"{itemId}\", \"item\" : \"{item}\"};"
         engine.exec(script, function(err, result) {
             if(err) {
+                console.log(err.stack || err);
                 test.ok(false);
             }
             else if(result) {

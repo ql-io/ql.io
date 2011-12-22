@@ -18,21 +18,24 @@
 
 var brew = require('./brew.js'),
     fs = require('fs'),
-    assert = require('assert'),
-    logEmitter =  require('./log-emitter.js');
+    assert = require('assert');
 
 // TODO: Watch for file changes
-exports.load = function (rootdir, config) {
+exports.load = function (opts) {
+    var rootdir = opts.tables;
+    var logEmitter = opts.logEmitter;
+    var config = opts.config;
+
     if(!rootdir) {
         return [];
     }
     var tables = {};
-    loadInternal(rootdir, '', config, tables);
+    loadInternal(rootdir, '', logEmitter, config, tables);
     return tables;
 
 };
 
-function loadInternal(path, prefix, config, tables) {
+function loadInternal(path, prefix, logEmitter, config, tables) {
     assert.ok(path, 'path should not be null');
     assert.ok(config, 'config should not be null');
     assert.ok(tables, 'tables should not be null');
@@ -52,7 +55,7 @@ function loadInternal(path, prefix, config, tables) {
         if(stats.isDirectory()) {
              loadInternal(path + filename,
                  prefix.length > 0 ? prefix + '.' + filename : filename,
-                 config, tables);
+                 logEmitter, config, tables);
         }
         else if(stats.isFile() && /\.ql/.test(filename)) {
             // Load script files from the disk
@@ -66,7 +69,7 @@ function loadInternal(path, prefix, config, tables) {
                     name: name,
                     config: config,
                     script: script,
-
+                    logEmitter: logEmitter,
                     cb: function(err, resource) {
                             if(err) {
                                 logEmitter.emitError(err);

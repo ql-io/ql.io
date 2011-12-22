@@ -76,30 +76,26 @@ exports.exec = function(cb, opts) {
         }
         else {
             var disableConsole = Boolean(program.disableConsole);
-            c = createConsole(program);
-            master.listen(c.app, function() {
-                console.log('Listening on ' + port);
-                if(cb) {
-                    cb(c.app, program);
-                }
+            c = createConsole(program, function(app, emitter) {
+                master.listen(app, function() {
+                    console.log('Listening on ' + port);
+                    if(cb) {
+                        cb(app, program, emitter);
+                    }
+                });
+
             });
         }
     }
     else {
-        c = createConsole(program);
-        c.app.listen(port, function() {
-            console.log('Listening on ' + port);
-            cb(c.app, program);
+        c = createConsole(program, function(app, emitter) {
+            app.listen(port, function() {
+                console.log('Listening on ' + port);
+                cb(app, program, emitter);
+            });
         });
     }
 }
-
-
-var procEmitter = process.eventEmitter = process.eventEmitter || function() {
-    var EventEmitter = require('events').EventEmitter;
-    return new EventEmitter();
-}();
-
 
 //
 // Master process
@@ -143,7 +139,7 @@ function Master(options) {
         // Collect events from workers
         worker.on('message', function (message) {
                 switch(message.event) {
-                    case 'ql.io-script-ack':
+                    case 'script-ack':
                         that.stats.workers[message.pid].inRequests++;
                         that.stats.inRequests++;
                         break;
@@ -308,11 +304,6 @@ Monitor.prototype.listen = function(cb) {
             clearInterval(update);
         });
     });
-
-    setInterval(function () {
-        var stats = JSON.stringify(getStats(that.stats));
-        procEmitter.emit('ql.io-heart-beat', null, 'process=master&status=running&stats=' + stats);
-    }, this.options.heartbeatInternal || 60000);
 }
 
 function getStats(master, socket) {
@@ -342,21 +333,16 @@ function getInflight(master) {
 }
 
 
-function createConsole(program) {
+function createConsole(program, cb) {
     var disableConsole = Boolean(program.disableConsole);
     var c = new Console({
         'tables': program.tables,
         'routes': program.routes,
         'config': program.config,
         'enable console': !disableConsole,
-        'log levels': require('winston').config.syslog.levels,
-        'emitter': function() {
-            var EventEmitter = require('events').EventEmitter;
-            return new EventEmitter();
-        }()
-    });
+        'log levels': require('winston').config.syslog.levels});
 
-    return c;
+    cb(c.app);
 }
 
 

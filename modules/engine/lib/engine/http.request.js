@@ -19,7 +19,6 @@
 var strTemplate = require('./peg/str-template.js'),
     project = require('./project.js'),
     eventTypes = require('./event-types.js'),
-    logEmitter = require('./log-emitter.js'),
     uriTemplate = require('ql.io-uri-template'),
     MutableURI = require('ql.io-mutable-uri'),
     http = require('http'),
@@ -36,13 +35,15 @@ var strTemplate = require('./peg/str-template.js'),
     os = require('os');
 
 exports.exec = function(args) {
-    var request, context, resource, statement, params, resourceUri, template, cb, holder, tasks;
+    var request, context, resource, statement, params, resourceUri, template, cb, holder, tasks,
+        logEmitter;
 
     resource = args.resource;
     context = args.context;
     request = args.request; // headers and params extracted from an incoming request (if any)
     statement = args.statement;
     cb = args.callback;
+    logEmitter = args.logEmitter;
     holder = {};
 
     // Prepare params (the latter ones in the arg chain override the former ones)
@@ -155,12 +156,13 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     var h, requestBody, client, isTls, options, template;
     var uri, heirpart, authority, host, port, path, useProxy = false, proxyHost, proxyPort;
 
-    var httpReqTx = logEmitter.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
+    var httpReqTx = args.logEmitter.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
     var resource = args.resource;
     var statement = args.statement;
     var settings = args.settings || {};
     var config = args.config || {};
     var emitter = args.emitter;
+    var logEmitter = args.logEmitter;
 
     var conn = settings['connection'] ? settings['connection'] : 'keep-alive';
     h = {
@@ -290,11 +292,11 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     client = isTls ? https : http;
 
     // Send
-    sendMessage(client, emitter, statement, httpReqTx, options, resourceUri, requestBody, h,
+    sendMessage(client, emitter, logEmitter, statement, httpReqTx, options, resourceUri, requestBody, h,
         requestId,  resource, args.xformers, 0);
 }
 
-function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri, requestBody, h,
+function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options, resourceUri, requestBody, h,
                      requestId, resource, xformers, retry) {
     var status, clientRequest, start = Date.now(), mediaType, respData, uri;
 
@@ -419,7 +421,7 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
                     });
                 }
             }, function(error) {
-                e.body = respData;
+                error.body = respData;
                 return httpReqTx.cb(error);
             });
         });
@@ -429,12 +431,12 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
         clientRequest.write(requestBody);
     }
     clientRequest.on('error', function(err) {
-        logEmitter.emitEvent(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
+        logEmitter.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
             err.message + ' ' + (Date.now() - start) + 'msec');
         // For select, retry once on network error
         if(retry === 0 && statement.type === 'select') {
             logEmitter.emitEvent(httpReqTx.event, 'retrying - ' + resourceUri + ' - ' + (Date.now() - start) + 'msec');
-            sendMessage(client, emitter, statement, httpReqTx, options, resourceUri, requestBody, h,
+            sendMessage(client, emitter, logEmitter, statement, httpReqTx, options, resourceUri, requestBody, h,
                     requestId,  resource, xformers, 1);
         }
         else {

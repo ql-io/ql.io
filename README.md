@@ -63,8 +63,10 @@ After that you can simply execute the core engine.
                  "     resultset 'results.geometry.location'" +
                  "select lat as lattitude, lng as longitude from geocoder where address='Mt. Everest'";
 
-    engine.exec(script, function(err, res) {
-        console.log(res.body[0]);
+    engine.exec(script, function(emitter) {
+        emitter.on('end', function(err, res) {
+            console.log(res.body[0]);
+        });
     });
 
 ## Making Contributions

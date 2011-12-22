@@ -20,11 +20,11 @@
 
 'use strict';
 
-var fs = require('fs'),
-    logEmitter =  require('./log-emitter.js');
+var fs = require('fs');
 
 exports.load = function(opts) {
     opts = opts || {};
+    var logEmitter = opts.logEmitter;
     var file = opts.config, text;
 
     if(!file) {
