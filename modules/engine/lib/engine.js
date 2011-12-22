@@ -36,7 +36,7 @@ var configLoader = require('./engine/config.js'),
     compiler = require('ql.io-compiler'),
     async = require('async'),
     _ = require('underscore'),
-    events = require("events"),
+    events = require('events'),
     util = require('util'),
     assert = require('assert');
 
@@ -92,11 +92,41 @@ var Engine = module.exports = function(opts) {
 util.inherits(Engine, LogEmitter);
 
 /**
- * Executes the given statement or script.
+ * Executes a script
+ */
+Engine.prototype.execute = function() {
+    var script, opts, func;
+    if(arguments.length === 2) {
+        script = arguments[0];
+        func = arguments[1];
+        opts = {};
+    }
+    else if(arguments.length === 3) {
+        script = arguments[0];
+        func = arguments[2];
+        opts = arguments[1];
+    }
+    var EventEmitter = require('events').EventEmitter;
+    var emitter = new EventEmitter();
+    opts.emitter = emitter;
+    opts.script = script;
+    func(emitter);
+    opts.cb = function(err, results) {
+        emitter.emit('end', err, results);
+    };
+    this.exec(opts);
+}
+
+/**
+ * Executes a script.
+ *
+ * @deprecated
  */
 Engine.prototype.exec = function() {
     var opts, cb, route, script, context = {}, cooked, execState, parentEvent, emitter,
         request, start = Date.now(), tempResources = {}, last, packet, requestId = '', that = this;
+
+    // Two args: (1) the script, (2) a callback that expects an err or result
     if(arguments.length === 2 && _.isString(arguments[0]) && _.isFunction(arguments[1])) {
         script = arguments[0];
         cb = arguments[1];
@@ -105,6 +135,7 @@ Engine.prototype.exec = function() {
             params: {}
         };
     }
+    // One args: An opts that takes several properties
     else if(arguments.length === 1) {
         opts = arguments[0];
         cb = opts.cb;
@@ -114,12 +145,12 @@ Engine.prototype.exec = function() {
         parentEvent = opts.parentEvent;
         route = opts.route;
         request = opts.request || { headers: {}, params: {}};
-        if (route) {
+        if(route) {
             _.extend(context, opts.request.routeParams || {});
         }
     }
     else {
-        assert.ok(false, "Incorrect arguments");
+        assert.ok(false, 'Incorrect arguments');
     }
 
     assert.ok(cb, 'Missing callback');
@@ -157,12 +188,6 @@ Engine.prototype.exec = function() {
     try {
         // We don't cache here since the parser does the caching.
         cooked = route ? script : compiler.compile(script);
-        if(emitter) {
-            emitter.emit(eventTypes.SCRIPT_COMPILE_OK, {
-                type: eventTypes.SCRIPT_COMPILE_OK,
-                data: 'No compilation errors'
-            });
-        }
     }
     catch(err) {
         if(emitter) {

@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-"use strict";
+'use strict';
 
 var http = require('http'),
     winston = require('winston'),
     express = require('express'),
-    fs = require('fs'),
     browserify = require('browserify'),
     headers = require('headers'),
     check = require('validator').check,
@@ -233,20 +232,20 @@ var Console = module.exports = function(config, cb) {
                 collectHttpHeaders(req, holder);
 
                 var execState = [];
-                emitter = new EventEmitter();
-                setupExecStateEmitter(emitter, execState, req.param('events'));
-                setupCounters(emitter);
-                engine.exec({
-                    script: route.script,
-                    emitter: emitter,
-                    request: holder,
-                    context: req.body || {},
-                    cb: function(err, results) {
-                        return handleResponseCB(req, res, execState, err, results);
+                engine.execute(route.script,
+                    {
+                        request: holder,
+                        route: uri,
+                        context: req.body || {}
                     },
-                    route: uri
-                });
-
+                    function(emitter) {
+                        setupExecStateEmitter(emitter, execState, req.param('events'));
+                        setupCounters(emitter);
+                        emitter.on('end', function(err, results) {
+                            return handleResponseCB(req, res, execState, err, results);
+                        });
+                    }
+                );
             });
         });
 
@@ -267,23 +266,19 @@ var Console = module.exports = function(config, cb) {
                 return;
             }
             query = sanitize(query).str;
-
             collectHttpQueryParams(req, holder, true);
-
             collectHttpHeaders(req, holder);
-
             var execState = [];
-            emitter = new EventEmitter();
-            setupExecStateEmitter(emitter, execState, req.param('events'));
-            setupCounters(emitter);
-            engine.exec({
-                script: query,
-                emitter: emitter,
-                request: holder,
-                cb: function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
-                }
-            });
+            engine.execute(query,
+                {
+                    request: holder
+                }, function(emitter) {
+                    setupExecStateEmitter(emitter, execState, req.param('events'));
+                    setupCounters(emitter);
+                    emitter.on('end', function(err, results) {
+                        return handleResponseCB(req, res, execState, err, results);
+                    })
+                })
         }
     );
 
@@ -296,7 +291,7 @@ var Console = module.exports = function(config, cb) {
     server.on('request', function(request) {
         var connection = request.accept('ql.io-console', request.origin);
         var events = [];
-        connection.on("message", function(message) {
+        connection.on('message', function(message) {
             var event = JSON.parse(message.utf8Data);
             if(event.type === 'events') {
                 var arr = event.data;
@@ -315,7 +310,6 @@ var Console = module.exports = function(config, cb) {
                 }));
             }
             else if (event.type === 'script') {
-                emitter = new EventEmitter();
                 var _collect = function(packet) {
                     // Writes events to the client
                     connection.sendUTF(JSON.stringify({
@@ -323,16 +317,14 @@ var Console = module.exports = function(config, cb) {
                         data: packet
                     }))
                 }
-                _.each(events, function(event) {
-                    emitter.on(event, _collect);
-                });
-                setupCounters(emitter);
                 var script = event.data;
-                engine.exec({
-                    script: script,
-                    emitter: emitter,
-                    cb: function(err, results) {
-                        if (err) {
+                engine.execute(script, {}, function(emitter) {
+                    _.each(events, function(event) {
+                        emitter.on(event, _collect);
+                    });
+                    setupCounters(emitter);
+                    emitter.on('end', function(err, results) {
+                        if(err) {
                             var packet = {
                                 headers: {
                                     'content-type': 'application/json'
@@ -350,8 +342,8 @@ var Console = module.exports = function(config, cb) {
                                 data: results
                             }));
                         }
-                        emitter = undefined;
-                    }});
+                    })
+                })
             }
         });
         connection.on('close', function() {
@@ -412,44 +404,22 @@ var Console = module.exports = function(config, cb) {
         });
     }
 
-    // Reemit at the process level for req/resp counting
+    // Send to master
     function setupCounters(emitter) {
-        emitter.on(Engine.Events.SCRIPT_ACK, function(packet) {
-            // Emit an event for stats
-            engine.emit(Engine.Events.SCRIPT_ACK, packet);
-
-            // Send to master
-            if(process.send) {
+        if(process.send) {
+            emitter.on(Engine.Events.SCRIPT_ACK, function(packet) {
                 process.send({event:  Engine.Events.SCRIPT_ACK, pid: process.pid});
-            }
-        });
-        emitter.on(Engine.Events.STATEMENT_REQUEST, function(packet) {
-            // Emit an event for stats
-            engine.emit(Engine.Events.STATEMENT_REQUEST, packet);
-
-            // Send to master
-            if(process.send) {
+            })
+            emitter.on(Engine.Events.STATEMENT_REQUEST, function(packet) {
                 process.send({event:  Engine.Events.STATEMENT_REQUEST, pid: process.pid});
-            }
-        });
-        emitter.on(Engine.Events.STATEMENT_RESPONSE, function(packet) {
-            // Emit an event for stats
-            engine.emit(Engine.Events.STATEMENT_RESPONSE, packet);
-
-            // Send to master
-            if(process.send) {
+            })
+            emitter.on(Engine.Events.STATEMENT_RESPONSE, function(packet) {
                 process.send({event:  Engine.Events.STATEMENT_RESPONSE, pid: process.pid});
-            }
-        });
-        emitter.on(Engine.Events.SCRIPT_DONE, function(packet) {
-            // Emit an event for stats
-            engine.emit(Engine.Events.SCRIPT_DONE, packet);
-
-            // Send to master
-            if(process.send) {
+            })
+            emitter.on(Engine.Events.SCRIPT_DONE, function(packet) {
                 process.send({event:  Engine.Events.SCRIPT_DONE, pid: process.pid});
-            }
-        });
+            })
+        }
     }
 
     function handleResponseCB(req, res, execState, err, results) {

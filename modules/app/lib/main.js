@@ -80,7 +80,7 @@ exports.exec = function(cb, opts) {
                 master.listen(app, function() {
                     console.log('Listening on ' + port);
                     if(cb) {
-                        cb(c.app, program, emitter);
+                        cb(app, program, emitter);
                     }
                 });
 
@@ -139,7 +139,7 @@ function Master(options) {
         // Collect events from workers
         worker.on('message', function (message) {
                 switch(message.event) {
-                    case 'ql.io-script-ack':
+                    case 'script-ack':
                         that.stats.workers[message.pid].inRequests++;
                         that.stats.inRequests++;
                         break;
