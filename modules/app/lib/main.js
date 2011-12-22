@@ -91,7 +91,7 @@ exports.exec = function(cb, opts) {
         c = createConsole(program, function(app, emitter) {
             app.listen(port, function() {
                 console.log('Listening on ' + port);
-                cb(c.app, program, emitter);
+                cb(app, program, emitter);
             });
         });
     }

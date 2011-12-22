@@ -421,7 +421,7 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
                     });
                 }
             }, function(error) {
-                e.body = respData;
+                error.body = respData;
                 return httpReqTx.cb(error);
             });
         });
