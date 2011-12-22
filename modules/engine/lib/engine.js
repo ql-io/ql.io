@@ -36,7 +36,7 @@ var configLoader = require('./engine/config.js'),
     compiler = require('ql.io-compiler'),
     async = require('async'),
     _ = require('underscore'),
-    events = require('events'),
+    EventEmitter = require('events').EventEmitter,
     util = require('util'),
     assert = require('assert');
 
@@ -49,13 +49,14 @@ process.on('uncaughtException', function(error) {
  *
  * The following are the options supported.
  *
- * - config: Path to the configuration file
- *
- * - tables: Path to the directory containing table definition files.
+ * - config: Path to the configuration file.
+ * - tables: Path to the directory containing table definition scripts.
+ * - routes: Path to the directory containing route scripts.
  *
  */
 var Engine = module.exports = function(opts) {
 
+    // Engine is a LogEmitter.
     LogEmitter.call(this);
 
     opts = opts || {};
@@ -73,7 +74,7 @@ var Engine = module.exports = function(opts) {
         routes: opts.routes,
         logEmitter: this});
 
-    // Settings
+    // Settings - copy everything except the known few.
     this.settings = {};
     var that = this;
     _.each(opts, function(v, k) {
@@ -82,6 +83,7 @@ var Engine = module.exports = function(opts) {
         }
     });
 
+    // These are transformers for data formats.
     this.xformers = {
         'xml': require('./xformers/xml.js'),
         'json': require('./xformers/json.js'),
@@ -92,10 +94,35 @@ var Engine = module.exports = function(opts) {
 util.inherits(Engine, LogEmitter);
 
 /**
- * Executes a script
+ * Executes a script. In the generic form, this function takes the following args:
+ *
+ * * script
+ * * options (optional), containing the following
+ *   * context: an object containing variables
+ *   * parentEvent: no known uses yet - may be dropped in future
+ *   * route: route script
+ *   * request: containing headers and query params
+ * * a function that takes an emitter
+ *
+ * Here is an example of how to execute a script.
+ *
+ *     Engine = require('ql.io-engine');
+ *     var engine = new Engine({
+ *         tables: 'mytabledir',
+ *         config: 'path to my config.json'
+ *     });
+ *     engine.exec('select * from foo', function(emitter) {
+ *         emitter.on('end', function(err, results) {
+ *              // process err or results
+ *         });
+ *     });
  */
 Engine.prototype.execute = function() {
     var script, opts, func;
+
+    var route, context = {}, cooked, execState, parentEvent,
+        request, start = Date.now(), tempResources = {}, last, packet, requestId = '', that = this;
+
     if(arguments.length === 2) {
         script = arguments[0];
         func = arguments[1];
@@ -106,107 +133,65 @@ Engine.prototype.execute = function() {
         func = arguments[2];
         opts = arguments[1];
     }
-    var EventEmitter = require('events').EventEmitter;
     var emitter = new EventEmitter();
-    opts.emitter = emitter;
     opts.script = script;
+
+    // Let the app register handlers
     func(emitter);
-    opts.cb = function(err, results) {
-        emitter.emit('end', err, results);
-    };
-    this.exec(opts);
-}
 
-/**
- * Executes a script.
- *
- * @deprecated
- */
-Engine.prototype.exec = function() {
-    var opts, cb, route, script, context = {}, cooked, execState, parentEvent, emitter,
-        request, start = Date.now(), tempResources = {}, last, packet, requestId = '', that = this;
-
-    // Two args: (1) the script, (2) a callback that expects an err or result
-    if(arguments.length === 2 && _.isString(arguments[0]) && _.isFunction(arguments[1])) {
-        script = arguments[0];
-        cb = arguments[1];
-        request = {
-            headers: {},
-            params: {}
-        };
-    }
-    // One args: An opts that takes several properties
-    else if(arguments.length === 1) {
-        opts = arguments[0];
-        cb = opts.cb;
-        script = opts.script;
-        context = opts.context || {};
-        emitter = opts.emitter;
-        parentEvent = opts.parentEvent;
-        route = opts.route;
-        request = opts.request || { headers: {}, params: {}};
-        if(route) {
-            _.extend(context, opts.request.routeParams || {});
-        }
-    }
-    else {
-        assert.ok(false, 'Incorrect arguments');
+    context = opts.context || {};
+    parentEvent = opts.parentEvent;
+    route = opts.route;
+    request = opts.request || { headers: {}, params: {}};
+    if(route) {
+        _.extend(context, opts.request.routeParams || {});
     }
 
-    assert.ok(cb, 'Missing callback');
     assert.ok(script, 'Missing script');
     assert.ok(this.xformers, 'Missing xformers');
 
     var engineEvent = this.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
-        if(emitter) {
-            packet = {
-                script: route || script,
-                type: eventTypes.SCRIPT_DONE,
-                elapsed: Date.now() - start,
-                data: 'Done'
-            };
-            if(cooked) {
-                last = _.last(cooked);
-                packet.line = last.line;
-            }
-            emitter.emit(eventTypes.SCRIPT_DONE, packet);
+        packet = {
+            script: route || script,
+            type: eventTypes.SCRIPT_DONE,
+            elapsed: Date.now() - start,
+            data: 'Done'
+        };
+        if(cooked) {
+            last = _.last(cooked);
+            packet.line = last.line;
         }
+        emitter.emit(eventTypes.SCRIPT_DONE, packet);
         if(results && requestId) {
             results.headers = results.headers || {};
             results.headers['request-id'] = requestId;
         }
-        cb(err, results);
+        emitter.emit('end', err, results);
     });
     this.emitEvent(engineEvent.event, route ? 'route:' + route : 'script:' + script);
 
-    if(emitter) {
-        emitter.emit(eventTypes.SCRIPT_ACK, {
-            type: eventTypes.SCRIPT_ACK,
-            data: 'Got it'
-        });
-    }
+    emitter.emit(eventTypes.SCRIPT_ACK, {
+        type: eventTypes.SCRIPT_ACK,
+        data: 'Got it'
+    });
     try {
         // We don't cache here since the parser does the caching.
         cooked = route ? script : compiler.compile(script);
     }
     catch(err) {
-        if(emitter) {
-            emitter.emit(eventTypes.SCRIPT_COMPILE_ERROR, {
-                type: eventTypes.SCRIPT_COMPILE_ERROR,
-                data: err
-            });
-        }
+        emitter.emit(eventTypes.SCRIPT_COMPILE_ERROR, {
+            type: eventTypes.SCRIPT_COMPILE_ERROR,
+            data: err
+        });
         this.emitError(engineEvent.event, err);
         return engineEvent.cb(err, null);
     }
 
-    if (emitter) {
-        emitter.on(eventTypes.REQUEST_ID_RECEIVED, function (reqId) {
-            if (reqId) {
-                requestId += (reqId + ']');
-            }
-        });
-    }
+    emitter.on(eventTypes.REQUEST_ID_RECEIVED, function (reqId) {
+        if (reqId) {
+            requestId += (reqId + ']');
+        }
+    });
 
     try {
         if(cooked.length > 1) {
@@ -269,6 +254,55 @@ Engine.prototype.exec = function() {
     catch(err) {
         this.emitError(engineEvent.event, err);
         return engineEvent.cb(err, null);
+    }
+}
+
+/**
+ * Executes a script.
+ *
+ * @deprecated Use execute instead.
+ */
+Engine.prototype.exec = function() {
+    var opts, script, cb, events, listeners;
+
+    // Two args: (1) the script, (2) a callback that expects an err or result
+    if(arguments.length === 2 && _.isString(arguments[0]) && _.isFunction(arguments[1])) {
+        script = arguments[0];
+        cb = arguments[1];
+        this.execute(script, function(emitter) {
+            emitter.on('end', function(err, results) {
+                cb(err, results);
+            });
+        })
+    }
+    // One args: An opts that takes several properties
+    else if(arguments.length === 1) {
+        opts = arguments[0];
+        script = opts.script;
+        cb = opts.cb;
+        this.execute(script, opts, function(emitter) {
+
+            // For backwards compat sake, we need to copy the listeners from the supplied emitter
+            // to "this"
+            if(opts.emitter) {
+                events = ['ack', 'compile-error', 'statement-error', 'statement-in-flight',
+                        'statement-success', 'statement-request', 'statement-response', 'script-done'];
+                _.each(events, function(event) {
+                    listeners = opts.emitter.listeners(event);
+                    _.each(listeners, function(listener) {
+                        emitter.on(event, listener);
+                    })
+                })
+            }
+
+            // Results
+            emitter.on('end', function(err, results) {
+                cb(err, results);
+            });
+        })
+    }
+    else {
+        assert.ok(false, 'Incorrect arguments');
     }
 };
 
