@@ -22,8 +22,7 @@
 
 var brew = require('./brew.js'),
     _ = require('underscore'),
-    assert = require('assert'),
-    logEmitter =  require('./log-emitter.js');
+    assert = require('assert');
 
 exports.exec = function(opts, statement, cb, parentEvent) {
     brew.go({
@@ -34,7 +33,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
         statement: statement,
         cb: function(err, resource) {
             if(err) {
-                logEmitter.emitError(err);
+                opts.logEmitter.emitError(err);
                 return cb(err);
             }
             else {

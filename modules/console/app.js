@@ -33,11 +33,6 @@ var http = require('http'),
     _ = require('underscore'),
     WebSocketServer = require('websocket').server;
 
-var procEmitter = process.eventEmitter = process.eventEmitter || function() {
-    var EventEmitter = require('events').EventEmitter;
-    return new EventEmitter();
-}();
-
 process.on('uncaughtException', function(error) {
     winston.error(error.stack);
 });
@@ -46,7 +41,7 @@ var skipHeaders = ['connection', 'host', 'referer', 'content-length', 'accept', 
     'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers',
     'transfer-encoding', 'upgrade'];
 
-var Console = module.exports = function(config) {
+var Console = module.exports = function(config, cb) {
 
     config = config || {};
 
@@ -61,21 +56,21 @@ var Console = module.exports = function(config) {
     });
     logger.setLevels(config['log levels'] || winston.config.syslog.levels);
 
-    procEmitter.setMaxListeners(25);
-    procEmitter.on(Engine.Events.EVENT, function(event, message) {
+    engine.setMaxListeners(25);
+    engine.on(Engine.Events.EVENT, function(event, message) {
         if(message) {
             logger.info(new Date() + ' - ' + message);
         }
     });
-    procEmitter.on(Engine.Events.SCRIPT_DONE, function(event, message) {
+    engine.on(Engine.Events.SCRIPT_DONE, function(event, message) {
         logger.info(new Date() + ' - ' + JSON.stringify(event));
     });
-    procEmitter.on(Engine.Events.ERROR, function(event, message) {
+    engine.on(Engine.Events.ERROR, function(event, message) {
         if(message) {
             logger.error(new Date() + ' - ' + message.stack || message);
         }
     });
-    procEmitter.on(Engine.Events.WARNING, function(event, message) {
+    engine.on(Engine.Events.WARNING, function(event, message) {
         if(message) {
             logger.warning(new Date() + ' - ' + message.stack || message);
         }
@@ -198,7 +193,7 @@ var Console = module.exports = function(config) {
     var routes = engine.routes;
     _.each(routes, function(verbRoutes, uri) {
         _.each(verbRoutes, function(verbRouteVariants, verb) {
-            procEmitter.emit(Engine.Events.EVENT, {}, new Date() + ' Adding route ' + uri + ' for ' + verb);
+            engine.emit(Engine.Events.EVENT, {}, new Date() + ' Adding route ' + uri + ' for ' + verb);
             app[verb](uri, function(req, res) {
                 var holder = {
                     params: {},
@@ -421,7 +416,7 @@ var Console = module.exports = function(config) {
     function setupCounters(emitter) {
         emitter.on(Engine.Events.SCRIPT_ACK, function(packet) {
             // Emit an event for stats
-            procEmitter.emit(Engine.Events.SCRIPT_ACK, packet);
+            engine.emit(Engine.Events.SCRIPT_ACK, packet);
 
             // Send to master
             if(process.send) {
@@ -430,7 +425,7 @@ var Console = module.exports = function(config) {
         });
         emitter.on(Engine.Events.STATEMENT_REQUEST, function(packet) {
             // Emit an event for stats
-            procEmitter.emit(Engine.Events.STATEMENT_REQUEST, packet);
+            engine.emit(Engine.Events.STATEMENT_REQUEST, packet);
 
             // Send to master
             if(process.send) {
@@ -439,7 +434,7 @@ var Console = module.exports = function(config) {
         });
         emitter.on(Engine.Events.STATEMENT_RESPONSE, function(packet) {
             // Emit an event for stats
-            procEmitter.emit(Engine.Events.STATEMENT_RESPONSE, packet);
+            engine.emit(Engine.Events.STATEMENT_RESPONSE, packet);
 
             // Send to master
             if(process.send) {
@@ -448,7 +443,7 @@ var Console = module.exports = function(config) {
         });
         emitter.on(Engine.Events.SCRIPT_DONE, function(packet) {
             // Emit an event for stats
-            procEmitter.emit(Engine.Events.SCRIPT_DONE, packet);
+            engine.emit(Engine.Events.SCRIPT_DONE, packet);
 
             // Send to master
             if(process.send) {
@@ -508,4 +503,9 @@ var Console = module.exports = function(config) {
     }
 
     app = server;
+
+    // The caller gets the app and the engine/event emitter
+    if(cb) {
+        cb(app, engine);
+    }
 };

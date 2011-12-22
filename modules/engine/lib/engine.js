@@ -31,7 +31,7 @@ var configLoader = require('./engine/config.js'),
     jsonfill = require('./engine/jsonfill.js'),
     eventTypes = require('./engine/event-types.js'),
     httpRequest = require('./engine/http.request.js'),
-    logEmitter = require('./engine/log-emitter.js'),
+    LogEmitter = require('./engine/log-emitter.js'),
     winston = require('winston'),
     compiler = require('ql.io-compiler'),
     async = require('async'),
@@ -56,15 +56,22 @@ process.on('uncaughtException', function(error) {
  */
 var Engine = module.exports = function(opts) {
 
-    events.EventEmitter.call(this);
+    LogEmitter.call(this);
 
     opts = opts || {};
 
     // Load config
     opts.config = opts.config || {};
-    this.config = _.isObject(opts.config) ? opts.config : configLoader.load(opts);
-    this.tables = tableLoader.load(opts.tables, this.config);
-    this.routes = routeLoader.load(opts.routes);
+    this.config = _.isObject(opts.config) ? opts.config : configLoader.load({
+        config: opts.config,
+        logEmitter: this});
+    this.tables = tableLoader.load({
+        tables: opts.tables,
+        logEmitter: this,
+        config: this.config});
+    this.routes = routeLoader.load({
+        routes: opts.routes,
+        logEmitter: this});
 
     // Settings
     this.settings = {};
@@ -75,181 +82,180 @@ var Engine = module.exports = function(opts) {
         }
     });
 
-    var xformers = {
+    this.xformers = {
         'xml': require('./xformers/xml.js'),
         'json': require('./xformers/json.js'),
         'csv' : require('./xformers/csv.js')
     }
+}
 
-    /**
-     * Specify a transformer for response data.
-     *
-     * @param type
-     * @param xformer
-     */
-    this.use = function(type, xformer) {
-        xformers[type] = xformer;
+util.inherits(Engine, LogEmitter);
+
+/**
+ * Executes the given statement or script.
+ */
+Engine.prototype.exec = function() {
+    var opts, cb, route, script, context = {}, cooked, execState, parentEvent, emitter,
+        request, start = Date.now(), tempResources = {}, last, packet, requestId = '', that = this;
+    if(arguments.length === 2 && _.isString(arguments[0]) && _.isFunction(arguments[1])) {
+        script = arguments[0];
+        cb = arguments[1];
+        request = {
+            headers: {},
+            params: {}
+        };
+    }
+    else if(arguments.length === 1) {
+        opts = arguments[0];
+        cb = opts.cb;
+        script = opts.script;
+        context = opts.context || {};
+        emitter = opts.emitter;
+        parentEvent = opts.parentEvent;
+        route = opts.route;
+        request = opts.request || { headers: {}, params: {}};
+        if (route) {
+            _.extend(context, opts.request.routeParams || {});
+        }
+    }
+    else {
+        assert.ok(false, "Incorrect arguments");
     }
 
-    /**
-     * Executes the given statement or script.
-     */
-    this.exec = function() {
-        var opts, cb, route, script, context = {}, cooked, execState, parentEvent, emitter,
-            request, start = Date.now(), tempResources = {}, last, packet, requestId = '';
-        if(arguments.length === 2 && _.isString(arguments[0]) && _.isFunction(arguments[1])) {
-            script = arguments[0];
-            cb = arguments[1];
-            request = {
-                headers: {},
-                params: {}
+    assert.ok(cb, 'Missing callback');
+    assert.ok(script, 'Missing script');
+    assert.ok(this.xformers, 'Missing xformers');
+
+    var engineEvent = this.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
+        if(emitter) {
+            packet = {
+                script: route || script,
+                type: eventTypes.SCRIPT_DONE,
+                elapsed: Date.now() - start,
+                data: 'Done'
             };
+            if(cooked) {
+                last = _.last(cooked);
+                packet.line = last.line;
+            }
+            emitter.emit(eventTypes.SCRIPT_DONE, packet);
         }
-        else if(arguments.length === 1) {
-            opts = arguments[0];
-            cb = opts.cb;
-            script = opts.script;
-            context = opts.context || {};
-            emitter = opts.emitter;
-            parentEvent = opts.parentEvent;
-            route = opts.route;
-            request = opts.request || { headers: {}, params: {}};
-            if (route) {
-                _.extend(context, opts.request.routeParams || {});
+        if(results && requestId) {
+            results.headers = results.headers || {};
+            results.headers['request-id'] = requestId;
+        }
+        cb(err, results);
+    });
+    this.emitEvent(engineEvent.event, route ? 'route:' + route : 'script:' + script);
+
+    if(emitter) {
+        emitter.emit(eventTypes.SCRIPT_ACK, {
+            type: eventTypes.SCRIPT_ACK,
+            data: 'Got it'
+        });
+    }
+    try {
+        // We don't cache here since the parser does the caching.
+        cooked = route ? script : compiler.compile(script);
+        if(emitter) {
+            emitter.emit(eventTypes.SCRIPT_COMPILE_OK, {
+                type: eventTypes.SCRIPT_COMPILE_OK,
+                data: 'No compilation errors'
+            });
+        }
+    }
+    catch(err) {
+        if(emitter) {
+            emitter.emit(eventTypes.SCRIPT_COMPILE_ERROR, {
+                type: eventTypes.SCRIPT_COMPILE_ERROR,
+                data: err
+            });
+        }
+        this.emitError(engineEvent.event, err);
+        return engineEvent.cb(err, null);
+    }
+
+    if (emitter) {
+        emitter.on(eventTypes.REQUEST_ID_RECEIVED, function (reqId) {
+            if (reqId) {
+                requestId += (reqId + ']');
+            }
+        });
+    }
+
+    try {
+        if(cooked.length > 1) {
+            // Pass 3: Create the execution tree. The execution tree consists of forks and joins.
+            execState = {};
+            _.each(cooked, function(line) {
+                if(line.type !== 'comment') {
+                    execState[line.id.toString()] = {
+                        state: eventTypes.STATEMENT_WAITING,
+                        waits: line.dependsOn ? line.dependsOn.length : 0};
+                }
+            });
+
+            if (!_.isEmpty(execState)) {
+                // Sweep the statements till we're done.
+                var sweepCounter = 0;
+                try {
+                    sweep({
+                        cooked: cooked,
+                        execState: execState,
+                        sweepCounter: sweepCounter,
+                        tables: this.tables,
+                        settings: this.settings,
+                        config: this.config,
+                        xformers: this.xformers,
+                        tempResources: tempResources,
+                        context: context,
+                        request: request,
+                        logEmitter: this,
+                        emitter: emitter,
+                        start: start,
+                        cb: engineEvent.cb
+                    });
+                }
+                catch (err) {
+                    that.emitError(engineEvent.event, err);
+                    return engineEvent.cb(err, null);
+                }
             }
         }
         else {
-            assert.ok(false, "Incorrect arguments");
-        }
-
-        assert.ok(cb, 'Missing callback');
-        assert.ok(script, 'Missing script');
-        assert.ok(xformers, 'Missing xformers');
-
-        var engineEvent = logEmitter.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
-            if(emitter) {
-                packet = {
-                    script: route || script,
-                    type: eventTypes.SCRIPT_DONE,
-                    elapsed: Date.now() - start,
-                    data: 'Done'
-                };
-                if(cooked) {
-                    last = _.last(cooked);
-                    packet.line = last.line;
+            execOne({
+                tables: this.tables,
+                config: this.config,
+                settings: this.settings,
+                xformers: this.xformers,
+                tempResources: tempResources,
+                context: context,
+                request: request,
+                emitter: emitter,
+                logEmitter: this,
+            }, cooked[0], function(err, results) {
+                if(err) {
+                    that.emitError(engineEvent.event, err);
                 }
-                emitter.emit(eventTypes.SCRIPT_DONE, packet);
-            }
-            if(results && requestId) {
-                results.headers = results.headers || {};
-                results.headers['request-id'] = requestId;
-            }
-            cb(err, results);
-        });
-        logEmitter.emitEvent(engineEvent.event, route ? 'route:' + route : 'script:' + script);
-
-        if(emitter) {
-            emitter.emit(eventTypes.SCRIPT_ACK, {
-                type: eventTypes.SCRIPT_ACK,
-                data: 'Got it'
+                return engineEvent.cb(err, results);
             });
         }
-        try {
-            // We don't cache here since the parser does the caching.
-            cooked = route ? script : compiler.compile(script);
-            if(emitter) {
-                emitter.emit(eventTypes.SCRIPT_COMPILE_OK, {
-                    type: eventTypes.SCRIPT_COMPILE_OK,
-                    data: 'No compilation errors'
-                });
-            }
-        }
-        catch(err) {
-            if(emitter) {
-                emitter.emit(eventTypes.SCRIPT_COMPILE_ERROR, {
-                    type: eventTypes.SCRIPT_COMPILE_ERROR,
-                    data: err
-                });
-            }
-            logEmitter.emitError(engineEvent.event, err);
-            return engineEvent.cb(err, null);
-        }
-
-        if (emitter) {
-            emitter.on(eventTypes.REQUEST_ID_RECEIVED, function (reqId) {
-                if (reqId) {
-                    requestId += (reqId + ']');
-                }
-            });
-        }
-
-        try {
-            if(cooked.length > 1) {
-                // Pass 3: Create the execution tree. The execution tree consists of forks and joins.
-                execState = {};
-                _.each(cooked, function(line) {
-                    if(line.type !== 'comment') {
-                        execState[line.id.toString()] = {
-                            state: eventTypes.STATEMENT_WAITING,
-                            waits: line.dependsOn ? line.dependsOn.length : 0};
-                    }
-                });
-
-                if (!_.isEmpty(execState)) {
-                    // Sweep the statements till we're done.
-                    var sweepCounter = 0;
-                    try {
-                        sweep({
-                            cooked: cooked,
-                            execState: execState,
-                            sweepCounter: sweepCounter,
-                            tables: this.tables,
-                            settings: this.settings,
-                            config: this.config,
-                            xformers: xformers,
-                            tempResources: tempResources,
-                            context: context,
-                            request: request,
-                            emitter: emitter,
-                            start: start,
-                            cb: engineEvent.cb
-                        });
-                    }
-                    catch (err) {
-                        logEmitter.emitError(engineEvent.event, err);
-                        return engineEvent.cb(err, null);
-                    }
-                }
-            }
-            else {
-                execOne({
-                    tables: this.tables,
-                    config: this.config,
-                    settings: this.settings,
-                    xformers: xformers,
-                    tempResources: tempResources,
-                    context: context,
-                    request: request,
-                    emitter: emitter
-                }, cooked[0], function(err, results) {
-                    if(err) {
-                        logEmitter.emitError(engineEvent.event, err);
-                    }
-                    return engineEvent.cb(err, results);
-                });
-            }
-        }
-        catch(err) {
-            logEmitter.emitError(engineEvent.event, err);
-            return engineEvent.cb(err, null);
-        }
-    };
-}
+    }
+    catch(err) {
+        this.emitError(engineEvent.event, err);
+        return engineEvent.cb(err, null);
+    }
+};
 
 /**
- * Inherit from EventEmitter.
+ * Specify a transformer for response data.
+ *
+ * @param type
+ * @param xformer
  */
-util.inherits(Engine, events.EventEmitter);
+Engine.prototype.use = function(type, xformer) {
+    this.xformers[type] = xformer;
+}
 
 /**
  * This function recursively executes statements until the dependencies for the return statement
@@ -435,7 +441,3 @@ function _execOne(opts, statement, cb) {
 // Export event types
 Engine.Events = {};
 _.extend(Engine.Events, eventTypes);
-
-// Export log emitter
-Engine.LogEmitter = {};
-_.extend(Engine.LogEmitter, logEmitter);
