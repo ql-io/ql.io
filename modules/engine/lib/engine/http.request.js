@@ -454,7 +454,7 @@ function prepareParams() {
     var params = {};
     _.each(arguments, function(arg) {
         _.each(arg, function(v, p) {
-            if(v) {
+            if(v !== undefined) {
                 params[p] = v;
             }
         });

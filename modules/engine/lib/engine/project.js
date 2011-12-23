@@ -80,7 +80,7 @@ function select(path, obj) {
             }
         }
         else {
-            return null;
+            return [];
         }
     }
     return curr;
