@@ -113,7 +113,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
 // Execute a parsed select statement with no joins
 function execInternal(opts, statement, cb, parentEvent) {
     var tables = opts.tables, tempResources = opts.tempResources, context = opts.context,
-        request = opts.request, emitter = opts.emitter;
+        request = opts.request, emitter = opts.emitter, key;
 
     var selectExecTx = opts.logEmitter.wrapEvent(parentEvent, 'QlIoSelectExec', null, cb);
     //
@@ -130,7 +130,8 @@ function execInternal(opts, statement, cb, parentEvent) {
             tasks.push(function(cond, name) {
                 return function(callback) {
                     ret = {};
-                    ret[name] = jsonfill.lookup(cond.rhs.value || cond.rhs, context);
+                    key = (cond.rhs.value !== undefined) ? cond.rhs.value : cond.rhs;
+                    ret[name] = jsonfill.lookup(key, context);
                     callback(null, ret);
                 };
             }(cond, name));
