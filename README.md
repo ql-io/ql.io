@@ -71,7 +71,12 @@ After that you can simply execute the core engine.
 
 ## Making Contributions
 
-We're working on getting a CLA in place.
+Fixes and features via pull requests are welcome as long as the contributor agrees to the
+[Contributor License Agreement](https://github.com/downloads/ql-io/ql.io/ql.io-CLA.pdf). Print,
+sign, and email a scanned copy to subbu/AT/ebaysf/DOT/com before submitting the first pull request.
+
+To help move pull requests quickly, consider socializing your idea in the
+[email group](http://groups.google.com/group/qlio).
 
 ## Discussions
 
