@@ -127,7 +127,11 @@ function Master(options) {
                 fs.readFile(fullname, 'ascii', function(err, data) {
                     process.kill(parseInt(data), signal);
                 });
-                fs.unlinkSync(fullname);
+                fs.unlink(fullname, function(err) {
+                    if(err) {
+                        console.log('Unable to delete ' + fullname);
+                    }
+                });
             });
         })
     };
