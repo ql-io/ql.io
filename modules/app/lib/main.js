@@ -120,12 +120,14 @@ function Master(options) {
     };
 
     this.killall = function(signal) {
-        var that = this;
+        var that = this, fullname;
         fs.readdir(that.options.pids, function(err, paths) {
             paths.forEach(function(filename) {
-                fs.readFile(that.options.pids + '/' + filename, 'ascii', function(err, data) {
+                fullname = that.options.pids + '/' + filename;
+                fs.readFile(fullname, 'ascii', function(err, data) {
                     process.kill(parseInt(data), signal);
                 });
+                fs.unlinkSync(fullname);
             });
         })
     };
@@ -200,6 +202,10 @@ Master.prototype.listen = function(app, cb) {
             port: that.options.monPort || '8081',
             path: that.options.monPath || '/'}
         );
+
+        process.on('SIGINT', function() {
+            that.killall('SIGQUIT');
+        });
         monitor.listen(cb);
     }
     else {
