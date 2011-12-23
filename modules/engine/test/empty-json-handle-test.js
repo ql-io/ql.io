@@ -16,15 +16,9 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
-    util = require('util'),
     http = require('http'),
     fs = require('fs'),
     util = require('util');
-
-var engine = new Engine({
-    config: __dirname + '/config/dev.json',
-    connection: 'close'
-});
 
 module.exports = {
     'emtpy response with 200 json': function(test) {
@@ -52,7 +46,7 @@ module.exports = {
                 }
                 else {
                     test.equals(result.headers['content-type'], 'application/json', 'json expected');
-                    test.equals(result.body, null, 'null expected');
+                    test.equals(result.body.length, 0, 'empty expected');
                     test.done();
                 }
                 server.close();
@@ -115,7 +109,7 @@ module.exports = {
                 }
                 else {
                     test.equals(result.headers['content-type'], 'application/json', 'json expected');
-                    test.equals(result.body, null, 'null expected');
+                    test.equals(result.body.length, 0, 'empty expected');
                     test.done();
                 }
                 server.close();
