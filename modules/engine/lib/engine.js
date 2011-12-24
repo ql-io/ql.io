@@ -444,6 +444,7 @@ function _execOne(opts, statement, cb) {
                     opts.request.routeParams));
 
             opts.context[statement.assign] = obj;
+            opts.emitter.emit(statement.assign, obj)
             cb(undefined, opts.context);
             break;
         case 'select' :

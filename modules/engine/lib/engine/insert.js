@@ -64,6 +64,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
         callback: function(err, result) {
             if (result) {
                 context[statement.assign] = result.body;
+                opts.emitter.emit(statement.assign, result.body);
             }
             return insertTx.cb(err, result);
         }
