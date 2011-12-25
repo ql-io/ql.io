@@ -45,7 +45,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
 
     // Lookup context for the source - we do this since the compiler puts the name in
     // braces to denote the source as a variable and not a table.
-    if(name.indexOf('{') === 0) {
+    if(name.indexOf("{") === 0 && name.indexOf("}") === name.length - 1) {
         name = name.substring(1, statement.source.name.length - 1);
     }
 
@@ -82,7 +82,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
             statement: statement,
             emitter: emitter,
             callback: function(err, result) {
-                if (result) {
+                if(result) {
                     context[statement.assign] = result.body;
                     opts.emitter.emit(statement.assign, result.body);
                 }
