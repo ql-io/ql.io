@@ -204,7 +204,8 @@ function execInternal(opts, statement, cb, parentEvent) {
                 }
 
                 name = from.name;
-                // Lookup context for the source
+                // Lookup context for the source - we do this since the compiler puts the name in
+                // braces to denote the source as a variable and not a table.
                 if(name.indexOf('{') === 0) {
                     name = name.substring(1, from.name.length - 1);
                 }
