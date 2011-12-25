@@ -99,6 +99,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
                 results.body = body;
                 if(statement.assign) {
                     opts.context[statement.assign] = results.body;
+                    opts.emitter.emit(statement.assign, results.body);
                 }
                 return selectEvent.cb(err, results);
             });
@@ -203,8 +204,9 @@ function execInternal(opts, statement, cb, parentEvent) {
                 }
 
                 name = from.name;
-                // Lookup context for the source
-                if(name.indexOf('{') === 0) {
+                // Lookup context for the source - we do this since the compiler puts the name in
+                // braces to denote the source as a variable and not a table.
+                if(name.indexOf("{") === 0 && name.indexOf("}") === name.length - 1) {
                     name = name.substring(1, from.name.length - 1);
                 }
                 resource = context[name];
@@ -244,6 +246,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                     project.run('', statement, filtered, function(projected) {
                         if(statement.assign) {
                             context[statement.assign] = projected;
+                            emitter.emit(statement.assign, projected);
                         }
                         return apiTx.cb(null, {
                             headers: {
@@ -288,6 +291,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                         callback: function(err, result) {
                             if(result) {
                                 context[statement.assign] = result.body;
+                                emitter.emit(statement.assign, result.body);
                             }
                             return apiTx.cb(err, result);
                         }
