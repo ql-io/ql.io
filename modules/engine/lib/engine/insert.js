@@ -29,43 +29,65 @@ exports.exec = function(opts, statement, cb, parentEvent) {
     assert.ok(statement, 'Argument cb can not be undefined');
 
     var tables = opts.tables, context = opts.context,
-        request = opts.request, emitter = opts.emitter;
+        request = opts.request, emitter = opts.emitter,
+        insertTx, table, values, name, resource;
 
-    var insertTx = opts.logEmitter.wrapEvent(parentEvent, 'QlIoInsert', null, cb);
+    insertTx = opts.logEmitter.wrapEvent(parentEvent, 'QlIoInsert', null, cb);
 
-    // Get the table
-    var table = tables[statement.source.name];
-    if (!table) {
-        return insertTx.cb({
-            message: 'No such table ' + statement.source.name
-        });
-    }
-    if (!table.insert) {
-        return insertTx.cb({
-            message: 'Table ' + statement.source.name + ' does not support insert'
-        });
-    }
-
-    var values = {};
+    values = {};
     _.each(statement.values, function(value, i) {
         values[statement.columns[i].name] = jsonfill.lookup(value, context);
     });
 
-    httpRequest.exec({
-        context: opts.context,
-        config: opts.config,
-        settings: opts.settings,
-        resource: table.insert,
-        xformers: opts.xformers,
-        params: values,
-        request: request,
-        statement: statement,
-        emitter: emitter,
-        callback: function(err, result) {
-            if (result) {
-                context[statement.assign] = result.body;
-            }
-            return insertTx.cb(err, result);
+
+    // Get the dest
+    name = statement.source.name;
+
+    // Lookup context for the source - we do this since the compiler puts the name in
+    // braces to denote the source as a variable and not a table.
+    if(name.indexOf("{") === 0 && name.indexOf("}") === name.length - 1) {
+        name = name.substring(1, statement.source.name.length - 1);
+    }
+
+    resource = context[name];
+    if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
+        resource = jsonfill.unwrap(resource);
+        _.each(values, function(val, key) {
+            resource[key] = val;
+        });
+        return insertTx.cb(undefined, resource);
+    }
+    else {
+        // Get the resource
+        resource = opts.tempResources[name] || tables[name];
+        if(!table) {
+            return insertTx.cb({
+                message: 'No such table ' + statement.source.name
+            });
         }
-    });
+        if(!table.insert) {
+            return insertTx.cb({
+                message: 'Table ' + statement.source.name + ' does not support insert'
+            });
+        }
+
+        httpRequest.exec({
+            context: opts.context,
+            config: opts.config,
+            settings: opts.settings,
+            resource: table.insert,
+            xformers: opts.xformers,
+            params: values,
+            request: request,
+            statement: statement,
+            emitter: emitter,
+            callback: function(err, result) {
+                if(result) {
+                    context[statement.assign] = result.body;
+                    opts.emitter.emit(statement.assign, result.body);
+                }
+                return insertTx.cb(err, result);
+            }
+        });
+    }
 };
