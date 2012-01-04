@@ -46,17 +46,16 @@ exports.exec = function(args) {
     cb = args.callback;
     holder = {};
 
-    // Prepare params (the latter ones in the arg chain override the former ones)
-    params = prepareParams(resource.defaults,
-        request.headers,
-        request.params,
-        request.routeParams,
+    // Prepare params (former ones override the later ones)
+    params = prepareParams(context,
+        args.params,
         request.body,
-        args.params);
-    // Apps can pass a holder with state - chain it up.
-    if(context) {
-        params.__proto__ = context;
-    }
+        request.routeParams,
+        request.params,
+        request.headers,
+        resource.defaults,
+        {config: global.opts.config}
+    );
 
     // Validate all params - make sure to wrap user code in try/catch
     try {
@@ -419,7 +418,7 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
                     });
                 }
             }, function(error) {
-                e.body = respData;
+                error.body = respData;
                 return httpReqTx.cb(error);
             });
         });
@@ -446,17 +445,26 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
     clientRequest.end();
 }
 
-// Fill params from given args
+// Fill params from given args. In stead of merging params, simply wire up a __proto__ chain
+// Risky but faster.
 exports.prepareParams = prepareParams;
 function prepareParams() {
     var params = {};
-    _.each(arguments, function(arg) {
-        _.each(arg, function(v, p) {
-            if(v) {
-                params[p] = v;
-            }
-        });
-    });
+    var ref, arg;
+    for(var i = 0; i < arguments.length; i++) {
+        arg = arguments[i];
+        if(arg === undefined) {
+            continue;
+        }
+        if(ref === undefined) {
+            ref = arg;
+            params.__proto__ = ref;
+        }
+        else {
+            ref.__proto__ = arg;
+            ref = arg;
+        }
+    }
     return params;
 }
 
