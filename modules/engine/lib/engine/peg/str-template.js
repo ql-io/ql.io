@@ -137,6 +137,10 @@ module.exports = (function(){
                       current++;
                   }
               }
+              var tokenCount = 0;
+              for(i = 0; i < c.length; i++) {
+                if(c[i].variable) tokenCount++;
+              }
               return {
                   format: function(bag, keep) {
                       var str = '', i, j, ref, current;
@@ -163,7 +167,8 @@ module.exports = (function(){
                       }
                       return str;
                   },
-                  stream: o
+                  stream: o,
+                  tokenCount: tokenCount
               }
           })(result1)
           : null;
