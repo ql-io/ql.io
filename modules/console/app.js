@@ -252,6 +252,26 @@ var Console = module.exports = function(config, cb) {
         }
     });
 
+    app.get('/tables', function(req,res){
+        var holder = {
+            params: {fromRoute: true},
+            headers: {}
+        };
+        var execState = [];
+        engine.execute('show tables',
+            {
+                request: holder
+            },
+            function(emitter) {
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
+                emitter.on('end', function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                });
+            }
+        );
+    });
+
     app.get('/routes', function(req,res){
         var holder = {
             params: {},

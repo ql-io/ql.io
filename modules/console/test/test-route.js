@@ -439,5 +439,45 @@ module.exports = {
             req.end();
 
         });
+    },
+    'check /tables' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/tables',
+                    method : 'GET',
+                    headers : {
+                        'content-type' : 'application/json'
+                    }
+                };
+            var req = http.request(options);
+            req.addListener('response', function(resp) {
+                var data = '';
+                resp.addListener('data', function(chunk) {
+                    data += chunk;
+                });
+                resp.addListener('end', function() {
+                    var tables = JSON.parse(data);
+                    test.ok(_.isArray(tables), 'list tables result is not array');
+                    _.each(tables, function(table) {
+                        test.ok(table.name, "table 'name' not provided");
+                        test.ok(table.about, "table 'about' not provided")
+                    });
+                    c.app.close();
+                    test.done();
+                });
+            });
+            req.end();
+
+        });
     }
+
 }
