@@ -149,7 +149,6 @@ URITemplate  = c:( literal / expression )* {
     }
     return {
         format: function(values, defaults) {
-            var str = '', i, j, val, split = false, arr;
             return _format('', values, defaults);
         },
         merge: function() {

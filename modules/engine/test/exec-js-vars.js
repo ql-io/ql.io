@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-"use strict";
+'use strict';
 
 var Engine = require('../lib/engine');
 
@@ -22,7 +22,7 @@ var engine = new Engine(),
     sys = require('sys');
 
 module.exports = {
-    'return string': function(test) {
+    'return-string': function(test) {
         var script = 'b = "b"; return b;'
         engine.exec(script, function(err, result) {
             if(err) {
@@ -36,7 +36,7 @@ module.exports = {
         });
     },
 
-    'return number': function(test) {
+    'return-number': function(test) {
         var script = 'b = 12345; return b;'
         engine.exec(script, function(err, result) {
             if(err) {
@@ -49,7 +49,7 @@ module.exports = {
             }
         });
     },
-    'return true': function(test) {
+    'return-true': function(test) {
         var script = 'b = true; return b;'
         engine.exec(script, function(err, result) {
             if(err) {
@@ -62,7 +62,7 @@ module.exports = {
             }
         });
     },
-    'return false': function(test) {
+    'return-false': function(test) {
         var script = 'b = false; return b;'
         engine.exec(script, function(err, result) {
             if(err) {
@@ -75,7 +75,7 @@ module.exports = {
             }
         });
     },
-    'return arr': function(test) {
+    'return-arr': function(test) {
         var script = 'b = [1,2,3]; return b;'
         engine.exec(script, function(err, result) {
             if(err) {
@@ -88,7 +88,7 @@ module.exports = {
             }
         });
     },
-    'return obj': function(test) {
+    'return-obj': function(test) {
         var script = 'a = true;\n\
             b = false;\n\
             c = [1,2,3,4];\n\
@@ -118,6 +118,23 @@ module.exports = {
                 });
                 test.done();
             }
+        });
+    },
+
+    'fill-nested-tokens': function(test) {
+        var script = 'config = {\
+          "p1": "v1",\
+          "ua": "safari",\
+          "safari": {\
+             "apikey": "1234"\
+           }\
+        };\
+        c = "{config.{config.ua}.apikey}";\
+        return c;';
+
+        engine.exec(script, function(err, result) {
+            test.equals(1234, result.body);
+            test.done();
         });
     }
 };
