@@ -18,14 +18,16 @@
 
 var _ = require('underscore'),
     assert = require('assert');
+
 /**
- * Implements SHOW ROUTES
+ * Implements describe routes
  *
  * @param statement
  * @param cb
  */
+var cache = {};
 exports.exec = function(opts, statement, cb) {
-    var arr = [], routes = opts.routes, context = opts.context;
+var arr = [], routes = opts.routes, context = opts.context;
 
     assert.ok(opts.routes, 'Argument routes can not be undefined');
     assert.ok(statement, 'Argument statement can not be undefined');
@@ -42,9 +44,7 @@ exports.exec = function(opts, statement, cb) {
             },
             body:
                 _(routes).chain()
-               .filter(function(route, key){
-                        return key != 'simpleMap';
-                    })
+               .values()
                .map(function(aUrl){
                         return _.values(aUrl);
                     })
@@ -59,3 +59,4 @@ exports.exec = function(opts, statement, cb) {
         }
     );
 }
+

@@ -360,5 +360,58 @@ module.exports = {
 
             });
         });
+    },
+    'check /routes' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.get('/bing/bong', function(req, res) {
+                req.on('data', function(chunk) {
+                    // do nothing
+                });
+                req.on('end', function() {
+                    res.send(JSON.stringify(url.parse(req.url,true).query));
+                });
+            });
+
+            testHttpapp.listen(80126, function() {
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/routes',
+                    method : 'GET',
+                    headers : {
+                        'content-type' : 'application/json'
+                    }
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        var routes = JSON.parse(data);
+                        test.ok(_.isArray(routes), 'show routes result is not array');
+                        _.each(routes, function(route){
+                            test.ok(route.path, 'expected route info to contain "path"');
+                            test.ok(route.method, 'expected route info to contain "method"');
+                            test.ok(route.about, 'expected route info to contain "about"');
+                        });
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.end();
+
+            });
+        });
     }
 }
