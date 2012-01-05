@@ -2,17 +2,17 @@
  * Copyright 2011 eBay Software Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
-Ê* you may not use this file except in compliance with the License.
-Ê* You may obtain a copy of the License at
-Ê*
-Ê* Ê Êhttp://www.apache.org/licenses/LICENSE-2.0
-Ê*
-Ê* Unless required by applicable law or agreed to in writing, software
-Ê* distributed under the License is distributed on an "AS IS" BASIS,
-Ê* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-Ê* See the License for the specific language governing permissions and
-Ê* limitations under the License.
-Ê*/
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 // Tokenize strings for '{' and '}'
 // Also supports nested tokens such as '{foo{bar{baz}barr}}'
@@ -25,29 +25,29 @@
                     !(value.propertyIsEnumerable('length')) &&
                     typeof value.splice === 'function') {
                     s = 'array';
-Ê Ê Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê Ê Ê else {
-Ê Ê Ê Ê Ê Ê Ê Ê s = 'null';
-Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê }
-Ê Ê Ê Ê return s;
-Ê Ê }
-Ê Ê function select(path, obj) {
-Ê Ê Ê Ê var splits = !path ? [] : path.split('.');
-Ê Ê Ê Ê var curr = obj, ctype;
-Ê Ê Ê Ê for(var i = 0; i < splits.length; i++) {
-Ê Ê Ê Ê Ê Ê if(curr[splits[i]]) {
-Ê Ê Ê Ê Ê Ê Ê Ê curr = curr[splits[i]];
-Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê Ê Ê else {
-Ê Ê Ê Ê Ê Ê Ê Ê return null;
-Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê }
+                }
+            }
+            else {
+                s = 'null';
+            }
+        }
+        return s;
+    }
+    function select(path, obj) {
+        var splits = !path ? [] : path.split('.');
+        var curr = obj, ctype;
+        for(var i = 0; i < splits.length; i++) {
+            if(curr[splits[i]]) {
+                curr = curr[splits[i]];
+            }
+            else {
+                return null;
+            }
+        }
         var ctype = typeOf(curr);
         if(ctype === 'array' || ctype === 'object') curr = undefined;
-Ê Ê Ê Ê return curr;
-Ê Ê }
+        return curr;
+    }
     function stringify(v) {
       var str  = '';
       var type = typeOf(v);
@@ -64,109 +64,109 @@
       }
       return str;
     }
-Ê Ê function append(arr) {
-Ê Ê Ê Ê var str = '';
-Ê Ê Ê Ê for(var i = 0; i < arr.length; i++) {
-Ê Ê Ê Ê Ê Ê if(typeOf(arr[i]) == 'array') {
-Ê Ê Ê Ê Ê Ê Ê Ê str += append(arr[i]);
-Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê Ê Ê else if (typeof arr[i] === 'object') {
-Ê Ê Ê Ê Ê Ê Ê Ê str += JSON.stringify(arr[i].object);
-Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê Ê Ê else {
-Ê Ê Ê Ê Ê Ê Ê Ê str += arr[i];
-Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê }
-Ê Ê Ê Ê return str;
-Ê Ê }
+    function append(arr) {
+        var str = '';
+        for(var i = 0; i < arr.length; i++) {
+            if(typeOf(arr[i]) == 'array') {
+                str += append(arr[i]);
+            }
+            else if (typeof arr[i] === 'object') {
+                str += JSON.stringify(arr[i].object);
+            }
+            else {
+                str += arr[i];
+            }
+        }
+        return str;
+    }
     function _format(str, stream, bag, keep) {
-Ê Ê     bag = bag || {};
-Ê Ê Ê Ê var i, j, val, ele, str = '';
-Ê Ê Ê Ê for(i = 0; i < stream.length; i++) {
-Ê Ê Ê Ê     ele = stream[i];
-Ê Ê Ê Ê Ê Ê if(ele.constructor === String) {
-Ê Ê Ê Ê Ê Ê     str = str + ele;
-Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê Ê Ê else {
-Ê Ê Ê Ê Ê Ê     if(ele.variable.constructor == Array) {
-Ê Ê Ê Ê Ê Ê Ê Ê     // Case of nested token - only single valued for now
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê key = _format('', ele.variable, bag, keep);
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê val = select(key, bag);
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê if(val) {
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê     str = str + val;
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê else if(keep) {
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê     str = str + '{' + ele.str + '}'
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê Ê Ê Ê   }
-Ê Ê Ê Ê Ê Ê Ê Ê else {
-Ê Ê Ê Ê Ê Ê Ê Ê     val = select(ele.variable, bag);
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê if(val) {
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê     str = str + val;
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê else if(keep) {
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê     str = str + '{' + ele.str + '}'
-Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê Ê Ê }
-Ê Ê Ê Ê }
-Ê Ê     return str;
+        bag = bag || {};
+        var i, j, val, ele, str = '';
+        for(i = 0; i < stream.length; i++) {
+            ele = stream[i];
+            if(ele.constructor === String) {
+                str = str + ele;
+            }
+            else {
+                if(ele.variable.constructor == Array) {
+                    // Case of nested token - only single valued for now
+                    key = _format('', ele.variable, bag, keep);
+                    val = select(key, bag);
+                    if(val) {
+                        str = str + val;
+                    }
+                    else if(keep) {
+                        str = str + '{' + ele.str + '}'
+                    }
+                }
+                else {
+                    val = select(ele.variable, bag);
+                    if(val) {
+                        str = str + val;
+                    }
+                    else if(keep) {
+                        str = str + '{' + ele.str + '}'
+                    }
+                }
+            }
+        }
+        return str;
     }
 }
 
 start = template
 
 template = c:( expression / literal )* {
-Ê Ê var o = [];
-Ê Ê o.push(c[0]);
-Ê Ê var current = 0;
-Ê Ê for(var i = 1; i < c.length; i++) {
-Ê Ê Ê Ê if(typeof c[i] === 'string' && typeof o[current] === 'string') {
-Ê Ê Ê Ê Ê Ê o[current] = o[current] + c[i];
-Ê Ê Ê Ê }
-Ê Ê Ê Ê else {
-Ê Ê Ê Ê Ê Ê o.push(c[i]);
-Ê Ê Ê Ê Ê Ê current++;
-Ê Ê Ê Ê }
-Ê Ê }
-Ê Ê return {
-Ê Ê Ê Ê format: function(bag, keep) {
+    var o = [];
+    o.push(c[0]);
+    var current = 0;
+    for(var i = 1; i < c.length; i++) {
+        if(typeof c[i] === 'string' && typeof o[current] === 'string') {
+            o[current] = o[current] + c[i];
+        }
+        else {
+            o.push(c[i]);
+            current++;
+        }
+    }
+    return {
+        format: function(bag, keep) {
             return _format('', o, bag, keep);
-Ê Ê Ê Ê },
-Ê Ê Ê Ê stream: o
-Ê Ê }
+        },
+        stream: o
+    }
 }
 
 literal = (([^^ "'<>\`{}]) / ' ') / expression
 
-expression = Ê"{" v:variable "}" {
-Ê Ê var token = {
-Ê Ê Ê Ê variable: v,
+expression =  "{" v:variable "}" {
+    var token = {
+        variable: v,
         str: stringify(v)
-Ê Ê };
-Ê Ê return token;
+    };
+    return token;
 }
 
 variable = l:literal* {
-Ê Ê var o = [];
-Ê Ê o.push(l[0]);
-Ê Ê var current = 0;
-Ê Ê for(var i = 1; i < l.length; i++) {
-Ê Ê Ê Ê if(typeof l[i] === 'string' && typeof o[current] === 'string') {
-Ê Ê Ê Ê Ê Ê o[current] = o[current] + l[i];
-Ê Ê Ê Ê }
-Ê Ê Ê Ê else {
-Ê Ê Ê Ê Ê Ê o.push(l[i]);
-Ê Ê Ê Ê Ê Ê current++;
-Ê Ê Ê Ê }
-Ê Ê }
-Ê Ê return (o.length === 1) ? o[0] : o;
+    var o = [];
+    o.push(l[0]);
+    var current = 0;
+    for(var i = 1; i < l.length; i++) {
+        if(typeof l[i] === 'string' && typeof o[current] === 'string') {
+            o[current] = o[current] + l[i];
+        }
+        else {
+            o.push(l[i]);
+            current++;
+        }
+    }
+    return (o.length === 1) ? o[0] : o;
 }
 
 digits = d:[0-9]* {
-Ê Ê var str = '';
-Ê Ê for(var i = 0; i < d.length; i++) {
-Ê Ê Ê Ê str += d[i];
-Ê Ê }
-Ê Ê return str;
+    var str = '';
+    for(var i = 0; i < d.length; i++) {
+        str += d[i];
+    }
+    return str;
 }
