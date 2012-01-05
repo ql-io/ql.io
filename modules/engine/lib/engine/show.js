@@ -27,7 +27,7 @@ var _ = require('underscore'),
  */
 exports.exec = function(opts, statement, cb) {
     var arr = [], tables = opts.tables, tempResources = opts.tempResources,
-        context = opts.context;
+        context = opts.context, params = opts.request.params || {};
 
     assert.ok(opts.tables, 'Argument tables can not be undefined');
     assert.ok(statement, 'Argument statement can not be undefined');
@@ -49,6 +49,8 @@ exports.exec = function(opts, statement, cb) {
             headers: {
                 'content-type': 'application/json'
             },
-            body: arr
+            body: params.fromRoute ? _.map(arr, function(a){
+                return { 'name': a, 'about': '/table?name='+encodeURIComponent(a) };
+            }):arr
         });
 }
