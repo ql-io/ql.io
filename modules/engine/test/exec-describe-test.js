@@ -29,9 +29,8 @@ var engine = new Engine({
     connection: 'close'
 });
 
-var q;
 exports['describe'] = function (test) {
-    q = 'describe ebay.finding.items';
+    var q = 'describe ebay.finding.items';
     engine.exec(q, function(err, list) {
         if (err) {
             test.fail('got error: ' + err.stack);
@@ -42,4 +41,32 @@ exports['describe'] = function (test) {
             test.done();
         }
     });
+};
+
+exports['describe - for routes'] = function (test) {
+    var opts = {
+        request: {
+            headers: {},
+            params: {fromRoute: true}
+        },
+        script: 'describe ebay.finding.items',
+        cb: function(err, list) {
+
+            if (err) {
+                test.fail('got error: ' + err.stack);
+                test.done();
+            }
+            else {
+                test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+                test.equals(list.body.name, 'ebay.finding.items');
+                test.equals(list.body.about, '/table?name=ebay.finding.items');
+                test.ok(list.body.select, "expected statement select");
+                test.ok(list.body.select.request, "expected request for statement select");
+                test.ok(list.body.select.params, "expected params for statement select");
+                test.done();
+            }
+        }
+    };
+
+    engine.exec(opts);
 };

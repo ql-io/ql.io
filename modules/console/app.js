@@ -272,6 +272,40 @@ var Console = module.exports = function(config, cb) {
         );
     });
 
+    app.get('/table', function(req,res){
+        var holder = {
+            params: {fromRoute: true},
+            headers: {}
+        };
+
+        var name = req.param('name');
+
+        if (!name) {
+            res.writeHead(400, 'Bad input', {
+                'content-type' : 'application/json'
+            });
+            res.write(
+                JSON.stringify({'err' : 'Missing table name: Usage /table?name=some-tablename'}
+                ));
+            res.end();
+            return;
+        }
+
+        var execState = [];
+        engine.execute('describe' + decodeURIComponent(name),
+            {
+                request: holder
+            },
+            function(emitter) {
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
+                emitter.on('end', function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                });
+            }
+        );
+    });
+
     app.get('/routes', function(req,res){
         var holder = {
             params: {},

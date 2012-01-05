@@ -16,7 +16,11 @@
 
 "use strict"
 
-var _ = require('underscore'), Console = require('../app.js'), http = require('http'), express = require('express'), url = require('url');
+var _ = require('underscore'),
+    Console = require('../app.js'),
+    http = require('http'),
+    express = require('express'),
+    url = require('url');
 
 module.exports = {
     'check delete' : function(test) {
@@ -478,6 +482,43 @@ module.exports = {
             req.end();
 
         });
+    },
+    'check /table' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/table?name=ebay.shopping.userprofile',
+                    method : 'GET',
+                    headers : {
+                        'content-type' : 'application/json'
+                    }
+                };
+            var req = http.request(options);
+            req.addListener('response', function(resp) {
+                var data = '';
+                resp.addListener('data', function(chunk) {
+                    data += chunk;
+                });
+                resp.addListener('end', function() {
+                    var table = JSON.parse(data);
+                    test.equals(table.name, 'ebay.shopping.userprofile');
+                    test.equals(table.about, '/table?name=ebay.shopping.userprofile');
+                    test.ok(table.select, "expected statement select");
+                    test.ok(table.select.request, "expected request for statement select");
+                    test.ok(table.select.params, "expected params for statement select");
+                    c.app.close();
+                    test.done();
+                });
+            });
+            req.end();
+        });
     }
-
 }
