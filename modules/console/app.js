@@ -272,6 +272,40 @@ var Console = module.exports = function(config, cb) {
         );
     });
 
+    app.get('/route', function(req,res){
+        var holder = {
+            params: {},
+            headers: {}
+        };
+        var path = req.param('path');
+        var method = req.param('method');
+
+        if (!path || !method) {
+            res.writeHead(400, 'Bad input', {
+                'content-type' : 'application/json'
+            });
+            res.write(
+                JSON.stringify({'err' : 'Missing path name or method: Usage /route?path=some-path&method=http-method'}
+                ));
+            res.end();
+            return;
+        }
+
+        var execState = [];
+        engine.execute('describe route "' + decodeURIComponent(path) + '" using method ' + method,
+            {
+                request: holder
+            },
+            function(emitter) {
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
+                emitter.on('end', function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                });
+            }
+        );
+    });
+
     app.get('/q', function(req, res) {
             var holder = {
                 params: {},

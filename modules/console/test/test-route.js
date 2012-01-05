@@ -16,11 +16,7 @@
 
 "use strict"
 
-var _ = require('underscore'),
-    Console = require('../app.js'),
-    http = require('http'),
-    express = require('express'),
-    url = require('url');
+var _ = require('underscore'), Console = require('../app.js'), http = require('http'), express = require('express'), url = require('url');
 
 module.exports = {
     'check delete' : function(test) {
@@ -280,7 +276,7 @@ module.exports = {
                     // do nothing
                 });
                 req.on('end', function() {
-                    res.send(JSON.stringify(url.parse(req.url,true).query));
+                    res.send(JSON.stringify(url.parse(req.url, true).query));
                 });
             });
 
@@ -328,7 +324,7 @@ module.exports = {
                     // do nothing
                 });
                 req.on('end', function() {
-                    res.send(JSON.stringify(url.parse(req.url,true).query));
+                    res.send(JSON.stringify(url.parse(req.url, true).query));
                 });
             });
 
@@ -370,18 +366,7 @@ module.exports = {
             connection : 'close'
         });
         c.app.listen(3000, function() {
-            var testHttpapp = express.createServer();
-            testHttpapp.get('/bing/bong', function(req, res) {
-                req.on('data', function(chunk) {
-                    // do nothing
-                });
-                req.on('end', function() {
-                    res.send(JSON.stringify(url.parse(req.url,true).query));
-                });
-            });
-
-            testHttpapp.listen(80126, function() {
-                var options = {
+            var options = {
                     host : 'localhost',
                     port : 3000,
                     path : '/routes',
@@ -390,28 +375,69 @@ module.exports = {
                         'content-type' : 'application/json'
                     }
                 };
-                var req = http.request(options);
-                req.addListener('response', function(resp) {
-                    var data = '';
-                    resp.addListener('data', function(chunk) {
-                        data += chunk;
-                    });
-                    resp.addListener('end', function() {
-                        var routes = JSON.parse(data);
-                        test.ok(_.isArray(routes), 'show routes result is not array');
-                        _.each(routes, function(route){
-                            test.ok(route.path, 'expected route info to contain "path"');
-                            test.ok(route.method, 'expected route info to contain "method"');
-                            test.ok(route.about, 'expected route info to contain "about"');
-                        });
-                        c.app.close();
-                        testHttpapp.close();
-                        test.done();
-                    });
+            var req = http.request(options);
+            req.addListener('response', function(resp) {
+                var data = '';
+                resp.addListener('data', function(chunk) {
+                    data += chunk;
                 });
-                req.end();
-
+                resp.addListener('end', function() {
+                    var routes = JSON.parse(data);
+                    test.ok(_.isArray(routes), 'show routes result is not array');
+                    _.each(routes, function(route) {
+                        test.ok(route.path, 'expected route info to contain "path"');
+                        test.ok(route.method, 'expected route info to contain "method"');
+                        test.ok(route.about, 'expected route info to contain "about"');
+                    });
+                    c.app.close();
+                    test.done();
+                });
             });
+            req.end();
+
+        });
+    },
+    'check /route' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/route?path=%2Ffoo%2Fbar%2F%7Bselector%7D%3Fuserid%3D%7BuserId%7D%26itemid%3D%7BitemId%7D&method=get',
+                    method : 'GET',
+                    headers : {
+                        'content-type' : 'application/json'
+                    }
+                };
+            var req = http.request(options);
+            req.addListener('response', function(resp) {
+                var data = '';
+                resp.addListener('data', function(chunk) {
+                    data += chunk;
+                });
+                resp.addListener('end', function() {
+                    var route = JSON.parse(data);
+                    test.equal(route.method, 'get');
+                    test.equal(route.path, '/foo/bar/{selector}?userid={userId}&itemid={itemId}');
+                    test.equal(route.about, '/route?path=%2Ffoo%2Fbar%2F%7Bselector%7D%3Fuserid%3D%7BuserId%7D%26itemid%3D%7BitemId%7D&method=get');
+                    test.ok(_.isArray(route.info), 'list.body.info is not array');
+                    test.ok(route.info.length > 0, 'Expected length > 0');
+                    test.ok(_.isArray(route.tables), 'list.body.tables is not array');
+                    test.ok(route.tables.length == 5, 'Expected length = 5');
+                    test.ok(_.isArray(route.related), 'list.body.related is not array');
+                    test.ok(route.related.length == 0, 'Expected length = 0');
+                    c.app.close();
+                    test.done();
+                });
+            });
+            req.end();
+
         });
     }
 }
