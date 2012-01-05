@@ -259,7 +259,6 @@ module.exports = (function(){
               }
               return {
                   format: function(values, defaults) {
-                      var str = '', i, j, val, split = false, arr;
                       return _format('', values, defaults);
                   },
                   merge: function() {

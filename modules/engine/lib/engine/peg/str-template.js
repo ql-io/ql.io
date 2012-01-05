@@ -10,13 +10,11 @@ module.exports = (function(){
      */
     parse: function(input, startRule) {
       var parseFunctions = {
+        "digits": parse_digits,
         "expression": parse_expression,
-        "identifier": parse_identifier,
         "literal": parse_literal,
-        "operator": parse_operator,
         "template": parse_template,
-        "variable": parse_variable,
-        "word": parse_word
+        "variable": parse_variable
       };
 
       if (startRule !== undefined) {
@@ -137,38 +135,11 @@ module.exports = (function(){
                       current++;
                   }
               }
-              var tokenCount = 0;
-              for(i = 0; i < c.length; i++) {
-                if(c[i].variable) tokenCount++;
-              }
               return {
                   format: function(bag, keep) {
-                      var str = '', i, j, ref, current;
-                      for(i = 0; i < o.length; i++) {
-                          if(typeof o[i] === 'string') {
-                              str = str + o[i];
-                          }
-                          else {
-                              current = o[i].variable;
-                              ref = bag;
-                              for(j = 0; j < current.length; j++) {
-                                  ref = ref[current[j]];
-                                  if(ref === undefined) {
-                                      break;
-                                  }
-                              }
-                              if(ref) {
-                                  str = str + ref;
-                              }
-                              else if(keep) {
-                                  str = str + '{' + o[i].variable + '}'
-                              }
-                          }
-                      }
-                      return str;
+                      return _format('', o, bag, keep);
                   },
-                  stream: o,
-                  tokenCount: tokenCount
+                  stream: o
               }
           })(result1)
           : null;
@@ -197,27 +168,37 @@ module.exports = (function(){
         }
 
 
-        if (input.substr(pos).match(/^[^"'<>'`']/) !== null) {
-          var result2 = input.charAt(pos);
+        if (input.substr(pos).match(/^[^^ "'<>`{}]/) !== null) {
+          var result4 = input.charAt(pos);
           pos++;
         } else {
-          var result2 = null;
+          var result4 = null;
           if (reportMatchFailures) {
-            matchFailed("[^\"'<>'`']");
+            matchFailed("[^^ \"'<>`{}]");
           }
         }
-        if (result2 !== null) {
-          var result0 = result2;
+        if (result4 !== null) {
+          var result2 = result4;
         } else {
           if (input.substr(pos, 1) === " ") {
-            var result1 = " ";
+            var result3 = " ";
             pos += 1;
           } else {
-            var result1 = null;
+            var result3 = null;
             if (reportMatchFailures) {
               matchFailed("\" \"");
             }
           }
+          if (result3 !== null) {
+            var result2 = result3;
+          } else {
+            var result2 = null;;
+          };
+        }
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result1 = parse_expression();
           if (result1 !== null) {
             var result0 = result1;
           } else {
@@ -282,208 +263,12 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(v) {
-              return {
-                  variable: v
-              }
+              var token = {
+                  variable: v,
+                  str: stringify(v)
+              };
+              return token;
           })(result1[1])
-          : null;
-        if (result2 !== null) {
-          var result0 = result2;
-        } else {
-          var result0 = null;
-          pos = savedPos0;
-        }
-
-
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
-        return result0;
-      }
-
-      function parse_operator() {
-        var cacheKey = 'operator@' + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
-
-        if (input.substr(pos, 1) === "^") {
-          var result0 = "^";
-          pos += 1;
-        } else {
-          var result0 = null;
-          if (reportMatchFailures) {
-            matchFailed("\"^\"");
-          }
-        }
-
-
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
-        return result0;
-      }
-
-      function parse_identifier() {
-        var cacheKey = 'identifier@' + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
-
-        var savedPos0 = pos;
-        var savedPos1 = pos;
-        var result3 = parse_word();
-        if (result3 !== null) {
-          var result4 = [];
-          var savedPos2 = pos;
-          if (input.substr(pos, 1) === ".") {
-            var result6 = ".";
-            pos += 1;
-          } else {
-            var result6 = null;
-            if (reportMatchFailures) {
-              matchFailed("\".\"");
-            }
-          }
-          if (result6 !== null) {
-            var result7 = parse_word();
-            if (result7 !== null) {
-              var result5 = [result6, result7];
-            } else {
-              var result5 = null;
-              pos = savedPos2;
-            }
-          } else {
-            var result5 = null;
-            pos = savedPos2;
-          }
-          while (result5 !== null) {
-            result4.push(result5);
-            var savedPos2 = pos;
-            if (input.substr(pos, 1) === ".") {
-              var result6 = ".";
-              pos += 1;
-            } else {
-              var result6 = null;
-              if (reportMatchFailures) {
-                matchFailed("\".\"");
-              }
-            }
-            if (result6 !== null) {
-              var result7 = parse_word();
-              if (result7 !== null) {
-                var result5 = [result6, result7];
-              } else {
-                var result5 = null;
-                pos = savedPos2;
-              }
-            } else {
-              var result5 = null;
-              pos = savedPos2;
-            }
-          }
-          if (result4 !== null) {
-            var result1 = [result3, result4];
-          } else {
-            var result1 = null;
-            pos = savedPos1;
-          }
-        } else {
-          var result1 = null;
-          pos = savedPos1;
-        }
-        var result2 = result1 !== null
-          ? (function(obj) {
-              return append(obj);
-          })(result1)
-          : null;
-        if (result2 !== null) {
-          var result0 = result2;
-        } else {
-          var result0 = null;
-          pos = savedPos0;
-        }
-
-
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
-        return result0;
-      }
-
-      function parse_word() {
-        var cacheKey = 'word@' + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
-
-        var savedPos0 = pos;
-        var savedPos1 = pos;
-        if (input.substr(pos).match(/^[a-zA-Z$]/) !== null) {
-          var result3 = input.charAt(pos);
-          pos++;
-        } else {
-          var result3 = null;
-          if (reportMatchFailures) {
-            matchFailed("[a-zA-Z$]");
-          }
-        }
-        if (result3 !== null) {
-          var result4 = [];
-          if (input.substr(pos).match(/^[a-zA-Z_0-9]/) !== null) {
-            var result5 = input.charAt(pos);
-            pos++;
-          } else {
-            var result5 = null;
-            if (reportMatchFailures) {
-              matchFailed("[a-zA-Z_0-9]");
-            }
-          }
-          while (result5 !== null) {
-            result4.push(result5);
-            if (input.substr(pos).match(/^[a-zA-Z_0-9]/) !== null) {
-              var result5 = input.charAt(pos);
-              pos++;
-            } else {
-              var result5 = null;
-              if (reportMatchFailures) {
-                matchFailed("[a-zA-Z_0-9]");
-              }
-            }
-          }
-          if (result4 !== null) {
-            var result1 = [result3, result4];
-          } else {
-            var result1 = null;
-            pos = savedPos1;
-          }
-        } else {
-          var result1 = null;
-          pos = savedPos1;
-        }
-        var result2 = result1 !== null
-          ? (function(chars) {
-              var ret = chars[0];
-              for(i = 1; i < chars.length; i++) {
-                  ret = ret + chars[i].join('');
-              }
-              return ret;
-          })(result1)
           : null;
         if (result2 !== null) {
           var result0 = result2;
@@ -512,16 +297,83 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var result1 = [];
-        var result3 = parse_identifier();
+        var result3 = parse_literal();
         while (result3 !== null) {
           result1.push(result3);
-          var result3 = parse_identifier();
+          var result3 = parse_literal();
         }
         var result2 = result1 !== null
           ? (function(l) {
-              var r = '';
-              for(i = 0; i < l.length; i++) { r += l[i]; }
-              return r.split('.');
+              var o = [];
+              o.push(l[0]);
+              var current = 0;
+              for(var i = 1; i < l.length; i++) {
+                  if(typeof l[i] === 'string' && typeof o[current] === 'string') {
+                      o[current] = o[current] + l[i];
+                  }
+                  else {
+                      o.push(l[i]);
+                      current++;
+                  }
+              }
+              return (o.length === 1) ? o[0] : o;
+          })(result1)
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_digits() {
+        var cacheKey = 'digits@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        var result1 = [];
+        if (input.substr(pos).match(/^[0-9]/) !== null) {
+          var result3 = input.charAt(pos);
+          pos++;
+        } else {
+          var result3 = null;
+          if (reportMatchFailures) {
+            matchFailed("[0-9]");
+          }
+        }
+        while (result3 !== null) {
+          result1.push(result3);
+          if (input.substr(pos).match(/^[0-9]/) !== null) {
+            var result3 = input.charAt(pos);
+            pos++;
+          } else {
+            var result3 = null;
+            if (reportMatchFailures) {
+              matchFailed("[0-9]");
+            }
+          }
+        }
+        var result2 = result1 !== null
+          ? (function(d) {
+              var str = '';
+              for(var i = 0; i < d.length; i++) {
+                  str += d[i];
+              }
+              return str;
           })(result1)
           : null;
         if (result2 !== null) {
@@ -639,6 +491,68 @@ module.exports = (function(){
 
         }
 
+        function select(path, obj) {
+
+            var splits = !path ? [] : path.split('.');
+
+            var curr = obj, ctype;
+
+            for(var i = 0; i < splits.length; i++) {
+
+                if(curr[splits[i]]) {
+
+                    curr = curr[splits[i]];
+
+                }
+
+                else {
+
+                    return null;
+
+                }
+
+            }
+
+            var ctype = typeOf(curr);
+
+            if(ctype === 'array' || ctype === 'object') curr = undefined;
+
+            return curr;
+
+        }
+
+        function stringify(v) {
+
+          var str  = '';
+
+          var type = typeOf(v);
+
+          if(type === 'array') {
+
+              for(var i = 0; i < v.length; i++) {
+
+                  str = str + stringify(v[i]);
+
+              }
+
+          }
+
+          else if(type === 'object' && v.variable) {
+
+              str = str + '{' + stringify(v.variable) + '}';
+
+          }
+
+          else if(type === 'string') {
+
+              str = str + v;
+
+          }
+
+          return str;
+
+        }
+
         function append(arr) {
 
             var str = '';
@@ -660,6 +574,72 @@ module.exports = (function(){
                 else {
 
                     str += arr[i];
+
+                }
+
+            }
+
+            return str;
+
+        }
+
+        function _format(str, stream, bag, keep) {
+
+            bag = bag || {};
+
+            var i, j, val, ele, str = '';
+
+            for(i = 0; i < stream.length; i++) {
+
+                ele = stream[i];
+
+                if(ele.constructor === String) {
+
+                    str = str + ele;
+
+                }
+
+                else {
+
+                    if(ele.variable.constructor == Array) {
+
+                        // Case of nested token - only single valued for now
+
+                        key = _format('', ele.variable, bag, keep);
+
+                        val = select(key, bag);
+
+                        if(val) {
+
+                            str = str + val;
+
+                        }
+
+                        else if(keep) {
+
+                            str = str + '{' + ele.str + '}'
+
+                        }
+
+                    }
+
+                    else {
+
+                        val = select(ele.variable, bag);
+
+                        if(val) {
+
+                            str = str + val;
+
+                        }
+
+                        else if(keep) {
+
+                            str = str + '{' + ele.str + '}'
+
+                        }
+
+                    }
 
                 }
 
