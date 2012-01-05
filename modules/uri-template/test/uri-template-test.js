@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-"use strict"
+'use strict'
 
 var uriTemplate = require(__dirname + '/../lib/uri-template'),
     sys = require('sys'),
@@ -46,7 +46,7 @@ module.exports = {
     },
 
     'required': function(test) {
-        var u = "http://www.subbu.org?p1={p1}&p2={^p2}&p3={p3}";
+        var u = 'http://www.subbu.org?p1={p1}&p2={^p2}&p3={p3}';
         var p = uriTemplate.parse(u);
         var e = [
             'http://www.subbu.org?p1=',
@@ -125,7 +125,7 @@ module.exports = {
     },
 
     'multivalued-split': function(test) {
-        var str = "http://www.subbu.org?p1={p1}&p2={p2}";
+        var str = 'http://www.subbu.org?p1={p1}&p2={p2}';
         var template = uriTemplate.parse(str);
         var uri = template.format({
             p1: 'v1',
@@ -139,7 +139,7 @@ module.exports = {
     },
 
     'multivalued-encode': function(test) {
-        var str = "http://www.subbu.org?p1={p1}&p2={|p2}";
+        var str = 'http://www.subbu.org?p1={p1}&p2={|p2}';
         var template = uriTemplate.parse(str);
         var uri = template.format({
             p1: 'v1',
@@ -150,7 +150,7 @@ module.exports = {
     },
 
     'multivalued-multi-multi': function(test) {
-        var str = "http://www.subbu.org?p1={p1}&p2={p2}&p3={p3}";
+        var str = 'http://www.subbu.org?p1={p1}&p2={p2}&p3={p3}';
         var template = uriTemplate.parse(str);
         try {
             template.format({
@@ -168,7 +168,7 @@ module.exports = {
     },
 
     'multivalued-required': function(test) {
-        var str = "http://www.subbu.org?p1={p1}&p2={^|p2}&p3={^|p3}";
+        var str = 'http://www.subbu.org?p1={p1}&p2={^|p2}&p3={^|p3}';
         var p = uriTemplate.parse(str);
         var e = [
             'http://www.subbu.org?p1=',
@@ -193,7 +193,7 @@ module.exports = {
     },
 
     'multivalued-required-max': function(test) {
-        var str = "http://www.subbu.org?p1={p1}&p2={^|p2}&p3={^|p3}&p4={^20|p4}";
+        var str = 'http://www.subbu.org?p1={p1}&p2={^|p2}&p3={^|p3}&p4={^20|p4}';
         var p = uriTemplate.parse(str);
         var e = [
             'http://www.subbu.org?p1=',
@@ -225,7 +225,7 @@ module.exports = {
     },
 
     'multivalued-split-max': function(test) {
-        var str = "http://www.subbu.org?p1={p1}&p2={p2}&p3={2|p3}";
+        var str = 'http://www.subbu.org?p1={p1}&p2={p2}&p3={2|p3}';
         var template = uriTemplate.parse(str);
         var uri = template.format({
             p1: 'v1',
@@ -240,7 +240,7 @@ module.exports = {
     },
 
     'multivalued-split-max-more': function(test) {
-        var str = "http://www.subbu.org?p1={p1}&p2={p2}&p3={2|p3}";
+        var str = 'http://www.subbu.org?p1={p1}&p2={p2}&p3={2|p3}';
         var template = uriTemplate.parse(str);
         var uri = template.format({
             p1: 'v1',
@@ -256,7 +256,7 @@ module.exports = {
     },
 
     'multivalued-split-max-less': function(test) {
-        var str = "http://www.subbu.org?p1={p1}&p2={p2}&p3={5|p3}";
+        var str = 'http://www.subbu.org?p1={p1}&p2={p2}&p3={5|p3}';
         var template = uriTemplate.parse(str);
         var uri = template.format({
             p1: 'v1',
@@ -268,7 +268,7 @@ module.exports = {
     },
 
     'encode': function(test) {
-        var str = "http://www.foo.com?p1={p1}&p2={p2}&p3={5|p3}";
+        var str = 'http://www.foo.com?p1={p1}&p2={p2}&p3={5|p3}';
         var template = uriTemplate.parse(str);
         var uri = template.format({
             p1: 'this is a value',
@@ -280,12 +280,54 @@ module.exports = {
     },
 
     'merge': function(test) {
-        var str = "http://www.foo.com?p1={p1}&p2={p2}&p3={#p3}";
+        var str = 'http://www.foo.com?p1={p1}&p2={p2}&p3={#p3}';
         var template = uriTemplate.parse(str);
         test.equals(template.merge(), 'block');
-        str = "http://www.foo.com?p1={p1}&p2={p2}&p3={p3}";
+        str = 'http://www.foo.com?p1={p1}&p2={p2}&p3={p3}';
         template = uriTemplate.parse(str);
         test.ok(template.merge(), 'field');
+        test.done();
+    },
+
+    'format-nested': function(test) {
+        var u = 'http://www.subbu.org?p1={a.p1}&p2={^a.p2}&p3={a.p3}';
+        var p = uriTemplate.parse(u);
+        var s = p.format({
+            a : {
+                p1: 'v1',
+                p2: 'v2',
+                p3: 'v3'
+            }
+        });
+        test.equal(s, 'http://www.subbu.org?p1=v1&p2=v2&p3=v3');
+        test.done();
+    },
+
+
+    'format-no-values': function(test) {
+        var u = 'http://www.subbu.org?p1={a.p1}&p2={a.p2}&p3={a.p3}';
+        var p = uriTemplate.parse(u);
+        var s = p.format({});
+        test.equal(s, 'http://www.subbu.org?p1=&p2=&p3=');
+        test.done();
+    },
+
+    'nested-tokens': function(test) {
+        var u = 'http://www.foo.com?p1={p1}&p2={config.{ua}.apikey}';
+        var p = uriTemplate.parse(u);
+        var util = require('util');
+
+        var s = p.format({
+            p1: 'v1',
+            ua: 'safari',
+            config: {
+                safari: {
+                    apikey: '1234'
+                }
+            }
+        }, true);
+
+        test.equal(s, 'http://www.foo.com?p1=v1&p2=1234');
         test.done();
     }
 };
