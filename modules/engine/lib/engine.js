@@ -440,11 +440,14 @@ function _execOne(opts, statement, cb) {
             create.exec(opts, statement, cb);
             break;
         case 'define' :
-            obj = jsonfill.fill(statement.object,
-                httpRequest.prepareParams(opts.context,
-                    opts.request.headers,
+            var params = httpRequest.prepareParams(opts.context,
+                    opts.request.body,
+                    opts.request.routeParams,
                     opts.request.params,
-                    opts.request.routeParams));
+                    opts.request.headers,
+                    {config: opts.config});
+
+            obj = jsonfill.fill(statement.object, params);
 
             opts.context[statement.assign] = obj;
             opts.emitter.emit(statement.assign, obj)
@@ -489,14 +492,18 @@ function _execOne(opts, statement, cb) {
                     })
                 }
                 else {
+                    var params = httpRequest.prepareParams(opts.context,
+                            opts.request.body,
+                            opts.request.routeParams,
+                            opts.request.params,
+                            opts.request.headers,
+                            {config: opts.config});
+
                     var ret = {
                         headers: {
                             'content-type': 'application/json'
                         },
-                        body: jsonfill.fill(lhs, httpRequest.prepareParams(opts.context,
-                            opts.request.headers,
-                            opts.request.params,
-                            opts.request.routeParams))
+                        body: jsonfill.fill(lhs, params)
                     };
                     cb(undefined, ret);
                 }
