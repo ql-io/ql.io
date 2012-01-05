@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-'use strict'
+'use strict';
 
 var cluster = require('cluster'),
-    http = require('http'),
     os = require('os'),
     fs = require('fs'),
     util = require('util'),
@@ -25,9 +24,7 @@ var cluster = require('cluster'),
     _ = require('underscore'),
     program = require('commander'),
     express = require('express'),
-    logger = require('winston'),
     Console = require('ql.io-console'),
-    ecv = require('ql.io-ecv'),
     misc = require('./misc.js');
 
 // Trap all uncaught exception here.
@@ -75,7 +72,6 @@ exports.exec = function(cb, opts) {
             master.shutdown();
         }
         else {
-            var disableConsole = Boolean(program.disableConsole);
             c = createConsole(program, function(app, emitter) {
                 master.listen(app, function() {
                     console.log('Listening on ' + port);
@@ -345,14 +341,12 @@ function getInflight(master) {
 
 function createConsole(program, cb) {
     var disableConsole = Boolean(program.disableConsole);
-    var c = new Console({
+    return new Console({
         'tables': program.tables,
         'routes': program.routes,
         'config': program.config,
         'enable console': !disableConsole,
-        'log levels': require('winston').config.syslog.levels});
-
-    cb(c.app);
+        'log levels': require('winston').config.syslog.levels}, cb);
 }
 
 
