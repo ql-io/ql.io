@@ -25,9 +25,10 @@ var _ = require('underscore'),
  * @param statement
  * @param cb
  */
-var cache = {};
+var verbs = ["del", "get", "patch", "post", "put"];
+
 exports.exec = function(opts, statement, cb) {
-var arr = [], routes = opts.routes, context = opts.context;
+var arr = [], routes = opts.routes, context = opts.context, record, otherVerbs = [];
 
     assert.ok(opts.routes, 'Argument routes can not be undefined');
     assert.ok(statement, 'Argument statement can not be undefined');
@@ -38,24 +39,37 @@ var arr = [], routes = opts.routes, context = opts.context;
         context[statement.assign] = routes;
     }
 
+    statement.method = statement.method === 'delete' ? 'del' : statement.method;
+
+    otherVerbs = _.filter(verbs, function(verb) {
+        return verb != statement.method && routes.simpleMap[verb + ':' + statement.path.value];
+    });
+
+    record = routes.simpleMap[statement.method + ':' + statement.path.value];
+
+    if(!record) {
+        cb({
+            message: 'No such route ' + statement.path.value + ' for HTTP method "' + 'statement.method"'
+        });
+    }
+
     cb(null, {
             headers: {
                 'content-type': 'application/json'
             },
             body:
-                _(routes).chain()
-               .values()
-               .map(function(aUrl){
-                        return _.values(aUrl);
-                    })
-               .flatten()
-               .pluck('routeInfo')
-               .map(function(aRoute) {
-                        return { path: aRoute.path.value, method: aRoute.method,
-                            about: '/route?path=' + encodeURIComponent(aRoute.path.value) + '&method=' + aRoute.method
-                        };
-                    })
-               .value()
+            {
+                'method': record.routeInfo.method,
+                'path'  : record.routeInfo.path.value,
+                'about' : '/route?path=' + encodeURIComponent(record.routeInfo.path.value) + '&method=' + record.routeInfo.method,
+                'info'  : record.info,
+                'tables': _.map(record.tables,function(table){
+                    return '/table?name='+encodeURIComponent(table);
+                }),
+                'related': _.map(otherVerbs, function(verb) {
+                    return '/route?path=' + encodeURIComponent(record.routeInfo.path.value) + '&method=' + verb;
+                })
+            }
         }
     );
 }

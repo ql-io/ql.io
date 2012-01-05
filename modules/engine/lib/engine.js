@@ -471,6 +471,7 @@ function _execOne(opts, statement, cb) {
             break;
         case 'describe route':
             describeRoute.exec(opts, statement, cb);
+            break;
         case 'return':
             //
             // TODO: This code needs to refactored when the result is a statement, along with

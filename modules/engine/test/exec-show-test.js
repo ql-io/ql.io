@@ -30,7 +30,7 @@ var engine = new Engine({
 var q;
 exports['show tables'] = function (test) {
     q = 'show tables';
-    engine.exec(q, function(err, list) {
+    engine.execute(q, function(err, list) {
 
         if (err) {
             test.fail('got error: ' + err.stack);
