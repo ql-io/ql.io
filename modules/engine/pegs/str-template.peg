@@ -15,7 +15,6 @@
  */
 
 // Tokenize strings for '{' and '}'
-// Also supports nested tokens such as '{foo{bar{baz}barr}}'
 {
     function typeOf(value) {
         var s = typeof value;
