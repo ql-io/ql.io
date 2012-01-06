@@ -39,10 +39,10 @@ exports.exec = function(opts, statement, cb) {
     assert.ok(statement, 'Argument statement can not be undefined');
     assert.ok(cb, 'Argument cb can not be undefined');
 
-    var tables = opts.tables, tempTables = opts.tempResources;
+    var tables = opts.tables, tempTables = opts.tempResources, params = opts.request.params || {};
 
     var table, template, desc;
-    var key = statement.source.name;
+    var key = statement.source.name + (params.fromRoute ? ":fromRoute" : "");
     desc = cache[key];
     if(desc) {
         return cb(undefined, {
@@ -54,31 +54,54 @@ exports.exec = function(opts, statement, cb) {
     }
 
     // If not cached
-    table = tables[key] || tempTables[key];
+    table = tables[statement.source.name] || tempTables[statement.source.name];
     if(table) {
-        fs.readFile(__dirname + '/describe.html.mu', 'utf8', function(err, data) {
-            if(err) {
-                return cb(err);
-            }
-            else {
-                // Escape {{ and }} before using mustache.
-                _.each(table.meta.statements, function(statement) {
-                    if(statement.body && statement.body.content) {
-                        statement.body.content = statement.body.content.replace(lreg, '{ {')
-                        statement.body.content = statement.body.content.replace(rreg, '} }')
-                    }
-                })
-                desc = mustache.to_html(data, table.meta);
-                // Undo escape {{ and }}
-                desc = desc.replace(ulreg, '{{')
-                desc = desc.replace(urreg, '}}')
-                cache[key] = desc;
-                cb(null, {
-                    headers: {'content-type': 'text/html'},
-                    body: desc
-                });
-            }
-        });
+        if (params.fromRoute) {
+            desc = {
+                'name' : table.meta.name,
+                'about': '/table?name='+ encodeURIComponent(table.meta.name),
+                'info': table.meta.comments || ''
+            };
+            _.each(table.meta.statements, function(statement){
+                desc[statement.type] = {
+                    'request' : statement.method + ' ' + statement.uri,
+                    'params'  : statement.params,
+                    'headers' : statement.headers
+                };
+            })
+
+            cache[key] = desc;
+            cb(null, {
+                headers: {'content-type': 'application/json'},
+                body: desc
+            });
+        }
+        else {
+            fs.readFile(__dirname + '/describe.html.mu', 'utf8', function(err, data) {
+                if(err) {
+                    return cb(err);
+                }
+                else {
+
+                    // Escape {{ and }} before using mustache.
+                    _.each(table.meta.statements, function(statement) {
+                        if (statement.body && statement.body.content) {
+                            statement.body.content = statement.body.content.replace(lreg, '{ {')
+                            statement.body.content = statement.body.content.replace(rreg, '} }')
+                        }
+                    })
+                    desc = mustache.to_html(data, table.meta);
+                    // Undo escape {{ and }}
+                    desc = desc.replace(ulreg, '{{')
+                    desc = desc.replace(urreg, '}}')
+                    cache[key] = desc;
+                    cb(null, {
+                        headers: {'content-type': 'text/html'},
+                        body: desc
+                    });
+                }
+            });
+        }
     }
     else {
         cb({

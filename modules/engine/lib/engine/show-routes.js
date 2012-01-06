@@ -18,7 +18,6 @@
 
 var _ = require('underscore'),
     assert = require('assert');
-
 /**
  * Implements SHOW ROUTES
  *
@@ -37,21 +36,24 @@ exports.exec = function(opts, statement, cb) {
         context[statement.assign] = routes;
     }
 
-
     cb(null, {
             headers: {
                 'content-type': 'application/json'
             },
             body:
                 _(routes).chain()
-               .values()
+               .filter(function(route, key){
+                        return key != 'simpleMap';
+                    })
                .map(function(aUrl){
                         return _.values(aUrl);
                     })
                .flatten()
                .pluck('routeInfo')
-               .map(function(aRoute){
-                        return { route: aRoute.path.value, method: aRoute.method };
+               .map(function(aRoute) {
+                        return { path: aRoute.path.value, method: aRoute.method,
+                            about: '/route?path=' + encodeURIComponent(aRoute.path.value) + '&method=' + aRoute.method
+                        };
                     })
                .value()
         }

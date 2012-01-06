@@ -39,7 +39,7 @@ exports['show routes test'] = function (test) {
         else {
             test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
             test.ok(_.isArray(list.body), 'show routes result is not array');
-            test.ok(list.body.length == 8, 'show routes result is not array');
+            test.ok(list.body.length == 8, 'Expected length 8 got ' + list.body.length);
             test.done();
         }
     });

@@ -26,6 +26,7 @@ var configLoader = require('./engine/config.js'),
     show = require('./engine/show.js'),
     showRoutes = require('./engine/show-routes.js'),
     describe = require('./engine/describe.js'),
+    describeRoute = require('./engine/describe-route.js'),
     create = require('./engine/create.js'),
     select = require('./engine/select.js'),
     insert = require('./engine/insert.js'),
@@ -245,7 +246,7 @@ Engine.prototype.execute = function() {
                 context: context,
                 request: request,
                 emitter: emitter,
-                logEmitter: this,
+                logEmitter: this
             }, cooked[0], function(err, results) {
                 if(err) {
                     that.emitError(engineEvent.event, err);
@@ -467,6 +468,9 @@ function _execOne(opts, statement, cb) {
             break;
         case 'describe':
             describe.exec(opts, statement, cb);
+            break;
+        case 'describe route':
+            describeRoute.exec(opts, statement, cb);
             break;
         case 'return':
             //

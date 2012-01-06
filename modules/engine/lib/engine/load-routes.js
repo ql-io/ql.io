@@ -31,7 +31,7 @@ exports.load = function (opts) {
         return {};
     }
 
-    var routes = {};
+    var routes = {simpleMap:{}};
     loadInternal(rootdir, '', logEmitter, routes);
     return routes;
 
@@ -61,7 +61,9 @@ function loadInternal(path, prefix, logEmitter, routes) {
         else if (stats.isFile() && /\.ql/.test(filename)) {
             var cooked = null,
                 typeReturn = null,
-                pieces = null;
+                pieces = null,
+                tables = [],
+                info = [];
 
             // Load route mapping files from the disk
             script = fs.readFileSync(path + filename, 'utf8');
@@ -74,6 +76,8 @@ function loadInternal(path, prefix, logEmitter, routes) {
              */
             try {
                 cooked = compiler.compile(script);
+                tables = findTables(cooked);
+                info = getRouteInfo(cooked);
             }
             catch(e) {
                 logEmitter.emitWarning('Error loading route ' + (path + filename));
@@ -112,14 +116,15 @@ function loadInternal(path, prefix, logEmitter, routes) {
                 if (!_.detect(routes[pieces.pathname][typeReturn.route.method], function(record) {
                     return _.isEqual(record.query, pieces.query);
                 })) {
-                    routes[pieces.pathname][typeReturn.route.method].push(
-                        {
+                    var routeRecord = {
                             script: cooked,
                             query: pieces.query,
                             routeInfo: typeReturn.route,
-                            routeScript: script
-                        }
-                    );
+                            tables: tables,
+                            info: info
+                        };
+                    routes[pieces.pathname][typeReturn.route.method].push(routeRecord);
+                    routes.simpleMap[typeReturn.route.method + ':' + typeReturn.route.path.value]=routeRecord;
                 } else {
                     logEmitter.emitError("Route already defined: " + script);
                 }
@@ -129,4 +134,54 @@ function loadInternal(path, prefix, logEmitter, routes) {
             logEmitter.emitError("Script doesn't contain route information: " + script);
         }
     });
+}
+
+// all comment lines prior to Return statement
+function getRouteInfo(cooked){
+    var info = [];
+    _.each(cooked, function(line, index){
+        if(line.type === 'return'){
+            for(var i = index -1; i > -1; i--){
+                if(cooked[i].type === 'comment'){
+                    info.unshift(cooked[i].text);
+                }
+            }
+        }
+    });
+    return info;
+}
+
+function findTables(cooked){
+    return walk(cooked, []);
+}
+
+function walk(obj, tables){
+    if(_.isArray(obj)){
+        tables = walkArray(obj, tables);
+    }
+    else if (!_.isString(obj) && !_.isNumber(obj)){
+        tables  = walkObj(obj, tables);
+    }
+    return tables;
+}
+
+function walkObj(obj, tables){
+    _.each(obj, function(value, name){
+        if (name === 'fromClause') {
+           tables =  _.union(tables,_.filter(_.pluck(value,'name'), function(entry) {
+                return entry && !(entry.indexOf("{") === 0);
+            }));
+        }
+        else {
+            tables = walk(value, tables);
+        }
+    });
+    return tables;
+}
+
+function walkArray(arr, tables){
+   _.each(arr, function(ele){
+       tables = walk(ele,tables);
+   });
+    return tables;
 }
