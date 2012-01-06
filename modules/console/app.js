@@ -16,18 +16,15 @@
 
 'use strict';
 
-var http = require('http'),
-    winston = require('winston'),
+var winston = require('winston'),
     express = require('express'),
     browserify = require('browserify'),
     headers = require('headers'),
-    check = require('validator').check,
     sanitize = require('validator').sanitize,
     connect = require('connect'),
     expat = require('xml2json'),
     assetManager = require('connect-assetmanager'),
     assetHandler = require('connect-assetmanager-handlers'),
-    EventEmitter = require('events').EventEmitter,
     Engine = require('ql.io-engine'),
     _ = require('underscore'),
     WebSocketServer = require('websocket').server;
@@ -580,8 +577,6 @@ var Console = module.exports = function(config, cb) {
             res.end();
         }
     }
-
-    app = server;
 
     // The caller gets the app and the engine/event emitter
     if(cb) {
