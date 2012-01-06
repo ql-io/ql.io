@@ -138,6 +138,22 @@ module.exports = (function(){
                       current++;
                   }
               }
+              function select(path, obj) {
+                  var splits = !path ? [] : path.split('.');
+                  var curr = obj;
+                  for(var i = 0; i < splits.length; i++) {
+                      if(curr[splits[i]]) {
+                          curr = curr[splits[i]];
+                          if(i < splits.length - 1 && curr.constructor === Array && curr.length > 0) {
+                              curr = curr[0];
+                          }
+                      }
+                      else {
+                          return null;
+                      }
+                  }
+                  return curr;
+              }
               function _append(str, val, encode) {
                   var j;
                   if(str.constructor === Array) {
@@ -150,80 +166,91 @@ module.exports = (function(){
                   }
                   return str;
               }
-              function _format(str, values, defaults) {
+              function _format(str, values, defaults, stream) {
                   values = values || {};
                   defaults = defaults || {};
-                  var i, j, val, split = false, arr, subset;
-                  for(i = 0; i < o.length; i++) {
-                      if(o[i].constructor === String) {
-                          str = _append(str, o[i], false);
+                  var i, j, val, split = false, arr, subset, key;
+                  stream = stream || o;
+                  var ele;
+                  for(i = 0; i < stream.length; i++) {
+                      ele = stream[i];
+                      if(ele.constructor === String) {
+                          str = _append(str, ele, false);
                       }
                       else {
-                          val = values[o[i].variable] || defaults[o[i].variable];
-                          if(val) {
-                              if(val.constructor == Array) {
-                                  // But is the token multivalued?
-                                  if(val.length === 1) {
-                                      str = _append(str, val, true);
-                                  }
-                                  else if(o[i].multivalued) {
-                                      if(o[i].max) {
-                                          if(val.length <= o[i].max) {
-                                              // Append as usual
-                                              str = _append(str, val, true);
-                                          }
-                                          else {
-                                              // Split the values into multiple and append each
-                                              if(split) {
-                                                  throw {
-                                                      error: 'Template can not have multiple single-valued params with multiple values'
-                                                  }
+                          if(ele.variable.constructor == Array) {
+                              // Case of nested token - only single valued for now
+                              key = _format('', values, defaults, ele.variable);
+                              val = select(key, values) || select(key, defaults);
+                              str = str + val;
+                          }
+                          else {
+                              val = select(ele.variable, values) || select(ele.variable, defaults);
+                              if(val) {
+                                  if(val.constructor == Array) {
+                                      // But is the token multivalued?
+                                      if(val.length === 1) {
+                                          str = _append(str, val, true);
+                                      }
+                                      else if(ele.multivalued) {
+                                          if(ele.max) {
+                                              if(val.length <= ele.max) {
+                                                  // Append as usual
+                                                  str = _append(str, val, true);
                                               }
                                               else {
-                                                  split = true;
-                                                  // Split and continue.
-                                                  arr = [];
-                                                  subset = [];
-                                                  var start = 0, end = o[i].max;
-                                                  for(j = 0; j < val.length/o[i].max; j++) {
-                                                      subset = val.slice(start, end);
-                                                      arr.push(_append(str, subset, true));
-                                                      start += o[i].max;
-                                                      end += o[i].max;
+                                                  // Split the values into multiple and append each
+                                                  if(split) {
+                                                      throw {
+                                                          error: 'Template can not have multiple single-valued params with multiple values'
+                                                      }
                                                   }
-                                                  str = arr;
+                                                  else {
+                                                      split = true;
+                                                      // Split and continue.
+                                                      arr = [];
+                                                      subset = [];
+                                                      var start = 0, end = ele.max;
+                                                      for(j = 0; j < val.length/ele.max; j++) {
+                                                          subset = val.slice(start, end);
+                                                          arr.push(_append(str, subset, true));
+                                                          start += ele.max;
+                                                          end += ele.max;
+                                                      }
+                                                      str = arr;
+                                                  }
                                               }
+                                          }
+                                          else {
+                                              str = _append(str, val, true);
                                           }
                                       }
                                       else {
-                                          str = _append(str, val, true);
+                                          // Split if not already split. If already split, error
+                                          if(split) {
+                                              throw {
+                                                  error: 'Template can not have multiple single-valued params with multiple values'
+                                              }
+                                          }
+                                          else {
+                                              split = true;
+                                              // Split and continue.
+                                              arr = [];
+                                              for(j = 0; j < val.length; j++) {
+                                                  arr.push(_append(str, val[j], true));
+                                              }
+                                              str = arr;
+                                          }
                                       }
                                   }
                                   else {
-                                      // Split if not already split. If already split, error
-                                      if(split) {
-                                          throw {
-                                              error: 'Template can not have multiple single-valued params with multiple values'
-                                          }
-                                      }
-                                      else {
-                                          split = true;
-                                          // Split and continue.
-                                          arr = [];
-                                          for(j = 0; j < val.length; j++) {
-                                              arr.push(_append(str, val[j], true));
-                                          }
-                                          str = arr;
-                                      }
+                                      str = _append(str, val, true);
                                   }
                               }
-                              else {
-                                  str = _append(str, val, true);
-                              }
-                          }
-                          else if(o[i].required) {
-                              throw {
-                                  error: 'Token ' + o[i].variable + ' not specified. Processed ' + str
+                              else if(ele.required) {
+                                  throw {
+                                      error: 'Token ' + ele.variable + ' not specified. Processed ' + str
+                                  }
                               }
                           }
                       }
@@ -232,7 +259,6 @@ module.exports = (function(){
               }
               return {
                   format: function(values, defaults) {
-                      var str = '', i, j, val, split = false, arr;
                       return _format('', values, defaults);
                   },
                   merge: function() {
@@ -273,13 +299,23 @@ module.exports = (function(){
 
 
         if (input.substr(pos).match(/^[^^ "'<>`{|}]/) !== null) {
-          var result0 = input.charAt(pos);
+          var result2 = input.charAt(pos);
           pos++;
         } else {
-          var result0 = null;
+          var result2 = null;
           if (reportMatchFailures) {
             matchFailed("[^^ \"'<>`{|}]");
           }
+        }
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result1 = parse_expression();
+          if (result1 !== null) {
+            var result0 = result1;
+          } else {
+            var result0 = null;;
+          };
         }
 
 
@@ -577,9 +613,19 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(l) {
-              var r = '';
-              for(i = 0; i < l.length; i++) { r += l[i]; }
-              return r;
+              var o = [];
+              o.push(l[0]);
+              var current = 0;
+              for(var i = 1; i < l.length; i++) {
+                  if(typeof l[i] === 'string' && typeof o[current] === 'string') {
+                      o[current] = o[current] + l[i];
+                  }
+                  else {
+                      o.push(l[i]);
+                      current++;
+                  }
+              }
+              return (o.length === 1) ? o[0] : o;
           })(result1)
           : null;
         if (result2 !== null) {
