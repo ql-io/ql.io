@@ -18,6 +18,7 @@
 
 var _ = require('underscore'),
     jsonPath = require('JSONPath'),
+    strTemplate = require('./peg/str-template.js'),
     assert = require('assert');
 
 exports.fill = fill;
@@ -56,41 +57,50 @@ function fill(obj, bag) {
 }
 
 function lookup(key, bag) {
-    var ref, index, obj = key, path, resource, stripped = 0, i;
-    if(key && _.isString(key) && key.indexOf("{") === 0 && key.indexOf("}") === key.length - 1) {
-        ref = key.substring(1, key.length - 1);
-        path = ref;
-        index = ref.indexOf('.');
-        if(index > 0) {
-            ref = path.substring(0, index);
-            path = path.substring(index + 1);
-        }
-        else {
-            path = '';
-        }
-
-        resource = bag[ref];
-        if(resource) {
-            // Strip
-            if(_.isArray(resource) && resource.length == 1 && _.isArray(resource[0]) && resource[0].length === 1) {
-                resource = resource[0];
-                stripped++;
-                resource = resource[0];
-                stripped++;
+    var ref, index, obj = key, path, resource, stripped = 0, i, template;
+    if(key && _.isString(key) && key.indexOf("{") === 0 && key.lastIndexOf("}") === key.length - 1) {
+        // Preprocess with a string tokenizer to process any nested tokens.
+        template = strTemplate.parse(key);
+        key = template.format(bag, true);
+        // If key is fully resolved, no need to run the rest of the code.
+        if(key.indexOf("{") === 0 && key.lastIndexOf("}") === key.length - 1) {
+            ref = key.substring(1, key.length - 1);
+            path = ref;
+            index = ref.indexOf('.');
+            if(index > 0) {
+                ref = path.substring(0, index);
+                path = path.substring(index + 1);
+            }
+            else {
+                path = '';
             }
 
-            if(path === '') {
-                obj = resource;
-                for(i = 0; i < stripped; i++) {
-                    obj = [obj];
+            resource = bag[ref];
+            if(resource) {
+                // Strip
+                if(_.isArray(resource) && resource.length == 1 && _.isArray(resource[0]) && resource[0].length === 1) {
+                    resource = resource[0];
+                    stripped++;
+                    resource = resource[0];
+                    stripped++;
+                }
+
+                if(path === '') {
+                    obj = resource;
+                    for(i = 0; i < stripped; i++) {
+                        obj = [obj];
+                    }
+                }
+                else {
+                    obj = projectOne(path, resource);
                 }
             }
             else {
-                obj = projectOne(path, resource);
+                obj = undefined;
             }
         }
         else {
-            obj = undefined;
+            obj = key;
         }
     }
     return obj;

@@ -40,7 +40,8 @@ module.exports = {
         var e = [
             'Hello ',
             {
-                variable: ['token']
+                variable: 'token',
+                str: 'token'
             },
             ' World'];
         test.deepEqual(p.stream, e);
@@ -73,11 +74,13 @@ module.exports = {
         var e = [
             'Hello ',
             {
-                variable: ['token']
+                variable: 'token',
+                str: 'token'
             },
             ' World ',
             {
-                variable : ['p1']
+                variable : 'p1',
+                str : 'p1'
             },
             ' another token'];
         test.deepEqual(p.stream, e);
@@ -86,5 +89,57 @@ module.exports = {
         }, true)
         test.equal(s, 'Hello 1234 World {p1} another token');
         test.done();
+    },
+
+    'nested-tokens': function(test) {
+        var u = '{config.{ua}.apikey}';
+        var p = strTemplate.parse(u);
+        var s = p.format({
+            "p1": "v1",
+            "ua": "safari",
+            "config": {
+                "safari": {
+                    "apikey": "1234"
+                }
+            }
+        }, true);
+        test.equal(s, '1234');
+        test.done();
+    },
+
+    'nested-tokens-keep': function(test) {
+        var u = '{config.{ua}.apikey}';
+        var p = strTemplate.parse(u);
+        var s = p.format({
+            "p1": "v1",
+            "config": {
+                "safari": {
+                    "apikey": "1234"
+                }
+            }
+        }, true);
+        test.equal(s, '{config.{ua}.apikey}');
+        test.done();
+    },
+
+    'nested-tokens-deep': function(test) {
+        var u = '{aa{b{cc}b}dd}';
+        var p = strTemplate.parse(u);
+        var s = p.format({
+            cc: 'cc'
+        });
+        test.equals(s, '');
+        test.done();
+    },
+
+    'nested-tokens-deep-keep': function(test) {
+        var u = '{aa{b{cc}b}dd}';
+        var p = strTemplate.parse(u);
+        var s = p.format({
+            cc: 'cc'
+        }, true);
+        test.equals(s, '{aa{b{cc}b}dd}');
+        test.done();
     }
+
 };
