@@ -188,64 +188,173 @@ var Console = module.exports = function(config, cb) {
     // register routes
     var routes = engine.routes;
     _.each(routes, function(verbRoutes, uri) {
-        _.each(verbRoutes, function(verbRouteVariants, verb) {
-            engine.emit(Engine.Events.EVENT, {}, new Date() + ' Adding route ' + uri + ' for ' + verb);
-            app[verb](uri, function(req, res) {
-                var holder = {
-                    params: {},
-                    headers: {},
-                    routeParams: {}
-                };
+        if(uri != 'simpleMap'){
+            _.each(verbRoutes, function(verbRouteVariants, verb) {
+                engine.emit(Engine.Events.EVENT, {}, new Date() + ' Adding route ' + uri + ' for ' + verb);
+                app[verb](uri, function(req, res) {
+                    var holder = {
+                        params: {},
+                        headers: {},
+                        routeParams: {}
+                    };
 
-                // get all query params
-                collectHttpQueryParams(req, holder, false);
+                    // get all query params
+                    collectHttpQueryParams(req, holder, false);
 
-                // find a route (i.e. associated cooked script)
-                var route = _.detect(verbRouteVariants, function(verbRouteVariant) {
-                    return _.isEqual(_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)),
-                        _.keys(verbRouteVariant.query));
-                });
-
-                if (!route) {
-                    res.writeHead(400, 'Bad input', {
-                        'content-type' : 'application/json'
+                    // find a route (i.e. associated cooked script)
+                    var route = _.detect(verbRouteVariants, function(verbRouteVariant) {
+                        return _.isEqual(_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)),
+                            _.keys(verbRouteVariant.query));
                     });
-                    res.write(JSON.stringify({'err' : 'No matching route'}));
-                    res.end();
-                    return;
-                }
 
-                // collect the path params
-                var keys = _.keys(req.params);
-                _.each(keys, function(key) {
-                    holder.routeParams[key] = req.params[key];
-                });
-
-                _.each(route.query, function(queryParam, paramName) {
-                    holder.routeParams[queryParam] = holder.params[paramName].toString();
-                });
-
-                // collect headers
-                collectHttpHeaders(req, holder);
-
-                var execState = [];
-                engine.execute(route.script,
-                    {
-                        request: holder,
-                        route: uri,
-                        context: req.body || {}
-                    },
-                    function(emitter) {
-                        setupExecStateEmitter(emitter, execState, req.param('events'));
-                        setupCounters(emitter);
-                        emitter.on('end', function(err, results) {
-                            return handleResponseCB(req, res, execState, err, results);
+                    if (!route) {
+                        res.writeHead(400, 'Bad input', {
+                            'content-type' : 'application/json'
                         });
+                        res.write(JSON.stringify({'err' : 'No matching route'}));
+                        res.end();
+                        return;
                     }
-                );
-            });
-        });
 
+                    // collect the path params
+                    var keys = _.keys(req.params);
+                    _.each(keys, function(key) {
+                        holder.routeParams[key] = req.params[key];
+                    });
+
+                    _.each(route.query, function(queryParam, paramName) {
+                        holder.routeParams[queryParam] = holder.params[paramName].toString();
+                    });
+
+                    // collect headers
+                    collectHttpHeaders(req, holder);
+
+                    var execState = [];
+                    engine.execute(route.script,
+                        {
+                            request: holder,
+                            route: uri,
+                            context: req.body || {}
+                        },
+                        function(emitter) {
+                            setupExecStateEmitter(emitter, execState, req.param('events'));
+                            setupCounters(emitter);
+                            emitter.on('end', function(err, results) {
+                                return handleResponseCB(req, res, execState, err, results);
+                            });
+                        }
+                    );
+                });
+            });
+        }
+    });
+
+    app.get('/tables', function(req,res){
+        var holder = {
+            params: {fromRoute: true},
+            headers: {}
+        };
+        var execState = [];
+        engine.execute('show tables',
+            {
+                request: holder
+            },
+            function(emitter) {
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
+                emitter.on('end', function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                });
+            }
+        );
+    });
+
+    app.get('/table', function(req,res){
+        var holder = {
+            params: {fromRoute: true},
+            headers: {}
+        };
+
+        var name = req.param('name');
+
+        if (!name) {
+            res.writeHead(400, 'Bad input', {
+                'content-type' : 'application/json'
+            });
+            res.write(
+                JSON.stringify({'err' : 'Missing table name: Usage /table?name=some-tablename'}
+                ));
+            res.end();
+            return;
+        }
+
+        var execState = [];
+        engine.execute('describe' + decodeURIComponent(name),
+            {
+                request: holder
+            },
+            function(emitter) {
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
+                emitter.on('end', function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                });
+            }
+        );
+    });
+
+    app.get('/routes', function(req,res){
+        var holder = {
+            params: {},
+            headers: {}
+        };
+        var execState = [];
+        engine.execute('show routes',
+            {
+                request: holder
+            },
+            function(emitter) {
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
+                emitter.on('end', function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                });
+            }
+        );
+    });
+
+    app.get('/route', function(req,res){
+        var holder = {
+            params: {},
+            headers: {}
+        };
+        var path = req.param('path');
+        var method = req.param('method');
+
+        if (!path || !method) {
+            res.writeHead(400, 'Bad input', {
+                'content-type' : 'application/json'
+            });
+            res.write(
+                JSON.stringify({'err' : 'Missing path name or method: Usage /route?path=some-path&method=http-method'}
+                ));
+            res.end();
+            return;
+        }
+
+        var execState = [];
+        engine.execute('describe route "' + decodeURIComponent(path) + '" using method ' + method,
+            {
+                request: holder
+            },
+            function(emitter) {
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
+                emitter.on('end', function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                });
+            }
+        );
     });
 
     app.get('/q', function(req, res) {
