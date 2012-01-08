@@ -33,7 +33,7 @@ var engine = new Engine({
 
 module.exports = {
     // Test staging config, but pass a request param to override
-    'testRequestParam': function(test) {
+    'test-req-param': function(test) {
         // Start a file server
         var server = http.createServer(function(req, res) {
             var parsed = require('url').parse(req.url)
@@ -70,7 +70,7 @@ module.exports = {
         });
     },
 
-    'testRequestParamOverride': function(test) {
+    'test-req-param-override': function(test) {
         // Start a file server
         var server = http.createServer(function(req, res) {
             var parsed = require('url').parse(req.url)
@@ -115,7 +115,51 @@ module.exports = {
         });
     },
 
-    'testHeaderOverride': function(test) {
+    'test-req-param-override-undefined': function(test) {
+        // Start a file server
+        var server = http.createServer(function(req, res) {
+            var parsed = require('url').parse(req.url)
+            var body = {
+                query: parsed.query
+            }
+            res.writeHead(200, {
+                'Content-Type' : 'text/plain'
+            });
+            res.end(JSON.stringify(body));
+        });
+        server.listen(3000, function() {
+            // Do the test here.
+            var engine = new Engine({
+                connection : 'close'
+            });
+            var script = 'create table myapi \
+                            on select get from "http://localhost:3000/myapi?param={value}";\
+                      return select * from myapi where value = "{val}"';
+            engine.exec({
+                script: script,
+                request: {
+                    params: {
+                        value: 'myParamOverride'
+                    }
+                },
+                cb: function(err, results) {
+                    if(err) {
+                        console.log(err.stack || err);
+                        test.ok(false, 'Grrr');
+                        test.done();
+                    }
+                    else {
+                        results = results.body;
+                        test.equals(results.query, 'param=myParamOverride');
+                        test.done();
+                    }
+                    server.close();
+                }
+            });
+        });
+    },
+
+    'test-header-override': function(test) {
         // Start a file server
         var server = http.createServer(function(req, res) {
             var parsed = require('url').parse(req.url)
@@ -135,6 +179,51 @@ module.exports = {
             var script = 'create table myapi \
                             on select get from "http://localhost:3000/myapi?param={value}";\
                           return select * from myapi';
+            engine.exec({
+                script: script,
+                request: {
+                    headers: {
+                        value: 'myHeaderOverride'
+                    }
+                },
+                cb: function(err, results) {
+                    if(err) {
+                        console.log(err.stack || err);
+                        test.ok(false, 'Grrr');
+                        test.done();
+                    }
+                    else {
+                        results = results.body;
+                        test.equals(results.query, 'param=myHeaderOverride');
+                        test.done();
+                    }
+                    server.close();
+
+                }
+            });
+        });
+    },
+
+    'test-header-override-undefined': function(test) {
+        // Start a file server
+        var server = http.createServer(function(req, res) {
+            var parsed = require('url').parse(req.url)
+            var body = {
+                query: parsed.query
+            }
+            res.writeHead(200, {
+                'Content-Type' : 'text/plain'
+            });
+            res.end(JSON.stringify(body));
+        });
+        server.listen(3000, function() {
+            // Do the test here.
+            var engine = new Engine({
+                connection : 'close'
+            });
+            var script = 'create table myapi \
+                            on select get from "http://localhost:3000/myapi?param={value}";\
+                          return select * from myapi where value = "{val}"';
             engine.exec({
                 script: script,
                 request: {
