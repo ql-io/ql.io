@@ -66,6 +66,9 @@ exports.exec = function(opts, statement, cb, parentEvent) {
                 }(cloned));
             });
 
+            // Determine whether the number of funcs is within the limit and prune the funcs array
+            funcs = funcs.slice(0, getMaxNestedCalls(opts));
+
             // Execute joins
             async.parallel(funcs, function(err, more) {
                 // If there is nothing to loop throough, leave the body undefined.
@@ -162,6 +165,10 @@ function execInternal(opts, statement, cb, parentEvent) {
                     return function(callback) {
                         ret = {};
                         ret[name] = [];
+
+                        // Determine whether the number of values is within the limit and prune the values array
+                        cond.rhs.value = cond.rhs.value.slice(0, getMaxNestedCalls(opts));
+
                         // Expand variables from context
                         _.each(cond.rhs.value, function(key) {
                             var arr = jsonfill.lookup(key, context);
@@ -314,3 +321,17 @@ var clone = function(obj) {
     return temp;
 };
 
+function getMaxNestedCalls(opts) {
+    var maxNestedCalls, config = opts.config;
+
+    if (config && config.ebay && config.ebay.maxNestedCalls) {
+        maxNestedCalls = config.ebay.maxNestedCalls;
+    }
+
+    if (typeof maxNestedCalls == 'undefined') {
+        maxNestedCalls = 100;
+        opts.logEmitter.emitWarning('config.ebay.maxNestedCalls is undefined! Defaulting to ' + maxNestedCalls);
+    }
+
+    return maxNestedCalls;
+}
