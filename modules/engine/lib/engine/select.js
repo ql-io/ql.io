@@ -69,7 +69,10 @@ exports.exec = function(opts, statement, cb, parentEvent) {
             });
 
             // Determine whether the number of funcs is within the limit and prune the funcs array
-            funcs = funcs.slice(0, maxNestedRequests || getMaxNestedRequests(opts));
+            if (funcs.length > (maxNestedRequests || getMaxNestedRequests(opts))) {
+                opts.logEmitter.emitWarning('Pruning the number of nested requests to config.maxNestedRequests = ' + maxNestedRequests + '.');
+                funcs = funcs.slice(0, maxNestedRequests);
+            }
 
             // Execute joins
             async.parallel(funcs, function(err, more) {
@@ -169,7 +172,10 @@ function execInternal(opts, statement, cb, parentEvent) {
                         ret[name] = [];
 
                         // Determine whether the number of values is within the limit and prune the values array
-                        cond.rhs.value = cond.rhs.value.slice(0, maxNestedRequests || getMaxNestedRequests(opts));
+                        if (cond.rhs.value.length > (maxNestedRequests || getMaxNestedRequests(opts))) {
+                            opts.logEmitter.emitWarning('Pruning the number of nested requests in in-clause to config.maxNestedRequests = ' + maxNestedRequests + '.');
+                            cond.rhs.value = cond.rhs.value.slice(0, maxNestedRequests);
+                        }
 
                         // Expand variables from context
                         _.each(cond.rhs.value, function(key) {
