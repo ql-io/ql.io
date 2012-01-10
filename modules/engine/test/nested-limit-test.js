@@ -29,7 +29,7 @@ var engine = new Engine({
     connection: 'close'
 });
 
-var maxNestedCalls = engine.config.ebay.maxNestedCalls || 50, limit = 10;
+var maxNestedRequests = engine.config.maxNestedRequests || 50, limit = 10;
 
 module.exports = {
     'max-in-clause-test' : function(test) {
@@ -44,7 +44,24 @@ module.exports = {
                 test.ok(_.isArray(list.body), 'expected an array');
                 test.ok(list.body.length > 0, 'expected some items');
                 test.ok(!_.isArray(list.body[0]), 'expected object in the array');
-                test.equals(list.body.length, maxNestedCalls * limit, 'expected a different number of results');
+                test.equals(list.body.length, maxNestedRequests * limit, 'expected a different number of results for in-clause');
+                test.done();
+            }
+        });
+    },
+    'max-funcs-test' : function(test) {
+        var q = 'select a.ItemID as itemId, b.keywords as keywords from ebay.finding.items as a, ebay.finding.items.many.results as b where a.keywords = b.keywords and a.keywords  in (' + keywords.toString() + ')';
+        engine.exec(q, function(err, list) {
+            if(err) {
+                test.fail('got error: ' + err.stack || err);
+                test.done();
+            }
+            else {
+                test.equals(list.headers['content-type'], 'application/json', 'HTML expected');
+                test.ok(_.isArray(list.body), 'expected an array');
+                test.ok(list.body.length > 0, 'expected some items');
+                test.ok(!_.isArray(list.body[0]), 'expected object in the array');
+                test.equals(list.body.length, maxNestedRequests, 'expected a different number of results for funcs');
                 test.done();
             }
         });
