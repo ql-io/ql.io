@@ -186,67 +186,65 @@ var Console = module.exports = function(config, cb) {
     }
 
     // register routes
-    var routes = engine.routes;
+    var routes = engine.routes.verbMap;
     _.each(routes, function(verbRoutes, uri) {
-        if(uri != 'simpleMap'){
-            _.each(verbRoutes, function(verbRouteVariants, verb) {
-                engine.emit(Engine.Events.EVENT, {}, new Date() + ' Adding route ' + uri + ' for ' + verb);
-                app[verb](uri, function(req, res) {
-                    var holder = {
-                        params: {},
-                        headers: {},
-                        routeParams: {}
-                    };
+        _.each(verbRoutes, function(verbRouteVariants, verb) {
+            engine.emit(Engine.Events.EVENT, {}, new Date() + ' Adding route ' + uri + ' for ' + verb);
+            app[verb](uri, function(req, res) {
+                var holder = {
+                    params: {},
+                    headers: {},
+                    routeParams: {}
+                };
 
-                    // get all query params
-                    collectHttpQueryParams(req, holder, false);
+                // get all query params
+                collectHttpQueryParams(req, holder, false);
 
-                    // find a route (i.e. associated cooked script)
-                    var route = _.detect(verbRouteVariants, function(verbRouteVariant) {
-                        return _.isEqual(_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)),
-                            _.keys(verbRouteVariant.query));
-                    });
-
-                    if (!route) {
-                        res.writeHead(400, 'Bad input', {
-                            'content-type' : 'application/json'
-                        });
-                        res.write(JSON.stringify({'err' : 'No matching route'}));
-                        res.end();
-                        return;
-                    }
-
-                    // collect the path params
-                    var keys = _.keys(req.params);
-                    _.each(keys, function(key) {
-                        holder.routeParams[key] = req.params[key];
-                    });
-
-                    _.each(route.query, function(queryParam, paramName) {
-                        holder.routeParams[queryParam] = holder.params[paramName].toString();
-                    });
-
-                    // collect headers
-                    collectHttpHeaders(req, holder);
-
-                    var execState = [];
-                    engine.execute(route.script,
-                        {
-                            request: holder,
-                            route: uri,
-                            context: req.body || {}
-                        },
-                        function(emitter) {
-                            setupExecStateEmitter(emitter, execState, req.param('events'));
-                            setupCounters(emitter);
-                            emitter.on('end', function(err, results) {
-                                return handleResponseCB(req, res, execState, err, results);
-                            });
-                        }
-                    );
+                // find a route (i.e. associated cooked script)
+                var route = _.detect(verbRouteVariants, function(verbRouteVariant) {
+                    return _.isEqual(_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)),
+                        _.keys(verbRouteVariant.query));
                 });
+
+                if (!route) {
+                    res.writeHead(400, 'Bad input', {
+                        'content-type' : 'application/json'
+                    });
+                    res.write(JSON.stringify({'err' : 'No matching route'}));
+                    res.end();
+                    return;
+                }
+
+                // collect the path params
+                var keys = _.keys(req.params);
+                _.each(keys, function(key) {
+                    holder.routeParams[key] = req.params[key];
+                });
+
+                _.each(route.query, function(queryParam, paramName) {
+                    holder.routeParams[queryParam] = holder.params[paramName].toString();
+                });
+
+                // collect headers
+                collectHttpHeaders(req, holder);
+
+                var execState = [];
+                engine.execute(route.script,
+                    {
+                        request: holder,
+                        route: uri,
+                        context: req.body || {}
+                    },
+                    function(emitter) {
+                        setupExecStateEmitter(emitter, execState, req.param('events'));
+                        setupCounters(emitter);
+                        emitter.on('end', function(err, results) {
+                            return handleResponseCB(req, res, execState, err, results);
+                        });
+                    }
+                );
             });
-        }
+        });
     });
 
     app.get('/tables', function(req,res){
