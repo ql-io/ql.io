@@ -463,6 +463,11 @@ function prepareParams() {
             params.__proto__ = ref;
         }
         else {
+            // Delete undefined properties as an undefined will override a defined in the __proto__
+            // chain
+            _.each(arg, function(v, p) {
+                if(v === undefined) delete arg[p];
+            });
             ref.__proto__ = arg;
             ref = arg;
         }
