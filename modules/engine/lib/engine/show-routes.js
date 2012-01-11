@@ -41,10 +41,8 @@ exports.exec = function(opts, statement, cb) {
                 'content-type': 'application/json'
             },
             body:
-                _(routes).chain()
-               .filter(function(route, key){
-                        return key != 'simpleMap';
-                    })
+                _(routes.verbMap).chain()
+                .values()
                .map(function(aUrl){
                         return _.values(aUrl);
                     })
