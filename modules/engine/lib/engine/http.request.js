@@ -34,6 +34,8 @@ var strTemplate = require('./peg/str-template.js'),
     uuid = require('node-uuid'),
     os = require('os');
 
+var maxResponseLength;
+
 exports.exec = function(args) {
     var request, context, resource, statement, params, resourceUri, template, cb, holder, tasks,
         logEmitter;
@@ -45,6 +47,8 @@ exports.exec = function(args) {
     cb = args.callback;
     logEmitter = args.logEmitter;
     holder = {};
+
+    maxResponseLength = maxResponseLength || getMaxResponseLength(args.config, logEmitter);
 
     // Prepare params (former ones override the later ones)
     params = prepareParams(context,
@@ -323,11 +327,27 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
         emitter.emit(packet.type, packet);
     }
 
+
     clientRequest = client.request(options, function(res) {
         setEncoding(res);
         respData = '';
+        var responseLength = 0;
         res.on('data', function (chunk) {
+            responseLength += chunk.length;
+
+            if (responseLength > maxResponseLength) {
+                var err = new Error('Response length exceeds limit');
+                err.uri = resourceUri;
+                err.status = 502;
+
+                logEmitter.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
+                    'response length ' + responseLength + ' exceeds config.maxResponseLength of ' + maxResponseLength +
+                    ' ' + (Date.now() - start) + 'msec');
+                res.socket.destroy();
+                return httpReqTx.cb(err);
+            }
             respData += chunk;
+
         });
         res.on('end', function() {
 
@@ -725,4 +745,17 @@ function toISO(d) {
         + pad(d.getUTCHours()) + ':'
         + pad(d.getUTCMinutes()) + ':'
         + pad(d.getUTCSeconds()) + 'Z';
+}
+
+function getMaxResponseLength(config, logEmitter) {
+    if (config && config.maxResponseLength) {
+        maxResponseLength = config.maxResponseLength;
+    }
+
+    if (typeof maxResponseLength == 'undefined') {
+        maxResponseLength = 10000000; // default to 10,000,000
+        logEmitter.emitWarning('config.maxResponseLength is undefined! Defaulting to ' + maxResponseLength);
+    }
+
+    return maxResponseLength;
 }
