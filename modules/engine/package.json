@@ -11,7 +11,7 @@
     },
     "main": "lib/engine.js",
     "dependencies": {
-        "winston": "0.3.5",
+        "winston": "",
         "underscore": "",
         "xml2json": "",
         "ql.io-compiler": "",
@@ -25,7 +25,7 @@
         "dox": "",
         "node-uuid": "",
         "markdown": "",
-        "csv": "0.0.10"
+        "csv": ""
     },
     "devDependencies": {
         "nodeunit": ""
