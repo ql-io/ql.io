@@ -31,7 +31,10 @@ exports.load = function (opts) {
         return {};
     }
 
-    var routes = {simpleMap:{}};
+    var routes = {
+        simpleMap:{},
+        verbMap:{}
+    };
     loadInternal(rootdir, '', logEmitter, routes);
     return routes;
 
@@ -39,7 +42,6 @@ exports.load = function (opts) {
 
 function loadInternal(path, prefix, logEmitter, routes) {
     assert.ok(path, 'path should not be null');
-    assert.ok(routes, 'routes should not be null');
 
     var script, stats, paths;
     path = path.charAt(path.length - 1) == '/' ? path : path + '/';
@@ -108,12 +110,12 @@ function loadInternal(path, prefix, logEmitter, routes) {
                 typeReturn.route.method = typeReturn.route.method == 'delete' ? 'del' : typeReturn.route.method;
 
                 // Get record for given route
-                routes[pieces.pathname] = routes[pieces.pathname] || {};
+                routes.verbMap[pieces.pathname] = routes.verbMap[pieces.pathname] || {};
                 // Get record for http verb in the route record
-                routes[pieces.pathname][typeReturn.route.method] = routes[pieces.pathname][typeReturn.route.method]
+                routes.verbMap[pieces.pathname][typeReturn.route.method] = routes.verbMap[pieces.pathname][typeReturn.route.method]
                     || [];
                 // Add info for the current route
-                if (!_.detect(routes[pieces.pathname][typeReturn.route.method], function(record) {
+                if (!_.detect(routes.verbMap[pieces.pathname][typeReturn.route.method], function(record) {
                     return _.isEqual(record.query, pieces.query);
                 })) {
                     var routeRecord = {
@@ -123,7 +125,7 @@ function loadInternal(path, prefix, logEmitter, routes) {
                             tables: tables,
                             info: info
                         };
-                    routes[pieces.pathname][typeReturn.route.method].push(routeRecord);
+                    routes.verbMap[pieces.pathname][typeReturn.route.method].push(routeRecord);
                     routes.simpleMap[typeReturn.route.method + ':' + typeReturn.route.path.value]=routeRecord;
                 } else {
                     logEmitter.emitError("Route already defined: " + script);
