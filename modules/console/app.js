@@ -247,6 +247,7 @@ var Console = module.exports = function(config, cb) {
         });
     });
 
+    // HTTP indirection for 'show tables' command
     app.get('/tables', function(req,res){
         var holder = {
             params: {fromRoute: true},
@@ -267,6 +268,7 @@ var Console = module.exports = function(config, cb) {
         );
     });
 
+    // HTTP indirection for 'describe <table>' command  and it returns json (and not html)
     app.get('/table', function(req,res){
         var holder = {
             params: {fromRoute: true},
@@ -301,6 +303,7 @@ var Console = module.exports = function(config, cb) {
         );
     });
 
+    // HTTP indirection for 'show routes' command
     app.get('/routes', function(req,res){
         var holder = {
             params: {},
@@ -321,6 +324,7 @@ var Console = module.exports = function(config, cb) {
         );
     });
 
+    // HTTP indirection for 'describe route "<route>" using method <http-verb>' command
     app.get('/route', function(req,res){
         var holder = {
             params: {},
