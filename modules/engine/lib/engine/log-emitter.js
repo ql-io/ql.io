@@ -30,7 +30,7 @@ var LogEmitter = module.exports = function() {
         if (counter == 65535) {
             counter = 1; // skip 0, it means non-transaction
         }
-        return process.qlioTxIdCtr;
+        return counter;
     }
 
     this.beginEvent= function(parent, type, name) {
