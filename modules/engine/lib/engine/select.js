@@ -24,6 +24,8 @@ var httpRequest = require('./http.request.js'),
     jsonPath = require('JSONPath'),
     assert = require('assert');
 
+var maxNestedRequests;
+
 exports.exec = function(opts, statement, cb, parentEvent) {
 
     assert.ok(opts.tables, 'Argument tables can not be undefined');
@@ -65,6 +67,9 @@ exports.exec = function(opts, statement, cb, parentEvent) {
                     };
                 }(cloned));
             });
+
+            // Determine whether the number of funcs is within the limit and prune the funcs array
+            funcs = funcs.slice(0, maxNestedRequests || getMaxNestedRequests(opts));
 
             // Execute joins
             async.parallel(funcs, function(err, more) {
@@ -162,6 +167,10 @@ function execInternal(opts, statement, cb, parentEvent) {
                     return function(callback) {
                         ret = {};
                         ret[name] = [];
+
+                        // Determine whether the number of values is within the limit and prune the values array
+                        cond.rhs.value = cond.rhs.value.slice(0, maxNestedRequests || getMaxNestedRequests(opts));
+
                         // Expand variables from context
                         _.each(cond.rhs.value, function(key) {
                             var arr = jsonfill.lookup(key, context);
@@ -315,3 +324,17 @@ var clone = function(obj) {
     return temp;
 };
 
+function getMaxNestedRequests(opts) {
+    var config = opts.config;
+
+    if (config && config.maxNestedRequests) {
+        maxNestedRequests = config.maxNestedRequests;
+    }
+
+    if (typeof maxNestedRequests == 'undefined') {
+        maxNestedRequests = 50;
+        opts.logEmitter.emitWarning('config.maxNestedRequests is undefined! Defaulting to ' + maxNestedRequests);
+    }
+
+    return maxNestedRequests;
+}
