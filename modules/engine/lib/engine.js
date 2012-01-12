@@ -227,7 +227,7 @@ Engine.prototype.execute = function() {
                         emitter: emitter,
                         start: start,
                         cb: engineEvent.cb
-                    });
+                    }, engineEvent.event);
                 }
                 catch (err) {
                     that.emitError(engineEvent.event, err);
@@ -252,7 +252,7 @@ Engine.prototype.execute = function() {
                     that.emitError(engineEvent.event, err);
                 }
                 return engineEvent.cb(err, results);
-            });
+            }, engineEvent.event);
         }
     }
     catch(err) {
@@ -329,7 +329,7 @@ Engine.prototype.use = function(type, xformer) {
  * @ignore
  * @param opts
  */
-function sweep(opts) {
+function sweep(opts, parentEvent) {
     if(opts.done) {
         return;
     }
@@ -359,7 +359,7 @@ function sweep(opts) {
                         });
 
                         sweep(opts);
-                    });
+                    }, parentEvent);
                 }
                 // TODO: Execute only if there are dependencies
                 step(line, state);
@@ -397,7 +397,7 @@ function sweep(opts) {
     }
 }
 
-function execOne(opts, statement, cb) {
+function execOne(opts, statement, cb, parentEvent) {
     var packet = {
         line: statement.line,
         type: eventTypes.STATEMENT_IN_FLIGHT
@@ -415,7 +415,7 @@ function execOne(opts, statement, cb) {
                 opts.emitter.emit(packet.type, packet);
             }
             cb(err, results);
-        });
+        }, parentEvent);
     }
     catch(e) {
         if(opts.emitter) {
@@ -434,11 +434,11 @@ function execOne(opts, statement, cb) {
  * @param cb
  * @ignore
  */
-function _execOne(opts, statement, cb) {
+function _execOne(opts, statement, cb, parentEvent) {
     var lhs, obj;
     switch(statement.type) {
         case 'create' :
-            create.exec(opts, statement, cb);
+            create.exec(opts, statement, cb, parentEvent);
             break;
         case 'define' :
             var params = httpRequest.prepareParams(opts.context,
@@ -455,10 +455,10 @@ function _execOne(opts, statement, cb) {
             cb(undefined, opts.context);
             break;
         case 'select' :
-            select.exec(opts, statement, cb);
+            select.exec(opts, statement, cb, parentEvent);
             break;
         case 'insert' :
-            insert.exec(opts, statement, cb);
+            insert.exec(opts, statement, cb, parentEvent);
             break;
         case 'show' :
             show.exec(opts, statement, cb);
