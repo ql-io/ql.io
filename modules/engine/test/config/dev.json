@@ -3,6 +3,8 @@
         "apikey": "Qlio1a92e-fea5-485d-bcdb-1140ee96527"
 
     },
-    "maxNestedCalls" : 50
+    "maxNestedCalls" : 50,
+    "maxRequestLength" : 10000000,
+    "maxResponseLength" : 10000000
 }
 
