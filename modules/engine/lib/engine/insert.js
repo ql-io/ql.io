@@ -81,6 +81,8 @@ exports.exec = function(opts, statement, cb, parentEvent) {
             request: request,
             statement: statement,
             emitter: emitter,
+            logEmitter: opts.logEmitter,
+            parentEvent: insertTx.event,
             callback: function(err, result) {
                 if(result) {
                     context[statement.assign] = result.body;

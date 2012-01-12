@@ -43,7 +43,7 @@ var LogEmitter = module.exports = function() {
             txType: type || 'QlIo',
             name: name || (type || 'QLIo'),
             txName: name || (type || 'QLIo'),
-            uuid: (parent && parent.guid ? parent.guid : uuid())
+            uuid: (parent && parent.uuid ? parent.uuid : uuid())
         };
     }
 
