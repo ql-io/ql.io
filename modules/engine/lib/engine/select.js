@@ -303,6 +303,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                         statement: statement,
                         emitter: emitter,
                         logEmitter: opts.logEmitter,
+                        parentEvent: apiTx.event,
                         callback: function(err, result) {
                             if(result) {
                                 context[statement.assign] = result.body;

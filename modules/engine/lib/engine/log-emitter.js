@@ -30,7 +30,7 @@ var LogEmitter = module.exports = function() {
         if (counter == 65535) {
             counter = 1; // skip 0, it means non-transaction
         }
-        return process.qlioTxIdCtr;
+        return counter;
     }
 
     this.beginEvent= function(parent, type, name) {
@@ -43,7 +43,7 @@ var LogEmitter = module.exports = function() {
             txType: type || 'QlIo',
             name: name || (type || 'QLIo'),
             txName: name || (type || 'QLIo'),
-            uuid: (parent && parent.guid ? parent.guid : uuid())
+            uuid: (parent && parent.uuid ? parent.uuid : uuid())
         };
     }
 
