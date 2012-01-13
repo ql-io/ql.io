@@ -135,6 +135,9 @@ Engine.prototype.execute = function() {
         func = arguments[2];
         opts = arguments[1];
     }
+    else {
+        assert.ok(false, 'Incorrect arguments');
+    }
     var emitter = new EventEmitter();
     opts.script = script;
 
