@@ -59,10 +59,10 @@ exports.exec = function(opts, statement, cb, parentEvent) {
     }
     else {
         // Get the resource
-        resource = opts.tempResources[name] || tables[name];
+        table = opts.tempResources[name] || tables[name];
         if(!table) {
             return insertTx.cb({
-                message: 'No such table ' + statement.source.name
+                message: 'No such resource ' + name
             });
         }
         if(!table.insert) {
