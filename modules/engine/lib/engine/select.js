@@ -24,7 +24,7 @@ var httpRequest = require('./http.request.js'),
     jsonPath = require('JSONPath'),
     assert = require('assert');
 
-var maxNestedRequests;
+var maxRequests;
 
 exports.exec = function(opts, statement, cb, parentEvent) {
 
@@ -55,8 +55,8 @@ exports.exec = function(opts, statement, cb, parentEvent) {
                 cloned.whereCriteria[0].rhs.value = (_.isArray(row) || _.isObject(row)) ? row[joiningColumn] : row;
 
                 // Determine whether the number of funcs is within the limit, otherwise break out of the loop
-                if (funcs.length >= (maxNestedRequests || getMaxNestedRequests(opts))) {
-                    opts.logEmitter.emitWarning('Pruning the number of nested requests to config.maxNestedRequests = ' + maxNestedRequests + '.');
+                if (funcs.length >= (maxRequests || getMaxRequests(opts))) {
+                    opts.logEmitter.emitWarning('Pruning the number of nested requests to config.maxNestedRequests = ' + maxRequests + '.');
                     return;
                 }
 
@@ -172,9 +172,9 @@ function execInternal(opts, statement, cb, parentEvent) {
                         ret[name] = [];
 
                         // Determine whether the number of values is within the limit and prune the values array
-                        if (cond.rhs.value.length > (maxNestedRequests || getMaxNestedRequests(opts))) {
-                            opts.logEmitter.emitWarning('Pruning the number of nested requests in in-clause to config.maxNestedRequests = ' + maxNestedRequests + '.');
-                            cond.rhs.value = cond.rhs.value.slice(0, maxNestedRequests);
+                        if (cond.rhs.value.length > (maxRequests || getMaxRequests(opts))) {
+                            opts.logEmitter.emitWarning('Pruning the number of nested requests in in-clause to config.maxNestedRequests = ' + maxRequests + '.');
+                            cond.rhs.value = cond.rhs.value.slice(0, maxRequests);
                         }
 
                         // Expand variables from context
@@ -330,17 +330,17 @@ var clone = function(obj) {
     return temp;
 };
 
-function getMaxNestedRequests(opts) {
+function getMaxRequests(opts) {
     var config = opts.config;
 
     if (config && config.maxNestedRequests) {
-        maxNestedRequests = config.maxNestedRequests;
+        maxRequests = config.maxNestedRequests;
     }
 
-    if (typeof maxNestedRequests == 'undefined') {
-        maxNestedRequests = 50;
-        opts.logEmitter.emitWarning('config.maxNestedRequests is undefined! Defaulting to ' + maxNestedRequests);
+    if (!maxRequests) {
+        maxRequests = 50;
+        opts.logEmitter.emitWarning('config.maxNestedRequests is undefined! Defaulting to ' + maxRequests);
     }
 
-    return maxNestedRequests;
+    return maxRequests;
 }
