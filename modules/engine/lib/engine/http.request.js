@@ -757,7 +757,7 @@ function getMaxResponseLength(config, logEmitter) {
         maxResponseLength = config.maxResponseLength;
     }
 
-    if (typeof maxResponseLength == 'undefined') {
+    if (!maxResponseLength) {
         maxResponseLength = 10000000; // default to 10,000,000
         logEmitter.emitWarning('config.maxResponseLength is undefined! Defaulting to ' + maxResponseLength);
     }
