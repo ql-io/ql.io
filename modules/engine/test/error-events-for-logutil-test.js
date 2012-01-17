@@ -25,33 +25,17 @@ var engine = new Engine({
     connection: 'close'
 });
 
-var procEmitter = process.EventEmitter();
-
-function registerListener(event, handler) {
-    if (!procEmitter.listeners(event).length) {
-        procEmitter.on(event, handler);
-    }
-}
-
-function unregisterListener(event, handler) {
-    procEmitter.removeListener(event, handler);
-}
-
-
 module.exports = {
     'error event for error code': function(test) {
 
         var errorGot = false;
 
         var errorHandler = function(ctx, msg) {
-            unregisterListener(Engine.Events.ERROR, errorHandler);
             ctx = ctx || {};
             test.equals(ctx.type, 'QlIoHttpRequest', 'QlIoHttpRequest expected');
             test.equals(JSON.stringify(msg), '{"headers":{"content-type":"application/json"},"body":{}}');
             errorGot = true;
         }
-
-        registerListener(Engine.Events.ERROR, errorHandler);
 
         var server = http.createServer(function(req, res) {
             res.writeHead(502, {
@@ -66,6 +50,8 @@ module.exports = {
             var engine = new Engine({
                 connection : 'close'
             });
+            engine.once(Engine.Events.ERROR, errorHandler);
+
             var script = fs.readFileSync(__dirname + '/mock/empty-json-resp.ql', 'UTF-8');
 
             engine.exec(script, function(err, result) {
@@ -89,24 +75,20 @@ module.exports = {
         var errorGot = false;
 
         var errorHandler = function(ctx, msg) {
-            unregisterListener(Engine.Events.ERROR, errorHandler);
             ctx = ctx || {};
             test.equals(ctx.type, 'QlIoHttpRequest', 'QlIoHttpRequest expected');
-            test.ok(msg.stack, 'Error stack expected');
-            test.ok(msg.stack.indexOf('ECONNREFUSED') != -1, 'Expected ECONNREFUSED in error');
+            test.ok(msg.indexOf('ECONNREFUSED') != -1, 'Expected ECONNREFUSED in error');
             errorGot = true;
         }
-
-        registerListener(Engine.Events.ERROR, errorHandler);
 
         // Do the test here.
         var engine = new Engine({
             connection : 'close'
         });
+        engine.once(Engine.Events.ERROR, errorHandler);
         var script = fs.readFileSync(__dirname + '/mock/empty-json-resp.ql', 'UTF-8');
 
         engine.exec(script, function(err, result) {
-
             if (err) {
                 test.ok(errorGot, "Expected error event");
                 test.done();
@@ -123,19 +105,17 @@ module.exports = {
         var errorGot = false;
 
         var errorHandler = function(ctx, msg) {
-            unregisterListener(Engine.Events.ERROR, errorHandler);
             ctx = ctx || {};
             test.equals(ctx.type, 'API', 'API expected');
             test.equals(msg.type, 'undefined_method');
             errorGot = true;
         }
 
-        registerListener(Engine.Events.ERROR, errorHandler);
-
         // Do the test here.
         var engine = new Engine({
             connection : 'close'
         });
+        engine.once(Engine.Events.ERROR, errorHandler);
         var script = fs.readFileSync(__dirname + '/mock/forIncMkyPatchErr.ql', 'UTF-8');
 
         engine.exec(script, function(err, result) {

@@ -16,7 +16,7 @@
 
 "use strict";
 
-var compiler = require('lib/compiler');
+var compiler = require('../lib/compiler');
 
 exports['route get'] = function (test) {
     var q = "des = describe foo; return {} via route '/foo/bar' using method get;";

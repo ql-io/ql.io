@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-"use strict";
+'use strict';
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
-    EventEmitter = require('events').EventEmitter,
-    sys = require('sys');
+    EventEmitter = require('events').EventEmitter;
 
 module.exports = {
 
@@ -236,12 +235,9 @@ module.exports = {
             fields = select addresses[0].street, addresses[1].city, name.last from data;\
             return {"result" : "{fields}"};'
         var emitter = new EventEmitter();
-        var ack = 0, done = 0, compileOk = 0, inFlight = 0, success = 0, error = 0;
+        var ack = 0, done = 0, inFlight = 0, success = 0, error = 0;
         emitter.on(Engine.Events.SCRIPT_ACK, function() {
             ack++;
-        });
-        emitter.on(Engine.Events.SCRIPT_COMPILE_OK, function() {
-            compileOk++;
         });
         emitter.on(Engine.Events.STATEMENT_IN_FLIGHT, function() {
             inFlight++;
@@ -265,7 +261,6 @@ module.exports = {
                     }
                     else {
                         test.equals(1, ack);
-                        test.equals(1, compileOk);
                         test.equals(3, inFlight);
                         test.equals(3, success, 'Failed');
                         test.equals(1, done);

@@ -17,7 +17,6 @@
 'use strict';
 
 var jsonfill = require('./jsonfill.js'),
-    sys = require('sys'),
     _ = require('underscore');
 
 exports.run = run;
@@ -81,7 +80,7 @@ function select(path, obj) {
             }
         }
         else {
-            return null;
+            return [];
         }
     }
     return curr;

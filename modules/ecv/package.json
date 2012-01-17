@@ -2,19 +2,19 @@
     "author": "ql.io",
     "description": "Provides ECV check for ql.io servers",
     "name": "ql.io-ecv",
-    "version": "0.3.0",
+    "version": "0.4.0-beta",
     "repository": {
         "type": "git",
         "url": "https://github.com/ql-io/ql.io"
     },
     "engines": {
-        "node": ">= 0.4.9 < 0.5.0"
+        "node":"> 0.6.0"
     },
     "main": "lib/ecv.js",
     "dependencies": {
     },
     "devDependencies": {
-        "nodeunit": "0.5.1",
+        "nodeunit": "0.6.4",
         "ql.io-console": ""
     }
 }

@@ -18,100 +18,105 @@
 
 var eventTypes = require('./event-types.js'),
     uuid = require('node-uuid'),
-    sys = require('sys');
+    events = require("events"),
+    util = require('util');
 
-var procEmitter = process.EventEmitter();
+var LogEmitter = module.exports = function() {
+    var counter = 1;
+    events.EventEmitter.call(this);
 
-function getEventId() {
-    process.qlioTxIdCtr = process.qlioTxIdCtr || 1;
-    process.qlioTxIdCtr++;
-    if (process.qlioTxIdCtr == 65535) {
-        process.qlioTxIdCtr = 1; // skip 0, it means non-transaction
-    }
-    return process.qlioTxIdCtr;
-}
-
-
-var beginEvent = exports.beginEvent = function(parent, type, name) {
-    return  {
-        eventId: getEventId(),
-        parentEventId: (parent ? parent.eventId = parent.eventId || 0 : 0),
-        startTime: getUTimeInSecs(),
-        tx: 'begin',
-        type: type || 'QlIo',
-        txType: type || 'QlIo',
-        name: name || (type || 'QLIo'),
-        txName: name || (type || 'QLIo'),
-        uuid: (parent && parent.guid ? parent.guid : uuid())
-    };
-}
-
-var endEvent = exports.endEvent = function(obj) {
-    if (!obj) {
-        return; // don't waste my time
+    this.getEventId = function() {
+        counter++;
+        if (counter == 65535) {
+            counter = 1; // skip 0, it means non-transaction
+        }
+        return counter;
     }
 
-    var startTime = obj.startTime || getUTimeInSecs();
-
-    try {
-        obj.txDuration = getUTimeInSecs() - startTime;
+    this.beginEvent= function(parent, type, name) {
+        return  {
+            eventId: this.getEventId(),
+            parentEventId: (parent ? parent.eventId = parent.eventId || 0 : 0),
+            startTime: getUTimeInSecs(),
+            tx: 'begin',
+            type: type || 'QlIo',
+            txType: type || 'QlIo',
+            name: name || (type || 'QLIo'),
+            txName: name || (type || 'QLIo'),
+            uuid: (parent && parent.uuid ? parent.uuid : uuid())
+        };
     }
-    catch(Exception) {
-        obj.txDuration = 0;
+
+    this.endEvent = function(obj) {
+        if (!obj) {
+            return; // don't waste my time
+        }
+
+        var startTime = obj.startTime || getUTimeInSecs();
+
+        try {
+            obj.txDuration = getUTimeInSecs() - startTime;
+        }
+        catch(Exception) {
+            obj.txDuration = 0;
+        }
+
+        obj.type = obj.txType || 'QlIo';
+        obj.name = obj.txName || obj.type;
+
+        obj.tx = 'end';
     }
 
-    obj.type = obj.txType || 'QlIo';
-    obj.name = obj.txName || obj.type;
-
-    obj.tx = 'end';
-}
-
-var wrapEvent = exports.wrapEvent = function(parent, txType, txName, cb) {
-    var event = beginEvent(parent, txType, txName);
-    procEmitter.emit(eventTypes.BEGIN_EVENT, event);
-    return {
-        event: event,
-        cb: function(e, r) {
-            var message = 'Success';
-            if (e) {
-                procEmitter.emit(eventTypes.ERROR, event, e);
-                message = 'Failure'
+    this.wrapEvent = function(parent, txType, txName, cb) {
+        var event = this.beginEvent(parent, txType, txName);
+        this.emit(eventTypes.BEGIN_EVENT, event);
+        var that = this;
+        return {
+            event: event,
+            cb: function(e, r) {
+                var message = 'Success';
+                if (e) {
+                    that.emit(eventTypes.ERROR, event, e);
+                    message = 'Failure'
+                }
+                that.endEvent(event);
+                that.emit(eventTypes.END_EVENT, event, message); //end
+                return cb(e, r);
             }
-            endEvent(event);
-            procEmitter.emit(eventTypes.END_EVENT, event, message); //end
-            return cb(e, r);
         }
     }
+
+    this.emitEvent = function(event, msg){
+        this.emit(eventTypes.EVENT, event, msg);
+    }
+
+    this.emitWarning = function () {
+        var event = {}, msg = 'Warning event raised without message';
+        if (arguments.length > 1) {
+            event = arguments[0];
+            msg = arguments[1];
+        }
+        else if (arguments.length === 1) {
+            msg = arguments[0];
+        }
+        this.emit(eventTypes.WARNING, event, msg);
+    }
+
+    this.emitError = function () {
+        var event = {}, msg = 'Error event raised without message';
+        if (arguments.length > 1) {
+            event = arguments[0];
+            msg = arguments[1];
+        }
+        else if (arguments.length === 1) {
+            msg = arguments[0];
+        }
+        this.emit(eventTypes.ERROR, event, msg);
+    }
+
+    function getUTimeInSecs() {
+        return Math.floor(new Date().getTime() / 1000);
+    }
 }
 
-exports.emitEvent = function(event, msg){
-  procEmitter.emit(eventTypes.EVENT, event, msg);
-}
-
-exports.emitWarning = function () {
-    var event = {}, msg = 'Warning event raised without message';
-    if (arguments.length > 1) {
-        event = arguments[0];
-        msg = arguments[1];
-    }
-    else if (arguments.length === 1) {
-        msg = arguments[0];
-    }
-    procEmitter.emit(eventTypes.WARNING, event, msg);
-}
-
-exports.emitError = function () {
-    var event = {}, msg = 'Error event raised without message';
-    if (arguments.length > 1) {
-        event = arguments[0];
-        msg = arguments[1];
-    }
-    else if (arguments.length === 1) {
-        msg = arguments[0];
-    }
-    procEmitter.emit(eventTypes.ERROR, event, msg);
-}
-
-function getUTimeInSecs() {
-    return Math.floor(new Date().getTime() / 1000);
-}
+util.inherits(LogEmitter, events.EventEmitter);

@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-"use strict";
+'use strict';
 
-var http = require('http'),
-    winston = require('winston'),
+var winston = require('winston'),
     express = require('express'),
-    fs = require('fs'),
     browserify = require('browserify'),
     headers = require('headers'),
-    check = require('validator').check,
     sanitize = require('validator').sanitize,
     connect = require('connect'),
     expat = require('xml2json'),
     assetManager = require('connect-assetmanager'),
     assetHandler = require('connect-assetmanager-handlers'),
-    EventEmitter = require('events').EventEmitter,
-    procEmitter = process.EventEmitter(),
     Engine = require('ql.io-engine'),
     _ = require('underscore'),
     WebSocketServer = require('websocket').server;
@@ -42,10 +37,9 @@ var skipHeaders = ['connection', 'host', 'referer', 'content-length', 'accept', 
     'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers',
     'transfer-encoding', 'upgrade'];
 
-var Console = module.exports = function(config) {
+var Console = module.exports = function(config, cb) {
 
     config = config || {};
-    global.opts = config;
 
     var engine = new Engine(config);
     var logger = new (winston.Logger)({
@@ -56,23 +50,23 @@ var Console = module.exports = function(config) {
             })
         ]
     });
-    logger.setLevels(global.opts['log levels'] || winston.config.syslog.levels);
+    logger.setLevels(config['log levels'] || winston.config.syslog.levels);
 
-    procEmitter.setMaxListeners(22);
-    procEmitter.on(Engine.Events.EVENT, function(event, message) {
+    engine.setMaxListeners(25);
+    engine.on(Engine.Events.EVENT, function(event, message) {
         if(message) {
             logger.info(new Date() + ' - ' + message);
         }
     });
-    procEmitter.on(Engine.Events.SCRIPT_DONE, function(event, message) {
+    engine.on(Engine.Events.SCRIPT_DONE, function(event, message) {
         logger.info(new Date() + ' - ' + JSON.stringify(event));
     });
-    procEmitter.on(Engine.Events.ERROR, function(event, message) {
+    engine.on(Engine.Events.ERROR, function(event, message) {
         if(message) {
             logger.error(new Date() + ' - ' + message.stack || message);
         }
     });
-    procEmitter.on(Engine.Events.WARNING, function(event, message) {
+    engine.on(Engine.Events.WARNING, function(event, message) {
         if(message) {
             logger.warning(new Date() + ' - ' + message.stack || message);
         }
@@ -91,8 +85,21 @@ var Console = module.exports = function(config) {
     var app = this.app = express.createServer();
 
     // Add parser for xml
-    connect.bodyParser.parse['application/xml'] = function(reqData) {
-        return expat.toJson(reqData, {object: true});
+    connect.bodyParser.parse['application/xml'] = function(req, options, next) {
+        var buf = '';
+        req.setEncoding('utf8');
+        req.on('data', function (chunk) {
+            buf += chunk
+        });
+        req.on('end', function () {
+            try {
+                req.body = expat.toJson(buf, {object: true});
+                next();
+            }
+            catch(err) {
+                next(err);
+            }
+        });
     };
 
     var bodyParser = connect.bodyParser();
@@ -179,10 +186,10 @@ var Console = module.exports = function(config) {
     }
 
     // register routes
-    var routes = engine.routes();
+    var routes = engine.routes.verbMap;
     _.each(routes, function(verbRoutes, uri) {
         _.each(verbRoutes, function(verbRouteVariants, verb) {
-            procEmitter.emit(Engine.Events.EVENT, {}, new Date() + ' Adding route ' + uri + ' for ' + verb);
+            engine.emit(Engine.Events.EVENT, {}, new Date() + ' Adding route ' + uri + ' for ' + verb);
             app[verb](uri, function(req, res) {
                 var holder = {
                     params: {},
@@ -222,23 +229,134 @@ var Console = module.exports = function(config) {
                 collectHttpHeaders(req, holder);
 
                 var execState = [];
-                emitter = new EventEmitter();
-                setupExecStateEmitter(emitter, execState, req.param('events'));
-                setupCounters(emitter);
-                engine.exec({
-                    script: route.script,
-                    emitter: emitter,
-                    request: holder,
-                    context: req.body || {},
-                    cb: function(err, results) {
-                        return handleResponseCB(req, res, execState, err, results);
+                engine.execute(route.script,
+                    {
+                        request: holder,
+                        route: uri,
+                        context: req.body || {}
                     },
-                    route: uri
-                });
-
+                    function(emitter) {
+                        setupExecStateEmitter(emitter, execState, req.param('events'));
+                        setupCounters(emitter);
+                        emitter.on('end', function(err, results) {
+                            return handleResponseCB(req, res, execState, err, results);
+                        });
+                    }
+                );
             });
         });
+    });
 
+    // HTTP indirection for 'show tables' command
+    app.get('/tables', function(req,res){
+        var holder = {
+            params: {fromRoute: true},
+            headers: {}
+        };
+        var execState = [];
+        engine.execute('show tables',
+            {
+                request: holder
+            },
+            function(emitter) {
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
+                emitter.on('end', function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                });
+            }
+        );
+    });
+
+    // HTTP indirection for 'describe <table>' command  and it returns json (and not html)
+    app.get('/table', function(req,res){
+        var holder = {
+            params: {fromRoute: true},
+            headers: {}
+        };
+
+        var name = req.param('name');
+
+        if (!name) {
+            res.writeHead(400, 'Bad input', {
+                'content-type' : 'application/json'
+            });
+            res.write(
+                JSON.stringify({'err' : 'Missing table name: Usage /table?name=some-tablename'}
+                ));
+            res.end();
+            return;
+        }
+
+        var execState = [];
+        engine.execute('describe' + decodeURIComponent(name),
+            {
+                request: holder
+            },
+            function(emitter) {
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
+                emitter.on('end', function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                });
+            }
+        );
+    });
+
+    // HTTP indirection for 'show routes' command
+    app.get('/routes', function(req,res){
+        var holder = {
+            params: {},
+            headers: {}
+        };
+        var execState = [];
+        engine.execute('show routes',
+            {
+                request: holder
+            },
+            function(emitter) {
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
+                emitter.on('end', function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                });
+            }
+        );
+    });
+
+    // HTTP indirection for 'describe route "<route>" using method <http-verb>' command
+    app.get('/route', function(req,res){
+        var holder = {
+            params: {},
+            headers: {}
+        };
+        var path = req.param('path');
+        var method = req.param('method');
+
+        if (!path || !method) {
+            res.writeHead(400, 'Bad input', {
+                'content-type' : 'application/json'
+            });
+            res.write(
+                JSON.stringify({'err' : 'Missing path name or method: Usage /route?path=some-path&method=http-method'}
+                ));
+            res.end();
+            return;
+        }
+
+        var execState = [];
+        engine.execute('describe route "' + decodeURIComponent(path) + '" using method ' + method,
+            {
+                request: holder
+            },
+            function(emitter) {
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
+                emitter.on('end', function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                });
+            }
+        );
     });
 
     app.get('/q', function(req, res) {
@@ -256,23 +374,19 @@ var Console = module.exports = function(config) {
                 return;
             }
             query = sanitize(query).str;
-
             collectHttpQueryParams(req, holder, true);
-
             collectHttpHeaders(req, holder);
-
             var execState = [];
-            emitter = new EventEmitter();
-            setupExecStateEmitter(emitter, execState, req.param('events'));
-            setupCounters(emitter);
-            engine.exec({
-                script: query,
-                emitter: emitter,
-                request: holder,
-                cb: function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
-                }
-            });
+            engine.execute(query,
+                {
+                    request: holder
+                }, function(emitter) {
+                    setupExecStateEmitter(emitter, execState, req.param('events'));
+                    setupCounters(emitter);
+                    emitter.on('end', function(err, results) {
+                        return handleResponseCB(req, res, execState, err, results);
+                    })
+                })
         }
     );
 
@@ -285,7 +399,7 @@ var Console = module.exports = function(config) {
     server.on('request', function(request) {
         var connection = request.accept('ql.io-console', request.origin);
         var events = [];
-        connection.on("message", function(message) {
+        connection.on('message', function(message) {
             var event = JSON.parse(message.utf8Data);
             if(event.type === 'events') {
                 var arr = event.data;
@@ -304,7 +418,6 @@ var Console = module.exports = function(config) {
                 }));
             }
             else if (event.type === 'script') {
-                emitter = new EventEmitter();
                 var _collect = function(packet) {
                     // Writes events to the client
                     connection.sendUTF(JSON.stringify({
@@ -312,16 +425,14 @@ var Console = module.exports = function(config) {
                         data: packet
                     }))
                 }
-                _.each(events, function(event) {
-                    emitter.on(event, _collect);
-                });
-                setupCounters(emitter);
                 var script = event.data;
-                engine.exec({
-                    script: script,
-                    emitter: emitter,
-                    cb: function(err, results) {
-                        if (err) {
+                engine.execute(script, {}, function(emitter) {
+                    _.each(events, function(event) {
+                        emitter.on(event, _collect);
+                    });
+                    setupCounters(emitter);
+                    emitter.on('end', function(err, results) {
+                        if(err) {
                             var packet = {
                                 headers: {
                                     'content-type': 'application/json'
@@ -339,8 +450,8 @@ var Console = module.exports = function(config) {
                                 data: results
                             }));
                         }
-                        emitter = undefined;
-                    }});
+                    })
+                })
             }
         });
         connection.on('close', function() {
@@ -401,24 +512,22 @@ var Console = module.exports = function(config) {
         });
     }
 
-    // Reemit at the process level for req/resp counting
+    // Send to master
     function setupCounters(emitter) {
-        emitter.on(Engine.Events.SCRIPT_ACK, function(packet) {
-            // Emit an event for stats
-            procEmitter.emit(Engine.Events.SCRIPT_ACK, packet);
-        });
-        emitter.on(Engine.Events.STATEMENT_REQUEST, function(packet) {
-            // Emit an event for stats
-            procEmitter.emit(Engine.Events.STATEMENT_REQUEST, packet);
-        });
-        emitter.on(Engine.Events.STATEMENT_RESPONSE, function(packet) {
-            // Emit an event for stats
-            procEmitter.emit(Engine.Events.STATEMENT_RESPONSE, packet);
-        });
-        emitter.on(Engine.Events.SCRIPT_DONE, function(packet) {
-            // Emit an event for stats
-            procEmitter.emit(Engine.Events.SCRIPT_DONE, packet);
-        });
+        if(process.send) {
+            emitter.on(Engine.Events.SCRIPT_ACK, function(packet) {
+                process.send({event:  Engine.Events.SCRIPT_ACK, pid: process.pid});
+            })
+            emitter.on(Engine.Events.STATEMENT_REQUEST, function(packet) {
+                process.send({event:  Engine.Events.STATEMENT_REQUEST, pid: process.pid});
+            })
+            emitter.on(Engine.Events.STATEMENT_RESPONSE, function(packet) {
+                process.send({event:  Engine.Events.STATEMENT_RESPONSE, pid: process.pid});
+            })
+            emitter.on(Engine.Events.SCRIPT_DONE, function(packet) {
+                process.send({event:  Engine.Events.SCRIPT_DONE, pid: process.pid});
+            })
+        }
     }
 
     function handleResponseCB(req, res, execState, err, results) {
@@ -471,5 +580,8 @@ var Console = module.exports = function(config) {
         }
     }
 
-    app = server;
+    // The caller gets the app and the engine/event emitter
+    if(cb) {
+        cb(app, engine);
+    }
 };

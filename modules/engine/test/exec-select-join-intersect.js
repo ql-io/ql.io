@@ -19,7 +19,6 @@
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
     EventEmitter = require('events').EventEmitter,
-    sys = require('sys'),
     http = require('http'),
     fs = require('fs'),
     util = require('util');

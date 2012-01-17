@@ -18,7 +18,6 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
-    sys = require('sys'),
     fs = require('fs'),
     http = require('http'),
     util = require('util'),
@@ -226,7 +225,7 @@ module.exports = {
 
                cb: function(err, result) {
                   if (err) {
-                      console.log(err.stack || sys.inspect(err, false, 10));
+                      console.log(err.stack || util.inspect(err, false, 10));
                       test.ok(false);
                    }
                   else {

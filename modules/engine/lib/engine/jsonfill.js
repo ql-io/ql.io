@@ -19,7 +19,6 @@
 var _ = require('underscore'),
     jsonPath = require('JSONPath'),
     strTemplate = require('./peg/str-template.js'),
-    sys = require('sys'),
     assert = require('assert');
 
 exports.fill = fill;

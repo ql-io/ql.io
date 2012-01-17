@@ -1,33 +1,33 @@
 {
     "author": "ql.io",
     "name": "ql.io-engine",
-    "version": "0.3.14",
+    "version": "0.4.0-beta",
     "repository": {
         "type": "git",
         "url": "https://github.com/ql-io/ql.io"
     },
     "engines": {
-        "node": ">= 0.4.9 < 0.5.0"
+        "node":"> 0.6.0"
     },
     "main": "lib/engine.js",
     "dependencies": {
-        "winston": "0.3.5",
-        "underscore": "1.2.1",
-        "xml2json": "",
+        "winston": "0.5.9",
+        "underscore": "1.3.0",
+        "xml2json": "0.2.4",
         "ql.io-compiler": "",
         "ql.io-mutable-uri": "",
         "ql.io-uri-template": "",
-        "JSONPath": "latest",
+        "JSONPath": "0.8.5",
         "uri": ">=0.1.0",
         "headers": "0.9.6",
-        "mustache": "0.3.1-dev",
-        "async": "0.1.14",
-        "dox": "0.0.5",
-        "node-uuid": "",
+        "mustache": "0.4.0",
+        "async": "0.1.15",
+        "dox": "0.1.3",
+        "node-uuid": "1.3.3",
         "markdown": "0.3.1",
         "csv": "0.0.10"
     },
     "devDependencies": {
-        "nodeunit": "0.5.1"
+        "nodeunit": "0.6.4"
     }
 }

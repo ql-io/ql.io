@@ -18,8 +18,7 @@
 
 var Engine = require('../lib/engine');
 
-var engine = new Engine(),
-    sys = require('sys');
+var engine = new Engine();
 
 module.exports = {
     'return-string': function(test) {

@@ -16,7 +16,7 @@
 
 "use strict";
 
-var compiler = require('lib/compiler');
+var compiler = require('../lib/compiler');
 
 exports['delete'] = function (test) {
     var q = "delete from foo where bar = 'a'";
@@ -57,7 +57,6 @@ exports['delete-csv'] = function (test) {
         line: 1,
         id: 0
     }];
-    var sys = require('sys');
     test.deepEqual(statement, e);
     test.done();
 };

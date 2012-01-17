@@ -17,8 +17,7 @@
 "use strict";
 
 var _ = require('underscore'),
-    Engine = require('../lib/engine'),
-    sys = require('sys');
+    Engine = require('../lib/engine');
 
 var engine = new Engine({
     tables : __dirname + '/tables',

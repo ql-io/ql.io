@@ -27,19 +27,18 @@ var strTemplate = require('./peg/str-template.js'),
     _ = require('underscore'),
     fs = require('fs'),
     normalize = require('path').normalize,
-    markdown = require('markdown'),
-    logEmitter =  require('./log-emitter.js'),
-    sys = require('sys');
+    markdown = require('markdown');
 
 exports.go = function(options) {
     var statements, text, comments, resource, bag = {
-        config: global.opts.config
+        config: options.config
     };
     var root = options.path;
     var name = options.name;
     var script = options.script;
     var statement = options.statement;
     var cb = options.cb;
+    var logEmitter = options.logEmitter;
 
     assert.ok(root, 'Root directory is undefined');
     assert.ok(script || statement, 'Script is undefined');
@@ -70,9 +69,12 @@ exports.go = function(options) {
                         text = '';
                     }
 
-                    _process(resource['select'], 'select', bag, root, name, resource.meta.statements, cb);
-                    _process(resource['insert'], 'insert', bag, root, name, resource.meta.statements, cb);
-                    _process(resource['delete'], 'delete', bag, root, name, resource.meta.statements, cb);
+                    _process(resource['select'], 'select', bag, root, name,
+                        resource.meta.statements, logEmitter, cb);
+                    _process(resource['insert'], 'insert', bag, root, name,
+                        resource.meta.statements, logEmitter, cb);
+                    _process(resource['delete'], 'delete', bag, root, name,
+                        resource.meta.statements, logEmitter, cb);
                     cb(null, Object.freeze(resource));
 
                     break;
@@ -87,7 +89,7 @@ exports.go = function(options) {
     }
 }
 
-function _process(verb, type, bag, root, name, meta, cb) {
+function _process(verb, type, bag, root, name, meta, logEmitter, cb) {
     if(!verb) {
         return;
     }

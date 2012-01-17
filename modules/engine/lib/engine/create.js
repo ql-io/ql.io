@@ -22,18 +22,18 @@
 
 var brew = require('./brew.js'),
     _ = require('underscore'),
-    assert = require('assert'),
-    logEmitter =  require('./log-emitter.js'),
-    sys = require('sys');
+    assert = require('assert');
 
 exports.exec = function(opts, statement, cb, parentEvent) {
     brew.go({
         path: process.cwd() + '/',
+        config: opts.config,
+        settings: opts.settings,
         name: '',
         statement: statement,
         cb: function(err, resource) {
             if(err) {
-                logEmitter.emitError(err);
+                opts.logEmitter.emitError(err);
                 return cb(err);
             }
             else {
