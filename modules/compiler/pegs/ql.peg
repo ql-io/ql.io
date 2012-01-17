@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2011 eBay Software Foundation
  *
@@ -663,7 +662,7 @@ fieldName = chars:((selector ('.' selector)*)) {
   return append(chars);
 }
 
-selector = word '[' (digits / ('"' qword '"') / ('\'' qword '\'')) ']' / word
+selector = word '[' (digits / quotedWordVal) ']' / word
 
 comma = ','
 
@@ -679,21 +678,22 @@ word = chars:([a-zA-Z$:][a-zA-Z_0-9:]*)  {
   return ret;
 }
 
+quotedWordVal = q:quotedWord {
+  return '"' + q.value + '"';
+}
+
 quotedWord = sQuotedWord / dQuotedWord
 
-sQuotedWord = '\'' w:qword '\'' {
+sQuotedWord = '\'' c:([^'] / ' ')* '\'' {
   return {
-    value: w
-  }
-}
-dQuotedWord = '"' w:qword '"' {
-  return {
-    value: w
+    value: c.join('')
   }
 }
 
-qword = chars:([\x20-\x21]/[\x23-\x26]/[\x28-\x7E]/[a-zA-Z]/[a-zA-Z_0-9])*  {
-  return chars.join('');
+dQuotedWord = '"' c:([^"] / ' ')* '"' {
+  return {
+    value: c.join('')
+  }
 }
 
 quotedDigits = sQuotedDigits / dQuotedDigits
