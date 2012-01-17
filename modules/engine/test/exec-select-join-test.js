@@ -18,8 +18,7 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
-    fs = require('fs'),
-    sys = require('sys');
+    fs = require('fs');
 
 var engine = new Engine({
     tables : __dirname + '/tables',

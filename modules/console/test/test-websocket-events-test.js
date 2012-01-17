@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-"use strict"
+'use strict'
 
 var _ = require('underscore'),
-    sys = require('sys'),
     Console = require('../app.js'),
     Engine = require('ql.io-engine'),
     EventEmitter = require('events').EventEmitter,
@@ -39,7 +38,6 @@ module.exports = testCase({
             testRunner('showa tables', test, {
                 ack : 1,
                 compileError : 1,
-                compileOk : 0,
                 inFlight : 0,
                 error : 0,
                 done : 1,
@@ -60,7 +58,6 @@ module.exports = testCase({
         c.app.listen(3000, function() {
             testRunner('show tables', test, {
                 ack : 1,
-                compileOk : 1,
                 compileError : 0,
                 inFlight : 1,
                 error : 0,
@@ -82,7 +79,6 @@ module.exports = testCase({
         c.app.listen(3000, function() {
             testRunner('desc foo', test, {
                 ack : 1,
-                compileOk : 1,
                 compileError : 0,
                 inFlight : 1,
                 error : 1,
@@ -104,7 +100,6 @@ module.exports = testCase({
         c.app.listen(3000, function() {
             testRunner('select * from finditems where keywords = "ipad"', test, {
                 ack : 1,
-                compileOk : 1,
                 compileError : 0,
                 inFlight : 1,
                 success : 1,
@@ -144,7 +139,6 @@ module.exports = testCase({
             testRunner(script, test, {
                 ack : 1,
                 compileError : 0,
-                compileOk : 1,
                 inFlight : 3,
                 success : 3,
                 error : 0,
@@ -167,7 +161,6 @@ module.exports = testCase({
             testRunner(script, test, {
                 ack : 1,
                 compileError : 0,
-                compileOk : 1,
                 inFlight : 1,
                 success : 1,
                 error : 0,
@@ -181,12 +174,9 @@ module.exports = testCase({
 
 function testRunner(script, test, obj, app) {
     var emitter = new EventEmitter();
-    var ack = 0, compileOk = 0, compileError = 0, inFlight = 0, success = 0, error = 0, done = 0, request = 0, response = 0;
+    var ack = 0, compileError = 0, inFlight = 0, success = 0, error = 0, done = 0, request = 0, response = 0;
     emitter.on(Engine.Events.SCRIPT_ACK, function() {
         ack++;
-    });
-    emitter.on(Engine.Events.SCRIPT_COMPILE_OK, function() {
-        compileOk++;
     });
     emitter.on(Engine.Events.SCRIPT_COMPILE_ERROR, function() {
         compileError++;
@@ -212,7 +202,6 @@ function testRunner(script, test, obj, app) {
         done++;
         test.equals(obj.ack, ack);
         test.equals(obj.compileError, compileError);
-        test.equals(obj.compileOk, compileOk);
         test.equals(obj.inFlight, inFlight);
         test.equals(obj.error, error);
         test.equals(obj.request, request);
@@ -223,7 +212,7 @@ function testRunner(script, test, obj, app) {
         test.done();
     });
     var socket = new WebSocketClient();
-    var events = [Engine.Events.SCRIPT_ACK, Engine.Events.SCRIPT_COMPILE_ERROR, Engine.Events.SCRIPT_COMPILE_OK,
+    var events = [Engine.Events.SCRIPT_ACK, Engine.Events.SCRIPT_COMPILE_ERROR,
         Engine.Events.STATEMENT_ERROR, Engine.Events.STATEMENT_IN_FLIGHT, Engine.Events.STATEMENT_SUCCESS,
         Engine.Events.STATEMENT_REQUEST, Engine.Events.STATEMENT_RESPONSE, Engine.Events.SCRIPT_DONE];
     socket.on('connect', function(connection) {
@@ -245,5 +234,5 @@ function testRunner(script, test, obj, app) {
             emitter.emit(event.type, event.data, connection);
         });
     });
-    socket.connect("ws://localhost:3000/", 'ql.io-console');
+    socket.connect('ws://localhost:3000/', 'ql.io-console');
 }

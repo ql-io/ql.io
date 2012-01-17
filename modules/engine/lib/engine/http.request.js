@@ -19,7 +19,6 @@
 var strTemplate = require('./peg/str-template.js'),
     project = require('./project.js'),
     eventTypes = require('./event-types.js'),
-    logEmitter =  require('./log-emitter.js'),
     uriTemplate = require('ql.io-uri-template'),
     MutableURI = require('ql.io-mutable-uri'),
     http = require('http'),
@@ -27,7 +26,7 @@ var strTemplate = require('./peg/str-template.js'),
     URI = require('uri'),
     fs = require('fs'),
     assert = require('assert'),
-    sys = require('sys'),
+    util = require('util'),
     _ = require('underscore'),
     mustache = require('mustache'),
     async = require('async'),
@@ -35,16 +34,21 @@ var strTemplate = require('./peg/str-template.js'),
     uuid = require('node-uuid'),
     os = require('os');
 
+var maxResponseLength;
+
 exports.exec = function(args) {
-    var request, context, resource, statement, params, resourceUri, template, cb, holder,
-        parentEvent, emitter, tasks, globalOpts;
+    var request, context, resource, statement, params, resourceUri, template, cb, holder, tasks,
+        logEmitter;
 
     resource = args.resource;
     context = args.context;
     request = args.request; // headers and params extracted from an incoming request (if any)
     statement = args.statement;
     cb = args.callback;
+    logEmitter = args.logEmitter;
     holder = {};
+
+    maxResponseLength = maxResponseLength || getMaxResponseLength(args.config, logEmitter);
 
     // Prepare params (former ones override the later ones)
     params = prepareParams(context,
@@ -54,7 +58,7 @@ exports.exec = function(args) {
         request.params,
         request.headers,
         resource.defaults,
-        {config: global.opts.config}
+        {config: args.config}
     );
 
     // Validate all params - make sure to wrap user code in try/catch
@@ -155,24 +159,26 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     var h, requestBody, client, isTls, options, template;
     var uri, heirpart, authority, host, port, path, useProxy = false, proxyHost, proxyPort;
 
-    var httpReqTx = logEmitter.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
+    var httpReqTx = args.logEmitter.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
     var resource = args.resource;
     var statement = args.statement;
-    var globalOpts = global.opts;
+    var settings = args.settings || {};
+    var config = args.config || {};
     var emitter = args.emitter;
+    var logEmitter = args.logEmitter;
 
-    var conn = (globalOpts && globalOpts['connection']) ? globalOpts['connection'] : 'keep-alive';
+    var conn = settings['connection'] ? settings['connection'] : 'keep-alive';
     h = {
         'connection' : conn
     };
 
     var requestId = {
-        name : (globalOpts && globalOpts['request-id']) ? globalOpts['request-id'] : 'request-id',
+        name : settings['request-id'] ? settings['request-id'] : 'request-id',
         value : params['request-id'] || resource.headers['request-id'] || httpReqTx.event.uuid
     };
 
     h[requestId.name]  = requestId.value;
-    h['user-agent'] = 'ql.io/node.js';
+    h['user-agent'] = 'ql.io/node.js ' + process.version;
 
     // Clone headers - also replace any tokens
     _.each(resource.headers, function(v, k) {
@@ -203,7 +209,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
 
     // Perform authentication
     if(resource.auth) {
-        resource.auth.auth(params, function(err, ack) {
+        resource.auth.auth(params, config, function(err, ack) {
             if(err) {
                 return cb(err);
             }
@@ -262,8 +268,8 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     assert.ok(port, 'Port of URI [' + resourceUri + '] is invalid');
     path = (heirpart.path().value || '') + (uri.querystring() || '');
 
-    if(globalOpts && globalOpts.config && globalOpts.config.proxy) {
-        var proxyConfig = globalOpts.config.proxy;
+    if(config.proxy) {
+        var proxyConfig = config.proxy;
         if (proxyConfig[host] && !proxyConfig[host].host) {
             useProxy = false;
         }
@@ -289,11 +295,11 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     client = isTls ? https : http;
 
     // Send
-    sendMessage(client, emitter, statement, httpReqTx, options, resourceUri, requestBody, h,
+    sendMessage(client, emitter, logEmitter, statement, httpReqTx, options, resourceUri, requestBody, h,
         requestId,  resource, args.xformers, 0);
 }
 
-function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri, requestBody, h,
+function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options, resourceUri, requestBody, h,
                      requestId, resource, xformers, retry) {
     var status, clientRequest, start = Date.now(), mediaType, respData, uri;
 
@@ -321,11 +327,27 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
         emitter.emit(packet.type, packet);
     }
 
+
     clientRequest = client.request(options, function(res) {
         setEncoding(res);
         respData = '';
+        var responseLength = 0;
         res.on('data', function (chunk) {
+            responseLength += chunk.length;
+
+            if (responseLength > maxResponseLength) {
+                var err = new Error('Response length exceeds limit');
+                err.uri = resourceUri;
+                err.status = 502;
+
+                logEmitter.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
+                    'response length ' + responseLength + ' exceeds config.maxResponseLength of ' + maxResponseLength +
+                    ' ' + (Date.now() - start) + 'msec');
+                res.socket.destroy();
+                return httpReqTx.cb(err);
+            }
             respData += chunk;
+
         });
         res.on('end', function() {
 
@@ -364,9 +386,9 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
             mediaType = sniffMediaType(mediaType, resource, statement, res, respData);
 
             logEmitter.emitEvent(httpReqTx.event, resourceUri + '  ' +
-                sys.inspect(options) + ' ' +
+                util.inspect(options) + ' ' +
                 res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
-                sys.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
+                util.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
 
             // Parse
             jsonify(respData, mediaType, xformers, function(respJson) {
@@ -377,9 +399,9 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
                     return httpReqTx.cb(e);
                 }
 
-                if (status >= 200 && status <= 300) {
-                    if (respJson) {
-                        if (resource.monkeyPatch && resource.monkeyPatch['patch response']) {
+                if(status >= 200 && status <= 300) {
+                    if(respJson) {
+                        if(resource.monkeyPatch && resource.monkeyPatch['patch response']) {
                             try {
                                 respJson = resource.monkeyPatch['patch response']({
                                     body: respJson
@@ -428,12 +450,12 @@ function sendMessage(client, emitter, statement, httpReqTx, options, resourceUri
         clientRequest.write(requestBody);
     }
     clientRequest.on('error', function(err) {
-        logEmitter.emitEvent(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
+        logEmitter.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
             err.message + ' ' + (Date.now() - start) + 'msec');
         // For select, retry once on network error
         if(retry === 0 && statement.type === 'select') {
             logEmitter.emitEvent(httpReqTx.event, 'retrying - ' + resourceUri + ' - ' + (Date.now() - start) + 'msec');
-            sendMessage(client, emitter, statement, httpReqTx, options, resourceUri, requestBody, h,
+            sendMessage(client, emitter, logEmitter, statement, httpReqTx, options, resourceUri, requestBody, h,
                     requestId,  resource, xformers, 1);
         }
         else {
@@ -629,17 +651,17 @@ function jsonify(respData, mediaType, xformers, respCb, errorCb) {
     if (!respData || /^\s*$/.test(respData)) {
         respCb({});
     }
-    else if (mediaType.subtype === 'xml') {
+    else if(mediaType.subtype === 'xml') {
         xformers['xml'].toJson(respData, respCb, errorCb);
     }
-    else if (mediaType.subtype === 'json') {
+    else if(mediaType.subtype === 'json') {
         xformers['json'].toJson(respData, respCb, errorCb);
     }
-    else if (mediaType.subtype === 'csv') {
+    else if(mediaType.subtype === 'csv') {
         xformers['csv'].toJson(respData, respCb, errorCb,
             (mediaType.params && mediaType.params.header != undefined));
     }
-    else if (mediaType.type === 'text') {
+    else if(mediaType.type === 'text') {
         // Try JSON first
         xformers['json'].toJson(respData, respCb, function(error) {
             // if error Try XML
@@ -728,4 +750,17 @@ function toISO(d) {
         + pad(d.getUTCHours()) + ':'
         + pad(d.getUTCMinutes()) + ':'
         + pad(d.getUTCSeconds()) + 'Z';
+}
+
+function getMaxResponseLength(config, logEmitter) {
+    if (config && config.maxResponseLength) {
+        maxResponseLength = config.maxResponseLength;
+    }
+
+    if (!maxResponseLength) {
+        maxResponseLength = 10000000; // default to 10,000,000
+        logEmitter.emitWarning('config.maxResponseLength is undefined! Defaulting to ' + maxResponseLength);
+    }
+
+    return maxResponseLength;
 }

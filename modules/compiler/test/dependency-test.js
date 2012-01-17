@@ -16,9 +16,8 @@
 
 "use strict";
 
-var compiler = require('lib/compiler'),
-    _ = require('underscore'),
-    sys = require('sys');
+var compiler = require('../lib/compiler'),
+    _ = require('underscore');
 
 module.exports = {
     'define-dependency' : function(test) {

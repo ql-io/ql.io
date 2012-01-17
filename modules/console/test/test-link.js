@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-"use strict";
+'use strict';
 
 var http = require('http'),
     Console = require('../app.js'),
@@ -75,9 +75,8 @@ module.exports = {
 
         var app = c.app;
         var path = '/q?s=' + encodeURIComponent('select * from finditems where keywords="ipad"');
-        var events = ['ql.io-script-ack', 'ql.io-script-compile-error', 'ql.io-script-compile-ok',
-            'ql.io-statement-error', 'ql.io-statement-in-flight', 'ql.io-statement-success',
-            'ql.io-statement-request', 'ql.io-statement-response', 'ql.io-script-done'];
+        var events = ['ack', 'compile-error', 'statement-error', 'statement-in-flight',
+            'statement-success', 'statement-request', 'statement-response', 'script-done'];
         var packet = {
             type: 'events',
             data: JSON.stringify(events)

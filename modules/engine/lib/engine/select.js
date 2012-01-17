@@ -17,14 +17,14 @@
 "use strict";
 
 var httpRequest = require('./http.request.js'),
-    logEmitter =  require('./log-emitter.js'),
     jsonfill = require('./jsonfill.js'),
     project = require('./project.js'),
     _ = require('underscore'),
     async = require('async'),
     jsonPath = require('JSONPath'),
-    assert = require('assert'),
-    sys = require('sys');
+    assert = require('assert');
+
+var maxRequests;
 
 exports.exec = function(opts, statement, cb, parentEvent) {
 
@@ -34,7 +34,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
     assert.ok(opts.xformers, 'No xformers set');
 
     var funcs, cloned, joiningColumn, selectEvent, i;
-    selectEvent = logEmitter.wrapEvent(parentEvent, 'QlIoSelect', null, cb);
+    selectEvent = opts.logEmitter.wrapEvent(parentEvent, 'QlIoSelect', null, cb);
 
     execInternal(opts, statement, function(err, results) {
         if(err) {
@@ -53,6 +53,12 @@ exports.exec = function(opts, statement, cb, parentEvent) {
 
                 // Set the join field
                 cloned.whereCriteria[0].rhs.value = (_.isArray(row) || _.isObject(row)) ? row[joiningColumn] : row;
+
+                // Determine whether the number of funcs is within the limit, otherwise break out of the loop
+                if (funcs.length >= (maxRequests || getMaxRequests(opts))) {
+                    opts.logEmitter.emitWarning('Pruning the number of nested requests to config.maxNestedRequests = ' + maxRequests + '.');
+                    return;
+                }
 
                 funcs.push(function(s) {
                     return function(callback) {
@@ -101,6 +107,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
                 results.body = body;
                 if(statement.assign) {
                     opts.context[statement.assign] = results.body;
+                    opts.emitter.emit(statement.assign, results.body);
                 }
                 return selectEvent.cb(err, results);
             });
@@ -115,9 +122,9 @@ exports.exec = function(opts, statement, cb, parentEvent) {
 // Execute a parsed select statement with no joins
 function execInternal(opts, statement, cb, parentEvent) {
     var tables = opts.tables, tempResources = opts.tempResources, context = opts.context,
-        request = opts.request, emitter = opts.emitter;
+        request = opts.request, emitter = opts.emitter, key;
 
-    var selectExecTx = logEmitter.wrapEvent(parentEvent, 'QlIoSelectExec', null, cb);
+    var selectExecTx = opts.logEmitter.wrapEvent(parentEvent, 'QlIoSelectExec', null, cb);
     //
     // Analyze where conditions and fetch any dependent data
     var name, ret, params, value, i, r, p, max, resource, apiTx;
@@ -132,7 +139,8 @@ function execInternal(opts, statement, cb, parentEvent) {
             tasks.push(function(cond, name) {
                 return function(callback) {
                     ret = {};
-                    ret[name] = jsonfill.lookup(cond.rhs.value || cond.rhs, context);
+                    key = (cond.rhs.value !== undefined) ? cond.rhs.value : cond.rhs;
+                    ret[name] = jsonfill.lookup(key, context);
                     callback(null, ret);
                 };
             }(cond, name));
@@ -162,6 +170,13 @@ function execInternal(opts, statement, cb, parentEvent) {
                     return function(callback) {
                         ret = {};
                         ret[name] = [];
+
+                        // Determine whether the number of values is within the limit and prune the values array
+                        if (cond.rhs.value.length > (maxRequests || getMaxRequests(opts))) {
+                            opts.logEmitter.emitWarning('Pruning the number of nested requests in in-clause to config.maxNestedRequests = ' + maxRequests + '.');
+                            cond.rhs.value = cond.rhs.value.slice(0, maxRequests);
+                        }
+
                         // Expand variables from context
                         _.each(cond.rhs.value, function(key) {
                             var arr = jsonfill.lookup(key, context);
@@ -204,13 +219,14 @@ function execInternal(opts, statement, cb, parentEvent) {
                 }
 
                 name = from.name;
-                // Lookup context for the source
-                if(name.indexOf('{') === 0) {
+                // Lookup context for the source - we do this since the compiler puts the name in
+                // braces to denote the source as a variable and not a table.
+                if(name.indexOf("{") === 0 && name.indexOf("}") === name.length - 1) {
                     name = name.substring(1, from.name.length - 1);
                 }
                 resource = context[name];
                 if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
-                    apiTx = logEmitter.wrapEvent(selectExecTx.event, 'API', name, selectExecTx.cb);
+                    apiTx = opts.logEmitter.wrapEvent(selectExecTx.event, 'API', name, selectExecTx.cb);
                     resource = jsonfill.unwrap(resource);
 
                     // Local filtering (rudimentary)
@@ -245,6 +261,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                     project.run('', statement, filtered, function(projected) {
                         if(statement.assign) {
                             context[statement.assign] = projected;
+                            emitter.emit(statement.assign, projected);
                         }
                         return apiTx.cb(null, {
                             headers: {
@@ -257,7 +274,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                 else {
                     // Get the resource
                     resource = tempResources[from.name] || tables[from.name];
-                    apiTx = logEmitter.wrapEvent(selectExecTx.event, 'API', from.name, selectExecTx.cb);
+                    apiTx = opts.logEmitter.wrapEvent(selectExecTx.event, 'API', from.name, selectExecTx.cb);
                     if(!resource) {
                         return apiTx.cb({
                             message: 'No such resource ' + from.name
@@ -277,15 +294,20 @@ function execInternal(opts, statement, cb, parentEvent) {
 
                     httpRequest.exec({
                         context: opts.context,
+                        config: opts.config,
+                        settings: opts.settings,
                         resource: resource.select,
                         xformers: opts.xformers,
                         params: params,
                         request: request,
                         statement: statement,
                         emitter: emitter,
+                        logEmitter: opts.logEmitter,
+                        parentEvent: apiTx.event,
                         callback: function(err, result) {
                             if(result) {
                                 context[statement.assign] = result.body;
+                                emitter.emit(statement.assign, result.body);
                             }
                             return apiTx.cb(err, result);
                         }
@@ -308,3 +330,17 @@ var clone = function(obj) {
     return temp;
 };
 
+function getMaxRequests(opts) {
+    var config = opts.config;
+
+    if (config && config.maxNestedRequests) {
+        maxRequests = config.maxNestedRequests;
+    }
+
+    if (!maxRequests) {
+        maxRequests = 50;
+        opts.logEmitter.emitWarning('config.maxNestedRequests is undefined! Defaulting to ' + maxRequests);
+    }
+
+    return maxRequests;
+}

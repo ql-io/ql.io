@@ -16,8 +16,7 @@
 
 "use strict"
 
-var sys = require('sys'),
-    MutableURI = require(__dirname + '/../lib/ql.uri'),
+var MutableURI = require(__dirname + '/../lib/ql.uri'),
     _ = require('underscore');
 
 module.exports = {

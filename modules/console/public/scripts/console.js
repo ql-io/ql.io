@@ -14,12 +14,12 @@ $(document).ready(function() {
     }
 
     $(window).resize(function() {
-        $("#top-pane").width("99%");
-        $("#bottom-pane").width("100%");
-        $(".hsplitbar").width("100%");
+        $('#top-pane').width('99%');
+        $('#bottom-pane').width('100%');
+        $('.hsplitbar').width('100%');
     });
     // Splitter to show har data
-    $("#splitter").splitter({
+    $('#splitter').splitter({
         splitHorizontal: true,
         resizeTo: window,
         sizeBottom: true
@@ -268,7 +268,7 @@ $(document).ready(function() {
             socket.onclose = function() {
             }
             wireup(emitter);
-            emitter.on('ql.io-script-result', function(data) {
+            emitter.on('script-result', function(data) {
                 var contentType = data.headers && data.headers['content-type'];
                 if(contentType === 'application/json') {
                     try {
@@ -303,9 +303,8 @@ $(document).ready(function() {
 
     // Tell the server what notifications to receive
     function subscribe(socket, uri) {
-        var events = ['ql.io-script-ack', 'ql.io-script-compile-error', 'ql.io-script-compile-ok',
-            'ql.io-statement-error', 'ql.io-statement-in-flight', 'ql.io-statement-success',
-            'ql.io-statement-request', 'ql.io-statement-response', 'ql.io-script-done'];
+        var events = ['ack', 'compile-error', 'statement-error', 'statement-in-flight',
+            'statement-success', 'statement-request', 'statement-response', 'script-done'];
         var packet = {
             type: 'events',
             data: JSON.stringify(events)
@@ -346,13 +345,13 @@ $(document).ready(function() {
     }
 
     function wireup(emitter) {
-        emitter.on('ql.io-statement-error', function (data) {
+        emitter.on('statement-error', function (data) {
             markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'red'));
         });
-        emitter.on('ql.io-statement-in-flight', function (data) {
+        emitter.on('statement-in-flight', function (data) {
             markers.push(editor.setMarker(data.line - 1, '&#9992', 'in-progress'));
         });
-        emitter.on('ql.io-statement-request', function (data) {
+        emitter.on('statement-request', function (data) {
             var key = data.line + '';
             var entry = {
                 line: key,
@@ -370,7 +369,7 @@ $(document).ready(function() {
             $('#har').attr('class', 'results tree json').html(formatter.jsonToHTML(runState.entries));
             $('#har').treeview();
         });
-        emitter.on('ql.io-statement-response', function (data) {
+        emitter.on('statement-response', function (data) {
             var key = data.id;
             var entry;
             for(var i = 0; i < runState.entries.length; i++) {
@@ -388,10 +387,10 @@ $(document).ready(function() {
             $('#har').attr('class', 'results tree json').html(formatter.jsonToHTML(runState.entries));
             $('#har').treeview();
         });
-        emitter.on('ql.io-statement-success', function (data) {
+        emitter.on('statement-success', function (data) {
             markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
         });
-        emitter.on('ql.io-script-done', function (data) {
+        emitter.on('script-done', function (data) {
             markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
         });
     }

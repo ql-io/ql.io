@@ -27,9 +27,8 @@ var engine = new Engine({
     connection : 'close'
 });
 
-var q;
 exports['show tables'] = function (test) {
-    q = 'show tables';
+    var q = 'show tables';
     engine.exec(q, function(err, list) {
 
         if (err) {
@@ -42,4 +41,32 @@ exports['show tables'] = function (test) {
             test.done();
         }
     });
+};
+
+exports['show tables - for routes'] = function (test) {
+    var opts = {
+        request: {
+            headers: {},
+            params: {fromRoute: true}
+        },
+        script: 'show tables',
+        cb: function(err, list) {
+
+            if (err) {
+                test.fail('got error: ' + err.stack);
+                test.done();
+            }
+            else {
+                test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+                test.ok(_.isArray(list.body), 'list tables result is not array');
+                _.each(list.body, function(table){
+                    test.ok(table.name, "table 'name' not provided");
+                    test.ok(table.about, "table 'about' not provided")
+                })
+                test.done();
+            }
+        }
+    };
+
+    engine.exec(opts);
 };

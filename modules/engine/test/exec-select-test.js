@@ -18,9 +18,9 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
-    sys = require('sys'),
+    util = require('util'),
     MutableURI = require('ql.io-mutable-uri'),
-    EventEmitter = require('events').EventEmitter(),
+    EventEmitter = require('events').EventEmitter,
     logger = require('winston');
 
 logger.remove(logger.transports.Console);
@@ -155,7 +155,7 @@ module.exports = {
                 var listener = function() {
                     count++;
                 }
-                var emitter = new EventEmitter.EventEmitter();
+                var emitter = new EventEmitter();
                 emitter.addListener(Engine.Events.STATEMENT_REQUEST, listener);
 
                 // We need to test that two HTTP requests are made for the following statement below.
@@ -189,7 +189,7 @@ module.exports = {
                 var listener = function() {
                     count++;
                 }
-                var emitter = new EventEmitter.EventEmitter();
+                var emitter = new EventEmitter();
                 emitter.addListener(Engine.Events.STATEMENT_REQUEST, listener);
 
                 // We need to test that two HTTP requests are made for the following statement below.
@@ -229,7 +229,7 @@ module.exports = {
                 var listener = function() {
                     count++;
                 }
-                var emitter = new EventEmitter.EventEmitter();
+                var emitter = new EventEmitter();
                 emitter.addListener(Engine.Events.STATEMENT_REQUEST, listener);
 
                 // We need to test that two HTTP requests are made for the following statement below.
@@ -300,7 +300,7 @@ module.exports = {
                         break;
                     }
                 }
-                test.ok(found, 'expected three fields for at least one- ' + sys.inspect(list.body, false, 10));
+                test.ok(found, 'expected three fields for at least one- ' + util.inspect(list.body, false, 10));
                 test.done();
             }
         });
@@ -365,7 +365,7 @@ module.exports = {
         var listener = function(payload) {
             parsed = new MutableURI(payload.uri);
         }
-        var emitter = new EventEmitter.EventEmitter();
+        var emitter = new EventEmitter();
         emitter.addListener(Engine.Events.STATEMENT_REQUEST, listener);
 
         engine.exec({

@@ -16,8 +16,7 @@
 
 "use strict";
 
-var compiler = require('lib/compiler'),
-    sys = require('sys');
+var compiler = require('../lib/compiler');
 
 module.exports = {
     'select-star': function(test) {
@@ -410,7 +409,6 @@ module.exports = {
     },
 
     'comments': function(test) {
-        var sys = require('sys');
         var q = '-- hello';
         var statement = compiler.compile(q);
         test.equals(statement.length, 1);

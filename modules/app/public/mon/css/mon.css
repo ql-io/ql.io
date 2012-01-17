@@ -1,0 +1,75 @@
+body {
+    margin-left: 2%;
+    width: 95%;
+    font-family: 'Droid Sans', 'Helvetica', 'Arial', sans-serif;
+    color: #333333;
+    counter-reset: count-h1;
+}
+
+/*table.header {*/
+    /*float: right;*/
+    /*font-size: 8pt;*/
+    /*text-align: right;*/
+/*}*/
+
+.header, .footer {
+    font-size: 8pt;
+}
+
+div.header {
+    text-align: right;
+    font-size: 8pt;
+}
+
+table {
+    font-size: 10pt;
+    border-spacing: 2px;
+}
+
+table.master {
+    width: 90%
+}
+
+table.worker {
+    width: 90%
+}
+
+td {
+    padding: 2px;
+}
+
+/*.odd {*/
+    /*background: #E8EDFF;*/
+/*}*/
+
+.range {
+    font-size: 8pt;
+}
+
+.range-max {
+    margin-top: 8px;
+}
+
+.range-min {
+    margin-bottom: 12px;
+}
+
+table.in-flight {
+    border: 1px solid #d3d3d3;
+    border-collapse:collapse;
+    width: 400px;
+}
+
+table.in-flight td {
+    border: 1px solid #d3d3d3;
+    vertical-align: top;
+    overflow-x: hidden;
+}
+
+table.logs {
+    width: 100%;
+}
+
+table.logs thead {
+    font-weight: bold;
+}

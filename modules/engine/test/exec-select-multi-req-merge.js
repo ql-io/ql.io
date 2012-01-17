@@ -19,8 +19,7 @@ var _ = require('underscore'),
     http = require('http'),
     util = require('util'),
     url = require('url'),
-    fs = require('fs'),
-    sys = require('sys');
+    fs = require('fs');
 
 var engine = new Engine({
     tables: __dirname + '/tables',
