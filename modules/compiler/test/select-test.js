@@ -885,5 +885,26 @@ module.exports = {
         test.equals(cooked[0].joiner.columns[1].name, 'd.Title');
         test.equals(cooked[0].joiner.columns[1].alias, 'title');
         test.done();
+    },
+
+    'select-where-mixed': function (test) {
+        var q = 'select * from foo where w.ItemID = \'{"a": "<A>a<A>", "b": "B"}\'';
+        var cooked = compiler.compile(q);
+        test.equals(cooked.length, 1);
+        test.equals(cooked[0].whereCriteria.length, 1);
+        test.equals(cooked[0].whereCriteria[0].rhs.value, '{"a": "<A>a<A>", "b": "B"}');
+        test.done();
+    },
+
+    'select-where-mixed-2': function (test) {
+        var q = 'return select a[\'b\'] from a where a = \'{"a":"b"}\' via route \'/a\' using method get;'
+        var cooked = compiler.compile(q);
+        test.equals(cooked.length, 1);
+        var select = cooked[0].rhs;
+        test.equals(select.whereCriteria.length, 1);
+        test.equals(select.whereCriteria[0].rhs.value, '{"a":"b"}');
+        test.equals(select.columns[0].name, "a[\"b\"]");
+        test.equals(cooked[0].route.path.value, '/a');
+        test.done();
     }
 };
