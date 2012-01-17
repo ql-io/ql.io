@@ -1,5 +1,9 @@
 
+## Jan 17, 2011
 
+* [ql.io-compiler-0.3.1] Supported a wider range of characters in quoted words in statements.
+
+## MISSING UPDATES
 ## Dec 16, 2011
 
 - Clients can occasionally get socket hangup errors when origin servers close connections without
