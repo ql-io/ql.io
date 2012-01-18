@@ -1,3 +1,13 @@
+## Jan 17, 2011
+
+* Limit response size to 10000000 bytes from upstream sources. You can change this with
+  `maxResponseLength` in the config.
+* Limit outgoing requests per statement to 50. You can change this with `maxRequests` in the config.
+* Chain events for logging done with log-emitter.
+* Add a new JSON based interface to browse tables and routes. Try `/routes` to start browsing.
+* Move from cluster module to the native cluster.
+* Refresh all dependencies.
+* Change node.js dependency to 0.6.x.
 
 ## Jan 17, 2011
 

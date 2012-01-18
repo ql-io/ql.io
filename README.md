@@ -8,8 +8,8 @@ ql.io is a declarative, data-retrieval and aggregation gateway for quickly consu
 
 ## How to Build ql.io
 
-To build ql.io on your own, you need node (version 0.4.12) and npm. In Ubuntu, you need
-libexpat-dev additionally. Support for node 0.6.x is coming soon. Once you have these set up, do the following:
+To build ql.io on your own, you need node (version 0.6.0 or later) and npm. In Ubuntu, you need
+libexpat-dev additionally. Once you have these set up, do the following:
 
     git clone git://github.com/ql-io/ql.io.git
     cd ql.io
@@ -63,7 +63,7 @@ After that you can simply execute the core engine.
                  "     resultset 'results.geometry.location'" +
                  "select lat as lattitude, lng as longitude from geocoder where address='Mt. Everest'";
 
-    engine.exec(script, function(emitter) {
+    engine.execute(script, function(emitter) {
         emitter.on('end', function(err, res) {
             console.log(res.body[0]);
         });
