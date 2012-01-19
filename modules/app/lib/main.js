@@ -25,13 +25,14 @@ var cluster = require('cluster'),
     program = require('commander'),
     express = require('express'),
     Console = require('ql.io-console'),
+    ecv = require('ql.io-ecv'),
     misc = require('./misc.js');
 
 // Trap all uncaught exception here.
 process.on('uncaughtException', function(error) {
     // TODO: This has to the log file
     console.log(error.stack || error);
-})
+});
 
 exports.exec = function(cb, opts) {
     var c, monPort, port, master;
@@ -44,6 +45,7 @@ exports.exec = function(cb, opts) {
         option('-m, --monPort <monPort>', 'port for monitoring', 3001).
         option('-t, --tables <tables>', 'path of dir containing tables', cwd + '/../tables').
         option('-r, --routes <routes>', 'path of dir containing routes', cwd + '/../routes').
+        option('-a, --ecvPath <ecvPath>', 'ecv path', '/ecv').
         option('-e, --disableConsole', 'disable the console', false);
     if(opts) {
         _.each(opts, function(opt) {
@@ -73,6 +75,7 @@ exports.exec = function(cb, opts) {
         }
         else {
             c = createConsole(program, function(app, emitter) {
+                ecv.enable(app, port, program.ecvPath);
                 master.listen(app, function() {
                     console.log('Listening on ' + port);
                     if(cb) {
@@ -85,6 +88,7 @@ exports.exec = function(cb, opts) {
     }
     else {
         c = createConsole(program, function(app, emitter) {
+            ecv.enable(app, port, program.ecvPath);
             app.listen(port, function() {
                 console.log('Listening on ' + port);
                 cb(app, program, emitter);
