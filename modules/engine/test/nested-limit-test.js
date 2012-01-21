@@ -33,37 +33,80 @@ var maxNestedRequests = engine.config.maxNestedRequests || 50, limit = 10;
 
 module.exports = {
     'max-in-clause-test' : function(test) {
-        var q = 'select * from ebay.finding.items.many.results where keywords in (' + keywords.toString() + ')';
-        engine.exec(q, function(err, list) {
-            if(err) {
-                test.fail('got error: ' + err.stack || err);
-                test.done();
-            }
-            else {
-                test.equals(list.headers['content-type'], 'application/json', 'HTML expected');
-                test.ok(_.isArray(list.body), 'expected an array');
-                test.ok(list.body.length > 0, 'expected some items');
-                test.ok(!_.isArray(list.body[0]), 'expected object in the array');
-                test.equals(list.body.length, maxNestedRequests * limit, 'expected a different number of results for in-clause');
-                test.done();
-            }
+        var server = http.createServer(function(req, res) {
+                    var file = __dirname + '/mock/' + req.url;
+                    var stat = fs.statSync(file);
+                    res.writeHead(200, {
+                        'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                        'Content-Length' : stat.size
+                    });
+                    var readStream = fs.createReadStream(file);
+                    util.pump(readStream, res, function(e) {
+                        if(e) {
+                            console.log(e.stack || e);
+                        }
+                        res.end();
+                    });
+                });
+        server.listen(3000, function() {
+
+                var q = 'create table max.in.clause.test.table on select get from "http://localhost:3000/max-in-clause.xml"' +
+                    '   using patch "test/tables/ebay.finding.items.js" ' +
+                    '   resultset "findItemsByKeywordsResponse.searchResult.item"; ' +
+                    'select * from max.in.clause.test.table where keywords in (' + keywords.toString() + ')';
+                engine.exec(q, function(err, list) {
+                    if(err) {
+                        test.fail('got error: ' + err.stack || err);
+                        test.done();
+                    }
+                    else {
+                        test.equals(list.headers['content-type'], 'application/json', 'HTML expected');
+                        test.ok(_.isArray(list.body), 'expected an array');
+                        test.ok(list.body.length > 0, 'expected some items');
+                        test.ok(!_.isArray(list.body[0]), 'expected object in the array');
+                        test.equals(list.body.length, maxNestedRequests * limit, 'expected a different number of results for in-clause');
+                        test.done();
+                    }
+                    server.close();
+                });
         });
     },
     'max-funcs-test' : function(test) {
-        var q = 'select a.ItemID as itemId, b.keywords as keywords from ebay.finding.items as a, ebay.finding.items.many.results as b where a.keywords = b.keywords and a.keywords  in (' + keywords.toString() + ')';
-        engine.exec(q, function(err, list) {
-            if(err) {
-                test.fail('got error: ' + err.stack || err);
-                test.done();
-            }
-            else {
-                test.equals(list.headers['content-type'], 'application/json', 'HTML expected');
-                test.ok(_.isArray(list.body), 'expected an array');
-                test.ok(list.body.length > 0, 'expected some items');
-                test.ok(!_.isArray(list.body[0]), 'expected object in the array');
-                test.equals(list.body.length, maxNestedRequests, 'expected a different number of results for funcs');
-                test.done();
-            }
+        var server = http.createServer(function(req, res) {
+                    var file = __dirname + '/mock/' + req.url;
+                    var stat = fs.statSync(file);
+                    res.writeHead(200, {
+                        'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                        'Content-Length' : stat.size
+                    });
+                    var readStream = fs.createReadStream(file);
+                    util.pump(readStream, res, function(e) {
+                        if(e) {
+                            console.log(e.stack || e);
+                        }
+                        res.end();
+                    });
+                });
+        server.listen(3000, function() {
+            var q = 'create table max.funcs.test.table on select get from "http://localhost:3000/max-in-clause.xml"' +
+                '   using patch "test/tables/ebay.finding.items.js" ' +
+                '   resultset "findItemsByKeywordsResponse.searchResult.item"; ' +
+                'select a.ItemID as itemId, b.keywords as keywords from max.funcs.test.table as a, max.funcs.test.table as b where a.keywords = b.keywords and a.keywords  in (' + keywords.toString() + ')';
+            engine.exec(q, function(err, list) {
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
+                    test.done();
+                }
+                else {
+                    test.equals(list.headers['content-type'], 'application/json', 'HTML expected');
+                    test.ok(_.isArray(list.body), 'expected an array');
+                    test.ok(list.body.length > 0, 'expected some items');
+                    test.ok(!_.isArray(list.body[0]), 'expected object in the array');
+                    test.equals(list.body.length, maxNestedRequests, 'expected a different number of results for funcs');
+                    test.done();
+                }
+                server.close();
+            });
         });
     }
 }
