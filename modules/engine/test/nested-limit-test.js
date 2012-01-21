@@ -34,7 +34,7 @@ var maxNestedRequests = engine.config.maxNestedRequests || 50, limit = 2;
 module.exports = {
     'max-in-clause-test' : function(test) {
         var server = http.createServer(function(req, res) {
-                    var file = __dirname + '/mock/' + req.url;
+                    var file = __dirname + '/mock' + req.url;
                     var stat = fs.statSync(file);
                     res.writeHead(200, {
                         'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
@@ -73,7 +73,7 @@ module.exports = {
     },
     'max-funcs-test' : function(test) {
         var server = http.createServer(function(req, res) {
-                    var file = __dirname + '/mock/' + req.url;
+                    var file = __dirname + '/mock' + req.url;
                     var stat = fs.statSync(file);
                     res.writeHead(200, {
                         'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
