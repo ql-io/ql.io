@@ -343,6 +343,7 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
                 logEmitter.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
                     'response length ' + responseLength + ' exceeds config.maxResponseLength of ' + maxResponseLength +
                     ' ' + (Date.now() - start) + 'msec');
+                res.socket.end();
                 res.socket.destroy();
                 return httpReqTx.cb(err);
             }
