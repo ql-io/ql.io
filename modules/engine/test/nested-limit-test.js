@@ -29,7 +29,7 @@ var engine = new Engine({
     connection: 'close'
 });
 
-var maxNestedRequests = engine.config.maxNestedRequests || 50, limit = 10;
+var maxNestedRequests = engine.config.maxNestedRequests || 50, limit = 2;
 
 module.exports = {
     'max-in-clause-test' : function(test) {
