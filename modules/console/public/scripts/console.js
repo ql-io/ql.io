@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    var oldInput, parseTimer, compiler, editor, markers = [], headers, mustache,
+    var oldInput, parseTimer, compiler, editor, markers = [], headers, har,
         runState, socket, emitter, state, results, html, waitOnLoad = false, wsEnabled,
         EventEmitter = require('events').EventEmitter, formatter = new JSONFormatter();
 
@@ -25,9 +25,12 @@ $(document).ready(function() {
         sizeBottom: true
     });
 
+    // Init the har view widget
+    $('#har').HarView();
+    har = $('#har').data('HarView');
+
     compiler = require('ql.io-compiler');
     headers = require('headers');
-    mustache = require('mustache');
 
     var urlParams = {};
     (function () {
@@ -118,7 +121,7 @@ $(document).ready(function() {
         runState = {
             version: '1.2',
             entries: []
-        }
+        };
 
         if(parseTimer !== null) {
             clearTimeout(parseTimer);
@@ -234,7 +237,7 @@ $(document).ready(function() {
     }
 
     function doWs(statement, escaped, compiled) {
-        var data, uri, packet;
+        var uri, packet;
         try {
             emitter = new EventEmitter();
             if(socket === undefined || socket.readyState !== 1) {
@@ -247,7 +250,7 @@ $(document).ready(function() {
                     var packet = {
                         type: 'script',
                         data: statement
-                    }
+                    };
                     socket.send(JSON.stringify(packet));
                 };
             }
@@ -255,18 +258,18 @@ $(document).ready(function() {
                 packet = {
                     type: 'script',
                     data: statement
-                }
+                };
                 socket.send(JSON.stringify(packet));
             }
             socket.onerror = function() {
                 doXhr(statement, escaped, compiled);
-            }
+            };
             socket.onmessage = function(e) {
                 var event = JSON.parse(e.data);
                 emitter.emit(event.type, event.data);
-            }
+            };
             socket.onclose = function() {
-            }
+            };
             wireup(emitter);
             emitter.on('script-result', function(data) {
                 var contentType = data.headers && data.headers['content-type'];
@@ -308,7 +311,7 @@ $(document).ready(function() {
         var packet = {
             type: 'events',
             data: JSON.stringify(events)
-        }
+        };
         if(socket) {
             return socket.send(JSON.stringify(packet));
         }
@@ -331,13 +334,13 @@ $(document).ready(function() {
 
             socket.onerror = function() {
                 cb('Not supported');
-            }
-            socket.onmessage = function(e) {
-                cb(undefined);
-            }
+            };
+            socket.onmessage = function() {
+                cb();
+            };
             socket.onclose = function() {
                 cb('Not supported');
-            }
+            };
         }
         catch(e) {
             cb('Not supported');
@@ -356,36 +359,27 @@ $(document).ready(function() {
             var entry = {
                 line: key,
                 id: data.id,
-                startDateTime: data.start,
+                startedDateTime: data.start,
                 request: {
                     method: data.method,
                     url: data.uri,
                     headers: data.headers,
-                    body: data.body
+                    postData: data.body
                 }
-            }
-            runState.entries.push(entry);
-
-            $('#har').attr('class', 'results tree json').html(formatter.jsonToHTML(runState.entries));
-            $('#har').treeview();
+            };
+            har.entry(data.id, entry);
         });
         emitter.on('statement-response', function (data) {
-            var key = data.id;
-            var entry;
-            for(var i = 0; i < runState.entries.length; i++) {
-                if(runState.entries[i].id === key) {
-                    entry = runState.entries[i];
-                    break;
-                }
-            }
-            entry.time = data.time;
-            entry.response = {
+            har.response(data.id, {
                 status: data.status,
+                statusText: data.statusText,
                 headers: data.headers,
-                body: data.body
-            }
-            $('#har').attr('class', 'results tree json').html(formatter.jsonToHTML(runState.entries));
-            $('#har').treeview();
+                bodySize: data.body.length,
+                content: {
+                    text: data.body
+                }
+            });
+            har.timings(data.id, data.timings);
         });
         emitter.on('statement-success', function (data) {
             markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));

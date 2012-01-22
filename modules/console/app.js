@@ -119,6 +119,8 @@ var Console = module.exports = function(config, cb) {
                     'qlio-editor.js',
                     'jquery.treeview.js',
                     'jsonview.js',
+                    'mustache.js',
+                    'har-viewer.js',
                     'console.js'
                 ]
             },
@@ -132,6 +134,7 @@ var Console = module.exports = function(config, cb) {
                     'codemirror.css',
                     'qlio-editor.css',
                     'treeview.css',
+                    'har-viewer.css',
                     'jquery-ui.css'
                 ],
                 'preManipulate': {

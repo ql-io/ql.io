@@ -302,6 +302,15 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
 function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options, resourceUri, requestBody, h,
                      requestId, resource, xformers, retry) {
     var status, clientRequest, start = Date.now(), mediaType, respData, uri;
+    var reqStart = Date.now();
+    var timings = {
+        "blocked": -1,
+        "dns": -1,
+        "connect": -1,
+        "send": -1,
+        "wait": -1,
+        "receive": -1
+    };
 
     if(emitter) {
         var uniqueId = uuid();
@@ -312,7 +321,7 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
             method: options.method,
             uri: resourceUri,
             headers: [],
-            start: toISO(new Date()),
+            start: reqStart,
             type: eventTypes.STATEMENT_REQUEST
         };
         if(requestBody) {
@@ -350,17 +359,19 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
 
         });
         res.on('end', function() {
-
+            timings.receive = Date.now() - reqStart;
             if(emitter) {
                 var packet = {
                     line: statement.line,
                     uuid: httpReqTx.event.uuid,
                     id: uniqueId,
                     status: res.statusCode,
+                    statusText: http.STATUS_CODES[res.statusCode],
                     headers: [],
                     time: new Date() - start,
                     body: respData,
-                    type: eventTypes.STATEMENT_RESPONSE
+                    type: eventTypes.STATEMENT_RESPONSE,
+                    timings: timings
                 };
                 _.each(res.headers, function(v, n) {
                     packet.headers.push({
@@ -448,6 +459,7 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
 
     if(requestBody) {
         clientRequest.write(requestBody);
+        timings.send = Date.now() - reqStart;
     }
     clientRequest.on('error', function(err) {
         logEmitter.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
