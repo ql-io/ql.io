@@ -348,6 +348,7 @@ $(document).ready(function() {
     }
 
     function wireup(emitter) {
+        var i, contentLength;
         emitter.on('statement-error', function (data) {
             markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'red'));
         });
@@ -364,17 +365,26 @@ $(document).ready(function() {
                     method: data.method,
                     url: data.uri,
                     headers: data.headers,
-                    postData: data.body
+                    postData: {
+                        text: data.body
+                    }
                 }
             };
             har.entry(data.id, entry);
         });
         emitter.on('statement-response', function (data) {
+            contentLength = data.body.length; // This is post text decoding - hence not accurate.
+            for(i = 0; i < data.headers.length; i++) {
+                if(data.headers[i].name === 'content-length') {
+                    contentLength = data.headers[i].value;
+                    break;
+                }
+            }
             har.response(data.id, {
                 status: data.status,
                 statusText: data.statusText,
                 headers: data.headers,
-                bodySize: data.body.length,
+                bodySize: contentLength,
                 content: {
                     text: data.body
                 }

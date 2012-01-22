@@ -233,7 +233,7 @@
                 timings: timings
             });
 
-            $(element).append($(html));
+            $(html).insertBefore($('#summary'));
 
             source = $('#' + id);
             source.click(function (event) {
@@ -291,7 +291,7 @@
             }
             if(response.content && response.content.text) {
                 _updateField('#' + id + '-resp-body', response.content.text);
-                _updateField('#' + id + '-bodySize', response.content.text.length);
+                _updateField('#' + id + '-bodySize', response.bodySize);
             }
             else {
                 $('#' + id + '-tabs').tabs('disable', 3);

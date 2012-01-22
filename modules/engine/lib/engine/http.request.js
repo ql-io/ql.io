@@ -321,6 +321,7 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
             method: options.method,
             uri: resourceUri,
             headers: [],
+            body: requestBody,
             start: reqStart,
             type: eventTypes.STATEMENT_REQUEST
         };
