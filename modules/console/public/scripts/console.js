@@ -376,7 +376,7 @@ $(document).ready(function() {
             contentLength = data.body.length; // This is post text decoding - hence not accurate.
             for(i = 0; i < data.headers.length; i++) {
                 if(data.headers[i].name === 'content-length') {
-                    contentLength = data.headers[i].value;
+                    contentLength = parseInt(data.headers[i].value);
                     break;
                 }
             }
