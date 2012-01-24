@@ -34,7 +34,7 @@ var strTemplate = require('./peg/str-template.js'),
     uuid = require('node-uuid'),
     os = require('os');
 
-var maxResponseLength;
+var maxRequests, maxResponseLength;
 
 exports.exec = function(args) {
     var request, context, resource, statement, params, resourceUri, template, cb, holder, tasks,
@@ -107,6 +107,10 @@ exports.exec = function(args) {
     // join on the response, and then send the response to the caller.
     tasks = [];
     _.each(resourceUri, function(uri) {
+        if (tasks.length >= (maxRequests || getMaxRequests(args.config))) {
+            opts.logEmitter.emitWarning('Pruning the number of nested http requests to config.maxNestedRequests = ' + maxRequests + '.');
+            return;
+        }
         tasks.push(function(uri) {
             return function(callback) {
                 sendOneRequest(args, uri, params, holder, function(e, r) {
@@ -751,6 +755,20 @@ function toISO(d) {
         + pad(d.getUTCHours()) + ':'
         + pad(d.getUTCMinutes()) + ':'
         + pad(d.getUTCSeconds()) + 'Z';
+}
+
+function getMaxRequests(config) {
+
+    if (config && config.maxNestedRequests) {
+        maxRequests = config.maxNestedRequests;
+    }
+
+    if (!maxRequests) {
+        maxRequests = 50;
+        opts.logEmitter.emitWarning('config.maxNestedRequests is undefined! Defaulting to ' + maxRequests);
+    }
+
+    return maxRequests;
 }
 
 function getMaxResponseLength(config, logEmitter) {
