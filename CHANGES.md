@@ -1,3 +1,7 @@
+## Jan 25, 2011
+- Support for extended xml content-types returned  per rfc: http://www.ietf.org/rfc/rfc3023.txt
+- Also better handling of unrecognized content-types.
+
 ## Jan 17, 2011
 
 * Limit response size to 10000000 bytes from upstream sources. You can change this with
