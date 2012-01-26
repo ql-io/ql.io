@@ -664,7 +664,7 @@ function jsonify(respData, mediaType, xformers, respCb, errorCb) {
     if (!respData || /^\s*$/.test(respData)) {
         respCb({});
     }
-    else if(mediaType.subtype === 'xml') {
+    else if(mediaType.subtype === 'xml' || /\+xml$/.test(mediaType.subtype)) {
         xformers['xml'].toJson(respData, respCb, errorCb);
     }
     else if(mediaType.subtype === 'json') {
@@ -680,6 +680,9 @@ function jsonify(respData, mediaType, xformers, respCb, errorCb) {
             // if error Try XML
             xformers['xml'].toJson(respData, respCb, errorCb);
         });
+    }
+    else {
+        errorCb({message:"No transformer available", type:mediaType.type, subType:mediaType.subtype})
     }
 }
 

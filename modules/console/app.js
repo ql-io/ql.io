@@ -113,6 +113,7 @@ var Console = module.exports = function(config, cb) {
                 'route': /\/scripts\/all.js/,
                 'path': __dirname + '/public/scripts/',
                 'dataType': 'javascript',
+                debug: true,
                 'files': [
                     'splitter.js',
                     'codemirror.js',
@@ -129,6 +130,7 @@ var Console = module.exports = function(config, cb) {
                 'route': /\/css\/all.css/,
                 'path': __dirname + '/public/css/',
                 'dataType': 'css',
+                debug: true,
                 'files': [
                     'console.css',
                     'codemirror.css',

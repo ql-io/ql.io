@@ -1,3 +1,8 @@
+## Jan 25, 2011
+
+* Support for extended xml content-types returned  per rfc: http://www.ietf.org/rfc/rfc3023.txt
+* Also better handling of unrecognized content-types.
+
 ## Jan 22, 2012
 
 * Integrate HAR view (https://github.com/s3u/har-view) replacing the vanilla tree view.
