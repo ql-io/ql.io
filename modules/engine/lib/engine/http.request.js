@@ -629,11 +629,7 @@ function jsonify(respData, mediaType, xformers, respCb, errorCb) {
     if (!respData || /^\s*$/.test(respData)) {
         respCb({});
     }
-<<<<<<< HEAD
-    else if (mediaType.subtype === 'xml') {
-=======
     else if(mediaType.subtype === 'xml' || /\+xml$/.test(mediaType.subtype)) {
->>>>>>> b4cd8ca... Simiplified the original test (removed a large unnecessary file and create more tests for <foo>+xml content subtype.
         xformers['xml'].toJson(respData, respCb, errorCb);
     }
     else if (mediaType.subtype === 'json') {
@@ -649,6 +645,9 @@ function jsonify(respData, mediaType, xformers, respCb, errorCb) {
             // if error Try XML
             xformers['xml'].toJson(respData, respCb, errorCb);
         });
+    }
+    else {
+        errorCb({message:"No transformer available", type:mediaType.type, subType:mediaType.subtype})
     }
 }
 
