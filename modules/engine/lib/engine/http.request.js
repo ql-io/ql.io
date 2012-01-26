@@ -651,7 +651,7 @@ function jsonify(respData, mediaType, xformers, respCb, errorCb) {
     if (!respData || /^\s*$/.test(respData)) {
         respCb({});
     }
-    else if(mediaType.subtype === 'xml' || mediaType.subtype.match("xml"+"$")) {
+    else if(mediaType.subtype === 'xml' || /\+xml$/.test(mediaType.subtype)) {
         xformers['xml'].toJson(respData, respCb, errorCb);
     }
     else if(mediaType.subtype === 'json') {
