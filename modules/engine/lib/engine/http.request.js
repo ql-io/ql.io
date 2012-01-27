@@ -34,7 +34,7 @@ var strTemplate = require('./peg/str-template.js'),
     uuid = require('node-uuid'),
     os = require('os');
 
-var maxResponseLength;
+var maxRequests, maxResponseLength;
 
 exports.exec = function(args) {
     var request, context, resource, statement, params, resourceUri, template, cb, holder, tasks,
@@ -93,6 +93,12 @@ exports.exec = function(args) {
     // If there are no URIs, just return now
     if(!resourceUri || resourceUri.length === 0) {
         return cb(undefined, {});
+    }
+
+    // If there are more URIs than maxRequests, prune the resourceUri array and continue processing
+    if (resourceUri.length >= (maxRequests || getMaxRequests(args.config))) {
+        logEmitter.emitWarning('Pruning the number of nested http requests from ' + resourceUri.length + ' to config.maxNestedRequests = ' + maxRequests + '.');
+        resourceUri = resourceUri.slice(0, maxRequests);
     }
 
     // Invoke UDFs - defined by monkey patch
@@ -343,6 +349,7 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
                 logEmitter.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
                     'response length ' + responseLength + ' exceeds config.maxResponseLength of ' + maxResponseLength +
                     ' ' + (Date.now() - start) + 'msec');
+                res.socket.end();
                 res.socket.destroy();
                 return httpReqTx.cb(err);
             }
@@ -752,15 +759,24 @@ function toISO(d) {
         + pad(d.getUTCSeconds()) + 'Z';
 }
 
+function getMaxRequests(config) {
+    if (config && config.maxNestedRequests) {
+        maxRequests = config.maxNestedRequests;
+    }
+    if (!maxRequests) {
+        maxRequests = 50;
+        logEmitter.emitWarning('config.maxNestedRequests is undefined! Defaulting to ' + maxRequests);
+    }
+    return maxRequests;
+}
+
 function getMaxResponseLength(config, logEmitter) {
     if (config && config.maxResponseLength) {
         maxResponseLength = config.maxResponseLength;
     }
-
     if (!maxResponseLength) {
         maxResponseLength = 10000000; // default to 10,000,000
         logEmitter.emitWarning('config.maxResponseLength is undefined! Defaulting to ' + maxResponseLength);
     }
-
     return maxResponseLength;
 }
