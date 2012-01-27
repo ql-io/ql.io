@@ -95,6 +95,12 @@ exports.exec = function(args) {
         return cb(undefined, {});
     }
 
+    // If there are more URIs than maxRequests, prune the resourceUri array and continue processing
+    if (resourceUri.length >= (maxRequests || getMaxRequests(args.config))) {
+        logEmitter.emitWarning('Pruning the number of nested http requests to config.maxNestedRequests = ' + maxRequests + '.');
+        resourceUri = resourceUri.slice(0, maxRequests);
+    }
+
     // Invoke UDFs - defined by monkey patch
     try {
         invokeUdf(statement, resource, holder);
@@ -107,10 +113,6 @@ exports.exec = function(args) {
     // join on the response, and then send the response to the caller.
     tasks = [];
     _.each(resourceUri, function(uri) {
-        if (tasks.length >= (maxRequests || getMaxRequests(args.config))) {
-            opts.logEmitter.emitWarning('Pruning the number of nested http requests to config.maxNestedRequests = ' + maxRequests + '.');
-            return;
-        }
         tasks.push(function(uri) {
             return function(callback) {
                 sendOneRequest(args, uri, params, holder, function(e, r) {
@@ -758,16 +760,13 @@ function toISO(d) {
 }
 
 function getMaxRequests(config) {
-
     if (config && config.maxNestedRequests) {
         maxRequests = config.maxNestedRequests;
     }
-
     if (!maxRequests) {
         maxRequests = 50;
-        opts.logEmitter.emitWarning('config.maxNestedRequests is undefined! Defaulting to ' + maxRequests);
+        logEmitter.emitWarning('config.maxNestedRequests is undefined! Defaulting to ' + maxRequests);
     }
-
     return maxRequests;
 }
 
@@ -775,11 +774,9 @@ function getMaxResponseLength(config, logEmitter) {
     if (config && config.maxResponseLength) {
         maxResponseLength = config.maxResponseLength;
     }
-
     if (!maxResponseLength) {
         maxResponseLength = 10000000; // default to 10,000,000
         logEmitter.emitWarning('config.maxResponseLength is undefined! Defaulting to ' + maxResponseLength);
     }
-
     return maxResponseLength;
 }
