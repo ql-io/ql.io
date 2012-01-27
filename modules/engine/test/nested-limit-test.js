@@ -108,6 +108,38 @@ module.exports = {
                 server.close();
             });
         });
+    },
+    'max-http-request-test':function(test) {
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+            var script =
+                'create table http.req.products.table on select get from ' +
+                    '"http://localhost:3000/http.req.limit.products.json" resultset "Product";' +
+                    'products = select * from http.req.products.table where QueryKeywords = "iphone" and siteid="0";' +
+                    'prodstats = select * from ebay.shopping.productstats where productID in ("{products.ProductID[0].Value}");' +
+                    'return prodstats;';
+
+            engine.exec(script, function(err, result) {
+                test.ok(result.body);
+                test.equal(result.body.length, maxNestedRequests);
+                test.done();
+                server.close();
+            });
+        });
     }
 }
 
