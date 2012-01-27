@@ -97,7 +97,7 @@ exports.exec = function(args) {
 
     // If there are more URIs than maxRequests, prune the resourceUri array and continue processing
     if (resourceUri.length >= (maxRequests || getMaxRequests(args.config))) {
-        logEmitter.emitWarning('Pruning the number of nested http requests to config.maxNestedRequests = ' + maxRequests + '.');
+        logEmitter.emitWarning('Pruning the number of nested http requests from ' + resourceUri.length + ' to config.maxNestedRequests = ' + maxRequests + '.');
         resourceUri = resourceUri.slice(0, maxRequests);
     }
 
