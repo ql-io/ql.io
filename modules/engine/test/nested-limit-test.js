@@ -134,10 +134,16 @@ module.exports = {
                     'return prodstats;';
 
             engine.exec(script, function(err, result) {
-                test.ok(result.body);
-                test.equal(result.body.length, maxNestedRequests);
-                test.done();
-                server.close();
+                if (err)  {
+                    test.fail('got error: ' + err.stack || err);
+                    test.done();
+                    server.close();
+                } else {
+                    test.ok(result.body);
+                    test.equal(result.body.length, maxNestedRequests);
+                    test.done();
+                    server.close();
+                }
             });
         });
     }
