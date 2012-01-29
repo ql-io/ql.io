@@ -1,8 +1,17 @@
 ## Jan 25, 2011
-- Support for extended xml content-types returned  per rfc: http://www.ietf.org/rfc/rfc3023.txt
-- Also better handling of unrecognized content-types.
 
-## Jan 17, 2011
+* Support for extended xml content-types returned  per rfc: http://www.ietf.org/rfc/rfc3023.txt
+* Also better handling of unrecognized content-types.
+
+## Jan 22, 2012
+
+* Integrate HAR view (https://github.com/s3u/har-view) replacing the vanilla tree view.
+
+## Jan 18, 2012
+
+* Re-integrate ECV
+
+## Jan 17, 2012
 
 * Limit response size to 10000000 bytes from upstream sources. You can change this with
   `maxResponseLength` in the config.
@@ -13,7 +22,7 @@
 * Refresh all dependencies.
 * Change node.js dependency to 0.6.x.
 
-## Jan 17, 2011
+## Jan 17, 2012
 
 * [ql.io-compiler-0.3.1] Supported a wider range of characters in quoted words in statements.
 

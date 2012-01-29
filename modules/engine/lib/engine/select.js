@@ -262,6 +262,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                         if(statement.assign) {
                             context[statement.assign] = projected;
                             emitter.emit(statement.assign, projected);
+                            console.log('>> emitting ' + statement.assign + ' ' + projected);
                         }
                         return apiTx.cb(null, {
                             headers: {
