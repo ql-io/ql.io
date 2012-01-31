@@ -1,3 +1,8 @@
+## Jan 31, 2011
+
+* Improve support for in-proc selection and joins. If the RHS is multi-valued, selection is ORed.
+  Multiple conditions are ANDed ('and' === and).
+
 ## Jan 25, 2011
 
 * Support for extended xml content-types returned  per rfc: http://www.ietf.org/rfc/rfc3023.txt

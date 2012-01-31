@@ -146,7 +146,7 @@ function execInternal(opts, statement, cb, parentEvent) {
             }(cond, name));
         }
         //
-        // This is an IN condition. RHS could be a comma separated string or a SELECT
+        // This is an IN condition. RHS could be a comma separated values or a SELECT
         else if(cond.operator === 'in') {
             name = cond.lhs.name;
             if(cond.rhs.fromClause) {
@@ -200,6 +200,7 @@ function execInternal(opts, statement, cb, parentEvent) {
     // have the values to execute this statement
     async.parallel(tasks,
         function(err, results) {
+            var i, j;
             // Now fetch each resource from left to right
             _.each(statement.fromClause, function(from) {
                 // Reorder results - async results is an array of objects, but we just want an object
@@ -230,27 +231,49 @@ function execInternal(opts, statement, cb, parentEvent) {
                     resource = jsonfill.unwrap(resource);
 
                     // Local filtering (rudimentary)
-                    var filtered;
-                    if(statement.whereCriteria && statement.whereCriteria.length > 0) {
-                        filtered = [];
-                        // Wrap into an array if source is not an array. Otherwise we will end up
-                        // iterating over its props.
-                        resource = _.isArray(resource) ? resource : [resource];
-
-                        _.each(resource, function(row) {
-                            _.each(statement.whereCriteria, function(cond) {
-                                assert.ok(cond.operator === '=', 'Local filtering supported for = only');
-                                var path = cond.lhs.name;
-                                if(path.indexOf(from.alias + '.') === 0) {
-                                    path = path.substr(from.alias.length + 1);
-                                }
-                                var expected = cond.rhs.value;
-                                var result = jsonPath.eval(row, path, {flatten: true});
-                                if(result && _.isArray(result) && result.length == 1 && result[0] === expected) {
-                                    filtered.push(row);
-                                }
+                    // Prep expected once
+                    var expecteds = _.map(statement.whereCriteria, function(cond) {
+                        var expected = [];
+                        if(cond.operator === 'in') {
+                            _.each(cond.rhs.value, function (val) {
+                                expected = expected.concat(jsonfill.fill(val, context));
                             });
-                        });
+                        }
+                        else if(cond.operator === '=') {
+                            expected = expected.concat(jsonfill.fill(cond.rhs.value, context));
+                        }
+                        else {
+                            assert.ok(cond.operator === '=', 'Local filtering supported for = only');
+                        }
+                        return expected;
+                    });
+                    // Wrap into an array if source is not an array. Otherwise we will end up
+                    // iterating over its props.
+                    var filtered = resource;
+                    if(statement.whereCriteria && statement.whereCriteria.length > 0) {
+                        filtered = _.isArray(resource) ? resource : [resource];
+                        // All and conditions should match. If the RHS of a condition
+                        // has multiple values, they are ORed.
+                        //
+                        for(i = 0; i < statement.whereCriteria.length; i++) {
+                            var cond = statement.whereCriteria[i];
+                            var expected = expecteds[i];
+                            var path = cond.lhs.name;
+                            if(path.indexOf(from.alias + '.') === 0) {
+                                path = path.substr(from.alias.length + 1);
+                            }
+                            filtered = _.filter(filtered, function(row) {
+                                var matched = false;
+                                var result = jsonPath.eval(row, path, {flatten: true});
+                                // If the result matches any expected[], keep it.
+                                for(j = 0; j < expected.length; j++) {
+                                    if(!matched && result && _.isArray(result) && result.length == 1 && result[0] === expected[j]) {
+                                        matched = true;
+                                    }
+                                }
+                                return matched;
+                            });
+                        }
                     }
                     else {
                         // If there are no where conditions, use the original
@@ -262,7 +285,6 @@ function execInternal(opts, statement, cb, parentEvent) {
                         if(statement.assign) {
                             context[statement.assign] = projected;
                             emitter.emit(statement.assign, projected);
-                            console.log('>> emitting ' + statement.assign + ' ' + projected);
                         }
                         return apiTx.cb(null, {
                             headers: {
