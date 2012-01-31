@@ -252,10 +252,8 @@ function execInternal(opts, statement, cb, parentEvent) {
                     var filtered = resource;
                     if(statement.whereCriteria && statement.whereCriteria.length > 0) {
                         filtered = _.isArray(resource) ? resource : [resource];
-                        // For each row in the data set, use a mapper to check if the row
-                        // should be selected. The mapper does this by applying each where condition.
-                        // If they all eval to true, select the row. The filter then selects the
-                        // selectable rows.
+                        // All and conditions should match. If the RHS of a condition
+                        // has multiple values, they are ORed.
                         //
                         for(i = 0; i < statement.whereCriteria.length; i++) {
                             var cond = statement.whereCriteria[i];
