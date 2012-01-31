@@ -25,7 +25,7 @@ html, body {
     overflow: auto;
     bottom: 0;
     position: fixed;
-    min-height: 100px;
+    min-height: 200px;
 }
 
 #splitter .hsplitbar {
