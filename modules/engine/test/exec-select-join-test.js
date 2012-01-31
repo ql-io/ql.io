@@ -211,5 +211,86 @@ module.exports = {
                 }
             });
         })
+    },
+
+    'select-join-in' : function(test) {
+        var script = 'a = ["1", "2"];\
+                      b = [{"id": "1", "name": "abc"}];\
+                      return select * from b where id in ("{a}");';
+        engine.execute(script, function(emitter) {
+            emitter.on('end', function(err, list) {
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
+                    test.done();
+                }
+                else {
+                    test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+                    test.deepEqual(list.body, [{id: 1, name: 'abc'}]);
+                    test.done();
+                }
+            });
+        })
+    },
+
+    'select-join-in-2' : function(test) {
+        var script = 'a = ["1", "2"];\
+                          b = [{"id": "1", "name": "abc"}, {"id": "2", "name": "def"}];\
+                          return select * from b where id in ("{a}");';
+        engine.execute(script, function (emitter) {
+            emitter.on('end', function (err, list) {
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
+                    test.done();
+                }
+                else {
+                    test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+                    test.deepEqual(list.body, [
+                        {id: 1, name: 'abc'},
+                        {id: 2, name: 'def'}
+                    ]);
+                    test.done();
+                }
+            });
+        })
+    },
+
+    'select-join-in-and' : function(test) {
+        var script = 'a = ["1", "2"];\
+                              b = [{"id": "1", "name": "abc"}, {"id": "2", "name": "def"}];\
+                              return select * from b where id in ("{a}") and name = "def";';
+        engine.execute(script, function (emitter) {
+            emitter.on('end', function (err, list) {
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
+                    test.done();
+                }
+                else {
+                    test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+                    test.deepEqual(list.body, [
+                        {id: 2, name: 'def'}
+                    ]);
+                    test.done();
+                }
+            });
+        })
+    },
+
+    'select-join-in-and-2' : function(test) {
+        var script = 'a = ["1", "3"];\
+                              b = [{"id": "1", "name": "abc"}, {"id": "2", "name": "def"}, {"id": "3", "name": "ghi"}];\
+                              return select * from b where id in ("{a}") and name = "def";';
+        engine.execute(script, function (emitter) {
+            emitter.on('end', function (err, list) {
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
+                    test.done();
+                }
+                else {
+                    test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+                    test.deepEqual(list.body, []);
+                    test.done();
+                }
+            });
+        })
     }
 }
