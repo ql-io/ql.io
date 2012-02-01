@@ -1,6 +1,7 @@
 ## Feb 01, 2012
 
 * Report start of the statement and not the end for line numbers in the console
+* New parameter for console to disable '/q?s=' way of invoking scripts.
 
 ## Jan 31, 2012
 
