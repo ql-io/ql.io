@@ -390,7 +390,7 @@ module.exports = {
         var e = [
             {
                 type: 'select',
-                line: 3,
+                line: 1,
                 fromClause: [
                     {'name': 'ebay.finding.items' }
                 ],

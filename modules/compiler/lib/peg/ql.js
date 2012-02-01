@@ -37,6 +37,7 @@ module.exports = (function(){
         "dQuotedWord": parse_dQuotedWord,
         "delete": parse_delete,
         "deleteStatement": parse_deleteStatement,
+        "describe": parse_describe,
         "describeRouteStatement": parse_describeRouteStatement,
         "describeStatement": parse_describeStatement,
         "digits": parse_digits,
@@ -82,6 +83,7 @@ module.exports = (function(){
         "quotedWordVal": parse_quotedWordVal,
         "ref": parse_ref,
         "resultSet": parse_resultSet,
+        "ret": parse_ret,
         "retref": parse_retref,
         "return": parse_return,
         "retval": parse_retval,
@@ -89,8 +91,10 @@ module.exports = (function(){
         "route": parse_route,
         "sQuotedDigits": parse_sQuotedDigits,
         "sQuotedWord": parse_sQuotedWord,
+        "select": parse_select,
         "selectStatement": parse_selectStatement,
         "selector": parse_selector,
+        "show": parse_show,
         "showRoutesStatement": parse_showRoutesStatement,
         "showStatement": parse_showStatement,
         "source": parse_source,
@@ -475,9 +479,10 @@ module.exports = (function(){
         var result2 = result1 !== null
           ? (function(a, s) {
             if(a) {
-              s.assign = a;
+              s.assign = a.assign;
+              s.line = a.line;
             }
-            symbols[a] = {};
+            symbols[a.assign] = {};
             return s;
           })(result1[0], result1[1])
           : null;
@@ -639,7 +644,10 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(w) {
-            return w;
+            return {
+              line: computeErrorPosition().line,
+              assign: w
+            }
           })(result1[1])
           : null;
         if (result2 !== null) {
@@ -2158,6 +2166,49 @@ module.exports = (function(){
         return result0;
       }
 
+      function parse_select() {
+        var cacheKey = 'select@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        if (input.substr(pos, 6) === "select") {
+          var result1 = "select";
+          pos += 6;
+        } else {
+          var result1 = null;
+          if (reportMatchFailures) {
+            matchFailed("\"select\"");
+          }
+        }
+        var result2 = result1 !== null
+          ? (function(s) {
+            return {
+              type: 'select',
+              line: computeErrorPosition().line
+            }
+          })(result1)
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
       function parse_selectStatement() {
         var cacheKey = 'selectStatement@' + pos;
         var cachedResult = cache[cacheKey];
@@ -2169,15 +2220,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        if (input.substr(pos, 6) === "select") {
-          var result3 = "select";
-          pos += 6;
-        } else {
-          var result3 = null;
-          if (reportMatchFailures) {
-            matchFailed("\"select\"");
-          }
-        }
+        var result3 = parse_select();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -2280,10 +2323,10 @@ module.exports = (function(){
           pos = savedPos1;
         }
         var result2 = result1 !== null
-          ? (function(c, fc, wc, l, o) {
+          ? (function(s, c, fc, wc, l, o) {
             var s = {
-              type: 'select',
-              line: computeErrorPosition().line,
+              type: s.type,
+              line: s.line,
               fromClause: fc,
               columns: c,
               whereCriteria: wc[0]
@@ -2301,7 +2344,49 @@ module.exports = (function(){
             s = splitJoins(s);
             delete s.id;
             return s;
-          })(result1[2], result1[6], result1[8], result1[10], result1[12])
+          })(result1[0], result1[2], result1[6], result1[8], result1[10], result1[12])
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_show() {
+        var cacheKey = 'show@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        if (input.substr(pos, 4) === "show") {
+          var result1 = "show";
+          pos += 4;
+        } else {
+          var result1 = null;
+          if (reportMatchFailures) {
+            matchFailed("\"show\"");
+          }
+        }
+        var result2 = result1 !== null
+          ? (function() {
+            return {
+              line: computeErrorPosition().line
+            }
+          })()
           : null;
         if (result2 !== null) {
           var result0 = result2;
@@ -2330,15 +2415,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        if (input.substr(pos, 4) === "show") {
-          var result3 = "show";
-          pos += 4;
-        } else {
-          var result3 = null;
-          if (reportMatchFailures) {
-            matchFailed("\"show\"");
-          }
-        }
+        var result3 = parse_show();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -2366,12 +2443,12 @@ module.exports = (function(){
           pos = savedPos1;
         }
         var result2 = result1 !== null
-          ? (function() {
+          ? (function(s) {
             return {
               type: 'show routes',
-              line: computeErrorPosition().line
+              line: s.line
             }
-          })()
+          })(result1[0])
           : null;
         if (result2 !== null) {
           var result0 = result2;
@@ -2400,15 +2477,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        if (input.substr(pos, 4) === "show") {
-          var result3 = "show";
-          pos += 4;
-        } else {
-          var result3 = null;
-          if (reportMatchFailures) {
-            matchFailed("\"show\"");
-          }
-        }
+        var result3 = parse_show();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -2436,9 +2505,69 @@ module.exports = (function(){
           pos = savedPos1;
         }
         var result2 = result1 !== null
-          ? (function() {
+          ? (function(s) {
             return {
               type: 'show',
+              line: s.line
+            }
+          })(result1[0])
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_describe() {
+        var cacheKey = 'describe@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        if (input.substr(pos, 8) === "describe") {
+          var result4 = "describe";
+          pos += 8;
+        } else {
+          var result4 = null;
+          if (reportMatchFailures) {
+            matchFailed("\"describe\"");
+          }
+        }
+        if (result4 !== null) {
+          var result1 = result4;
+        } else {
+          if (input.substr(pos, 4) === "desc") {
+            var result3 = "desc";
+            pos += 4;
+          } else {
+            var result3 = null;
+            if (reportMatchFailures) {
+              matchFailed("\"desc\"");
+            }
+          }
+          if (result3 !== null) {
+            var result1 = result3;
+          } else {
+            var result1 = null;;
+          };
+        }
+        var result2 = result1 !== null
+          ? (function() {
+            return {
               line: computeErrorPosition().line
             }
           })()
@@ -2470,33 +2599,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        if (input.substr(pos, 8) === "describe") {
-          var result20 = "describe";
-          pos += 8;
-        } else {
-          var result20 = null;
-          if (reportMatchFailures) {
-            matchFailed("\"describe\"");
-          }
-        }
-        if (result20 !== null) {
-          var result3 = result20;
-        } else {
-          if (input.substr(pos, 4) === "desc") {
-            var result19 = "desc";
-            pos += 4;
-          } else {
-            var result19 = null;
-            if (reportMatchFailures) {
-              matchFailed("\"desc\"");
-            }
-          }
-          if (result19 !== null) {
-            var result3 = result19;
-          } else {
-            var result3 = null;;
-          };
-        }
+        var result3 = parse_describe();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -2653,14 +2756,14 @@ module.exports = (function(){
           pos = savedPos1;
         }
         var result2 = result1 !== null
-          ? (function(p, m) {
+          ? (function(d, p, m) {
             return {
               type: 'describe route',
-              line: computeErrorPosition().line,
+              line: d.line,
               path: p,
               method: m
             }
-          })(result1[4], result1[10])
+          })(result1[0], result1[4], result1[10])
           : null;
         if (result2 !== null) {
           var result0 = result2;
@@ -2689,33 +2792,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        if (input.substr(pos, 8) === "describe") {
-          var result7 = "describe";
-          pos += 8;
-        } else {
-          var result7 = null;
-          if (reportMatchFailures) {
-            matchFailed("\"describe\"");
-          }
-        }
-        if (result7 !== null) {
-          var result3 = result7;
-        } else {
-          if (input.substr(pos, 4) === "desc") {
-            var result6 = "desc";
-            pos += 4;
-          } else {
-            var result6 = null;
-            if (reportMatchFailures) {
-              matchFailed("\"desc\"");
-            }
-          }
-          if (result6 !== null) {
-            var result3 = result6;
-          } else {
-            var result3 = null;;
-          };
-        }
+        var result3 = parse_describe();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -2735,13 +2812,13 @@ module.exports = (function(){
           pos = savedPos1;
         }
         var result2 = result1 !== null
-          ? (function(s) {
+          ? (function(d, s) {
             return {
               type: 'describe',
-              line: computeErrorPosition().line,
+              line: d.line,
               source: s
             }
-          })(result1[2])
+          })(result1[0], result1[2])
           : null;
         if (result2 !== null) {
           var result0 = result2;
@@ -5692,6 +5769,48 @@ module.exports = (function(){
         return result0;
       }
 
+      function parse_ret() {
+        var cacheKey = 'ret@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        if (input.substr(pos, 6) === "return") {
+          var result1 = "return";
+          pos += 6;
+        } else {
+          var result1 = null;
+          if (reportMatchFailures) {
+            matchFailed("\"return\"");
+          }
+        }
+        var result2 = result1 !== null
+          ? (function() {
+            return {
+              line: computeErrorPosition().line
+            }
+          })()
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
       function parse_return() {
         var cacheKey = 'return@' + pos;
         var cachedResult = cache[cacheKey];
@@ -5703,15 +5822,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        if (input.substr(pos, 6) === "return") {
-          var result3 = "return";
-          pos += 6;
-        } else {
-          var result3 = null;
-          if (reportMatchFailures) {
-            matchFailed("\"return\"");
-          }
-        }
+        var result3 = parse_ret();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -5765,10 +5876,10 @@ module.exports = (function(){
           pos = savedPos1;
         }
         var result2 = result1 !== null
-          ? (function(o, r) {
+          ? (function(re, o, r) {
             var ret = {
               type: 'return',
-              line: computeErrorPosition().line,
+              line: re.line,
               id: id,
               rhs: o
             };
@@ -5776,7 +5887,7 @@ module.exports = (function(){
               ret.route = r;
             }
             return ret;
-          })(result1[2], result1[4])
+          })(result1[0], result1[2], result1[4])
           : null;
         if (result2 !== null) {
           var result0 = result2;
