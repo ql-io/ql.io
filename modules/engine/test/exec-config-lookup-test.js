@@ -23,8 +23,7 @@ var Engine = require('../lib/engine'),
 
 var engine = new Engine({
     tables: __dirname + '/tables',
-    config: __dirname + '/config/dev.json',
-    connection: 'close'
+    config: __dirname + '/config/dev.json'
 });
 
 module.exports = {

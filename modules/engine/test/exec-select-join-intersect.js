@@ -45,7 +45,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/intersect.ql', 'UTF-8');
             engine.exec(script, function(err, results) {

@@ -44,7 +44,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/nested1.ql', 'UTF-8');
             engine.exec(script, function(err, results) {
@@ -131,7 +130,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/nested2.ql', 'UTF-8');
             engine.exec(script, function(err, results) {

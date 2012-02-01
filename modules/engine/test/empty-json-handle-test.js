@@ -33,7 +33,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/empty-json-resp.ql', 'UTF-8');
 
@@ -65,7 +64,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/empty-json-resp.ql', 'UTF-8');
 
@@ -96,7 +94,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/empty-json-resp.ql', 'UTF-8');
 
@@ -128,7 +125,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/empty-json-resp.ql', 'UTF-8');
 

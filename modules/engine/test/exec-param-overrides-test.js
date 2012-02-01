@@ -26,8 +26,7 @@ logger.add(logger.transports.Console, {level: 'error'});
 
 var engine = new Engine({
     tables : __dirname + '/tables',
-    config: __dirname + '/config/dev.json',
-    connection : 'close'
+    config: __dirname + '/config/dev.json'
 });
 
 module.exports = {
@@ -47,7 +46,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = 'create table myapi \
                             on select get from "http://localhost:3000/myapi?param={value}";\
@@ -84,7 +82,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = 'create table myapi \
                             on select get from "http://localhost:3000/myapi?param={value}";\
@@ -129,7 +126,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = 'create table myapi \
                             on select get from "http://localhost:3000/myapi?param={value}";\
@@ -173,7 +169,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = 'create table myapi \
                             on select get from "http://localhost:3000/myapi?param={value}";\
@@ -218,7 +213,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = 'create table myapi \
                             on select get from "http://localhost:3000/myapi?param={value}";\
