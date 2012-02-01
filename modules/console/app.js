@@ -364,7 +364,8 @@ var Console = module.exports = function(config, cb) {
         );
     });
 
-    app.get('/q', function(req, res) {
+    if(config['enable q']) {
+        app.get('/q', function(req, res) {
             var holder = {
                 params: {},
                 headers: {}
@@ -392,8 +393,9 @@ var Console = module.exports = function(config, cb) {
                         return handleResponseCB(req, res, execState, err, results);
                     })
                 })
-        }
-    );
+            }
+        );
+    }
 
     // Also listen to WebSocket requests
     var emitter;
