@@ -1,6 +1,7 @@
 ## Feb 01, 2012
 
 * Report start of the statement and not the end for line numbers in the console
+* Remove mistakenly added debug: true in app.js
 
 ## Jan 31, 2012
 
