@@ -18,11 +18,3 @@ test: install
 test-part:
 	node_modules/.bin/nodeunit test --reporter junit --output ../../reports
 
-unpublish:
-	npm --registry $(REGISTRY) unpublish
-
-publish:
-	npm --registry $(REGISTRY) publish
-
-refresh:
-	npm --registry $(REGISTRY) publish --force

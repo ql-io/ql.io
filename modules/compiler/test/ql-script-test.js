@@ -149,7 +149,7 @@ return {};';
                 dependsOn: [],
                 listeners: [] },
             { type: 'select',
-                line: 4,
+                line: 2,
                 fromClause: [
                     { name: 'ebay.finding.items' }
                 ],

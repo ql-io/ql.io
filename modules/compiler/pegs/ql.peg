@@ -316,9 +316,10 @@ line = sp l:(assign / comment) {
 
 assign = a:output? s:statementOrObject insig ';'? insig {
   if(a) {
-    s.assign = a;
+    s.assign = a.assign;
+    s.line = a.line;
   }
-  symbols[a] = {};
+  symbols[a.assign] = {};
   return s;
 }
 
@@ -327,7 +328,10 @@ statementOrObject = statement / value
 statement = (selectStatement / showRoutesStatement /showStatement / describeRouteStatement / describeStatement / insertStatement / deleteStatement / createStatement)
 
 output = insig w:word insig '=' insig {
-  return w;
+  return {
+    line: computeErrorPosition().line,
+    assign: w
+  }
 }
 
 comment = '--' sp c:[\u0020-\uffff]* crlf? {
@@ -440,10 +444,16 @@ nvp = insig lhs:(lhs/quotedWord) insig '=' insig rhs:rhs insig {
 ///////////////////////////////////////////////////////////
 // Select
 
-selectStatement = 'select' insig c:columnsClause insig 'from' insig fc:fromClause insig wc:whereClause* insig l:limit* insig o:offset* {
-  var s = {
+select = s:'select' {
+  return {
     type: 'select',
-    line: computeErrorPosition().line,
+    line: computeErrorPosition().line
+  }
+}
+selectStatement = s:select insig c:columnsClause insig 'from' insig fc:fromClause insig wc:whereClause* insig l:limit* insig o:offset* {
+  var s = {
+    type: s.type,
+    line: s.line,
     fromClause: fc,
     columns: c,
     whereCriteria: wc[0]
@@ -463,38 +473,46 @@ selectStatement = 'select' insig c:columnsClause insig 'from' insig fc:fromClaus
   return s;
 }
 
-showRoutesStatement = 'show' insig 'routes' {
+show = 'show' {
+  return {
+    line: computeErrorPosition().line
+  }
+}
+showRoutesStatement = s:show insig 'routes' {
   return {
     type: 'show routes',
-    line: computeErrorPosition().line
+    line: s.line
   }
 }
 
-
-showStatement = 'show' insig 'tables' {
+showStatement = s:show insig 'tables' {
   return {
     type: 'show',
-    line: computeErrorPosition().line
+    line: s.line
   }
 }
 
-describeRouteStatement = (('describe') / ('desc')) insig 'route' insig p:quotedWord insig 'using' insig 'method' insig m:('get' / 'post' / 'put' / 'delete' / 'patch') {
+describe = (('describe') / ('desc')) {
+  return {
+    line: computeErrorPosition().line
+  }
+}
+describeRouteStatement = d:describe insig 'route' insig p:quotedWord insig 'using' insig 'method' insig m:('get' / 'post' / 'put' / 'delete' / 'patch') {
   return {
     type: 'describe route',
-    line: computeErrorPosition().line,
+    line: d.line,
     path: p,
     method: m
   }
 }
 
-describeStatement = (('describe') / ('desc')) insig s:source {
+describeStatement = d:describe insig s:source {
   return {
     type: 'describe',
-    line: computeErrorPosition().line,
+    line: d.line,
     source: s
   }
 }
-
 
 ///////////////////////////////////////////////////////////
 // insert Statement
@@ -728,10 +746,16 @@ dQuotedDigits = '"' d:digits '"' {
 
 ///////////////////////////////////////////////////////////
 
-return = 'return' insig o:retval insig r:route? insig ';'? {
+ret = 'return' {
+  return {
+    line: computeErrorPosition().line
+  }
+}
+
+return = re:ret insig o:retval insig r:route? insig ';'? {
   var ret = {
     type: 'return',
-    line: computeErrorPosition().line,
+    line: re.line,
     id: id,
     rhs: o
   };
