@@ -20,11 +20,6 @@ var _ = require('underscore'),
     fs = require('fs'),
     util = require('util');
 
-var engine = new Engine({
-    config:__dirname + '/config/dev.json',
-    connection:'close'
-});
-
 exports['soap+xml'] = function (test) {
     var server = http.createServer(function (req, res) {
 
@@ -51,7 +46,6 @@ exports['soap+xml'] = function (test) {
     server.listen(3000, function () {
         // Do the test here.
         var engine = new Engine({
-            connection:'close'
         });
         var script = fs.readFileSync(__dirname + '/mock/plusXml.ql', 'UTF-8');
 
@@ -105,7 +99,6 @@ exports['atom+xml'] = function (test) {
     server.listen(3000, function () {
         // Do the test here.
         var engine = new Engine({
-            connection:'close'
         });
         var script = fs.readFileSync(__dirname + '/mock/plusXml.ql', 'UTF-8');
 
@@ -144,7 +137,6 @@ exports['foo+xml'] = function (test) {
     server.listen(3000, function () {
         // Do the test here.
         var engine = new Engine({
-            connection:'close'
         });
         var script = fs.readFileSync(__dirname + '/mock/plusXml.ql', 'UTF-8');
 
@@ -192,7 +184,6 @@ exports['bad content'] = function (test) {
     server.listen(3000, function () {
         // Do the test here.
         var engine = new Engine({
-            connection:'close'
         });
         var script = fs.readFileSync(__dirname + '/mock/plusXml.ql', 'UTF-8');
 

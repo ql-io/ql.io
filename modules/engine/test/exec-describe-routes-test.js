@@ -26,8 +26,7 @@ exports["describe route '/foo/bar/{selector}?userid={userId}&itemid={itemId}' us
     var engine = new Engine({
             tables : __dirname + '/mock-routes/tables',
             routes : __dirname + '/mock-routes/routes',
-            config : __dirname + '/config/dev.json',
-            connection : 'close'
+            config : __dirname + '/config/dev.json'
         });
     var q = "describe route '/foo/bar/{selector}?userid={userId}&itemid={itemId}' using method get";
         engine.exec(q, function(err, list) {
@@ -55,8 +54,7 @@ exports["describe route '/ping/pong' using method put"] = function (test) {
     var engine = new Engine({
             tables : __dirname + '/mock-routes/tables',
             routes : __dirname + '/mock-routes/routes',
-            config : __dirname + '/config/dev.json',
-            connection : 'close'
+            config : __dirname + '/config/dev.json'
         });
     var q = "describe route '/ping/pong' using method put";
         engine.exec(q, function(err, list) {

@@ -30,7 +30,7 @@ module.exports = {
             }
         };
         q = 'select * from foo';
-        engine.exec({script: q, context: context, connection: 'close', cb: function(err, result) {
+        engine.exec({script: q, context: context, cb: function(err, result) {
             if(err) {
                 test.fail('got error: ' + err.stack);
                 test.done();
@@ -52,7 +52,7 @@ module.exports = {
             }
         };
         q = 'select fname, lname, place from foo';
-        engine.exec({script: q, context: context, connection: 'close', cb: function(err, result) {
+        engine.exec({script: q, context: context, cb: function(err, result) {
             if(err) {
                 test.fail('got error: ' + err.stack);
                 test.done();
@@ -87,7 +87,7 @@ module.exports = {
             }
         };
         q = 'select addresses[0].street, addresses[1].city, name.last from foo';
-        engine.exec({script: q, context: context, connection: 'close', cb: function(err, result) {
+        engine.exec({script: q, context: context, cb: function(err, result) {
             if(err) {
                 test.fail('got error: ' + err.stack);
                 test.done();
