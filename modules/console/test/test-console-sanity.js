@@ -61,5 +61,44 @@ module.exports = {
             });
             req.end();
         });
+    },
+    'disable /q': function (test) {
+        var c = new Console({
+            tables: __dirname + '/tables',
+            routes: __dirname + '/routes/',
+            'enable console': false,
+            'enable q': false,
+            connection: 'close'
+        });
+        c.app.listen(3000, function() {
+            var options = {
+                host: 'localhost',
+                port: 3000,
+                path: '/q?s=show%20tables',
+                method: 'GET',
+                headers: {
+                    host: 'localhost',
+                    connection: 'close'
+                }
+            };
+            var req = http.request(options, function(res) {
+                res.setEncoding('utf8');
+                test.equals(res.statusCode, 404);
+                test.equals(res.headers['content-type'], 'text/plain');
+                test.ok(res.headers['date']);
+                test.ok(res.headers['x-powered-by']);
+                test.ok(res.headers['server']);
+                var data = '';
+                res.on('data', function(chunk) {
+                    data = data + chunk;
+                });
+                res.on('end', function() {
+                    test.ok(data.indexOf('Cannot GET /q') === 0);
+                    c.app.close();
+                    test.done();
+                });
+            });
+            req.end();
+        });
     }
-}
+};
