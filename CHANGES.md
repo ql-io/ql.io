@@ -1,9 +1,13 @@
-## Jan 31, 2011
+## Feb 01, 2012
+
+* Report start of the statement and not the end for line numbers in the console
+
+## Jan 31, 2012
 
 * Improve support for in-proc selection and joins. If the RHS is multi-valued, selection is ORed.
   Multiple conditions are ANDed ('and' === and).
 
-## Jan 25, 2011
+## Jan 25, 2012
 
 * Support for extended xml content-types returned  per rfc: http://www.ietf.org/rfc/rfc3023.txt
 * Also better handling of unrecognized content-types.
