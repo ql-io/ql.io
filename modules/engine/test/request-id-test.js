@@ -24,8 +24,7 @@ var _ = require('underscore'),
     EventEmitter = require('events').EventEmitter;
 
 var engine = new Engine({
-    config: __dirname + '/config/dev.json',
-    'connection': 'close'
+    config: __dirname + '/config/dev.json'
 });
 
 module.exports = {
@@ -48,7 +47,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
 	    var script = fs.readFileSync(__dirname + '/mock/finditems.ql', 'UTF-8');
             var emitter = new EventEmitter();
@@ -97,7 +95,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/finditems-reqid.ql', 'UTF-8');
             var emitter = new EventEmitter();
@@ -146,7 +143,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/finditems.ql', 'UTF-8');
 
@@ -211,7 +207,6 @@ module.exports = {
  
            var engine = new Engine({
               config: __dirname + '/config/dev.json',
-              'connection': 'close',
               'request-id': 'x-ebay-soa-request-id'
             });
             engine.exec({
@@ -275,7 +270,6 @@ module.exports = {
 
         var engine = new Engine({
             config: __dirname + '/config/dev.json',
-            'connection': 'close',
             'request-id': 'x-ebay-soa-request-id'
         });
         engine.exec({

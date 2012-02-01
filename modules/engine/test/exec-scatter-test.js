@@ -21,17 +21,10 @@ var _ = require('underscore'),
     fs = require('fs'),
     http = require('http'),
     util = require('util'),
-    EventEmitter = require('events').EventEmitter(),
     logger = require('winston');
     logger.remove(logger.transports.Console);
     logger.add(logger.transports.Console, {level: 'error'});
     
-   var engine = new Engine({
-      tables : __dirname + '/tables',
-      config: __dirname + '/config/dev.json',
-      'connection': 'close'
-    });
-
    module.exports = {
     'select-times': function(test) {
 	 var server = http.createServer(function(req, res) {
@@ -52,7 +45,6 @@ var _ = require('underscore'),
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
 	    var q = fs.readFileSync(__dirname + '/mock/scatter.ql', 'UTF-8');
        	    engine.exec(q, function(err, list) {
@@ -91,7 +83,6 @@ var _ = require('underscore'),
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
 	    var q = fs.readFileSync(__dirname + '/mock/scatter.ql', 'UTF-8');
             engine.exec({

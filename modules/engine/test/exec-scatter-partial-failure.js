@@ -19,16 +19,7 @@
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
     fs = require('fs'),
-    http = require('http'),
-    util = require('util'),
-    EventEmitter = require('events').EventEmitter(),
-    logger = require('winston');
-
-var engine = new Engine({
-    tables: __dirname + '/tables',
-    config: __dirname + '/config/dev.json',
-    'connection': 'close'
-});
+    http = require('http');
 
 module.exports = {
     'partial failure': function (test) {
@@ -49,7 +40,6 @@ module.exports = {
         server.listen(3000, function () {
             // Do the test here.
             var engine = new Engine({
-                connection: 'close'
             });
             var q = fs.readFileSync(__dirname + '/mock/scatter-partial-failure.ql', 'UTF-8');
             engine.exec(q, function (err, list) {

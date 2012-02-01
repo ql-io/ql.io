@@ -76,8 +76,7 @@ module.exports = {
         server.listen(3000, function () {
             // Do the test here.
             var engine = new Engine({
-                config:__dirname + '/config/proxy.json',
-                connection:'close'
+                config:__dirname + '/config/proxy.json'
             });
 
             var script = fs.readFileSync(__dirname + '/mock/proxy.ql', 'UTF-8');
@@ -154,8 +153,7 @@ module.exports = {
         server.listen(3000, "127.0.0.1", function () {
             // Do the test here.
             var engine = new Engine({
-                config:__dirname + '/config/proxy.json',
-                connection:'close'
+                config:__dirname + '/config/proxy.json'
             });
 
             var script = fs.readFileSync(__dirname + '/mock/proxy.ql', 'UTF-8');
@@ -186,8 +184,7 @@ module.exports = {
 
         var engine = new Engine({
             tables:__dirname + '/tables',
-            config:__dirname + '/config/proxy.json',
-            connection:'close'
+            config:__dirname + '/config/proxy.json'
         });
 
         var script = "select * from google.geocode where address = 'Mount Everest'";

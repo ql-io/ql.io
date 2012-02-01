@@ -25,8 +25,7 @@ module.exports = {
     'compile-err': function(test) {
         var engine = new Engine({
             tables : __dirname + '/tables',
-            config: __dirname + '/config/dev.json',
-            connection: 'close'
+            config: __dirname + '/config/dev.json'
         });
         var script;
         script = 'desca table foo';
@@ -96,8 +95,7 @@ module.exports = {
     'desc': function(test) {
         var engine = new Engine({
             tables : __dirname + '/tables',
-            config: __dirname + '/config/dev.json',
-            connection: 'close'
+            config: __dirname + '/config/dev.json'
         });
         var script;
         script = 'desc foo';
@@ -133,8 +131,7 @@ module.exports = {
     'select-error': function(test) {
         var engine = new Engine({
             tables : __dirname + '/tables',
-            config: __dirname + '/config/dev.json',
-            connection: 'close'
+            config: __dirname + '/config/dev.json'
         });
         var script;
         script = 'select * from ebay.finding.items';
@@ -170,8 +167,7 @@ module.exports = {
     'select-ok': function(test) {
         var engine = new Engine({
             tables : __dirname + '/tables',
-            config: __dirname + '/config/dev.json',
-            'connection': 'close'
+            config: __dirname + '/config/dev.json'
         });
         var script;
         script = 'select * from ebay.finding.items where keywords = "ipad"';
@@ -214,8 +210,7 @@ module.exports = {
     'define': function(test) {
         var engine = new Engine({
             tables : __dirname + '/tables',
-            config: __dirname + '/config/dev.json',
-            'connection': 'close'
+            config: __dirname + '/config/dev.json'
         });
         var script = 'data = {\
                 "name" : {\

@@ -26,8 +26,7 @@ exports['show routes test'] = function (test) {
     var engine = new Engine({
         tables : __dirname + '/mock-routes/tables',
         routes : __dirname + '/mock-routes/routes',
-        config : __dirname + '/config/dev.json',
-        connection : 'close'
+        config : __dirname + '/config/dev.json'
     });
     var q = 'show routes';
     engine.exec(q, function(err, list) {
@@ -48,8 +47,7 @@ exports['show routes test'] = function (test) {
 exports['show routes with no routes test'] = function (test) {
     var engine = new Engine({
         tables : __dirname + '/mock-routes/tables',
-        config : __dirname + '/config/dev.json',
-        connection : 'close'
+        config : __dirname + '/config/dev.json'
     });
     var q = 'show routes';
     engine.exec(q, function(err, list) {
