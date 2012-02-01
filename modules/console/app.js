@@ -364,7 +364,12 @@ var Console = module.exports = function(config, cb) {
         );
     });
 
-    if(config['enable q']) {
+    /*
+     * '/q' is disabled only if the console is created with config, 'enable q' : false.
+     */
+    var enableQ = config['enable q'] === undefined ? true : config['enable q'];
+
+    if(enableQ) {
         app.get('/q', function(req, res) {
             var holder = {
                 params: {},
