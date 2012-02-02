@@ -84,6 +84,8 @@ var Console = module.exports = function(config, cb) {
 
     var app = this.app = express.createServer();
 
+    app.enable('case sensitive routes'); // Default routes are not case sensitive
+
     // Add parser for xml
     connect.bodyParser.parse['application/xml'] = function(req, options, next) {
         var buf = '';
