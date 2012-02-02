@@ -93,7 +93,7 @@ var Console = module.exports = function(config, cb) {
         });
         req.on('end', function () {
             try {
-                req.body = expat.toJson(buf, {object: true});
+                req.body = expat.toJson(buf, {coerce: true, object: true});
                 next();
             }
             catch(err) {
