@@ -1,3 +1,7 @@
+## Feb 02, 2012
+
+* Fix to make Routes case sensitive 
+
 ## Feb 01, 2012
 
 * Report start of the statement and not the end for line numbers in the console
