@@ -41,7 +41,6 @@ module.exports = {
         });
         server.listen(3000, function() {
             var engine = new Engine({
-                connection : 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/empty-where-val.ql', 'UTF-8');
             engine.exec(script, function(err, result) {

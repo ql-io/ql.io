@@ -42,7 +42,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/csvSelect.ql', 'UTF-8');
             engine.exec(script, function(err, results) {
@@ -86,7 +85,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/csvSelect.ql', 'UTF-8');
             engine.exec(script, function(err, results) {
@@ -129,7 +127,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/utf8csvSelect.ql', 'UTF-8');
             engine.exec(script, function(err, results) {

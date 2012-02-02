@@ -115,12 +115,15 @@ var Console = module.exports = function(config, cb) {
                 'route': /\/scripts\/all.js/,
                 'path': __dirname + '/public/scripts/',
                 'dataType': 'javascript',
+                debug: true,
                 'files': [
                     'splitter.js',
                     'codemirror.js',
                     'qlio-editor.js',
                     'jquery.treeview.js',
                     'jsonview.js',
+                    'mustache.js',
+                    'har-viewer.js',
                     'console.js'
                 ]
             },
@@ -129,11 +132,13 @@ var Console = module.exports = function(config, cb) {
                 'route': /\/css\/all.css/,
                 'path': __dirname + '/public/css/',
                 'dataType': 'css',
+                debug: true,
                 'files': [
                     'console.css',
                     'codemirror.css',
                     'qlio-editor.css',
                     'treeview.css',
+                    'har-viewer.css',
                     'jquery-ui.css'
                 ],
                 'preManipulate': {
@@ -361,7 +366,13 @@ var Console = module.exports = function(config, cb) {
         );
     });
 
-    app.get('/q', function(req, res) {
+    /*
+     * '/q' is disabled only if the console is created with config, 'enable q' : false.
+     */
+    var enableQ = config['enable q'] === undefined ? true : config['enable q'];
+
+    if(enableQ) {
+        app.get('/q', function(req, res) {
             var holder = {
                 params: {},
                 headers: {}
@@ -389,8 +400,9 @@ var Console = module.exports = function(config, cb) {
                         return handleResponseCB(req, res, execState, err, results);
                     })
                 })
-        }
-    );
+            }
+        );
+    }
 
     // Also listen to WebSocket requests
     var emitter;

@@ -24,7 +24,6 @@ var _ = require('underscore'),
 module.exports = {
     'assign events': function (test) {
         var engine = new Engine({
-            connection : 'close'
         });
         var script = fs.readFileSync(__dirname + '/mock/assign-events.ql', 'UTF-8');
         engine.execute(script, function(emitter) {

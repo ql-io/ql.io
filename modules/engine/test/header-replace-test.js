@@ -21,8 +21,7 @@ var _ = require('underscore'),
     EventEmitter = require('events').EventEmitter;
 
 var engine = new Engine({
-    config: __dirname + '/config/dev.json',
-    'connection': 'close'
+    config: __dirname + '/config/dev.json'
 });
 
 module.exports = {

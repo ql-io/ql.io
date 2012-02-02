@@ -20,11 +20,6 @@ var _ = require('underscore'),
     fs = require('fs'),
     util = require('util');
 
-var engine = new Engine({
-    config: __dirname + '/config/dev.json',
-    connection: 'close'
-});
-
 module.exports = {
     'error event for error code': function(test) {
 
@@ -48,7 +43,6 @@ module.exports = {
         server.listen(3000, function() {
             // Do the test here.
             var engine = new Engine({
-                connection : 'close'
             });
             engine.once(Engine.Events.ERROR, errorHandler);
 
@@ -83,7 +77,6 @@ module.exports = {
 
         // Do the test here.
         var engine = new Engine({
-            connection : 'close'
         });
         engine.once(Engine.Events.ERROR, errorHandler);
         var script = fs.readFileSync(__dirname + '/mock/empty-json-resp.ql', 'UTF-8');
@@ -113,7 +106,6 @@ module.exports = {
 
         // Do the test here.
         var engine = new Engine({
-            connection : 'close'
         });
         engine.once(Engine.Events.ERROR, errorHandler);
         var script = fs.readFileSync(__dirname + '/mock/forIncMkyPatchErr.ql', 'UTF-8');

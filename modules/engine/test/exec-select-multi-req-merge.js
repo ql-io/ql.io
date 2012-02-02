@@ -23,8 +23,7 @@ var _ = require('underscore'),
 
 var engine = new Engine({
     tables: __dirname + '/tables',
-    config: __dirname + '/config/dev.json',
-    connection: 'close'
+    config: __dirname + '/config/dev.json'
 });
 
 // This tests merging of multiple HTTP requests
@@ -109,7 +108,6 @@ module.exports = {
         server.listen(3000, function () {
             // Do the test here.
             var engine = new Engine({
-                connection: 'close'
             });
             var script = fs.readFileSync(__dirname + '/mock/merge-block.ql', 'UTF-8');
             engine.exec(script, function (err, results) {
