@@ -46,7 +46,8 @@ exports.exec = function(cb, opts) {
         option('-t, --tables <tables>', 'path of dir containing tables', cwd + '/../tables').
         option('-r, --routes <routes>', 'path of dir containing routes', cwd + '/../routes').
         option('-a, --ecvPath <ecvPath>', 'ecv path', '/ecv').
-        option('-e, --disableConsole', 'disable the console', false);
+        option('-e, --disableConsole', 'disable the console', false).
+        option('-q, --disableQ', 'disable /q', false);
     if(opts) {
         _.each(opts, function(opt) {
             program.option(opt[0], opt[1], opt[2], opt[3]);
@@ -345,11 +346,13 @@ function getInflight(master) {
 
 function createConsole(program, cb) {
     var disableConsole = Boolean(program.disableConsole);
+    var disableQ = Boolean(program.disableQ);
     return new Console({
         'tables': program.tables,
         'routes': program.routes,
         'config': program.config,
         'enable console': !disableConsole,
+        'enable q': !disableQ,
         'log levels': require('winston').config.syslog.levels}, cb);
 }
 

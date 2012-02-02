@@ -84,6 +84,8 @@ var Console = module.exports = function(config, cb) {
 
     var app = this.app = express.createServer();
 
+    app.enable('case sensitive routes'); // Default routes are not case sensitive
+
     // Add parser for xml
     connect.bodyParser.parse['application/xml'] = function(req, options, next) {
         var buf = '';
@@ -363,7 +365,13 @@ var Console = module.exports = function(config, cb) {
         );
     });
 
-    app.get('/q', function(req, res) {
+    /*
+     * '/q' is disabled only if the console is created with config, 'enable q' : false.
+     */
+    var enableQ = config['enable q'] === undefined ? true : config['enable q'];
+
+    if(enableQ) {
+        app.get('/q', function(req, res) {
             var holder = {
                 params: {},
                 headers: {}
@@ -391,8 +399,9 @@ var Console = module.exports = function(config, cb) {
                         return handleResponseCB(req, res, execState, err, results);
                     })
                 })
-        }
-    );
+            }
+        );
+    }
 
     // Also listen to WebSocket requests
     var emitter;
