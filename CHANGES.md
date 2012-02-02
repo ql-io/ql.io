@@ -1,6 +1,7 @@
 ## Feb 02, 2012
 
 * Fix to make Routes case sensitive 
+* Type concercion during xml2json
 
 ## Feb 01, 2012
 
