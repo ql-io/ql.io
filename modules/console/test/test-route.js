@@ -520,5 +520,36 @@ module.exports = {
             });
             req.end();
         });
+    },
+    'case sensitivity' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function () {
+        });
+
+        var options = {
+            host:'localhost',
+            port:3000,
+            path:'/DEl/foo/bar/Details?userid=sallamar&itemid=260852758792',
+            method:'DELETE'
+        };
+        var req = http.request(options);
+        req.addListener('response', function (resp) {
+            var data = '';
+            resp.addListener('data', function (chunk) {
+                data += chunk;
+            });
+            resp.addListener('end', function () {
+                test.equal(resp.statusCode, 404);
+                c.app.close();
+                test.done();
+            });
+        });
+        req.end();
     }
 }
