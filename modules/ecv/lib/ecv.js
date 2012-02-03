@@ -32,7 +32,7 @@ exports.enable = function(app, port, path) {
         var options = {
             host:'localhost',
             port:port,
-            path:'/q?s=show%20tables',
+            path:'/tables',
             method:'GET',
             headers:{
                 host:'localhost',
@@ -64,17 +64,17 @@ exports.enable = function(app, port, path) {
             });
         });
         creq.on('error', function(err) {
-            unhappy(res, date);
+            unhappy(res, tosend.date);
         });
         creq.end();
     });
-}
+};
 
 function happy(res, tosend) {
     res.writeHead(200, {
         'content-type': 'text/plain',
         'cache-control': 'no-cache'
-    })
+    });
     res.write('status=AVAILABLE&ServeTraffic=true&ip=127.0.0.1&hostname=localhost&port=' + tosend.port+ '&time=' + tosend.date.toString());
     res.end();
 }
@@ -83,7 +83,7 @@ function unhappy(res, tosend) {
     res.writeHead(500, {
         'content-type': 'text/plain',
         'cache-control': 'no-cache'
-    })
+    });
     res.write('status=WARNING&ServeTraffic=false&ip=127.0.0.1&hostname=localhost&port=' + tosend.port + '&time=' + tosend.date.toString());
     res.end();
 }
