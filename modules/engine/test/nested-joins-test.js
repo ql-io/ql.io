@@ -92,7 +92,7 @@ module.exports = {
 
                     test.ok(results.watchList.ItemID);
                     test.equals(results.won.length, 1);
-                    test.equals(results.won[0].itemId, '350490245586');
+                    test.equals(results.won[0].itemId, 350490245586);
 
                     test.equals(results.sold.length, 3);
                     _.each(results.sold, function(soldItem) {
@@ -100,7 +100,7 @@ module.exports = {
                     })
 
                     test.equals(results.watches.length, 1);
-                    test.equals(results.watches[0].itemId, '380192707119');
+                    test.equals(results.watches[0].itemId, 380192707119);
 
                     test.done();
                 }
@@ -179,7 +179,7 @@ module.exports = {
                     test.equals(results.watchList.length, 23);
 
                     test.equals(results.won.length, 2);
-                    test.equals(results.won[0].itemId, '250888486629');
+                    test.equals(results.won[0].itemId, 250888486629);
 
                     test.equals(results.sold.length, 2);
                     _.each(results.sold, function(soldItem) {
@@ -187,7 +187,7 @@ module.exports = {
                     })
 
                     test.equals(results.watches.length, 23);
-                    test.equals(results.watches[0].itemId, '110763457898');
+                    test.equals(results.watches[0].itemId, 110763457898);
 
                     test.done();
                 }

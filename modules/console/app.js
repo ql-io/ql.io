@@ -84,6 +84,8 @@ var Console = module.exports = function(config, cb) {
 
     var app = this.app = express.createServer();
 
+    app.enable('case sensitive routes'); // Default routes are not case sensitive
+
     // Add parser for xml
     connect.bodyParser.parse['application/xml'] = function(req, options, next) {
         var buf = '';
@@ -93,7 +95,7 @@ var Console = module.exports = function(config, cb) {
         });
         req.on('end', function () {
             try {
-                req.body = expat.toJson(buf, {object: true});
+                req.body = expat.toJson(buf, {coerce: true, object: true});
                 next();
             }
             catch(err) {
@@ -107,13 +109,13 @@ var Console = module.exports = function(config, cb) {
     var respHeaders = require(__dirname + '/lib/middleware/respheaders');
     app.use(respHeaders());
     if(config['enable console']) {
+        // If you want unminified JS and CSS, jus add property debug: true to js and css vars below.
         var qlAssets = {
             'js': {
                 'stale': true, // If set to false, this adds a watch file listener - which messes up shutdown via cluster.
                 'route': /\/scripts\/all.js/,
                 'path': __dirname + '/public/scripts/',
                 'dataType': 'javascript',
-                debug: true,
                 'files': [
                     'splitter.js',
                     'codemirror.js',
@@ -130,7 +132,6 @@ var Console = module.exports = function(config, cb) {
                 'route': /\/css\/all.css/,
                 'path': __dirname + '/public/css/',
                 'dataType': 'css',
-                debug: true,
                 'files': [
                     'console.css',
                     'codemirror.css',

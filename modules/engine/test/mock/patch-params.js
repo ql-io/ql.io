@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-'use strict';
+var _ = require('underscore');
 
-var expat = require('xml2json');
-
-exports.toJson = function(data, respCb, errorCb) {
-    try {
-        return respCb(expat.toJson(data, {coerce: true, object: true}));
-    }
-    catch(error) {
-        return errorCb(error);
-    }
+exports['patch uri'] = function(args) {
+    args.params['a'] = 'A';
+    args.params['b'] = 'B';
+    return args.uri;
+}
+exports['patch response'] = function(args) {
+    return args.params;
 }
