@@ -24,7 +24,6 @@ var strTemplate = require('./peg/str-template.js'),
     http = require('http'),
     https = require('https'),
     URI = require('uri'),
-    fs = require('fs'),
     assert = require('assert'),
     util = require('util'),
     _ = require('underscore'),
@@ -153,7 +152,7 @@ exports.exec = function(args) {
             }
         }
     });
-}
+};
 
 function sendOneRequest(args, resourceUri, params, holder, cb) {
     var h, requestBody, client, isTls, options, template;
@@ -295,11 +294,11 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     client = isTls ? https : http;
 
     // Send
-    sendMessage(client, emitter, logEmitter, statement, httpReqTx, options, resourceUri, requestBody, h,
+    sendMessage(client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, requestBody, h,
         requestId,  resource, args.xformers, 0);
 }
 
-function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options, resourceUri, requestBody, h,
+function sendMessage(client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, requestBody, h,
                      requestId, resource, xformers, retry) {
     var status, clientRequest, start = Date.now(), mediaType, respData, uri;
     var reqStart = Date.now();
@@ -379,7 +378,7 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
                         name: n,
                         value: v
                     });
-                })
+                });
                 emitter.emit(eventTypes.STATEMENT_RESPONSE, packet);
 
                 if(res.headers[requestId.name]) {
@@ -405,7 +404,7 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
             // Parse
             jsonify(respData, mediaType, xformers, function(respJson) {
                 try {
-                    status = getStatus(res, resource, respJson, respData);
+                    status = getStatus(resourceUri, statement, params, res, resource, respJson, respData);
                 }
                 catch(e) {
                     return httpReqTx.cb(e);
@@ -416,6 +415,10 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
                         if(resource.monkeyPatch && resource.monkeyPatch['patch response']) {
                             try {
                                 respJson = resource.monkeyPatch['patch response']({
+                                    uri: resourceUri,
+                                    statement: statement,
+                                    params: params,
+                                    headers: res.headers,
                                     body: respJson
                                 });
                             }
@@ -468,7 +471,7 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
         // For select, retry once on network error
         if(retry === 0 && statement.type === 'select') {
             logEmitter.emitEvent(httpReqTx.event, 'retrying - ' + resourceUri + ' - ' + (Date.now() - start) + 'msec');
-            sendMessage(client, emitter, logEmitter, statement, httpReqTx, options, resourceUri, requestBody, h,
+            sendMessage(client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, requestBody, h,
                     requestId,  resource, xformers, 1);
         }
         else {
@@ -516,15 +519,13 @@ function validateParams(resource, params, statement) {
             assert.ok(_.isFunction(validator), 'Validator is not a function');
             var name, value, isValid;
             for(name in params) {
-                if(params.hasOwnProperty(name)) {
-                    value = params[name];
-                    isValid = validator({
-                        statement: statement,
-                        params: params
-                    }, name, value);
-                    if(!isValid) {
-                        throw 'Value of ' + name + '"' + value + '" is not valid';
-                    }
+                value = params[name];
+                isValid = validator({
+                    statement: statement,
+                    params: params
+                }, name, value);
+                if(!isValid) {
+                    throw 'Value of ' + name + '"' + value + '" is not valid';
                 }
             }
         }
@@ -638,6 +639,9 @@ function sniffMediaType(mediaType, resource, statement, res, respData) {
     // 1. If there is a patch, call it to get the media type.
     mediaType = (resource.monkeyPatch && resource.monkeyPatch['patch mediaType']  &&
         resource.monkeyPatch['patch mediaType']({
+            uri: resourceUri,
+            statement: statement,
+            params: params,
             status: res.statusCode,
             headers: res.headers,
             body: respData
@@ -686,10 +690,13 @@ function jsonify(respData, mediaType, xformers, respCb, errorCb) {
     }
 }
 
-function getStatus(res, resource, respJson, respData) {
+function getStatus(resourceUri, statement, params, res, resource, respJson, respData) {
     var overrideStatus = res.statusCode;
     if(resource.monkeyPatch && resource.monkeyPatch['patch status']) {
         overrideStatus = resource.monkeyPatch['patch status']({
+            uri: resourceUri,
+            statement: statement,
+            params: params,
             status: res.statusCode,
             headers: res.headers,
             body: respJson || respData
