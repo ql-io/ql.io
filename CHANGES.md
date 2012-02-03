@@ -1,3 +1,8 @@
+## Feb 03, 2012
+
+* Send resourceUri, statement, params to `patch status`, `patch uri`, and `patch response`.
+* Due to a previous change, `validate params` was not receiving all params. Fixed now.
+
 ## Feb 02, 2012
 
 * Fix to make Routes case sensitive 
