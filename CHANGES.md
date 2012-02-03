@@ -1,3 +1,7 @@
+## Feb 03, 2012
+
+* '/ecv' poke '/tables', instead of '/q?s=show%20tables".
+
 ## Feb 01, 2012
 
 * Report start of the statement and not the end for line numbers in the console
