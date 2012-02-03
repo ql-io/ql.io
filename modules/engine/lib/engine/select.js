@@ -267,7 +267,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                                 var result = jsonPath.eval(row, path, {flatten: true});
                                 // If the result matches any expected[], keep it.
                                 for(j = 0; j < expected.length; j++) {
-                                    if(!matched && result && _.isArray(result) && result.length == 1 && result[0] === expected[j]) {
+                                    if(!matched && result && _.isArray(result) && result.length == 1 && result[0] == expected[j]) {
                                         matched = true;
                                     }
                                 }

@@ -60,7 +60,7 @@ module.exports = {
                     test.ok(ids.indexOf(item.ItemID) >= 0);
                 })
                 _.each(result.body.i2, function(item) {
-                    test.ok(ids.indexOf(item.ItemID) >= 0);
+                    test.ok(ids.indexOf(Number(item.ItemID)) >= 0);
                 })
                 test.done();
             }

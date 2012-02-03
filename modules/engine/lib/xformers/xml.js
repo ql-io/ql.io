@@ -20,7 +20,7 @@ var expat = require('xml2json');
 
 exports.toJson = function(data, respCb, errorCb) {
     try {
-        return respCb(expat.toJson(data, {object: true}));
+        return respCb(expat.toJson(data, {coerce: true, object: true}));
     }
     catch(error) {
         return errorCb(error);

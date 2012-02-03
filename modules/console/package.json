@@ -23,7 +23,7 @@
         "websocket": "1.0.4",
         "validator": "0.3.9",
         "mustache": "0.4.0",
-        "xml2json": "0.2.4",
+        "xml2json": "https://github.com/ql-io/node-xml2json/tarball/master",
         "connect-assetmanager" : "0.0.24",
         "connect-assetmanager-handlers" : "0.0.17",
         "ql.io-compiler": ""

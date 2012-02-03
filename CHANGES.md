@@ -1,10 +1,12 @@
 ## Feb 02, 2012
 
 * Fix to make Routes case sensitive 
+* Type concercion during xml2json
 
 ## Feb 01, 2012
 
 * Report start of the statement and not the end for line numbers in the console
+* Remove mistakenly added debug: true in app.js
 * New config parameter 'enable q', a boolean, is added to console to disable '/q?s=' way of invoking scripts.
 
 ## Jan 31, 2012
