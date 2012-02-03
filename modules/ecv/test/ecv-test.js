@@ -62,5 +62,44 @@ module.exports = testCase({
                 test.ok(false);
             }
         });
+    },
+    'check ecv without /q': function(test) {
+        var c = new Console({
+            'enable console': false,
+            'enable q': false,
+            connection: 'close'
+        });
+        ecv.enable(c.app, port);
+        c.app.listen(port, function() {
+            var re = new RegExp('status=AVAILABLE&ServeTraffic=true&ip=127\\.0\\.0\\.1&hostname=localhost&port=' + port + '&time=.*');
+            try {
+                var options = {
+                    host: 'localhost',
+                    port: port,
+                    path: '/ecv',
+                    method: 'GET'
+                };
+                var request = http.request(options, function(res) {
+                    var response = '';
+                    res.on('data', function(chunk) {
+                        response += chunk;
+                    });
+                    res.on('end', function() {
+                        test.ok(response.toString().match(re),
+                            'expected:status=AVAILABLE&ServeTraffic=true&ip=127.0.0.1&hostname=localhost&port=' + port + '&time=.*');
+                        test.done();
+                        c.app.close();
+                    });
+                });
+                request.on('error', function(err) {
+                    console.log('Error with uri - ' + request.uri + ' - ' + err.message);
+                });
+                request.end();
+            }
+            catch(e) {
+                console.log(e);
+                test.ok(false);
+            }
+        });
     }
 });
