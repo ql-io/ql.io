@@ -48,11 +48,11 @@ module.exports = {
                 test.ok(_.isArray(result.body.ids2));
                 var ids = [];
                 _.each(result.body.ids, function(id) {
-                    ids.push(id[0]);
+                    ids.push(id);
                 });
                 var ids2 = [];
                 _.each(result.body.ids2, function(id) {
-                    ids2.push(id[0]);
+                    ids2.push(Number(id));
                 })
                 _.each(ids, function(id) {
                     var index = ids2.indexOf(id);
