@@ -43,7 +43,7 @@ module.exports = testCase({
             test.done();
             clearInterval(interval);
             clearInterval(testInterval);
-        }, 10000);
+        }, 40000);
 
         var testInterval = setInterval(function() {
             try {
@@ -102,7 +102,7 @@ module.exports = testCase({
             test.done();
             clearInterval(interval);
             clearInterval(testInterval);
-        }, 5000);
+        }, 6000);
 
         var testInterval = setInterval(function() {
             try {
@@ -167,6 +167,6 @@ module.exports = testCase({
             catch(e) {
                 console.log(e);
             }
-        }, 3000);
+        }, 5000);
     }
 });

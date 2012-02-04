@@ -13,7 +13,7 @@ install:
 
 .PHONY : test
 test: install
-	#node_modules/.bin/nodeunit test
+	node_modules/.bin/nodeunit test
 
 test-part:
 	node_modules/.bin/nodeunit test --reporter junit --output ../../reports
