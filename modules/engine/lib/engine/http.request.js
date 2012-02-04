@@ -31,9 +31,11 @@ var strTemplate = require('./peg/str-template.js'),
     async = require('async'),
     headers = require('headers'),
     uuid = require('node-uuid'),
+    dns = require('dns'),
     os = require('os');
 
 var maxResponseLength;
+var networkIp;
 
 exports.exec = function(args) {
     var request, context, resource, statement, params, resourceUri, template, cb, holder, tasks,
@@ -46,6 +48,12 @@ exports.exec = function(args) {
     cb = args.callback;
     logEmitter = args.logEmitter;
     holder = {};
+
+    if (!networkIp) {
+        ip(function (address) {
+            networkIp = address;
+        });
+    }
 
     maxResponseLength = maxResponseLength || getMaxResponseLength(args.config, logEmitter);
 
@@ -194,7 +202,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     });
 
     // appending Ip address to the request id header
-    h[requestId.name]  += '!ql.io' + '!' + ip() + '[';
+    h[requestId.name]  += '!ql.io' + '!' + networkIp + '[';
 
     // Monkey patch headers
     if(resource.monkeyPatch && resource.monkeyPatch['patch headers']) {
@@ -705,11 +713,36 @@ function getStatus(resourceUri, statement, params, res, resource, respJson, resp
     return overrideStatus;
 }
 
-function ip() {
-    // TODO Change the implementation to return the IP Address using
-    // os.getNetworkInterfaces() call once we upgrade to node 0.5.5.
-    // For testing purposes host name is returned.
-    return os.hostname();
+function ip(cb) {
+    /*
+     * 1. Get all the non internal ip-addresses
+     * 2. Do a reverse lookup for all the ip-addresses got in Step 1
+     * 3. Find current machine's full hostname
+     * 4. DNS lookup hostname, got in Step 3, to get the network IP
+     *
+     * Gets Ip from the DNS server if there is no local '/etc/hosts' entry for
+     * the full hostname. See issue https://github.com/joyent/node/issues/2689
+     */
+    var hostname;
+    var ips = _.pluck(_.filter(_.flatten(_.values(os.networkInterfaces())), function (ip) {
+        return ip.internal === false && ip.family === 'IPv4';
+    }), 'address');
+
+    _.each(ips, function (ip) {
+        if (!hostname) {
+            dns.reverse(ip, function (err, domains) {
+                hostname = _.find(domains, function (domain) {
+                    return domain.indexOf(os.hostname()) === 0;
+                });
+            });
+        }
+    });
+
+    hostname = hostname || os.hostname();
+
+    dns.lookup(hostname, 4, function (err, address) {
+        err ? cb("127.0.0.1"): cb(address);
+    });
 }
 
 function mergeArray(uarr, prop, merge) {

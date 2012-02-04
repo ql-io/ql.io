@@ -1,5 +1,6 @@
 ## Feb 03, 2012
 
+* Ip address is retrieved using os.networkInterfaces().
 * '/ecv' poke '/tables', instead of '/q?s=show%20tables".
 * Send resourceUri, statement, params to `patch status`, `patch uri`, and `patch response`.
 * Due to a previous change, `validate params` was not receiving all params. Fixed now.

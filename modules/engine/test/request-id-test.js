@@ -329,5 +329,52 @@ module.exports = {
                 test.done();
             }
         });
+    },
+    'ip-in-request-id' : function (test) {
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+            // Do the test here.
+            var engine = new Engine({
+            });
+            var script = fs.readFileSync(__dirname + '/mock/finditems.ql', 'UTF-8');
+            var emitter = new EventEmitter();
+            var headers;
+            emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
+                headers = v.headers;
+            });
+            engine.exec({
+                script: script,
+                emitter: emitter,
+                cb: function(err, result) {
+                    if (err) {
+                        console.log(err.stack || err);
+                        test.ok(false);
+                    }
+                    else {
+                        var reqId = _.detect(headers, function(v) {
+                            return v.name == 'request-id'
+                        });
+                        test.ok(reqId && reqId.value);
+                        test.ok(reqId.value.indexOf('127') === -1);
+                    }
+                    test.done();
+                    server.close();
+                }
+            });
+        });   
     }
-} 
+}; 
