@@ -719,9 +719,6 @@ function ip(cb) {
      * 2. Do a reverse lookup for all the ip-addresses got in Step 1
      * 3. Find current machine's full hostname
      * 4. DNS lookup hostname, got in Step 3, to get the network IP
-     *
-     * Gets Ip from the DNS server if there is no local '/etc/hosts' entry for
-     * the full hostname. See issue https://github.com/joyent/node/issues/2689
      */
     var hostname;
     var ips = _.pluck(_.filter(_.flatten(_.values(os.networkInterfaces())), function (ip) {
@@ -729,19 +726,16 @@ function ip(cb) {
     }), 'address');
 
     _.each(ips, function (ip) {
-        if (!hostname) {
             dns.reverse(ip, function (err, domains) {
                 hostname = _.find(domains, function (domain) {
                     return domain.indexOf(os.hostname()) === 0;
                 });
+                if(hostname) {
+                    dns.resolve4(hostname, function (err, addresses) {
+                        err ? cb("127.0.0.1"): cb(addresses[0]);
+                    });
+                }
             });
-        }
-    });
-
-    hostname = hostname || os.hostname();
-
-    dns.lookup(hostname, 4, function (err, address) {
-        err ? cb("127.0.0.1"): cb(address);
     });
 }
 
