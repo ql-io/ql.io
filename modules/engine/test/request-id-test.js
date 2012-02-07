@@ -329,5 +329,42 @@ module.exports = {
                 test.done();
             }
         });
+    },
+    'ip-in-request-id' : function (test) {
+        var server = http.createServer(function(req, res) {
+            res.writeHead(200, {
+                'Content-Length' : 0
+            });
+            res.end();
+        });
+
+        server.listen(3000, function() {
+            var engine = new Engine({
+            });
+            var script = 'create table tab on select get from "http://localhost:3000/"; select * from tab';
+            var emitter = new EventEmitter();
+            var headers;
+            emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
+                headers = v.headers;
+            });
+            engine.exec({
+                script: script,
+                emitter: emitter,
+                cb: function(err, result) {
+                    if (err) {
+                        console.log(err.stack || err);
+                        test.ok(false);
+                    }
+                    else {
+                        var reqId = _.detect(headers, function(v) {
+                            return v.name == 'request-id'
+                        });
+                        test.ok(reqId.value.indexOf('127') === -1);
+                    }
+                    test.done();
+                    server.close();
+                }
+            });
+        });
     }
-} 
+}; 
