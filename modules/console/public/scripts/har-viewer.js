@@ -169,6 +169,8 @@
                 }
             });
             _updateField('#' + id + '-time', total > -1 ? total : 0);
+            totalTime = totalTime + total;
+            _updateField('#totalTime', totalTime + ' msec');
 
             var data = log.entries[id];
             if(data) {

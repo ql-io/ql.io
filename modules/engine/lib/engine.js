@@ -342,7 +342,8 @@ function sweep(opts, parentEvent) {
         if(line.type !== 'comment') {
             id = line.id;
             state = opts.execState[id];
-            if(state.state === eventTypes.STATEMENT_WAITING && state.waits == 0 && line.type !== 'return') {
+            if(state.state === eventTypes.STATEMENT_WAITING && state.waits == 0 && line.type !==
+                'return') {
                 pending++;
                 state.state = eventTypes.STATEMENT_IN_FLIGHT;
                 var step = function (line, state) {
@@ -379,7 +380,8 @@ function sweep(opts, parentEvent) {
     state = opts.execState[last.id];
     if(pending === 0 && state.waits > 0 && last.type === 'return') {
         return opts.cb({
-            message: 'Script has unmet dependencies. The return statement depends on one/more other statement(s), but those are not in-progress.'
+            message: 'Script has unmet dependencies. The return statement depends on one/more other ' +
+                'statement(s), but those are not in-progress.'
         });
     }
     if(pending == 0 && state.waits == 0) {

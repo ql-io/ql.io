@@ -1,3 +1,8 @@
+## Feb 10, 2012
+
+* Fix signal handling in the app module.
+* Update har-view to show total time.
+
 ## Feb 03, 2012
 
 * Ip address is retrieved using os.networkInterfaces().
