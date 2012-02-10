@@ -1,0 +1,28 @@
+<script type="text/JavaScript">
+    function addRow(r){
+        var root = r.parentNode;//the root
+        var allRows = root.getElementsByTagName('tr');//the rows' collection
+        var cRow = allRows[allRows.length-1].cloneNode(true)//the clone of the 1st row
+        var cInp = cRow.getElementsByTagName('input');//the inputs' collection of the 1st row
+        for(var i=0;i<cInp.length;i++){//changes the inputs' names (indexes the names)
+            cInp[i].setAttribute('name',cInp[0].getAttribute('name')+'_'+(allRows.length+1))
+        }
+        root.appendChild(cRow);//appends the cloned row as a new row
+    }
+
+    function delRow(r){
+        var root = r.parentNode;//the root
+        var allRows = root.getElementsByTagName('tr');//the rows' collection
+        if (allRows.length < 3){//at any time, the table has to contain at least header row and a form row.
+            alert("You cannot remove the whole table.");
+            return;
+        }
+        root.removeChild(r);
+    }
+</script>
+<h1>ROUTES</h1>
+<table id= "routes">
+    <thead><th>Method</th><th>URI</th><th>About</th></thead>
+    <%- partial('route.ejs', {collection: routes}) %>
+</table>
+</div>
