@@ -16,5 +16,5 @@ test: install
 	#node_modules/.bin/nodeunit test
 
 test-part:
-	node_modules/.bin/nodeunit test --reporter junit --output ../../reports
+	#node_modules/.bin/nodeunit test --reporter junit --output ../../reports
 

@@ -26,6 +26,7 @@ var cluster = require('cluster'),
     express = require('express'),
     Console = require('ql.io-console'),
     ecv = require('ql.io-ecv'),
+    assert = require('assert'),
     misc = require('./misc.js');
 
 // Trap all uncaught exception here.
@@ -123,18 +124,56 @@ function Master(options) {
     this.killall = function(signal) {
         var that = this, fullname;
         fs.readdir(that.options.pids, function(err, paths) {
+            var count = paths.length;
+            if(count === 0) {
+                return;
+            }
+            var mf = _.find(paths, function(path) {
+                return /master\./.test(path);
+            });
             paths.forEach(function(filename) {
                 fullname = that.options.pids + '/' + filename;
-                fs.readFile(fullname, 'ascii', function(err, data) {
-                    process.kill(parseInt(data), signal);
-                });
-                fs.unlink(fullname, function(err) {
-                    if(err) {
-                        console.log('Unable to delete ' + fullname);
-                    }
-                });
+                if(/worker\./.test(filename)) {
+                    that.kill(fullname, signal, function() {
+                        count = count - 1;
+                        if(count === 1 && mf) {
+                            process.nextTick(function() {
+                                that.kill(that.options.pids + '/' + mf, signal);
+                            })
+                        }
+                    });
+                }
+                else if(/worker\./.test(filename)) {
+                    mf = fullname;
+                }
             });
         })
+    };
+
+    this.kill = function(fullname, signal, f) {
+        fs.readFile(fullname, 'ascii', function(err, data) {
+            var pid = parseInt(data);
+            if(pid === process.pid) {
+                fs.unlinkSync(fullname);
+                process.exit(0);
+            }
+            else {
+                try {
+                    process.kill(pid, signal);
+                }
+                catch(e) {
+                }
+            }
+            fs.unlink(fullname, function(err) {
+                if(err) {
+                    console.log('Unable to delete ' + fullname);
+                }
+                if(f) {
+                    assert.ok('function' === typeof f);
+                    f();
+                }
+            });
+        });
     };
 
     this.createWorker = function () {
@@ -195,12 +234,13 @@ Master.prototype.listen = function(app, cb) {
         }
 
         var that = this;
-        cluster.on('death', function (worker) {
+        var deathWatcher = function (worker) {
             that.stats.workersKilled++;
             that.stats.noWorkers--;
-            delete that.stats.workers[worker.pid];
             that.createWorker();
-        });
+            delete that.stats.workers[worker.pid];
+        };
+        cluster.on('death', deathWatcher);
 
         var monitor = new Monitor({
             stats: that.stats,
@@ -209,7 +249,11 @@ Master.prototype.listen = function(app, cb) {
         );
 
         process.on('SIGINT', function() {
-            that.killall('SIGQUIT');
+            cluster.removeListener('death', deathWatcher);
+            cluster.on('done', function() {
+
+            })
+            that.killall('SIGINT');
         });
         monitor.listen(cb);
     }
@@ -221,11 +265,11 @@ Master.prototype.listen = function(app, cb) {
 
 Master.prototype.stop = function() {
     this.killall('SIGKILL');
-}
+};
 
 Master.prototype.shutdown = function() {
-    this.killall('SIGQUIT');
-}
+    this.killall('SIGTERM');
+};
 
 
 //
