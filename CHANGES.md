@@ -1,5 +1,6 @@
 ## Feb 10, 2012
 
+* Set `application/json` on JSON responses.
 * Fix signal handling in the app module.
 * Update har-view to show total time.
 
