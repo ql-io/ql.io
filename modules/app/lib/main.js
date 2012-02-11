@@ -292,6 +292,7 @@ Monitor.prototype.listen = function(cb) {
     app.get(this.options.path, function (req, res) {
         var accept = (req.headers || {}).accept || '';
         if(accept.search('json') > 0) {
+            res.contentType('application/json');
             res.send(JSON.stringify(getStats(that.stats, req.connection)));
         }
         else {
@@ -302,6 +303,7 @@ Monitor.prototype.listen = function(cb) {
     app.get(this.options.path + 'in-flight', function (req, res) {
         var accept = (req.headers || {}).accept || '';
         if(accept.search('json') > 0) {
+            res.contentType('application/json');
             res.send(JSON.stringify(getInflight(this.stats)));
         }
         else {
