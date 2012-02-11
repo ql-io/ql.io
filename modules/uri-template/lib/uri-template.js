@@ -244,7 +244,7 @@ module.exports = (function(){
                                       }
                                   }
                                   else {
-                                      str = _append(str, val, true);
+                                      str = _append(str, val, false);
                                   }
                               }
                               else if(ele.required) {

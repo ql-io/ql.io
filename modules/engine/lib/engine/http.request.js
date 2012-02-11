@@ -403,7 +403,7 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
                 util.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
 
             // Parse
-            jsonify(respData, mediaType, xformers, function(respJson) {
+            jsonify(respData, mediaType, res.headers, xformers, function(respJson) {
                 try {
                     status = getStatus(res, resource, respJson, respData);
                 }
@@ -628,6 +628,10 @@ function setEncoding(res){
     var contentType = headers.parse('content-type', res.headers['content-type'] || '');
     var encoding = contentType.subtype === 'csv' ? 'ascii' : 'utf8';
 
+    if(contentType.subtype == 'binary') {
+	encoding = 'binary';
+    }
+
     if(contentType.params && contentType.params.charset){
         encoding = contentType.params.charset == 'us-ascii' ? 'ascii' : 'utf8';
     }
@@ -659,16 +663,19 @@ function sniffMediaType(mediaType, resource, statement, res, respData) {
 }
 
 
-function jsonify(respData, mediaType, xformers, respCb, errorCb) {
+function jsonify(respData, mediaType, headers, xformers, respCb, errorCb) {
 
     if (!respData || /^\s*$/.test(respData)) {
         respCb({});
     }
     else if(mediaType.subtype === 'xml' || /\+xml$/.test(mediaType.subtype)) {
-        xformers['xml'].toJson(respData, respCb, errorCb);
+        xformers['xml'].toJson(respData, respCb, errorCb, headers);
     }
     else if(mediaType.subtype === 'json') {
-        xformers['json'].toJson(respData, respCb, errorCb);
+        xformers['json'].toJson(respData, respCb, errorCb, headers);
+    }
+    else if (mediaType.type === 'avro') {
+        xformers['avro'].toJson(respData, respCb, errorCb, headers)
     }
     else if(mediaType.subtype === 'csv') {
         xformers['csv'].toJson(respData, respCb, errorCb,

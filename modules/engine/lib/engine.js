@@ -89,7 +89,8 @@ var Engine = module.exports = function(opts) {
     this.xformers = {
         'xml': require('./xformers/xml.js'),
         'json': require('./xformers/json.js'),
-        'csv' : require('./xformers/csv.js')
+        'csv' : require('./xformers/csv.js'),
+        'avro' : require('./xformers/avro.js')
     }
 }
 
