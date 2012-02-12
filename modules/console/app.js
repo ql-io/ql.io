@@ -652,6 +652,8 @@ var Console = module.exports = function(config, cb) {
             res._header = undefined;
             var contentType = results.headers['content-type'];
             var h = {
+                'Connection': 'keep-alive',
+                'Transfer-Encoding' : 'chunked',
                 'content-type' : cb ? 'application/javascript' : contentType,
                 'Request-Id' : results.headers['request-id']
             };
