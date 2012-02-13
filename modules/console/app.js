@@ -271,7 +271,7 @@ var Console = module.exports = function(config, cb) {
             });
             res.render(__dirname + '/public/views/routes-tables/tables.ejs', {
                 title: 'ql.io',
-                layout: 'routes-table-layout',
+                layout: __dirname + '/public/views/routes-table-layout',
                 tables: results
             });
         }
@@ -309,7 +309,7 @@ var Console = module.exports = function(config, cb) {
             });
             res.render(__dirname + '/public/views/routes-tables/tableInfo.ejs', {
                 title: 'ql.io',
-                layout: 'routes-table-layout',
+                layout: __dirname + '/public/views/routes-table-layout',
                 tableInfo: result,
                 routes:
                     _(result.routes).chain()
@@ -371,7 +371,7 @@ var Console = module.exports = function(config, cb) {
             });
            res.render(__dirname + '/public/views/routes-tables/routes.ejs', {
                 title: 'ql.io',
-                layout: 'routes-table-layout',
+                layout: __dirname + '/public/views/routes-table-layout',
                 routes: results
             });
         }
@@ -422,7 +422,7 @@ var Console = module.exports = function(config, cb) {
             });
             res.render(__dirname + '/public/views/routes-tables/routeInfo.ejs', {
                 title: 'ql.io',
-                layout: 'routes-table-layout',
+                layout: __dirname + '/public/views/routes-table-layout',
                 routeInfo: result,
                 related:
                     _(result.related).chain()
