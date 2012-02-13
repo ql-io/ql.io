@@ -1,5 +1,10 @@
 
-## Jan 17, 2011
+## Feb 13, 2012
+
+* Propagate `connection.remoteAddress` to scripts and patches. Scripts can access this via
+  `{remoteAddress}` and patches via `params.remoteAddress`.
+
+## Jan 17, 2012
 
 * [ql.io-compiler-0.3.1] Supported a wider range of characters in quoted words in statements.
 

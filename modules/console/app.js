@@ -58,7 +58,7 @@ var Console = module.exports = function(config) {
     });
     logger.setLevels(global.opts['log levels'] || winston.config.syslog.levels);
 
-    procEmitter.setMaxListeners(22);
+    procEmitter.setMaxListeners(24);
     procEmitter.on(Engine.Events.EVENT, function(event, message) {
         if(message) {
             logger.info(new Date() + ' - ' + message);
@@ -187,7 +187,10 @@ var Console = module.exports = function(config) {
                 var holder = {
                     params: {},
                     headers: {},
-                    routeParams: {}
+                    routeParams: {},
+                    connection: {
+                        remoteAddress: req.connection.remoteAddress
+                    }
                 };
 
                 // get all query params
@@ -220,32 +223,38 @@ var Console = module.exports = function(config) {
 
                 // collect headers
                 collectHttpHeaders(req, holder);
+                holder.connection = {
+                    remoteAddress: req.connection.remoteAddress
+                }
 
                 var execState = [];
                 emitter = new EventEmitter();
-                setupExecStateEmitter(emitter, execState, req.param('events'));
-                setupCounters(emitter);
+                        setupExecStateEmitter(emitter, execState, req.param('events'));
+                        setupCounters(emitter);
                 engine.exec({
                     script: route.script,
                     emitter: emitter,
                     request: holder,
                     context: req.body || {},
                     cb: function(err, results) {
-                        return handleResponseCB(req, res, execState, err, results);
-                    },
+                            return handleResponseCB(req, res, execState, err, results);
+            },
                     route: uri
                 });
 
             });
-        });
+                });
 
-    });
+                });
 
     app.get('/q', function(req, res) {
-            var holder = {
-                params: {},
-                headers: {}
-            };
+        var holder = {
+            params: {},
+            headers: {},
+            connection: {
+                remoteAddress: req.connection.remoteAddress
+            }
+        };
             var query = req.param('s');
             if (!query) {
                 res.writeHead(400, 'Bad input', {
@@ -263,18 +272,18 @@ var Console = module.exports = function(config) {
 
             var execState = [];
             emitter = new EventEmitter();
-            setupExecStateEmitter(emitter, execState, req.param('events'));
-            setupCounters(emitter);
+                    setupExecStateEmitter(emitter, execState, req.param('events'));
+                    setupCounters(emitter);
             engine.exec({
                 script: query,
                 emitter: emitter,
                 request: holder,
                 cb: function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
-                }
+                        return handleResponseCB(req, res, execState, err, results);
+            }
             });
         }
-    );
+        );
 
     // Also listen to WebSocket requests
     var emitter;
@@ -312,13 +321,20 @@ var Console = module.exports = function(config) {
                         data: packet
                     }))
                 }
-                _.each(events, function(event) {
-                    emitter.on(event, _collect);
-                });
-                setupCounters(emitter);
+                    _.each(events, function(event) {
+                        emitter.on(event, _collect);
+                    });
+                    setupCounters(emitter);
                 var script = event.data;
                 engine.exec({
                     script: script,
+                    request: {
+                        headers: {},
+                        params: {},
+                        connection: {
+                            remoteAddress: connection.remoteAddress
+                        }
+                    },
                     emitter: emitter,
                     cb: function(err, results) {
                         if (err) {
@@ -403,23 +419,23 @@ var Console = module.exports = function(config) {
 
     // Reemit at the process level for req/resp counting
     function setupCounters(emitter) {
-        emitter.on(Engine.Events.SCRIPT_ACK, function(packet) {
+            emitter.on(Engine.Events.SCRIPT_ACK, function(packet) {
             // Emit an event for stats
             procEmitter.emit(Engine.Events.SCRIPT_ACK, packet);
         });
-        emitter.on(Engine.Events.STATEMENT_REQUEST, function(packet) {
+            emitter.on(Engine.Events.STATEMENT_REQUEST, function(packet) {
             // Emit an event for stats
             procEmitter.emit(Engine.Events.STATEMENT_REQUEST, packet);
         });
-        emitter.on(Engine.Events.STATEMENT_RESPONSE, function(packet) {
+            emitter.on(Engine.Events.STATEMENT_RESPONSE, function(packet) {
             // Emit an event for stats
             procEmitter.emit(Engine.Events.STATEMENT_RESPONSE, packet);
         });
-        emitter.on(Engine.Events.SCRIPT_DONE, function(packet) {
+            emitter.on(Engine.Events.SCRIPT_DONE, function(packet) {
             // Emit an event for stats
             procEmitter.emit(Engine.Events.SCRIPT_DONE, packet);
         });
-    }
+        }
 
     function handleResponseCB(req, res, execState, err, results) {
         var cb = req.param('callback');
