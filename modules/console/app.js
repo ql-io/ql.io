@@ -229,23 +229,22 @@ var Console = module.exports = function(config) {
 
                 var execState = [];
                 emitter = new EventEmitter();
-                        setupExecStateEmitter(emitter, execState, req.param('events'));
-                        setupCounters(emitter);
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
                 engine.exec({
                     script: route.script,
                     emitter: emitter,
                     request: holder,
                     context: req.body || {},
                     cb: function(err, results) {
-                            return handleResponseCB(req, res, execState, err, results);
-            },
+                        return handleResponseCB(req, res, execState, err, results);
+                    },
                     route: uri
                 });
 
             });
-                });
-
-                });
+        });
+    });
 
     app.get('/q', function(req, res) {
         var holder = {
