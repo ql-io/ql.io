@@ -1,3 +1,7 @@
+## Feb 13, 2012
+
+* Bump version to 0.4.0
+
 ## Feb 10, 2012
 
 * Set `application/json` on JSON responses.
