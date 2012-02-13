@@ -392,7 +392,7 @@ module.exports = {
                         test.ok(route.path, 'expected route info to contain "path"');
                         test.ok(route.method, 'expected route info to contain "method"');
                         test.ok(route.about, 'expected route info to contain "about"');
-                        test.ok(_.isArray(route.info), 'expected route info to contain "info"');
+                        test.ok(_.isString(route.info), 'expected route info to contain "info"');
                     });
                     c.app.close();
                     test.done();
@@ -417,7 +417,7 @@ module.exports = {
                     path : '/route?path=%2Ffoo%2Fbar%2F%7Bselector%7D%3Fuserid%3D%7BuserId%7D%26itemid%3D%7BitemId%7D&method=get',
                     method : 'GET',
                     headers : {
-                        'content-type' : 'application/json'
+                        'accept': 'application/json'
                     }
                 };
             var req = http.request(options);
@@ -431,7 +431,7 @@ module.exports = {
                     test.equal(route.method, 'get');
                     test.equal(route.path, '/foo/bar/{selector}?userid={userId}&itemid={itemId}');
                     test.equal(route.about, '/route?path=%2Ffoo%2Fbar%2F%7Bselector%7D%3Fuserid%3D%7BuserId%7D%26itemid%3D%7BitemId%7D&method=get');
-                    test.ok(_.isArray(route.info), 'list.body.info is not array');
+                    test.ok(_.isString(route.info), 'list.body.info is not String');
                     test.ok(route.info.length > 0, 'Expected length > 0');
                     test.ok(_.isArray(route.tables), 'list.body.tables is not array');
                     test.ok(route.tables.length == 5, 'Expected length = 5');
@@ -460,7 +460,7 @@ module.exports = {
                     path : '/tables',
                     method : 'GET',
                     headers : {
-                        'content-type' : 'application/json'
+                        'accept': 'application/json'
                     }
                 };
             var req = http.request(options);
@@ -499,7 +499,7 @@ module.exports = {
                     path : '/table?name=ebay.shopping.userprofile',
                     method : 'GET',
                     headers : {
-                        'content-type' : 'application/json'
+                        'accept': 'application/json'
                     }
                 };
             var req = http.request(options);
