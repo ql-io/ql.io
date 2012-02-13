@@ -1,3 +1,8 @@
+## Feb 13, 2012
+
+* Propagate `connection.remoteAddress` to scripts and patches. Scripts can access this via
+  `{remoteAddress}` and patches via `params.remoteAddress`.
+
 ## Feb 10, 2012
 
 * Set `application/json` on JSON responses.
