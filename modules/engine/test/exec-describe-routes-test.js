@@ -75,3 +75,39 @@ exports["describe route '/ping/pong' using method put"] = function (test) {
             test.done();
         });
 };
+
+exports['check routes in desc table'] = function (test) {
+    var engine = new Engine({
+        tables : __dirname + '/mock-routes/tables',
+        routes : __dirname + '/mock-routes/routes',
+        config : __dirname + '/config/dev.json'
+    });
+
+    var opts = {
+        request: {
+            headers: {},
+            params: {fromRoute: true}
+        },
+        script: 'describe testing.for.post',
+        cb: function(err, list) {
+
+            if (err) {
+                test.fail('got error: ' + err.stack);
+                test.done();
+            }
+            else {
+                test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+                test.equals(list.body.name, 'testing.for.post');
+                test.equals(list.body.about, '/table?name=testing.for.post');
+                test.ok(list.body.select, "expected statement select");
+                test.ok(list.body.select.request, "expected request for statement select");
+                test.ok(_.isArray(list.body.routes), 'expected list.body.routes to be array');
+                test.ok(list.body.routes.length > 0, 'expected list.body.routes to not be empty');
+                test.done();
+            }
+        }
+    };
+
+    engine.exec(opts);
+};
+

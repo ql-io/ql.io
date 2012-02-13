@@ -58,7 +58,8 @@ exports.go = function(options) {
                     resource = cloneDeep(statement);
                     resource.meta = {
                         name: resource.name,
-                        statements: []
+                        statements: [],
+                        routes: []
                     }; // Metadata for describe
                     if(comments.length > 0) {
                         _.each(comments, function(comment) {

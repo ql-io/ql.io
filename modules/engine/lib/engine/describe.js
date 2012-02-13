@@ -60,7 +60,8 @@ exports.exec = function(opts, statement, cb) {
             desc = {
                 'name' : table.meta.name,
                 'about': '/table?name='+ encodeURIComponent(table.meta.name),
-                'info': table.meta.comments || ''
+                'info': table.meta.comments || '',
+                'routes': table.meta.routes
             };
             _.each(table.meta.statements, function(statement){
                 desc[statement.type] = {
