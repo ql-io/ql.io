@@ -202,7 +202,10 @@ var Console = module.exports = function(config, cb) {
                 var holder = {
                     params: {},
                     headers: {},
-                    routeParams: {}
+                    routeParams: {},
+                    connection: {
+                        remoteAddress: req.connection.remoteAddress
+                    }
                 };
 
                 // get all query params
@@ -235,6 +238,9 @@ var Console = module.exports = function(config, cb) {
 
                 // collect headers
                 collectHttpHeaders(req, holder);
+                holder.connection = {
+                    remoteAddress: req.connection.remoteAddress
+                }
 
                 var execState = [];
                 engine.execute(route.script,
@@ -474,7 +480,10 @@ var Console = module.exports = function(config, cb) {
         app.get('/q', function(req, res) {
             var holder = {
                 params: {},
-                headers: {}
+                headers: {} ,
+                connection: {
+                    remoteAddress: req.connection.remoteAddress
+                }
             };
             var query = req.param('s');
             if (!query) {
@@ -539,7 +548,15 @@ var Console = module.exports = function(config, cb) {
                     }))
                 }
                 var script = event.data;
-                engine.execute(script, {}, function(emitter) {
+                engine.execute(script, {
+                    request: {
+                        headers: {},
+                        params: {},
+                        connection: {
+                            remoteAddress: connection.remoteAddress
+                        }
+                    }
+                }, function(emitter) {
                     _.each(events, function(event) {
                         emitter.on(event, _collect);
                     });

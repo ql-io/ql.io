@@ -452,6 +452,7 @@ function _execOne(opts, statement, cb, parentEvent) {
                     opts.request.routeParams,
                     opts.request.params,
                     opts.request.headers,
+                    opts.request.connection,
                     {config: opts.config});
 
             obj = jsonfill.fill(statement.object, params);
@@ -507,6 +508,7 @@ function _execOne(opts, statement, cb, parentEvent) {
                             opts.request.routeParams,
                             opts.request.params,
                             opts.request.headers,
+                            opts.request.connection,
                             {config: opts.config});
 
                     var ret = {

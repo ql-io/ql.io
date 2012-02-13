@@ -64,6 +64,7 @@ exports.exec = function(args) {
         request.routeParams,
         request.params,
         request.headers,
+        request.connection,
         resource.defaults,
         {config: args.config}
     );
