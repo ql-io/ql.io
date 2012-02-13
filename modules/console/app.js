@@ -261,6 +261,21 @@ var Console = module.exports = function(config, cb) {
             params: {fromRoute: true},
             headers: {}
         };
+
+        var isJson = ((req.headers || {}).accept || '').search('json') > 0;
+
+        function routePage(res, execState, results){
+            res.header['Link'] = headers.format('Link', {
+                href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
+                rel : ['execstate']
+            });
+            res.render(__dirname + '/public/views/routes-tables/tables.ejs', {
+                title: 'ql.io',
+                layout: 'routes-table-layout',
+                tables: results
+            });
+        }
+
         var execState = [];
         engine.execute('show tables',
             {
@@ -270,7 +285,9 @@ var Console = module.exports = function(config, cb) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
                 setupCounters(emitter);
                 emitter.on('end', function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
+                    return isJson || err ?
+                        handleResponseCB(req, res, execState, err, results) :
+                        routePage(res,execState,results.body);
                 });
             }
         );
@@ -282,6 +299,20 @@ var Console = module.exports = function(config, cb) {
             params: {fromRoute: true},
             headers: {}
         };
+
+        var isJson = ((req.headers || {}).accept || '').search('json') > 0;
+
+        function routePage(res, execState, result){
+            res.header['Link'] = headers.format('Link', {
+                href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
+                rel : ['execstate']
+            });
+            res.render(__dirname + '/public/views/routes-tables/tableInfo.ejs', {
+                title: 'ql.io',
+                layout: 'routes-table-layout',
+                tableInfo: result
+            });
+        }
 
         var name = req.param('name');
 
@@ -304,8 +335,10 @@ var Console = module.exports = function(config, cb) {
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
                 setupCounters(emitter);
-                emitter.on('end', function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
+                emitter.on('end', function(err, result) {
+                    return isJson || err ?
+                        handleResponseCB(req, res, execState, err, result):
+                        routePage(res,execState,result.body);
                 });
             }
         );
@@ -325,9 +358,9 @@ var Console = module.exports = function(config, cb) {
                 href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
                 rel : ['execstate']
             });
-           res.render(__dirname + '/public/views/routes/routes.ejs', {
+           res.render(__dirname + '/public/views/routes-tables/routes.ejs', {
                 title: 'ql.io',
-                layout: 'routes-layout',
+                layout: 'routes-table-layout',
                 routes: results
             });
         }
@@ -376,9 +409,9 @@ var Console = module.exports = function(config, cb) {
                 href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
                 rel : ['execstate']
             });
-            res.render(__dirname + '/public/views/routes/routeInfo.ejs', {
+            res.render(__dirname + '/public/views/routes-tables/routeInfo.ejs', {
                 title: 'ql.io',
-                layout: 'routes-layout',
+                layout: 'routes-table-layout',
                 routeInfo: result,
                 related:
                     _(result.related).chain()

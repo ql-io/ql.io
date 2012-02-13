@@ -68,6 +68,12 @@ exports.exec = function(opts, statement, cb) {
                     'params'  : statement.params,
                     'headers' : statement.headers
                 };
+                if(statement.body){
+                    desc[statement.type].body = {
+                        'type'   : statement.body.type,
+                        'content': statement.body.content
+                    };
+                }
             })
 
             cache[key] = desc;
