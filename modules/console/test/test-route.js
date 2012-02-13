@@ -361,6 +361,37 @@ module.exports = {
             });
         });
     },
+    'check /routes html' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var options = {
+                host : 'localhost',
+                port : 3000,
+                path : '/routes',
+                method : 'GET'
+            };
+            var req = http.request(options);
+            req.addListener('response', function(resp) {
+                var data = '';
+                resp.addListener('data', function(chunk) {
+                    data += chunk;
+                });
+                resp.addListener('end', function() {
+                    test.ok(/^text\/html/.test(resp.headers['content-type']));
+                    c.app.close();
+                    test.done();
+                });
+            });
+            req.end();
+
+        });
+    },
     'check /routes' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
@@ -402,7 +433,7 @@ module.exports = {
 
         });
     },
-    'check /route' : function(test) {
+    'check /route html' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
             routes : __dirname + '/routes/',
@@ -416,10 +447,41 @@ module.exports = {
                     port : 3000,
                     path : '/route?path=%2Ffoo%2Fbar%2F%7Bselector%7D%3Fuserid%3D%7BuserId%7D%26itemid%3D%7BitemId%7D&method=get',
                     method : 'GET',
-                    headers : {
-                        'accept': 'application/json'
-                    }
                 };
+            var req = http.request(options);
+            req.addListener('response', function(resp) {
+                var data = '';
+                resp.addListener('data', function(chunk) {
+                    data += chunk;
+                });
+                resp.addListener('end', function() {
+                    test.ok(/^text\/html/.test(resp.headers['content-type']));
+                    c.app.close();
+                    test.done();
+                });
+            });
+            req.end();
+
+        });
+    },
+    'check /route' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var options = {
+                host : 'localhost',
+                port : 3000,
+                path : '/route?path=%2Ffoo%2Fbar%2F%7Bselector%7D%3Fuserid%3D%7BuserId%7D%26itemid%3D%7BitemId%7D&method=get',
+                method : 'GET',
+                headers : {
+                    'accept': 'application/json'
+                }
+            };
             var req = http.request(options);
             req.addListener('response', function(resp) {
                 var data = '';
@@ -445,7 +507,7 @@ module.exports = {
 
         });
     },
-    'check /tables' : function(test) {
+    'check /tables html' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
             routes : __dirname + '/routes/',
@@ -459,10 +521,42 @@ module.exports = {
                     port : 3000,
                     path : '/tables',
                     method : 'GET',
-                    headers : {
-                        'accept': 'application/json'
-                    }
                 };
+            var req = http.request(options);
+            req.addListener('response', function(resp) {
+                var data = '';
+                resp.addListener('data', function(chunk) {
+                    data += chunk;
+                });
+                resp.addListener('end', function() {
+                    test.ok(/^text\/html/.test(resp.headers['content-type']));
+                    c.app.close();
+                    test.done();
+                });
+
+            });
+            req.end();
+
+        });
+    },
+    'check /tables' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var options = {
+                host : 'localhost',
+                port : 3000,
+                path : '/tables',
+                method : 'GET',
+                headers : {
+                    'accept': 'application/json'
+                }
+            };
             var req = http.request(options);
             req.addListener('response', function(resp) {
                 var data = '';
@@ -482,6 +576,37 @@ module.exports = {
             });
             req.end();
 
+        });
+    },
+    'check /table html' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var options = {
+                host : 'localhost',
+                port : 3000,
+                path : '/table?name=ebay.shopping.userprofile',
+                method : 'GET'
+            };
+            var req = http.request(options);
+            req.addListener('response', function(resp) {
+                var data = '';
+                resp.addListener('data', function(chunk) {
+                    data += chunk;
+                });
+                resp.addListener('end', function() {
+                    test.ok(/^text\/html/.test(resp.headers['content-type']));
+                    console.log('In here');
+                    c.app.close();
+                    test.done();
+                });
+            });
+            req.end();
         });
     },
     'check /table' : function(test) {
