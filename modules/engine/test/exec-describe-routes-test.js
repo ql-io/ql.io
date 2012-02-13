@@ -38,7 +38,7 @@ exports["describe route '/foo/bar/{selector}?userid={userId}&itemid={itemId}' us
                 test.equal(list.body.method,'get');
                 test.equal(list.body.path,'/foo/bar/{selector}?userid={userId}&itemid={itemId}');
                 test.equal(list.body.about,'/route?path=%2Ffoo%2Fbar%2F%7Bselector%7D%3Fuserid%3D%7BuserId%7D%26itemid%3D%7BitemId%7D&method=get');
-                test.ok(_.isArray(list.body.info), 'list.body.info is not array');
+                test.ok(_.isString(list.body.info), 'list.body.info is string');
                 test.ok(list.body.info.length > 0, 'Expected length > 0');
                 test.ok(_.isArray(list.body.tables), 'list.body.tables is not array');
                 test.ok(list.body.tables.length == 5 , 'Expected length = 5');
@@ -66,7 +66,7 @@ exports["describe route '/ping/pong' using method put"] = function (test) {
                 test.equal(list.body.method,'put');
                 test.equal(list.body.path,'/ping/pong');
                 test.equal(list.body.about,'/route?path=%2Fping%2Fpong&method=put');
-                test.ok(_.isArray(list.body.info), 'list.body.info is not array');
+                test.ok(_.isString(list.body.info), 'list.body.info is not array');
                 test.ok(list.body.info.length == 0, 'Expected length == 0');
                 test.ok(_.isArray(list.body.tables), 'list.body.tables is not array');
                 test.ok(list.body.tables.length == 1 , 'Expected length = 1');

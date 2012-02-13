@@ -20,7 +20,8 @@ var compiler = require('ql.io-compiler'),
     fs = require('fs'),
     url = require('url'),
     assert = require('assert'),
-    _ = require('underscore');
+    _ = require('underscore'),
+    markdown = require('markdown');
 
 // TODO: Watch for file changes
 exports.load = function (opts) {
@@ -123,7 +124,7 @@ function loadInternal(path, prefix, logEmitter, routes) {
                             query: pieces.query,
                             routeInfo: typeReturn.route,
                             tables: tables,
-                            info: info
+                            info: markdown.markdown.toHTML(info.join('\r\n'))
                         };
                     routes.verbMap[pieces.pathname][typeReturn.route.method].push(routeRecord);
                     routes.simpleMap[typeReturn.route.method + ':' + typeReturn.route.path.value]=routeRecord;

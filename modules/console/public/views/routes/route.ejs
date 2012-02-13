@@ -1,7 +1,6 @@
 <tr>
 <div class="route">
-    <td><%=route.method%></td>
-    <td><%=route.path%></td>
-    <td><a href="<%=route.about%>"><%=route.about%></a></td>
+    <td><%=route.method%> <a href="<%=route.about%>"><%=route.path%></a></td>
+    <td><%-route.info || '<p>Not Available</p>'%></td>
 </div>
 </tr>

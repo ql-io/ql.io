@@ -376,7 +376,7 @@ module.exports = {
                     path : '/routes',
                     method : 'GET',
                     headers : {
-                        'content-type' : 'application/json'
+                        'accept': 'application/json'
                     }
                 };
             var req = http.request(options);
@@ -392,6 +392,7 @@ module.exports = {
                         test.ok(route.path, 'expected route info to contain "path"');
                         test.ok(route.method, 'expected route info to contain "method"');
                         test.ok(route.about, 'expected route info to contain "about"');
+                        test.ok(_.isArray(route.info), 'expected route info to contain "info"');
                     });
                     c.app.close();
                     test.done();

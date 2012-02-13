@@ -1,0 +1,30 @@
+.routestables {
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 14px;
+    font-family: "Lucida Grande", "Lucida Sans Unicode", "Trebuchet MS", sans-serif;
+    padding: 0;
+    margin: 30px;
+    border-collapse: collapse;
+    color: #333;
+    background: #F3F5F7;
+}
+
+.routestables tbody td, table tbody th {
+    padding: 10px;
+    text-align: left;
+}
+
+.routestables tbody tr {
+    background: #FFFFFF;
+}
+
+.routestables thead th {
+    font-size: 12px;
+    background: #ebecee repeat-x top left;
+    padding: 5px 10px;
+    color: #3A4856;
+    text-align: left;
+    font-weight: bold;
+    text-transform: uppercase;
+}

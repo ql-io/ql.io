@@ -26,6 +26,7 @@ var winston = require('winston'),
     assetManager = require('connect-assetmanager'),
     assetHandler = require('connect-assetmanager-handlers'),
     Engine = require('ql.io-engine'),
+    MutableURI = require('ql.io-mutable-uri'),
     _ = require('underscore'),
     WebSocketServer = require('websocket').server;
 
@@ -139,7 +140,7 @@ var Console = module.exports = function(config, cb) {
                     'treeview.css',
                     'har-viewer.css',
                     'jquery-ui.css',
-                    'routes.css'
+                    'routestables.css'
                 ],
                 'preManipulate': {
                     // Regexp to match user-agents including MSIE.
@@ -310,61 +311,27 @@ var Console = module.exports = function(config, cb) {
         );
     });
 
-    app.get('/routes/html', function(req,res){
-        res.render(__dirname + '/public/views/routes/routes.ejs', {
-            title: 'ql.io',
-            layout: 'routes-layout',
-            routes: [
-                {
-                    "path": "/myapi?keywords={keyword}",
-                    "method": "get",
-                    "about": "/route?path=%2Fmyapi%3Fkeywords%3D%7Bkeyword%7D&method=get"
-                },
-                {
-                    "path": "/myapi",
-                    "method": "get",
-                    "about": "/route?path=%2Fmyapi&method=get"
-                },
-                {
-                    "path": "/myapi",
-                    "method": "post",
-                    "about": "/route?path=%2Fmyapi&method=post"
-                },
-                {
-                    "path": "/myapi/{keyword}",
-                    "method": "get",
-                    "about": "/route?path=%2Fmyapi%2F%7Bkeyword%7D&method=get"
-                },
-                {
-                    "path": "/echo/{hw}/{message}",
-                    "method": "get",
-                    "about": "/route?path=%2Fecho%2F%7Bhw%7D%2F%7Bmessage%7D&method=get"
-                },
-                {
-                    "path": "/echo/{hw}/{message}",
-                    "method": "post",
-                    "about": "/route?path=%2Fecho%2F%7Bhw%7D%2F%7Bmessage%7D&method=post"
-                },
-                {
-                    "path": "/deals/{siteId}",
-                    "method": "get",
-                    "about": "/route?path=%2Fdeals%2F%7BsiteId%7D&method=get"
-                },
-                {
-                    "path": "/items/pictures?query={query}",
-                    "method": "get",
-                    "about": "/route?path=%2Fitems%2Fpictures%3Fquery%3D%7Bquery%7D&method=get"
-                }
-            ]
-        });
-    });
-
     // HTTP indirection for 'show routes' command
     app.get('/routes', function(req,res){
         var holder = {
             params: {},
             headers: {}
         };
+
+        var isJson = ((req.headers || {}).accept || '').search('json') > 0;
+
+        function routePage(res, execState, results){
+            res.header['Link'] = headers.format('Link', {
+                href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
+                rel : ['execstate']
+            });
+           res.render(__dirname + '/public/views/routes/routes.ejs', {
+                title: 'ql.io',
+                layout: 'routes-layout',
+                routes: results
+            });
+        }
+
         var execState = [];
         engine.execute('show routes',
             {
@@ -374,7 +341,9 @@ var Console = module.exports = function(config, cb) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
                 setupCounters(emitter);
                 emitter.on('end', function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
+                    return isJson || err ?
+                        handleResponseCB(req, res, execState, err, results) :
+                        routePage(res,execState,results.body);
                 });
             }
         );
@@ -400,39 +369,39 @@ var Console = module.exports = function(config, cb) {
             return;
         }
 
-        var execState = [];
-        engine.execute('describe route "' + decodeURIComponent(path) + '" using method ' + method,
-            {
-                request: holder
-            },
-            function(emitter) {
-                setupExecStateEmitter(emitter, execState, req.param('events'));
-                setupCounters(emitter);
-                emitter.on('end', function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
-                });
-            }
-        );
-    });
+        var isJson = ((req.headers || {}).accept || '').search('json') > 0;
 
-    // HTTP indirection for 'describe route "<route>" using method <http-verb>' command
-    app.get('/route', function(req,res){
-        var holder = {
-            params: {},
-            headers: {}
-        };
-        var path = req.param('path');
-        var method = req.param('method');
-
-        if (!path || !method) {
-            res.writeHead(400, 'Bad input', {
-                'content-type' : 'application/json'
+        function routePage(res, execState, result){
+            res.header['Link'] = headers.format('Link', {
+                href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
+                rel : ['execstate']
             });
-            res.write(
-                JSON.stringify({'err' : 'Missing path name or method: Usage /route?path=some-path&method=http-method'}
-                ));
-            res.end();
-            return;
+            res.render(__dirname + '/public/views/routes/routeInfo.ejs', {
+                title: 'ql.io',
+                layout: 'routes-layout',
+                routeInfo: result,
+                related:
+                    _(result.related).chain()
+                    .map(function(route){
+                        var parse = new MutableURI(route);
+                        return {
+                            method: parse.getParam('method'),
+                            path: parse.getParam('path'),
+                            about: route
+                        };
+                    })
+                    .value(),
+                tables:
+                    _(result.tables).chain()
+                    .map(function(table){
+                        var parse = new MutableURI(table);
+                        return {
+                            name: parse.getParam('name'),
+                            about: table
+                        };
+                    })
+                    .value()
+            });
         }
 
         var execState = [];
@@ -443,8 +412,10 @@ var Console = module.exports = function(config, cb) {
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
                 setupCounters(emitter);
-                emitter.on('end', function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
+                emitter.on('end', function(err, result) {
+                    return isJson || err ?
+                        handleResponseCB(req, res, execState, err, result) :
+                        routePage(res,execState,result.body);
                 });
             }
         );
