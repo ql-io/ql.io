@@ -1,0 +1,5 @@
+{
+  {{#params}}
+  "remoteAddress": "{{remoteAddress}}"
+  {{/params}}
+}

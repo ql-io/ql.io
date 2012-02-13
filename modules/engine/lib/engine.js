@@ -373,6 +373,7 @@ function _execOne(opts, statement, cb) {
                     opts.request.routeParams,
                     opts.request.params,
                     opts.request.headers,
+                    opts.request.connection,
                     {config: global.opts.config});
 
             obj = jsonfill.fill(statement.object, params);
@@ -421,6 +422,7 @@ function _execOne(opts, statement, cb) {
                             opts.request.routeParams,
                             opts.request.params,
                             opts.request.headers,
+                            opts.request.connection,
                             {config: global.opts.config});
 
                     var ret = {
