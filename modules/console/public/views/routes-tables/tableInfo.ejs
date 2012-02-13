@@ -13,3 +13,10 @@
 <% if(tableInfo.delete) {%>
 <%- partial('statement.ejs', {type: 'delete', statement: tableInfo.delete}) %>
 <% } %>
+
+<% if(routes.length) {%>
+<table class= "routestables">
+<thead><th>Referring Routes</th></thead>
+<%- partial('relatedRoute', routes) %>
+</table>
+<% } %>

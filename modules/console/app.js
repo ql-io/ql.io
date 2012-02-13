@@ -310,7 +310,18 @@ var Console = module.exports = function(config, cb) {
             res.render(__dirname + '/public/views/routes-tables/tableInfo.ejs', {
                 title: 'ql.io',
                 layout: 'routes-table-layout',
-                tableInfo: result
+                tableInfo: result,
+                routes:
+                    _(result.routes).chain()
+                        .map(function(route){
+                            var parse = new MutableURI(route);
+                            return {
+                                method: parse.getParam('method'),
+                                path: parse.getParam('path'),
+                                about: route
+                            };
+                        })
+                        .value()
             });
         }
 
