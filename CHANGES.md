@@ -4,6 +4,7 @@
 * Version 0.4
 * Propagate `connection.remoteAddress` to scripts and patches. Scripts can access this via
   `{remoteAddress}` and patches via `params.remoteAddress`.
+* Handling 404s and sanitizing the returned url avoiding XSS issue.
 
 ## Feb 10, 2012
 
