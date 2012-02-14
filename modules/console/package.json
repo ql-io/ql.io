@@ -1,7 +1,7 @@
 {
     "author": "ql.io",
     "name": "ql.io-console",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "repository": {
         "type": "git",
         "url": "https://github.com/ql-io/ql.io"
@@ -29,6 +29,6 @@
         "ql.io-compiler": ""
     },
     "devDependencies": {
-        "nodeunit": "0.7.1"
+        "nodeunit": "0.6.4"
     }
 }

@@ -1,5 +1,6 @@
 ## Feb 13, 2012
 
+* Downgrade nodeunit
 * Version 0.4
 * Propagate `connection.remoteAddress` to scripts and patches. Scripts can access this via
   `{remoteAddress}` and patches via `params.remoteAddress`.
