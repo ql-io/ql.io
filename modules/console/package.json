@@ -15,7 +15,7 @@
         "express": "2.4.7",
         "ejs": "0.4.3",
         "underscore": "1.2.1",
-        "ql.io-engine": "",
+        "ql.io-engine": "<0.4.0",
         "winston": "0.3.5",
         "browserify": "1.7.6",
         "uglify-js": "1.1.1",
