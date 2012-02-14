@@ -1,3 +1,5 @@
+## Feb 14, 2012
+* XSS issue for 404 response fixed.
 
 ## Feb 13, 2012
 

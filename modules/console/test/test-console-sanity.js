@@ -61,5 +61,112 @@ module.exports = {
             });
             req.end();
         });
+    },
+    '404-text':function (test) {
+        var c = new Console({
+            tables:__dirname + '/tables',
+            routes:__dirname + '/routes/',
+            'enable console':false,
+            connection:'close'
+        });
+        c.app.listen(3000, function () {
+            var options = {
+                host:'localhost',
+                port:3000,
+                path:'/notfound.pl?\"><script>alert(73541);</script>',
+                method:'GET',
+                headers:{
+                    host:'localhost',
+                    connection:'close'
+                }
+            };
+            var req = http.request(options, function (res) {
+                test.equals(res.statusCode, 404);
+                test.equals(res.headers['content-type'], 'text/plain');
+                var data = '';
+                res.on('data', function (chunk) {
+                    data = data + chunk;
+                });
+                res.on('end', function () {
+		    test.ok(data === "Cannot GET /notfound.pl?\">[removed]alert(73541);[removed]");
+                    c.app.close();
+                    test.done();
+                });
+            });
+            req.end();
+        });
+    },
+    '404-json':function (test) {
+        var c = new Console({
+            tables:__dirname + '/tables',
+            routes:__dirname + '/routes/',
+            'enable console':false,
+            connection:'close'
+        });
+        c.app.listen(3000, function () {
+            var options = {
+                host:'localhost',
+                port:3000,
+                path:'/notfound.pl?\"><script>alert(73541);</script>',
+                method:'GET',
+                headers:{
+                    host:'localhost',
+                    connection:'close',
+                    accept:'application/json'
+                }
+            };
+            var req = http.request(options, function (res) {
+                test.equals(res.statusCode, 404);
+                test.equals(res.headers['content-type'], 'application/json');
+                var data = '';
+                res.on('data', function (chunk) {
+                    data = data + chunk;
+                });
+                res.on('end', function () {
+                    test.ok(data === '{"error":"Cannot GET /notfound.pl?\\\">[removed]alert(73541);[removed]"}');
+                    c.app.close();
+                    test.done();
+                });
+            });
+            req.end();
+        });
+    },
+    '5xx-json':function (test) {
+        var c = new Console({
+            tables:__dirname + '/tables',
+            routes:__dirname + '/routes/',
+            'enable console':false,
+            connection:'close'
+        });
+        c.app.get('/500', function (req, res, next) {
+            next(new Error('test error!'));
+        });
+        c.app.listen(3000, function () {
+            var options = {
+                host:'localhost',
+                port:3000,
+                path:'/500',
+                method:'GET',
+                headers:{
+                    host:'localhost',
+                    connection:'close',
+                    accept:'application/json'
+                }
+            };
+            var req = http.request(options, function (res) {
+                test.equals(res.statusCode, 500);
+                test.equals(res.headers['content-type'], 'application/json');
+                var data = '';
+                res.on('data', function (chunk) {
+                    data = data + chunk;
+                });
+                res.on('end', function () {
+                    test.ok(data.indexOf('{"error":"Server Error') === 0);
+                    c.app.close();
+                    test.done();
+                });
+            });
+            req.end();
+        });
     }
 }
