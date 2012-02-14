@@ -512,8 +512,47 @@ var Console = module.exports = function(config, cb) {
         );
     }
 
+    // 404 Handling
+    app.use(function(req, res, next) {
+        var msg = 'Cannot GET ' + sanitize(req.url).xss();
+        var accept = (req.headers || {}).accept || '';
+        if (accept.search('json') > 0) {
+            res.writeHead(404, {
+                'content-type' : 'application/json'
+            });
+            res.write(JSON.stringify({ error: msg }));
+            res.end();
+            return;
+        }
+        res.writeHead(404, {
+            'content-type' : 'text/plain'
+        });
+        res.write(msg);
+        res.end();
+    });
+
+    // Error-handling middleware
+    app.use(function(err, req, res, next){
+        // TODO call next() if recoverable, else next(err).
+        var status = err.status || 500;
+        var msg =  "Server Error - " + sanitize(err.msg || err).xss();
+        var accept = (req.headers || {}).accept || '';
+        if (accept.search('json') > 0) {
+            res.writeHead(status, {
+                'content-type' : 'application/json'
+            });
+            res.write(JSON.stringify({ error: msg }));
+            res.end();
+            return;
+        }
+        res.writeHead(status, {
+            'content-type' : 'text/plain'
+        });
+        res.write(msg);
+        res.end();
+    });
+
     // Also listen to WebSocket requests
-    var emitter;
     var server = new WebSocketServer({
         httpServer: app,
         autoAcceptConnections: false
