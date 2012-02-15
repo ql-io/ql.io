@@ -1,0 +1,22 @@
+<h2><a href="/tables">Tables</a> &rarr; <a href="<%=tableInfo.about%>"><%=tableInfo.name%></a></h2>
+<b>Info: </b><%-tableInfo.info || '<p>Not Available</p>'%>
+
+<% if(tableInfo.select) {%>
+<%- partial('statement.ejs', {type: 'select', statement: tableInfo.select}) %>
+<% } %>
+<% if(tableInfo.insert) {%>
+<%- partial('statement.ejs', {type: 'insert', statement: tableInfo.insert}) %>
+<% } %>
+<% if(tableInfo.create) {%>
+<%- partial('statement.ejs', {type: 'create', statement: tableInfo.create}) %>
+<% } %>
+<% if(tableInfo.delete) {%>
+<%- partial('statement.ejs', {type: 'delete', statement: tableInfo.delete}) %>
+<% } %>
+
+<% if(routes.length) {%>
+<table class= "routestables">
+<thead><th>Referring Routes</th></thead>
+<%- partial('relatedRoute', routes) %>
+</table>
+<% } %>

@@ -40,20 +40,24 @@ exports.exec = function(opts, statement, cb) {
             headers: {
                 'content-type': 'application/json'
             },
-            body:
-                _(routes.verbMap).chain()
+            body:_(routes.simpleMap).chain()
                 .values()
-               .map(function(aUrl){
-                        return _.values(aUrl);
-                    })
-               .flatten()
-               .pluck('routeInfo')
-               .map(function(aRoute) {
-                        return { path: aRoute.path.value, method: aRoute.method,
-                            about: '/route?path=' + encodeURIComponent(aRoute.path.value) + '&method=' + aRoute.method
-                        };
-                    })
-               .value()
+                .map(function (aRoute) {
+                    return { path:aRoute.routeInfo.path.value, method:aRoute.routeInfo.method,
+                        about:'/route?path=' + encodeURIComponent(aRoute.routeInfo.path.value) + '&method='
+                            + aRoute.routeInfo.method,
+                        info:aRoute.info
+                    };
+                })
+                .value()
+                .sort(function(a, b){
+                    var pathA=a.path.toLowerCase(), pathB=b.path.toLowerCase()
+                    if (pathA < pathB)
+                        return -1
+                    if (pathA > pathB)
+                        return 1
+                    return 0
+                })
         }
     );
 }

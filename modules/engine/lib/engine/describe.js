@@ -47,7 +47,7 @@ exports.exec = function(opts, statement, cb) {
     if(desc) {
         return cb(undefined, {
             headers: {
-                'content-type': 'text/html'
+                'content-type': params.fromRoute ? 'application/json' : 'text/html'
             },
             body: desc
         })
@@ -60,7 +60,8 @@ exports.exec = function(opts, statement, cb) {
             desc = {
                 'name' : table.meta.name,
                 'about': '/table?name='+ encodeURIComponent(table.meta.name),
-                'info': table.meta.comments || ''
+                'info': table.meta.comments || '',
+                'routes': table.meta.routes
             };
             _.each(table.meta.statements, function(statement){
                 desc[statement.type] = {
@@ -68,6 +69,12 @@ exports.exec = function(opts, statement, cb) {
                     'params'  : statement.params,
                     'headers' : statement.headers
                 };
+                if(statement.body){
+                    desc[statement.type].body = {
+                        'type'   : statement.body.type,
+                        'content': statement.body.content
+                    };
+                }
             })
 
             cache[key] = desc;
