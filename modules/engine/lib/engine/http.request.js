@@ -403,18 +403,17 @@ function sendMessage(client, emitter, logEmitter, statement, params, httpReqTx, 
 
             // TODO: Handle redirects
 
-	    // Transform (patch only)
-
-	    if(resource.monkeyPatch && resource.monkeyPatch['parse response']) {
+	        // Transform (patch only)
+            if(resource.monkeyPatch && resource.monkeyPatch['parse response']) {
                 try {
-		    var result = resource.monkeyPatch['parse response']({
-			body: respData,
-			headers: res.headers
-		    });
+                    var result = resource.monkeyPatch['parse response']({
+                        body: respData,
+                        headers: res.headers
+                    });
 
-		    respData = result.body;
-		    res.headers = result.headers;
-		}			
+                    respData = result.body;
+                    res.headers = result.headers;
+                }
                 catch(e) {
                     return httpReqTx.cb(e);
                 }
@@ -656,7 +655,7 @@ function setEncoding(res){
     var encoding = contentType.subtype === 'csv' ? 'ascii' : 'utf8';
 
     if(contentType.subtype == 'binary') {
-	encoding = 'binary';
+        encoding = 'binary';
     }
 
     if(contentType.params && contentType.params.charset){

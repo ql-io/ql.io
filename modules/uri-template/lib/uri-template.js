@@ -13,6 +13,7 @@ module.exports = (function(){
         "URITemplate": parse_URITemplate,
         "blockMerge": parse_blockMerge,
         "digits": parse_digits,
+        "dontencode": parse_dontencode,
         "expression": parse_expression,
         "literal": parse_literal,
         "multivalued": parse_multivalued,
@@ -187,16 +188,17 @@ module.exports = (function(){
                           else {
                               val = select(ele.variable, values) || select(ele.variable, defaults);
                               if(val) {
+                                  var encode = !ele.dontencode;
                                   if(val.constructor == Array) {
                                       // But is the token multivalued?
                                       if(val.length === 1) {
-                                          str = _append(str, val, true);
+                                          str = _append(str, val, encode);
                                       }
                                       else if(ele.multivalued) {
                                           if(ele.max) {
                                               if(val.length <= ele.max) {
                                                   // Append as usual
-                                                  str = _append(str, val, true);
+                                                  str = _append(str, val, encode);
                                               }
                                               else {
                                                   // Split the values into multiple and append each
@@ -213,7 +215,7 @@ module.exports = (function(){
                                                       var start = 0, end = ele.max;
                                                       for(j = 0; j < val.length/ele.max; j++) {
                                                           subset = val.slice(start, end);
-                                                          arr.push(_append(str, subset, true));
+                                                          arr.push(_append(str, subset, encode));
                                                           start += ele.max;
                                                           end += ele.max;
                                                       }
@@ -222,7 +224,7 @@ module.exports = (function(){
                                               }
                                           }
                                           else {
-                                              str = _append(str, val, true);
+                                              str = _append(str, val, encode);
                                           }
                                       }
                                       else {
@@ -237,14 +239,14 @@ module.exports = (function(){
                                               // Split and continue.
                                               arr = [];
                                               for(j = 0; j < val.length; j++) {
-                                                  arr.push(_append(str, val[j], true));
+                                                  arr.push(_append(str, val[j], encode));
                                               }
                                               str = arr;
                                           }
                                       }
                                   }
                                   else {
-                                      str = _append(str, val, false);
+                                      str = _append(str, val, encode);
                                   }
                               }
                               else if(ele.required) {
@@ -424,19 +426,24 @@ module.exports = (function(){
         }
 
 
-        var result3 = parse_required();
-        if (result3 !== null) {
-          var result0 = result3;
+        var result4 = parse_required();
+        if (result4 !== null) {
+          var result0 = result4;
         } else {
-          var result2 = parse_blockMerge();
-          if (result2 !== null) {
-            var result0 = result2;
+          var result3 = parse_blockMerge();
+          if (result3 !== null) {
+            var result0 = result3;
           } else {
-            var result1 = parse_multivalued();
-            if (result1 !== null) {
-              var result0 = result1;
+            var result2 = parse_multivalued();
+            if (result2 !== null) {
+              var result0 = result2;
             } else {
-              var result0 = null;;
+              var result1 = parse_dontencode();
+              if (result1 !== null) {
+                var result0 = result1;
+              } else {
+                var result0 = null;;
+              };
             };
           };
         }
@@ -515,6 +522,48 @@ module.exports = (function(){
           ? (function() {
               return {
                   merge: 'block'
+              }
+          })()
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_dontencode() {
+        var cacheKey = 'dontencode@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        if (input.substr(pos, 1) === "`") {
+          var result1 = "`";
+          pos += 1;
+        } else {
+          var result1 = null;
+          if (reportMatchFailures) {
+            matchFailed("\"`\"");
+          }
+        }
+        var result2 = result1 !== null
+          ? (function() {
+              return {
+                  dontencode: true
               }
           })()
           : null;
