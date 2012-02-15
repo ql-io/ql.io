@@ -47,7 +47,7 @@ exports.exec = function(opts, statement, cb) {
     if(desc) {
         return cb(undefined, {
             headers: {
-                'content-type': 'text/html'
+                'content-type': params.fromRoute ? 'application/json' : 'text/html'
             },
             body: desc
         })

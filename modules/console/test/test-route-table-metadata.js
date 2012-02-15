@@ -431,5 +431,45 @@ module.exports = {
             req.end();
 
         });
+    },
+    '/table':function (test) {
+        var c = new Console({
+            tables:__dirname + '/tables',
+            routes:__dirname + '/routes/',
+            config:__dirname + '/config/dev.json',
+            'enable console':false,
+            connection:'close'
+        });
+        c.app.listen(3000, function () {
+            var options = {
+                host:'localhost',
+                port:3000,
+                path:'/table?name=ebay.trading.bestoffers',
+                method:'GET',
+                headers:{
+                    'accept':'application/json'
+                }
+            };
+            var req = http.request(options);
+            req.addListener('response', function (resp) {
+                var data = '';
+                resp.addListener('data', function (chunk) {
+                    data += chunk;
+                });
+                resp.addListener('end', function () {
+                    var table = JSON.parse(data);
+                    test.equals(table.name, 'ebay.trading.bestoffers');
+                    test.equals(table.about, '/table?name=ebay.trading.bestoffers');
+                    test.equals(table.info, '');
+                    test.ok(_.isArray(table.routes) & table.routes.length == 2);
+                    test.ok(table.select && table.select.request && table.select.params
+                        && table.select.headers && table.select.body);
+                    c.app.close();
+                    test.done();
+                });
+            });
+            req.end();
+
+        });
     }
 }
