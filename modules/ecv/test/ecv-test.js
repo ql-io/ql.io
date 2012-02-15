@@ -18,11 +18,13 @@
 
 var testCase = require('nodeunit').testCase,
     http = require('http'),
-    net = require('net'),
+    os = require('os'),
     ecv = require('../lib/ecv.js'),
     Console = require('ql.io-console');
 
 var port = 9091;
+var hostname = os.hostname();
+
 
 module.exports = testCase({
     'check ecv': function(test) {
@@ -32,7 +34,11 @@ module.exports = testCase({
         });
         ecv.enable(c.app, port);
         c.app.listen(port, function() {
-            var re = new RegExp('status=AVAILABLE&ServeTraffic=true&ip=127\\.0\\.0\\.1&hostname=localhost&port=' + port + '&time=.*');
+            // Regex to match the expected response. Tricky part is the IPv4 match.
+            // Very naive exp to check numbers 0 - 255.
+            // (25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]? ) -> ( numbers 250 to 255 | numbers 200 to 249 | numbers 0 to 199)
+            // Same expression for each of the 4 IPs
+            var re = new RegExp('status=AVAILABLE&ServeTraffic=true&ip=(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)&hostname='+hostname+'&port=' + port + '&time=.*');
             try {
                 var options = {
                     host: 'localhost',
@@ -45,9 +51,11 @@ module.exports = testCase({
                     res.on('data', function(chunk) {
                         response += chunk;
                     });
-                    res.on('end', function() {
-                        test.ok(response.toString().match(re),
-                            'expected:status=AVAILABLE&ServeTraffic=true&ip=127.0.0.1&hostname=localhost&port=' + port + '&time=.*');
+                    res.on('end', function () {
+                        var result = re.exec(response);
+                        test.ok(result !== null,
+                            'expected:status=AVAILABLE&ServeTraffic=true&ip=<Network IP>&hostname=' + hostname + '&port=' + port + '&time=.*');
+                        test.ok(result[1] !== 127, 'Network Ip expected. Got a loopback/localhost address');
                         test.done();
                         c.app.close();
                     });
@@ -71,7 +79,8 @@ module.exports = testCase({
         });
         ecv.enable(c.app, port);
         c.app.listen(port, function() {
-            var re = new RegExp('status=AVAILABLE&ServeTraffic=true&ip=127\\.0\\.0\\.1&hostname=localhost&port=' + port + '&time=.*');
+            // Regex same as above.
+            var re = new RegExp('status=AVAILABLE&ServeTraffic=true&ip=(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)&hostname='+hostname+'&port=' + port + '&time=.*');
             try {
                 var options = {
                     host: 'localhost',
@@ -85,8 +94,10 @@ module.exports = testCase({
                         response += chunk;
                     });
                     res.on('end', function() {
-                        test.ok(response.toString().match(re),
-                            'expected:status=AVAILABLE&ServeTraffic=true&ip=127.0.0.1&hostname=localhost&port=' + port + '&time=.*');
+                        var result = re.exec(response);
+                        test.ok(result !== null,
+                            'expected:status=AVAILABLE&ServeTraffic=true&ip=<Network IP>&hostname='+hostname+'&port=' + port + '&time=.*');
+                        test.ok(result[1] !== 127, 'Network Ip expected. Got a loopback/localhost address');
                         test.done();
                         c.app.close();
                     });

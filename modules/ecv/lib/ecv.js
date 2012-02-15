@@ -16,19 +16,29 @@
 
 "use strict";
 
-var http = require('http');
+var http = require('http'),
+    dns = require('dns'),
+    os = require('os'),
+    _ = require('underscore');
 
 /**
  * The ECV check sends a "show tables" request to the running server. Anything other than a valid JSON response is
  * treated as an error.
  */
+
+var networkIp;
+var hostname = os.hostname();
+
+ip(function (ip) {
+   networkIp = ip;
+});
+
 exports.enable = function(app, port, path) {
     app.get(path || '/ecv', function(req, res) {
         var tosend = {
             date : new Date ,
             port : port
         };
-        // TODO: Switch os.getNetworkInterfaces
         var options = {
             host:'localhost',
             port:port,
@@ -75,7 +85,7 @@ function happy(res, tosend) {
         'content-type': 'text/plain',
         'cache-control': 'no-cache'
     });
-    res.write('status=AVAILABLE&ServeTraffic=true&ip=127.0.0.1&hostname=localhost&port=' + tosend.port+ '&time=' + tosend.date.toString());
+    res.write('status=AVAILABLE&ServeTraffic=true&ip='+networkIp+'&hostname='+hostname+'&port=' + tosend.port+ '&time=' + tosend.date.toString());
     res.end();
 }
 
@@ -84,6 +94,33 @@ function unhappy(res, tosend) {
         'content-type': 'text/plain',
         'cache-control': 'no-cache'
     });
-    res.write('status=WARNING&ServeTraffic=false&ip=127.0.0.1&hostname=localhost&port=' + tosend.port + '&time=' + tosend.date.toString());
+    res.write('status=WARNING&ServeTraffic=false&ip='+networkIp+'&hostname='+hostname+'&port=' + tosend.port + '&time=' + tosend.date.toString());
     res.end();
 }
+
+function ip(cb) {
+    /*
+     * 1. Get all the non internal ip-addresses
+     * 2. Do a reverse lookup for all the ip-addresses got in Step 1
+     * 3. Find current machine's full hostname
+     * 4. DNS lookup hostname, got in Step 3, to get the network IP
+     */
+    var hostname;
+    var ips = _.pluck(_.filter(_.flatten(_.values(os.networkInterfaces())), function (ip) {
+        return ip.internal === false && ip.family === 'IPv4';
+    }), 'address');
+
+    _.each(ips, function (ip) {
+        dns.reverse(ip, function (err, domains) {
+            hostname = _.find(domains, function (domain) {
+                return domain.indexOf(os.hostname()) === 0;
+            });
+            if(hostname) {
+                dns.resolve4(hostname, function (err, addresses) {
+                    err ? cb("127.0.0.1"): cb(addresses[0]);
+                });
+            }
+        });
+    });
+}
+
