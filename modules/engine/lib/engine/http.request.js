@@ -399,13 +399,13 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
 
 	    if(resource.monkeyPatch && resource.monkeyPatch['parse response']) {
                 try {
-		    respData = resource.monkeyPatch['parse response']({
+		    var result = resource.monkeyPatch['parse response']({
 			body: respData,
 			headers: res.headers
 		    });
 
-		    console.log("HERE: " + respData);
-
+		    respData = result.body;
+		    res.headers = result.headers;
 		}			
                 catch(e) {
                     return httpReqTx.cb(e);
