@@ -38,7 +38,7 @@ exports["describe route '/foo/bar/{selector}?userid={userId}&itemid={itemId}' us
                 test.equal(list.body.method,'get');
                 test.equal(list.body.path,'/foo/bar/{selector}?userid={userId}&itemid={itemId}');
                 test.equal(list.body.about,'/route?path=%2Ffoo%2Fbar%2F%7Bselector%7D%3Fuserid%3D%7BuserId%7D%26itemid%3D%7BitemId%7D&method=get');
-                test.ok(_.isArray(list.body.info), 'list.body.info is not array');
+                test.ok(_.isString(list.body.info), 'list.body.info is string');
                 test.ok(list.body.info.length > 0, 'Expected length > 0');
                 test.ok(_.isArray(list.body.tables), 'list.body.tables is not array');
                 test.ok(list.body.tables.length == 5 , 'Expected length = 5');
@@ -66,7 +66,7 @@ exports["describe route '/ping/pong' using method put"] = function (test) {
                 test.equal(list.body.method,'put');
                 test.equal(list.body.path,'/ping/pong');
                 test.equal(list.body.about,'/route?path=%2Fping%2Fpong&method=put');
-                test.ok(_.isArray(list.body.info), 'list.body.info is not array');
+                test.ok(_.isString(list.body.info), 'list.body.info is not array');
                 test.ok(list.body.info.length == 0, 'Expected length == 0');
                 test.ok(_.isArray(list.body.tables), 'list.body.tables is not array');
                 test.ok(list.body.tables.length == 1 , 'Expected length = 1');
@@ -75,3 +75,39 @@ exports["describe route '/ping/pong' using method put"] = function (test) {
             test.done();
         });
 };
+
+exports['check routes in desc table'] = function (test) {
+    var engine = new Engine({
+        tables : __dirname + '/mock-routes/tables',
+        routes : __dirname + '/mock-routes/routes',
+        config : __dirname + '/config/dev.json'
+    });
+
+    var opts = {
+        request: {
+            headers: {},
+            params: {fromRoute: true}
+        },
+        script: 'describe testing.for.post',
+        cb: function(err, list) {
+
+            if (err) {
+                test.fail('got error: ' + err.stack);
+                test.done();
+            }
+            else {
+                test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+                test.equals(list.body.name, 'testing.for.post');
+                test.equals(list.body.about, '/table?name=testing.for.post');
+                test.ok(list.body.select, "expected statement select");
+                test.ok(list.body.select.request, "expected request for statement select");
+                test.ok(_.isArray(list.body.routes), 'expected list.body.routes to be array');
+                test.ok(list.body.routes.length > 0, 'expected list.body.routes to not be empty');
+                test.done();
+            }
+        }
+    };
+
+    engine.exec(opts);
+};
+

@@ -20,10 +20,12 @@ var compiler = require('ql.io-compiler'),
     fs = require('fs'),
     url = require('url'),
     assert = require('assert'),
-    _ = require('underscore');
+    _ = require('underscore'),
+    markdown = require('markdown');
 
 // TODO: Watch for file changes
 exports.load = function (opts) {
+    var tablesInfo = opts.tables;
     var rootdir = opts.routes;
     var logEmitter = opts.logEmitter;
 
@@ -35,12 +37,12 @@ exports.load = function (opts) {
         simpleMap:{},
         verbMap:{}
     };
-    loadInternal(rootdir, '', logEmitter, routes);
+    loadInternal(rootdir, '', logEmitter, routes, tablesInfo);
     return routes;
 
 };
 
-function loadInternal(path, prefix, logEmitter, routes) {
+function loadInternal(path, prefix, logEmitter, routes, tablesInfo) {
     assert.ok(path, 'path should not be null');
 
     var script, stats, paths;
@@ -58,7 +60,7 @@ function loadInternal(path, prefix, logEmitter, routes) {
         if (stats.isDirectory()) {
             loadInternal(path + filename,
                 prefix.length > 0 ? prefix + '.' + filename : filename,
-                logEmitter, routes);
+                logEmitter, routes, tablesInfo);
         }
         else if (stats.isFile() && /\.ql/.test(filename)) {
             var cooked = null,
@@ -123,10 +125,19 @@ function loadInternal(path, prefix, logEmitter, routes) {
                             query: pieces.query,
                             routeInfo: typeReturn.route,
                             tables: tables,
-                            info: info
+                            info: markdown.markdown.toHTML(info.join('\r\n'))
                         };
                     routes.verbMap[pieces.pathname][typeReturn.route.method].push(routeRecord);
                     routes.simpleMap[typeReturn.route.method + ':' + typeReturn.route.path.value]=routeRecord;
+                    _.each(tables, function(table){
+                        var tableDef = tablesInfo[table];
+                        if(tableDef){
+                            tableDef.meta.routes = tableDef.meta.routes || [];
+                            tableDef.meta.routes.push('/route?path=' +
+                                encodeURIComponent(typeReturn.route.path.value) + '&method='
+                                + typeReturn.route.method);
+                        }
+                    });
                 } else {
                     logEmitter.emitError("Route already defined: " + script);
                 }

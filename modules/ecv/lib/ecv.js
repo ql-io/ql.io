@@ -36,7 +36,9 @@ exports.enable = function(app, port, path) {
             method:'GET',
             headers:{
                 host:'localhost',
-                connection:'close'
+                connection:'close',
+                accept: 'application/json'
+
             }
         };
         var creq = http.request(options, function(cres) {

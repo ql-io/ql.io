@@ -34,11 +34,11 @@ exports.exec = function(opts, statement, cb) {
     assert.ok(cb, 'Argument cb can not be undefined');
 
     _.each(tables, function(v, r) {
-        arr.push(r);
+        arr.push({name:r, info:v.meta.comments});
     })
 
     _.each(tempResources, function(v, r) {
-        arr.push(r);
+        arr.push({name:r, info:v.meta.comments});
     });
 
     if(statement.assign) {
@@ -50,7 +50,7 @@ exports.exec = function(opts, statement, cb) {
                 'content-type': 'application/json'
             },
             body: params.fromRoute ? _.map(arr, function(a){
-                return { 'name': a, 'about': '/table?name='+encodeURIComponent(a) };
+                return { 'name':a.name, 'about':'/table?name=' + encodeURIComponent(a.name), 'info':a.info };
             }):arr
         });
 }

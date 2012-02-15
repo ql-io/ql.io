@@ -73,6 +73,7 @@ var Engine = module.exports = function(opts) {
         logEmitter: this,
         config: this.config});
     this.routes = routeLoader.load({
+        tables: this.tables,
         routes: opts.routes,
         logEmitter: this});
 
