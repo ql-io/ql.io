@@ -1,5 +1,7 @@
-## Feb 13, 2012
+## Feb 14, 2012
+* HTML interface for <ql.io>/routes & <ql.io>/tables. Json can be got by either providing header accept:application/json or param json=true.
 
+## Feb 13, 2012
 * Downgrade nodeunit
 * Version 0.4
 * Propagate `connection.remoteAddress` to scripts and patches. Scripts can access this via

@@ -26,6 +26,7 @@ var winston = require('winston'),
     assetManager = require('connect-assetmanager'),
     assetHandler = require('connect-assetmanager-handlers'),
     Engine = require('ql.io-engine'),
+    MutableURI = require('ql.io-mutable-uri'),
     _ = require('underscore'),
     WebSocketServer = require('websocket').server;
 
@@ -138,7 +139,8 @@ var Console = module.exports = function(config, cb) {
                     'qlio-editor.css',
                     'treeview.css',
                     'har-viewer.css',
-                    'jquery-ui.css'
+                    'jquery-ui.css',
+                    'routestables.css'
                 ],
                 'preManipulate': {
                     // Regexp to match user-agents including MSIE.
@@ -265,6 +267,22 @@ var Console = module.exports = function(config, cb) {
             params: {fromRoute: true},
             headers: {}
         };
+
+        var isJson = ((req.headers || {}).accept || '').search('json') > 0 ||
+            (req.param('json') || 'false').trim().toLowerCase() === 'true';
+
+        function routePage(res, execState, results){
+            res.header['Link'] = headers.format('Link', {
+                href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
+                rel : ['execstate']
+            });
+            res.render(__dirname + '/public/views/routes-tables/tables.ejs', {
+                title: 'ql.io',
+                layout: __dirname + '/public/views/routes-table-layout',
+                tables: results
+            });
+        }
+
         var execState = [];
         engine.execute('show tables',
             {
@@ -274,7 +292,9 @@ var Console = module.exports = function(config, cb) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
                 setupCounters(emitter);
                 emitter.on('end', function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
+                    return isJson || err ?
+                        handleResponseCB(req, res, execState, err, results) :
+                        routePage(res,execState,results.body);
                 });
             }
         );
@@ -286,6 +306,32 @@ var Console = module.exports = function(config, cb) {
             params: {fromRoute: true},
             headers: {}
         };
+
+        var isJson = ((req.headers || {}).accept || '').search('json') > 0 ||
+            (req.param('json') || 'false').trim().toLowerCase() === 'true';
+
+        function routePage(res, execState, result){
+            res.header['Link'] = headers.format('Link', {
+                href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
+                rel : ['execstate']
+            });
+            res.render(__dirname + '/public/views/routes-tables/tableInfo.ejs', {
+                title: 'ql.io',
+                layout: __dirname + '/public/views/routes-table-layout',
+                tableInfo: result,
+                routes:
+                    _(result.routes).chain()
+                        .map(function(route){
+                            var parse = new MutableURI(route);
+                            return {
+                                method: parse.getParam('method'),
+                                path: parse.getParam('path'),
+                                about: route
+                            };
+                        })
+                        .value()
+            });
+        }
 
         var name = req.param('name');
 
@@ -308,8 +354,10 @@ var Console = module.exports = function(config, cb) {
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
                 setupCounters(emitter);
-                emitter.on('end', function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
+                emitter.on('end', function(err, result) {
+                    return isJson || err ?
+                        handleResponseCB(req, res, execState, err, result):
+                        routePage(res,execState,result.body);
                 });
             }
         );
@@ -321,6 +369,22 @@ var Console = module.exports = function(config, cb) {
             params: {},
             headers: {}
         };
+
+        var isJson = ((req.headers || {}).accept || '').search('json') > 0 ||
+            (req.param('json') || 'false').trim().toLowerCase() === 'true';
+
+        function routePage(res, execState, results){
+            res.header['Link'] = headers.format('Link', {
+                href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
+                rel : ['execstate']
+            });
+           res.render(__dirname + '/public/views/routes-tables/routes.ejs', {
+                title: 'ql.io',
+                layout: __dirname + '/public/views/routes-table-layout',
+                routes: results
+            });
+        }
+
         var execState = [];
         engine.execute('show routes',
             {
@@ -330,7 +394,9 @@ var Console = module.exports = function(config, cb) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
                 setupCounters(emitter);
                 emitter.on('end', function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
+                    return isJson || err ?
+                        handleResponseCB(req, res, execState, err, results) :
+                        routePage(res,execState,results.body);
                 });
             }
         );
@@ -356,6 +422,42 @@ var Console = module.exports = function(config, cb) {
             return;
         }
 
+        var isJson = ((req.headers || {}).accept || '').search('json') > 0 ||
+            (req.param('json') || 'false').trim().toLowerCase() === 'true';
+
+        function routePage(res, execState, result){
+            res.header['Link'] = headers.format('Link', {
+                href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
+                rel : ['execstate']
+            });
+            res.render(__dirname + '/public/views/routes-tables/routeInfo.ejs', {
+                title: 'ql.io',
+                layout: __dirname + '/public/views/routes-table-layout',
+                routeInfo: result,
+                related:
+                    _(result.related).chain()
+                    .map(function(route){
+                        var parse = new MutableURI(route);
+                        return {
+                            method: parse.getParam('method'),
+                            path: parse.getParam('path'),
+                            about: route
+                        };
+                    })
+                    .value(),
+                tables:
+                    _(result.tables).chain()
+                    .map(function(table){
+                        var parse = new MutableURI(table);
+                        return {
+                            name: parse.getParam('name'),
+                            about: table
+                        };
+                    })
+                    .value()
+            });
+        }
+
         var execState = [];
         engine.execute('describe route "' + decodeURIComponent(path) + '" using method ' + method,
             {
@@ -364,8 +466,10 @@ var Console = module.exports = function(config, cb) {
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
                 setupCounters(emitter);
-                emitter.on('end', function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
+                emitter.on('end', function(err, result) {
+                    return isJson || err ?
+                        handleResponseCB(req, res, execState, err, result) :
+                        routePage(res,execState,result.body);
                 });
             }
         );
