@@ -1,3 +1,7 @@
+## Feb 14, 2012
+
+* "/ecv" check returns network ip instead of loopback address
+
 ## Feb 13, 2012
 
 * Downgrade nodeunit
