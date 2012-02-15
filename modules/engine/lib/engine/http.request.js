@@ -395,6 +395,23 @@ function sendMessage(client, emitter, logEmitter, statement, httpReqTx, options,
 
             // TODO: Handle redirects
 
+	    // Transform (patch only)
+
+	    if(resource.monkeyPatch && resource.monkeyPatch['parse response']) {
+                try {
+		    respData = resource.monkeyPatch['parse response']({
+			body: respData,
+			headers: res.headers
+		    });
+
+		    console.log("HERE: " + respData);
+
+		}			
+                catch(e) {
+                    return httpReqTx.cb(e);
+                }
+            }
+
             mediaType = sniffMediaType(mediaType, resource, statement, res, respData);
 
             logEmitter.emitEvent(httpReqTx.event, resourceUri + '  ' +
@@ -673,9 +690,6 @@ function jsonify(respData, mediaType, headers, xformers, respCb, errorCb) {
     }
     else if(mediaType.subtype === 'json') {
         xformers['json'].toJson(respData, respCb, errorCb, headers);
-    }
-    else if (mediaType.type === 'avro') {
-        xformers['avro'].toJson(respData, respCb, errorCb, headers)
     }
     else if(mediaType.subtype === 'csv') {
         xformers['csv'].toJson(respData, respCb, errorCb,
