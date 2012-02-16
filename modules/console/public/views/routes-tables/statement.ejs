@@ -3,7 +3,8 @@
     request to the resource.</p>
     <pre><%=statement.request%>
 <%for(var i=0; i<statement.headers.length; i++){%><%=statement.headers[i].name%>: <%=statement.headers[i].value%><%}%>
-<% if(statement.body){%>Content-Type: <%=statement.body.type%>&nbsp;<%=statement.body.content%><%}%>
+<% if(statement.body){%>Content-Type: <%=statement.body.type%>&nbsp;
+<%=statement.body.content%><%}%>
     </pre>
     <p>You can include the following parameters in the where clause. In addition to these, you may
     need to supply parameters encoded within double curly braces (<code>{{</code> <code>}}</code>) in

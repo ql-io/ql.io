@@ -264,7 +264,6 @@ var Console = module.exports = function(config, cb) {
     // HTTP indirection for 'show tables' command
     app.get('/tables', function(req,res){
         var holder = {
-            params: {fromRoute: true},
             headers: {}
         };
 
@@ -303,7 +302,6 @@ var Console = module.exports = function(config, cb) {
     // HTTP indirection for 'describe <table>' command  and it returns json (and not html)
     app.get('/table', function(req,res){
         var holder = {
-            params: {fromRoute: true},
             headers: {}
         };
 

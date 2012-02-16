@@ -42,12 +42,12 @@ exports.exec = function(opts, statement, cb) {
     var tables = opts.tables, tempTables = opts.tempResources, params = opts.request.params || {};
 
     var table, template, desc;
-    var key = statement.source.name + (params.fromRoute ? ":fromRoute" : "");
+    var key = statement.source.name;
     desc = cache[key];
     if(desc) {
         return cb(undefined, {
             headers: {
-                'content-type': params.fromRoute ? 'application/json' : 'text/html'
+                'content-type': 'application/json'
             },
             body: desc
         })
@@ -55,60 +55,32 @@ exports.exec = function(opts, statement, cb) {
 
     // If not cached
     table = tables[statement.source.name] || tempTables[statement.source.name];
-    if(table) {
-        if (params.fromRoute) {
-            desc = {
-                'name' : table.meta.name,
-                'about': '/table?name='+ encodeURIComponent(table.meta.name),
-                'info': table.meta.comments || '',
-                'routes': table.meta.routes
+    if (table) {
+        desc = {
+            'name':table.meta.name,
+            'about':'/table?name=' + encodeURIComponent(table.meta.name),
+            'info':table.meta.comments || '',
+            'routes':table.meta.routes
+        };
+        _.each(table.meta.statements, function (statement) {
+            desc[statement.type] = {
+                'request':statement.method + ' ' + statement.uri,
+                'params':statement.params,
+                'headers':statement.headers
             };
-            _.each(table.meta.statements, function(statement){
-                desc[statement.type] = {
-                    'request' : statement.method + ' ' + statement.uri,
-                    'params'  : statement.params,
-                    'headers' : statement.headers
+            if (statement.body) {
+                desc[statement.type].body = {
+                    'type':statement.body.type,
+                    'content':statement.body.content
                 };
-                if(statement.body){
-                    desc[statement.type].body = {
-                        'type'   : statement.body.type,
-                        'content': statement.body.content
-                    };
-                }
-            })
+            }
+        })
 
-            cache[key] = desc;
-            cb(null, {
-                headers: {'content-type': 'application/json'},
-                body: desc
-            });
-        }
-        else {
-            fs.readFile(__dirname + '/describe.html.mu', 'utf8', function(err, data) {
-                if(err) {
-                    return cb(err);
-                }
-                else {
-
-                    // Escape {{ and }} before using mustache.
-                    _.each(table.meta.statements, function(statement) {
-                        if (statement.body && statement.body.content) {
-                            statement.body.content = statement.body.content.replace(lreg, '{ {')
-                            statement.body.content = statement.body.content.replace(rreg, '} }')
-                        }
-                    })
-                    desc = mustache.to_html(data, table.meta);
-                    // Undo escape {{ and }}
-                    desc = desc.replace(ulreg, '{{')
-                    desc = desc.replace(urreg, '}}')
-                    cache[key] = desc;
-                    cb(null, {
-                        headers: {'content-type': 'text/html'},
-                        body: desc
-                    });
-                }
-            });
-        }
+        cache[key] = desc;
+        cb(null, {
+            headers:{'content-type':'application/json'},
+            body:desc
+        });
     }
     else {
         cb({
