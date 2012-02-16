@@ -135,7 +135,7 @@ module.exports = {
 
         });
     },
-    'check /routes?json=true':function (test) {
+    'check /routes?format=json':function (test) {
         var c = new Console({
             tables:__dirname + '/tables',
             routes:__dirname + '/routes/',
@@ -147,7 +147,7 @@ module.exports = {
             var options = {
                 host:'localhost',
                 port:3000,
-                path:'/routes?json=true',
+                path:'/routes?format=json',
                 method:'GET'
             };
             var req = http.request(options);
@@ -248,7 +248,7 @@ module.exports = {
 
         });
     },
-    'check /route?json=true':function (test) {
+    'check /route?format=json':function (test) {
         var c = new Console({
             tables:__dirname + '/tables',
             routes:__dirname + '/routes/',
@@ -260,7 +260,7 @@ module.exports = {
             var options = {
                 host:'localhost',
                 port:3000,
-                path:'/route?path=%2Ffoo%2Fbar%2F%7Bselector%7D%3Fuserid%3D%7BuserId%7D%26itemid%3D%7BitemId%7D&method=get&json=true',
+                path:'/route?path=%2Ffoo%2Fbar%2F%7Bselector%7D%3Fuserid%3D%7BuserId%7D%26itemid%3D%7BitemId%7D&method=get&format=json',
                 method:'GET'
             };
             var req = http.request(options);
@@ -359,7 +359,7 @@ module.exports = {
 
         });
     },
-    'check /tables?json=true':function (test) {
+    'check /tables?format=json':function (test) {
         var c = new Console({
             tables:__dirname + '/tables',
             routes:__dirname + '/routes/',
@@ -371,7 +371,7 @@ module.exports = {
             var options = {
                 host:'localhost',
                 port:3000,
-                path:'/tables?json=true',
+                path:'/tables?format=json',
                 method:'GET'
             };
             var req = http.request(options);
@@ -395,7 +395,7 @@ module.exports = {
 
         });
     },
-    '/table?json=true':function (test) {
+    'check /table?format=json':function (test) {
         var c = new Console({
             tables:__dirname + '/tables',
             routes:__dirname + '/routes/',
@@ -407,7 +407,7 @@ module.exports = {
             var options = {
                 host:'localhost',
                 port:3000,
-                path:'/table?name=ebay.trading.bestoffers&json=true',
+                path:'/table?name=ebay.trading.bestoffers&format=json',
                 method:'GET'
             };
             var req = http.request(options);
@@ -432,7 +432,7 @@ module.exports = {
 
         });
     },
-    '/table':function (test) {
+    'check /table':function (test) {
         var c = new Console({
             tables:__dirname + '/tables',
             routes:__dirname + '/routes/',

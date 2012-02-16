@@ -269,7 +269,7 @@ var Console = module.exports = function(config, cb) {
         };
 
         var isJson = ((req.headers || {}).accept || '').search('json') > 0 ||
-            (req.param('json') || 'false').trim().toLowerCase() === 'true';
+            (req.param('format') || '').trim().toLowerCase() === 'json';
 
         function routePage(res, execState, results){
             res.header['Link'] = headers.format('Link', {
@@ -308,7 +308,7 @@ var Console = module.exports = function(config, cb) {
         };
 
         var isJson = ((req.headers || {}).accept || '').search('json') > 0 ||
-            (req.param('json') || 'false').trim().toLowerCase() === 'true';
+            (req.param('format') || '').trim().toLowerCase() === 'json';
 
         function routePage(res, execState, result){
             res.header['Link'] = headers.format('Link', {
@@ -371,7 +371,7 @@ var Console = module.exports = function(config, cb) {
         };
 
         var isJson = ((req.headers || {}).accept || '').search('json') > 0 ||
-            (req.param('json') || 'false').trim().toLowerCase() === 'true';
+            (req.param('format') || '').trim().toLowerCase() === 'json';
 
         function routePage(res, execState, results){
             res.header['Link'] = headers.format('Link', {
@@ -423,7 +423,7 @@ var Console = module.exports = function(config, cb) {
         }
 
         var isJson = ((req.headers || {}).accept || '').search('json') > 0 ||
-            (req.param('json') || 'false').trim().toLowerCase() === 'true';
+            (req.param('format') || '').trim().toLowerCase() === 'json';
 
         function routePage(res, execState, result){
             res.header['Link'] = headers.format('Link', {
