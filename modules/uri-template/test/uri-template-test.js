@@ -278,6 +278,16 @@ module.exports = {
         test.done();
     },
 
+    'encode-skip': function (test) {
+        var str = 'http://www.foo.com/{`p1}/baz';
+        var template = uriTemplate.parse(str);
+        var uri = template.format({
+            p1: 'a/b/c'
+        });
+        test.equals(uri, 'http://www.foo.com/a/b/c/baz');
+        test.done();
+    },
+
     'merge': function(test) {
         var str = 'http://www.foo.com?p1={p1}&p2={p2}&p3={#p3}';
         var template = uriTemplate.parse(str);

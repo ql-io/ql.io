@@ -44,7 +44,7 @@ module.exports = testCase({
                     host: 'localhost',
                     port: port,
                     path: '/ecv',
-                    method: 'GET'
+                    method: 'GET',
                 };
                 var request = http.request(options, function(res) {
                     var response = '';
@@ -85,7 +85,7 @@ module.exports = testCase({
                     host: 'localhost',
                     port: port,
                     path: '/ecv',
-                    method: 'GET'
+                    method: 'GET',
                 };
                 var request = http.request(options, function(res) {
                     var response = '';

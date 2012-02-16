@@ -134,7 +134,7 @@ URITemplate  = c:( literal / expression )* {
                             }
                         }
                         else {
-                            str = _append(str, val, true);
+                            str = _append(str, val, false);
                         }
                     }
                     else if(ele.required) {

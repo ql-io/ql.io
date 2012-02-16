@@ -1,9 +1,12 @@
 ## Feb 14, 2012
 
 * "/ecv" check returns network ip instead of loopback address
+* Let the engine allow a monkey patch to parse the response. Useful to process binary formats
+  like avro.
+* HTML interface for `/routes` and `/tables`. You can get JSON by either include
+  `Accept: application/json` or query param `json=true`.
 
 ## Feb 13, 2012
-
 * Downgrade nodeunit
 * Version 0.4
 * Propagate `connection.remoteAddress` to scripts and patches. Scripts can access this via
