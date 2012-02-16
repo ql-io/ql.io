@@ -17,21 +17,15 @@
 "use strict";
 
 var http = require('http'),
-    dns = require('dns'),
-    os = require('os'),
-    _ = require('underscore');
+    os = require('os');
 
 /**
- * The ECV check sends a "show tables" request to the running server. Anything other than a valid JSON response is
+ * The ECV check sends a "/tables" request to the running server. Anything other than a valid JSON response is
  * treated as an error.
  */
 
-var networkIp;
 var hostname = os.hostname();
-
-ip(function (ip) {
-   networkIp = ip;
-});
+var ip; // populate on first request.
 
 exports.enable = function(app, port, path) {
     app.get(path || '/ecv', function(req, res) {
@@ -59,68 +53,46 @@ exports.enable = function(app, port, path) {
             cres.on('end', function() {
                 if(cres.statusCode >= 300) {
                     // Not happy
-                    unhappy(res, tosend);
+                    unhappy(req, res, tosend);
                 }
                 else {
                     try {
                         JSON.parse(data);
-                        happy(res, tosend);
+                        happy(req, res, tosend);
                     }
                     catch(e) {
                         // Not happy
-                        unhappy(res, tosend);
+                        unhappy(req, res, tosend);
                     }
                 }
             });
         });
         creq.on('error', function(err) {
-            unhappy(res, tosend.date);
+            unhappy(req, res, tosend.date);
         });
         creq.end();
     });
 };
 
-function happy(res, tosend) {
+function happy(req, res, tosend) {
     res.writeHead(200, {
         'content-type': 'text/plain',
         'cache-control': 'no-cache'
     });
-    res.write('status=AVAILABLE&ServeTraffic=true&ip='+networkIp+'&hostname='+hostname+'&port=' + tosend.port+ '&time=' + tosend.date.toString());
+    if(!ip) {
+        // req.connection.address() cant be null.
+        ip = req.connection.address()['address'];
+    }
+    res.write('status=AVAILABLE&ServeTraffic=true&ip='+ ip +'&hostname='+ hostname +'&port=' + tosend.port+ '&time=' + tosend.date.toString());
     res.end();
 }
 
-function unhappy(res, tosend) {
+function unhappy(req, res, tosend) {
     res.writeHead(500, {
         'content-type': 'text/plain',
         'cache-control': 'no-cache'
     });
-    res.write('status=WARNING&ServeTraffic=false&ip='+networkIp+'&hostname='+hostname+'&port=' + tosend.port + '&time=' + tosend.date.toString());
+    // IP address got from req object in unhappy paths.
+    res.write('status=WARNING&ServeTraffic=false&ip='+ req.connection.address()['address'] +'&hostname='+ hostname +'&port=' + tosend.port + '&time=' + tosend.date.toString());
     res.end();
 }
-
-function ip(cb) {
-    /*
-     * 1. Get all the non internal ip-addresses
-     * 2. Do a reverse lookup for all the ip-addresses got in Step 1
-     * 3. Find current machine's full hostname
-     * 4. DNS lookup hostname, got in Step 3, to get the network IP
-     */
-    var hostname;
-    var ips = _.pluck(_.filter(_.flatten(_.values(os.networkInterfaces())), function (ip) {
-        return ip.internal === false && ip.family === 'IPv4';
-    }), 'address');
-
-    _.each(ips, function (ip) {
-        dns.reverse(ip, function (err, domains) {
-            hostname = _.find(domains, function (domain) {
-                return domain.indexOf(os.hostname()) === 0;
-            });
-            if(hostname) {
-                dns.resolve4(hostname, function (err, addresses) {
-                    err ? cb("127.0.0.1"): cb(addresses[0]);
-                });
-            }
-        });
-    });
-}
-

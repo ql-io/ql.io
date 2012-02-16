@@ -55,7 +55,6 @@ module.exports = testCase({
                         var result = re.exec(response);
                         test.ok(result !== null,
                             'expected:status=AVAILABLE&ServeTraffic=true&ip=<Network IP>&hostname=' + hostname + '&port=' + port + '&time=.*');
-                        test.ok(result[1] !== 127, 'Network Ip expected. Got a loopback/localhost address');
                         test.done();
                         c.app.close();
                     });
@@ -95,9 +94,8 @@ module.exports = testCase({
                     });
                     res.on('end', function() {
                         var result = re.exec(response);
-                        test.ok(result !== null,
+                        test.ok(result != null,
                             'expected:status=AVAILABLE&ServeTraffic=true&ip=<Network IP>&hostname='+hostname+'&port=' + port + '&time=.*');
-                        test.ok(result[1] !== 127, 'Network Ip expected. Got a loopback/localhost address');
                         test.done();
                         c.app.close();
                     });
