@@ -23,9 +23,7 @@ var http = require('http'),
  * The ECV check sends a "/tables" request to the running server. Anything other than a valid JSON response is
  * treated as an error.
  */
-
 var hostname = os.hostname();
-var ip; // populate on first request.
 
 exports.enable = function(app, port, path) {
     app.get(path || '/ecv', function(req, res) {
@@ -81,11 +79,7 @@ function happy(req, res, tosend) {
         'content-type': 'text/plain',
         'cache-control': 'no-cache'
     });
-    if(!ip) {
-        // req.connection.address() cant be null.
-        ip = req.connection.address()['address'];
-    }
-    res.write('status=AVAILABLE&ServeTraffic=true&ip='+ ip +'&hostname='+ hostname +'&port=' + tosend.port+ '&time=' + tosend.date.toString());
+    res.write('status=AVAILABLE&ServeTraffic=true&ip='+ req.connection.address()['address'] +'&hostname='+ hostname +'&port=' + tosend.port+ '&time=' + tosend.date.toString());
     res.end();
 }
 
@@ -94,7 +88,6 @@ function unhappy(req, res, tosend) {
         'content-type': 'text/plain',
         'cache-control': 'no-cache'
     });
-    // IP address got from req object in unhappy paths.
     res.write('status=WARNING&ServeTraffic=false&ip='+ req.connection.address()['address'] +'&hostname='+ hostname +'&port=' + tosend.port + '&time=' + tosend.date.toString());
     res.end();
 }
