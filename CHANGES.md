@@ -4,6 +4,7 @@
 
 ## Feb 14, 2012
 
+* "/ecv" check returns network ip instead of loopback address
 * Let the engine allow a monkey patch to parse the response. Useful to process binary formats
   like avro.
 * HTML interface for `/routes` and `/tables`. You can get JSON by either include

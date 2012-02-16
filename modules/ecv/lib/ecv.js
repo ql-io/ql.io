@@ -16,19 +16,21 @@
 
 "use strict";
 
-var http = require('http');
+var http = require('http'),
+    os = require('os');
 
 /**
- * The ECV check sends a "show tables" request to the running server. Anything other than a valid JSON response is
+ * The ECV check sends a "/tables" request to the running server. Anything other than a valid JSON response is
  * treated as an error.
  */
+var hostname = os.hostname();
+
 exports.enable = function(app, port, path) {
     app.get(path || '/ecv', function(req, res) {
         var tosend = {
             date : new Date ,
             port : port
         };
-        // TODO: Switch os.getNetworkInterfaces
         var options = {
             host:'localhost',
             port:port,
@@ -51,41 +53,41 @@ exports.enable = function(app, port, path) {
             cres.on('end', function() {
                 if(cres.statusCode >= 300) {
                     // Not happy
-                    unhappy(res, tosend);
+                    unhappy(req, res, tosend);
                 }
                 else {
                     try {
                         JSON.parse(data);
-                        happy(res, tosend);
+                        happy(req, res, tosend);
                     }
                     catch(e) {
                         // Not happy
-                        unhappy(res, tosend);
+                        unhappy(req, res, tosend);
                     }
                 }
             });
         });
         creq.on('error', function(err) {
-            unhappy(res, tosend.date);
+            unhappy(req, res, tosend.date);
         });
         creq.end();
     });
 };
 
-function happy(res, tosend) {
+function happy(req, res, tosend) {
     res.writeHead(200, {
         'content-type': 'text/plain',
         'cache-control': 'no-cache'
     });
-    res.write('status=AVAILABLE&ServeTraffic=true&ip=127.0.0.1&hostname=localhost&port=' + tosend.port+ '&time=' + tosend.date.toString());
+    res.write('status=AVAILABLE&ServeTraffic=true&ip='+ req.connection.address()['address'] +'&hostname='+ hostname +'&port=' + tosend.port+ '&time=' + tosend.date.toString());
     res.end();
 }
 
-function unhappy(res, tosend) {
+function unhappy(req, res, tosend) {
     res.writeHead(500, {
         'content-type': 'text/plain',
         'cache-control': 'no-cache'
     });
-    res.write('status=WARNING&ServeTraffic=false&ip=127.0.0.1&hostname=localhost&port=' + tosend.port + '&time=' + tosend.date.toString());
+    res.write('status=WARNING&ServeTraffic=false&ip='+ req.connection.address()['address'] +'&hostname='+ hostname +'&port=' + tosend.port + '&time=' + tosend.date.toString());
     res.end();
 }
