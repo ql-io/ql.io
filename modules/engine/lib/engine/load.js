@@ -57,7 +57,7 @@ function loadInternal(path, prefix, logEmitter, config, tables) {
                  prefix.length > 0 ? prefix + '.' + filename : filename,
                  logEmitter, config, tables);
         }
-        else if(stats.isFile() && /\.ql/.test(filename)) {
+        else if(stats.isFile() && /\.ql$/.test(filename)) {
             // Load script files from the disk
             script = fs.readFileSync(path + filename, 'utf8');
 
