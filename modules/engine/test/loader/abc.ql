@@ -1,0 +1,1 @@
+create table abc on select get from 'http://localhost:3011/{`test}' using defaults test='a/b/c'
