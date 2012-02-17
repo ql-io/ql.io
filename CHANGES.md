@@ -4,6 +4,7 @@
 * Fixed minor formatting issues with /table?name=<tablename> html rendering.
 * With /table?name=<tablename> feature 'describe table <tablename>' returns json in console.
 * Changed the query param for json in /routes, /tables, /route, /table from json=true to format=json.
+* Bug fix for https://github.com/ql-io/ql.io/issues/286
 
 ## Feb 14, 2012
 
