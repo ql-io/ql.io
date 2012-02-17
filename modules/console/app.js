@@ -212,10 +212,16 @@ var Console = module.exports = function(config, cb) {
                 collectHttpQueryParams(req, holder, false);
 
                 // find a route (i.e. associated cooked script)
-                var route = _.detect(verbRouteVariants, function(verbRouteVariant) {
-                    return _.isEqual(_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)),
-                        _.keys(verbRouteVariant.query));
-                });
+                var route = _(verbRouteVariants).chain()
+                    .filter(function (verbRouteVariant) {
+                        return _.isEqual(_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)),
+                            _.keys(verbRouteVariant.query))
+                    })
+                    .reduce(function (match, route) {
+                        return match == null ?
+                            route : route.length > match.length ? route : match;
+                    }, null)
+                    .value();
 
                 if (!route) {
                     res.writeHead(400, 'Bad input', {
@@ -264,12 +270,11 @@ var Console = module.exports = function(config, cb) {
     // HTTP indirection for 'show tables' command
     app.get('/tables', function(req,res){
         var holder = {
-            params: {fromRoute: true},
             headers: {}
         };
 
         var isJson = ((req.headers || {}).accept || '').search('json') > 0 ||
-            (req.param('json') || 'false').trim().toLowerCase() === 'true';
+            (req.param('format') || '').trim().toLowerCase() === 'json';
 
         function routePage(res, execState, results){
             res.header['Link'] = headers.format('Link', {
@@ -303,12 +308,11 @@ var Console = module.exports = function(config, cb) {
     // HTTP indirection for 'describe <table>' command  and it returns json (and not html)
     app.get('/table', function(req,res){
         var holder = {
-            params: {fromRoute: true},
             headers: {}
         };
 
         var isJson = ((req.headers || {}).accept || '').search('json') > 0 ||
-            (req.param('json') || 'false').trim().toLowerCase() === 'true';
+            (req.param('format') || '').trim().toLowerCase() === 'json';
 
         function routePage(res, execState, result){
             res.header['Link'] = headers.format('Link', {
@@ -371,7 +375,7 @@ var Console = module.exports = function(config, cb) {
         };
 
         var isJson = ((req.headers || {}).accept || '').search('json') > 0 ||
-            (req.param('json') || 'false').trim().toLowerCase() === 'true';
+            (req.param('format') || '').trim().toLowerCase() === 'json';
 
         function routePage(res, execState, results){
             res.header['Link'] = headers.format('Link', {
@@ -423,7 +427,7 @@ var Console = module.exports = function(config, cb) {
         }
 
         var isJson = ((req.headers || {}).accept || '').search('json') > 0 ||
-            (req.param('json') || 'false').trim().toLowerCase() === 'true';
+            (req.param('format') || '').trim().toLowerCase() === 'json';
 
         function routePage(res, execState, result){
             res.header['Link'] = headers.format('Link', {

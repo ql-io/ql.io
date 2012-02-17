@@ -29,24 +29,9 @@ var engine = new Engine({
 });
 
 exports['describe'] = function (test) {
-    var q = 'describe ebay.finding.items';
-    engine.exec(q, function(err, list) {
-        if (err) {
-            test.fail('got error: ' + err.stack);
-            test.done();
-        }
-        else {
-            test.equals(list.headers['content-type'], 'text/html', 'HTML expected');
-            test.done();
-        }
-    });
-};
-
-exports['describe - for routes'] = function (test) {
     var opts = {
         request: {
             headers: {},
-            params: {fromRoute: true}
         },
         script: 'describe ebay.finding.items',
         cb: function(err, list) {

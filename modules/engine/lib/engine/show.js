@@ -49,8 +49,8 @@ exports.exec = function(opts, statement, cb) {
             headers: {
                 'content-type': 'application/json'
             },
-            body: params.fromRoute ? _.map(arr, function(a){
+            body: _.map(arr, function(a){
                 return { 'name':a.name, 'about':'/table?name=' + encodeURIComponent(a.name), 'info':a.info };
-            }):arr
+            })
         });
 }
