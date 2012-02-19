@@ -28,6 +28,7 @@ var strTemplate = require('./peg/str-template.js'),
     util = require('util'),
     _ = require('underscore'),
     mustache = require('mustache'),
+    ejs = require('ejs'),
     async = require('async'),
     headers = require('headers'),
     uuid = require('node-uuid'),
@@ -248,7 +249,14 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
             holder.statement = statement;
             holder.params = params;
 
-            requestBody = mustache.to_html(body.content || resource.body.content, holder);
+            if(resource.body.template.match(/\.ejs/)) {
+                // Use EJS
+                requestBody = ejs.render(body.content || resource.body.content, holder);
+            }
+            else {
+                // Use Mustache
+                requestBody = mustache.to_html(body.content || resource.body.content, holder);
+            }
         }
 
         if(resource.monkeyPatch && resource.monkeyPatch['patch body']) {

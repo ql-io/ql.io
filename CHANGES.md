@@ -1,3 +1,7 @@
+## Feb 19, 2012
+
+* Support ejs body templates.
+
 ## Feb 16, 2012
 
 * Skip files that don't end with `.ql`.
