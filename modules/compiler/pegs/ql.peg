@@ -405,12 +405,21 @@ usingMonkeyPatch = 'using' insig 'patch' insig t:quotedWord {
   return t.value;
 }
 
-usingBodyTemplate = 'using' insig 'bodyTemplate' insig t:quotedWord insig 'type' insig m:quotedWord {
-  return {
+usingBodyTemplate = 'using' insig 'bodyTemplate' insig t:quotedWord insig 'type' insig m:quotedWord insig f:foreachMember? insig {
+  var ret = {
     template: t.value,
     type: m.value
   }
+  if(f) {
+    ret.foreach = f;
+  }
+  return ret;
 }
+
+foreachMember = 'foreach' insig id:quotedWord {
+  return id.value;
+}
+
 
 withAliases = 'with' insig 'aliases' p:nvps {
   return merge(p);
