@@ -51,6 +51,7 @@ module.exports = (function(){
         "field": parse_field,
         "fieldName": parse_fieldName,
         "fields": parse_fields,
+        "foreachMember": parse_foreachMember,
         "frac": parse_frac,
         "fromClause": parse_fromClause,
         "getfrom": parse_getfrom,
@@ -1675,7 +1676,26 @@ module.exports = (function(){
                       if (result10 !== null) {
                         var result11 = parse_quotedWord();
                         if (result11 !== null) {
-                          var result1 = [result3, result4, result5, result6, result7, result8, result9, result10, result11];
+                          var result12 = parse_insig();
+                          if (result12 !== null) {
+                            var result15 = parse_foreachMember();
+                            var result13 = result15 !== null ? result15 : '';
+                            if (result13 !== null) {
+                              var result14 = parse_insig();
+                              if (result14 !== null) {
+                                var result1 = [result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14];
+                              } else {
+                                var result1 = null;
+                                pos = savedPos1;
+                              }
+                            } else {
+                              var result1 = null;
+                              pos = savedPos1;
+                            }
+                          } else {
+                            var result1 = null;
+                            pos = savedPos1;
+                          }
                         } else {
                           var result1 = null;
                           pos = savedPos1;
@@ -1713,12 +1733,75 @@ module.exports = (function(){
           pos = savedPos1;
         }
         var result2 = result1 !== null
-          ? (function(t, m) {
-            return {
+          ? (function(t, m, f) {
+            var ret = {
               template: t.value,
               type: m.value
             }
-          })(result1[4], result1[8])
+            if(f) {
+              ret.foreach = f;
+            }
+            return ret;
+          })(result1[4], result1[8], result1[10])
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_foreachMember() {
+        var cacheKey = 'foreachMember@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        var savedPos1 = pos;
+        if (input.substr(pos, 7) === "foreach") {
+          var result3 = "foreach";
+          pos += 7;
+        } else {
+          var result3 = null;
+          if (reportMatchFailures) {
+            matchFailed("\"foreach\"");
+          }
+        }
+        if (result3 !== null) {
+          var result4 = parse_insig();
+          if (result4 !== null) {
+            var result5 = parse_quotedWord();
+            if (result5 !== null) {
+              var result1 = [result3, result4, result5];
+            } else {
+              var result1 = null;
+              pos = savedPos1;
+            }
+          } else {
+            var result1 = null;
+            pos = savedPos1;
+          }
+        } else {
+          var result1 = null;
+          pos = savedPos1;
+        }
+        var result2 = result1 !== null
+          ? (function(id) {
+            return id.value;
+          })(result1[2])
           : null;
         if (result2 !== null) {
           var result0 = result2;

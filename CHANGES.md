@@ -1,5 +1,7 @@
 ## Feb 19, 2012
 
+* Support scatter-gather for requests with bodies by adding a `foreach 'param'` for the
+  `using bodyTemplate` cluase. This allows scripts to batchup POST and PUT requests.
 * Support ejs body templates.
 
 ## Feb 16, 2012
