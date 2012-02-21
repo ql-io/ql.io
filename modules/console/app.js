@@ -197,10 +197,16 @@ var Console = module.exports = function(config) {
                 collectHttpQueryParams(req, holder, false);
 
                 // find a route (i.e. associated cooked script)
-                var route = _.detect(verbRouteVariants, function(verbRouteVariant) {
-                    return _.isEqual(_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)),
-                        _.keys(verbRouteVariant.query));
-                });
+                var route = _(verbRouteVariants).chain()
+                    .filter(function (verbRouteVariant) {
+                        return _.isEqual(_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)),
+                            _.keys(verbRouteVariant.query))
+                    })
+                    .reduce(function (match, route) {
+                        return match == null ?
+                            route : route.length > match.length ? route : match;
+                    }, null)
+                    .value();
 
                 if (!route) {
                     res.writeHead(400, 'Bad input', {
