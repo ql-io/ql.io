@@ -1,4 +1,7 @@
 ## Feb 14, 2012
+* Bug fix for https://github.com/ql-io/ql.io/issues/286
+
+## Feb 14, 2012
 * XSS issue for 404 response fixed.
 
 ## Feb 13, 2012
