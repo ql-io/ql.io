@@ -42,6 +42,8 @@ var configLoader = require('./engine/config.js'),
     util = require('util'),
     assert = require('assert');
 
+exports.version = require('../package.json').version;
+
 process.on('uncaughtException', function(error) {
     winston.error(error);
 })
