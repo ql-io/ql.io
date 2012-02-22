@@ -30,6 +30,8 @@ var winston = require('winston'),
     _ = require('underscore'),
     WebSocketServer = require('websocket').server;
 
+exports.version = require('./package.json').version;
+
 process.on('uncaughtException', function(error) {
     winston.error(error.stack);
 });

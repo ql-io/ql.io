@@ -19,6 +19,8 @@ var ql = require('./peg/ql.js'),
 
 'use strict'
 
+exports.version = require('../package.json').version;
+
 //
 // TODO: Most of this code should move to ql.peg
 //
