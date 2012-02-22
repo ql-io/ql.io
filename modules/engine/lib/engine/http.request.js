@@ -211,7 +211,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     };
 
     h[requestId.name]  = requestId.value;
-    h['user-agent'] = 'ql.io/node.js ' + process.version;
+    h['user-agent'] = 'ql.io-engine' + require('../../package.json').version + '/node.js-' + process.version ;
 
     // Clone headers - also replace any tokens
     _.each(resource.headers, function(v, k) {

@@ -1,3 +1,9 @@
+## Feb 22, 2012
+
+* Export version from each module. You can find version of the engine using
+  `require('ql.io-engine').version`.
+* Include version number in `User-Agent` and `Server` headers.
+
 ## Feb 19, 2012
 
 * Support scatter-gather for requests with bodies by adding a `foreach 'param'` for the
