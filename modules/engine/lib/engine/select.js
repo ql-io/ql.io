@@ -16,7 +16,7 @@
 
 "use strict";
 
-var httpRequest = require('./http.request.js'),
+var httpRequest = require('./http/table.js'),
     jsonfill = require('./jsonfill.js'),
     project = require('./project.js'),
     _ = require('underscore'),

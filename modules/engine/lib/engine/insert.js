@@ -16,10 +16,9 @@
 
 'use strict';
 
-var httpRequest = require('./http.request.js'),
+var httpRequest = require('./http/table.js'),
     jsonfill = require('./jsonfill.js'),
     _ = require('underscore'),
-    async = require('async'),
     assert = require('assert');
 
 exports.exec = function(opts, statement, cb, parentEvent) {

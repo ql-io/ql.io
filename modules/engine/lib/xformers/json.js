@@ -23,4 +23,6 @@ exports.toJson = function(data, respCb, errorCb) {
     catch(error){
         return errorCb(error);
     }
-}
+};
+
+exports.accept = 'application/json';
