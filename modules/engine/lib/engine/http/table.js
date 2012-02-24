@@ -19,12 +19,9 @@
 var assert = require('assert'),
     _ = require('underscore'),
     async = require('async'),
-    MutableURI = require('ql.io-mutable-uri'),
-    uriTemplate = require('ql.io-uri-template'),
     request = require('./request.js');
 
 exports.exec = function(args) {
-    var logEmitter = args.logEmitter;
     var holder = {};
 
     //
@@ -49,27 +46,14 @@ exports.exec = function(args) {
         return args.callback(e);
     }
 
-    // Parse the uri template (hits a cache)
-    var template;
+    var resourceUri;
     try {
-        template = uriTemplate.parse(args.resource.uri);
-    }
-    catch(err) {
-        logEmitter.emitWarning(err);
-        return args.callback(err, null);
-    }
-
-    // Format the URI. If a token is single valued, but we have multiple values in the params array,
-    // formatUri return multiple values.
-    var resourceUri = formatUri(template, params, args.resource.defaults);
-
-    // Monkey patch URIs
-    try {
-        resourceUri = patchUris(args.resource, resourceUri, args.statement, params);
+        resourceUri = args.resource.uris(args, params);
     }
     catch(e) {
         return args.callback(e);
     }
+
     // If there are no URIs, just return now
     if(!resourceUri || resourceUri.length === 0) {
         return args.callback(undefined, {});
@@ -139,7 +123,7 @@ exports.exec = function(args) {
                     //
                     // In such cases, we need to merge values of the each object in the results
                     // array. Note that merging may result in single props becoming arrays
-                    ret.body = mergeArray(results, 'body', (args.resource.body && args.resource.body.foreach) ? 'block' : template.merge());
+                    ret.body = mergeArray(results, 'body', (args.resource.body && args.resource.body.foreach) ? 'block' : args.resource.merge);
                 }
                 else {
                     var result = results[0];
@@ -208,37 +192,6 @@ function validateParams(resource, params, statement) {
     }
 }
 
-function patchUris(resource, resourceUri, statement, params) {
-    var temp = resourceUri, parsed, patched, arr;
-    if(resource.monkeyPatch && resource.monkeyPatch['patch uri']) {
-        temp = [];
-        _.each(resourceUri, function (u) {
-            parsed = new MutableURI(u);
-            patched = resource.monkeyPatch['patch uri']({
-                uri: parsed,
-                statement: statement,
-                params: params
-            });
-
-            if(patched) {
-                if(_.isArray(patched)) {
-                    arr = [];
-                    _.each(patched, function(p) {
-                        arr.push(p.format());
-                    });
-                    patched = arr;
-                }
-                else {
-                    patched = patched.format();
-                }
-                temp = temp.concat(patched);
-            }
-        });
-    }
-
-    return temp;
-}
-
 function invokeUdf(statement, resource, holder) {
     _.each(statement.whereCriteria, function (c) {
         if(c.operator === 'udf') {
@@ -252,12 +205,6 @@ function invokeUdf(statement, resource, holder) {
             }
         }
     });
-}
-
-
-function formatUri(template, params, defaults) {
-    var arr = template.format(params, defaults);
-    return _.isArray(arr) ? arr : [arr];
 }
 
 function mergeArray(uarr, prop, merge) {

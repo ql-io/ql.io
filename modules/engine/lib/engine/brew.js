@@ -22,6 +22,7 @@
 
 var strTemplate = require('./peg/str-template.js'),
     compiler = require('ql.io-compiler'),
+    MutableURI = require('ql.io-mutable-uri'),
     uriTemplate = require('ql.io-uri-template'),
     assert = require('assert'),
     _ = require('underscore'),
@@ -30,7 +31,7 @@ var strTemplate = require('./peg/str-template.js'),
     markdown = require('markdown');
 
 exports.go = function(options) {
-    var statements, text, comments, resource, bag = {
+    var statements, text, comments, table, bag = {
         config: options.config
     };
     var root = options.path;
@@ -55,9 +56,9 @@ exports.go = function(options) {
                     comments.push(statement.text);
                     break;
                 case 'create' :
-                    resource = cloneDeep(statement);
-                    resource.meta = {
-                        name: resource.name,
+                    table = cloneDeep(statement);
+                    table.meta = {
+                        name: table.name,
                         statements: [],
                         routes: []
                     }; // Metadata for describe
@@ -65,18 +66,18 @@ exports.go = function(options) {
                         _.each(comments, function(comment) {
                             text += markdown.markdown.toHTML(comment);
                         });
-                        resource.meta.comments = text;
+                        table.meta.comments = text;
                         comments = [];
                         text = '';
                     }
 
-                    _process(resource['select'], 'select', bag, root, name,
-                        resource.meta.statements, logEmitter, cb);
-                    _process(resource['insert'], 'insert', bag, root, name,
-                        resource.meta.statements, logEmitter, cb);
-                    _process(resource['delete'], 'delete', bag, root, name,
-                        resource.meta.statements, logEmitter, cb);
-                    cb(null, Object.freeze(resource));
+                    _process(table['select'], 'select', bag, root, name,
+                        table.meta.statements, logEmitter, cb);
+                    _process(table['insert'], 'insert', bag, root, name,
+                        table.meta.statements, logEmitter, cb);
+                    _process(table['delete'], 'delete', bag, root, name,
+                        table.meta.statements, logEmitter, cb);
+                    cb(null, Object.freeze(table));
 
                     break;
                 default:
@@ -168,6 +169,28 @@ function _process(verb, type, bag, root, name, meta, logEmitter, cb) {
             cb(e);
         }
     }
+
+    verb.uris = function(args, params) {
+        // Parse the uri template (hits a cache)
+        var template;
+        try {
+            template = uriTemplate.parse(verb.uri);
+            verb.merge = template.merge();
+        }
+        catch(err) {
+            args.logEmitter.emitWarning(err);
+            return args.callback(err, null);
+        }
+
+        // Format the URI. If a token is single valued, but we have multiple values in the params array,
+        // formatUri return multiple values.
+        var uris = template.format(params, verb.defaults);
+        uris = _.isArray(uris) ? uris : [uris];
+
+        // Monkey patch
+            uris = patchUris(verb, uris, args.statement, params);
+        return uris;
+    }
 }
 
 // Replace headers and defaults
@@ -201,4 +224,35 @@ function cloneDeep(obj) {
         copy[key] = cloneDeep(obj[key]);
     }
     return copy;
+}
+
+function patchUris(resource, resourceUri, statement, params) {
+    var temp = resourceUri, parsed, patched, arr;
+    if(resource.monkeyPatch && resource.monkeyPatch['patch uri']) {
+        temp = [];
+        _.each(resourceUri, function (u) {
+            parsed = new MutableURI(u);
+            patched = resource.monkeyPatch['patch uri']({
+                uri: parsed,
+                statement: statement,
+                params: params
+            });
+
+            if(patched) {
+                if(_.isArray(patched)) {
+                    arr = [];
+                    _.each(patched, function(p) {
+                        arr.push(p.format());
+                    });
+                    patched = arr;
+                }
+                else {
+                    patched = patched.format();
+                }
+                temp = temp.concat(patched);
+            }
+        });
+    }
+
+    return temp;
 }
