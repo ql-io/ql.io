@@ -306,7 +306,7 @@ Monitor.prototype.listen = function(cb) {
         var accept = (req.headers || {}).accept || '';
         if(accept.search('json') > 0) {
             res.contentType('application/json');
-            res.send(JSON.stringify(getInflight(this.stats)));
+            res.send(JSON.stringify(getInflight(that.stats)));
         }
         else {
             res.render('in-flight.ejs', getInflight(that.stats));

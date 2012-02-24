@@ -1,3 +1,7 @@
+## Feb 24, 2012
+
+* Fix in-flight.ejs. https://github.com/ql-io/ql.io/issues/266
+
 ## Feb 22, 2012
 
 * Export version from each module. You can find version of the engine using

@@ -8,15 +8,13 @@
     </tr>
     </thead>
     <tbody>
-<!--<% for(var i=0; i < workers.length; i++) {%>-->
-  <!--<% for(id in workers[i].inflight) { %>-->
-  <!--<tr>-->
-      <!--<td><%=workers[i].pid%></td>-->
-      <!--<td><%=workers[i].inflight[id]%></td>-->
-  <!--</tr>-->
-  <!--<% } %>-->
-<!--<% } %>-->
+    <% for(var i=0; i < master.workers.length; i++) {%>
+        <% for(id in master.workers[i].inflight) { %>
+        <tr>
+            <td><%=master.workers[i].pid%></td>
+            <td><%=master.workers[i].inflight[id]%></td>
+        </tr>
+        <% } %>
+    <% } %>
     </tbody>
 </table>
-
-
