@@ -17,8 +17,7 @@
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
     http = require('http'),
-    fs = require('fs'),
-    util = require('util');
+    fs = require('fs');
 
 module.exports = {
     'error event for error code': function(test) {
