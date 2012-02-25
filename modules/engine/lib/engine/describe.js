@@ -83,9 +83,7 @@ exports.exec = function(opts, statement, cb) {
         });
     }
     else {
-        cb({
-            message: 'No such table ' + statement.source.name
-        });
+        cb('No such table ' + statement.source.name);
     }
 }
 

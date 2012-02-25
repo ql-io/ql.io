@@ -74,7 +74,7 @@ function loadInternal(path, prefix, logEmitter, config, tables) {
                             if(err) {
                                 logEmitter.emitError(err);
                             } else {
-                                assert.ok(table, 'resource should not be null');
+                                assert.ok(table, 'table should not be null');
                                 tables[table.name] = table;
                             }
                         }

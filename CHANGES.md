@@ -1,3 +1,7 @@
+## Feb 24, 2012
+
+* Escalte table/route loading errors to the logger
+
 ## Feb 22, 2012
 
 * Export version from each module. You can find version of the engine using
