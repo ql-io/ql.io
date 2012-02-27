@@ -221,7 +221,7 @@ var Console = module.exports = function(config, cb) {
                     })
                     .reduce(function (match, route) {
                         return match == null ?
-                            route : route.length > match.length ? route : match;
+                            route : _.keys(route.query).length > _.keys(match.query).length ? route : match;
                     }, null)
                     .value();
 
