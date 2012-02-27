@@ -31,7 +31,7 @@ var engine = new Engine({
 exports['describe'] = function (test) {
     var opts = {
         request: {
-            headers: {},
+            headers: {}
         },
         script: 'describe ebay.finding.items',
         cb: function(err, list) {

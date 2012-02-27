@@ -40,7 +40,7 @@ function loadInternal(path, prefix, logEmitter, config, tables) {
     assert.ok(config, 'config should not be null');
     assert.ok(tables, 'tables should not be null');
 
-    var script, resource, name, stats, paths;
+    var script, name, stats, paths;
     path = path.charAt(path.length - 1) == '/' ? path : path + '/';
     try {
         paths = fs.readdirSync(path);
@@ -70,12 +70,12 @@ function loadInternal(path, prefix, logEmitter, config, tables) {
                     config: config,
                     script: script,
                     logEmitter: logEmitter,
-                    cb: function(err, resource) {
+                    cb: function(err, table) {
                             if(err) {
                                 logEmitter.emitError(err);
                             } else {
-                                assert.ok(resource, 'resource should not be null');
-                                tables[resource.name] = resource;
+                                assert.ok(table, 'table should not be null');
+                                tables[table.name] = table;
                             }
                         }
                     });

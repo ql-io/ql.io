@@ -44,7 +44,6 @@ var Console = module.exports = function(config, cb) {
 
     config = config || {};
 
-    var engine = new Engine(config);
     var logger = new (winston.Logger)({
         transports: [
             new (winston.transports.File)({
@@ -53,27 +52,9 @@ var Console = module.exports = function(config, cb) {
             })
         ]
     });
-    logger.setLevels(config['log levels'] || winston.config.syslog.levels);
-
-    engine.setMaxListeners(25);
-    engine.on(Engine.Events.EVENT, function(event, message) {
-        if(message) {
-            logger.info(new Date() + ' - ' + message);
-        }
-    });
-    engine.on(Engine.Events.SCRIPT_DONE, function(event, message) {
-        logger.info(new Date() + ' - ' + JSON.stringify(event));
-    });
-    engine.on(Engine.Events.ERROR, function(event, message) {
-        if(message) {
-            logger.error(new Date() + ' - ' + message.stack || message);
-        }
-    });
-    engine.on(Engine.Events.WARNING, function(event, message) {
-        if(message) {
-            logger.warning(new Date() + ' - ' + message.stack || message);
-        }
-    });
+    logger.setLevels(config['log levels'] || winston.config.cli.levels);
+    config.logger = config.logger || logger;
+    var engine = new Engine(config);
 
     if(config.tables) {
         logger.info('Loading tables from ' + config.tables);
@@ -221,7 +202,7 @@ var Console = module.exports = function(config, cb) {
                     })
                     .reduce(function (match, route) {
                         return match == null ?
-                            route : route.length > match.length ? route : match;
+                            route : _.keys(route.query).length > _.keys(match.query).length ? route : match;
                     }, null)
                     .value();
 

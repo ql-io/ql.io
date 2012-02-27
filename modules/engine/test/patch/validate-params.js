@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 eBay Software Foundation
+ * Copyright 2012 eBay Software Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-'use strict';
-
-var expat = require('xml2json');
-
-exports.toJson = function(data, respCb, errorCb) {
-    try {
-        return respCb(expat.toJson(data, {coerce: true, object: true}));
-    }
-    catch(error) {
-        return errorCb(error);
+exports['validate param'] = function(options, param, value) {
+    switch(param) {
+        case 'p1' :
+            return value === 'v1';
+        case 'p2' :
+            return value === 10;
+        default:
+            return false;
     }
 };
 
-exports.accept = 'application/xml';

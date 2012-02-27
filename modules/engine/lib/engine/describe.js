@@ -16,15 +16,8 @@
 
 'use strict';
 
-var mustache = require('mustache'),
-    assert = require('assert'),
-    _ = require('underscore'),
-    fs = require('fs');
-
-var lreg = new RegExp("{{", 'g');
-var rreg = new RegExp("}}", 'g');
-var ulreg = new RegExp("{ {", 'g');
-var urreg = new RegExp("} }", 'g');
+var assert = require('assert'),
+    _ = require('underscore');
 
 /**
  * Implements describe
@@ -41,7 +34,7 @@ exports.exec = function(opts, statement, cb) {
 
     var tables = opts.tables, tempTables = opts.tempResources, params = opts.request.params || {};
 
-    var table, template, desc;
+    var table, desc;
     var key = statement.source.name;
     desc = cache[key];
     if(desc) {
@@ -62,17 +55,20 @@ exports.exec = function(opts, statement, cb) {
             'info':table.meta.comments || '',
             'routes':table.meta.routes
         };
-        _.each(table.meta.statements, function (statement) {
-            desc[statement.type] = {
-                'request':statement.method + ' ' + statement.uri,
-                'params':statement.params,
-                'headers':statement.headers
-            };
-            if (statement.body) {
-                desc[statement.type].body = {
-                    'type':statement.body.type,
-                    'content':statement.body.content
+        _.each(['select', 'insert', 'update', 'delete'], function(type) {
+            var verb = table.verb(type);
+            if(verb) {
+                desc[verb.type] = {
+                    'request':verb.method + ' ' + verb.uri,
+                    'params':verb.params,
+                    'headers':verb.headers
                 };
+                if (verb.body) {
+                    desc[verb.type].body = {
+                        'type':verb.body.type,
+                        'content':verb.body.content
+                    };
+                }
             }
         })
 
@@ -83,9 +79,7 @@ exports.exec = function(opts, statement, cb) {
         });
     }
     else {
-        cb({
-            message: 'No such table ' + statement.source.name
-        });
+        cb('No such table ' + statement.source.name);
     }
 }
 
