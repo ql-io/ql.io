@@ -1,3 +1,6 @@
+## Feb 26, 2012
+* Bug https://github.com/ql-io/ql.io/issues/286 reopened and fixed with better tests.
+
 ## Feb 22, 2012
 
 * Export version from each module. You can find version of the engine using
