@@ -130,50 +130,46 @@ var Verb = module.exports = function(statement, type, bag, path) {
 
     this.patchHeaders = function(uri, params, headers) {
         var parsed = new MutableURI(uri);
-        var ret = this['patch headers']({
+        return this['patch headers']({
             uri: parsed,
             statement: this,
             params: params,
             headers: headers
-        });
-        return ret || {};
+        }) || {};
     };
 
     this.bodyTemplate = function(uri, params, headers) {
        var parsed;
         parsed = new MutableURI(uri);
-        var ret = this['body template']({
+        return this['body template']({
             uri: parsed,
             statement: this,
             params: params,
             headers: headers
-        });
-        return ret || {};
+        }) || {};
     };
 
     this.patchBody = function(uri, params, headers, body) {
         var parsed = new MutableURI(uri);
-        var ret = this['patch body']({
+        return this['patch body']({
             uri: parsed,
             statement: this,
             params: params,
             body: body,
             headers: headers
         });
-        return ret;
     };
 
     // TODO: Repeated URI parsing!
     this.parseResponse = function(uri, params, headers, body) {
         var parsed = new MutableURI(uri);
-        var ret = this['parse response']({
+        return this['parse response']({
             uri: parsed,
             statement: this,
             params: params,
             body: body,
             headers: headers
         });
-        return ret;
     };
 
     this.patchResponse = function(uri, params, status, headers, body) {
@@ -201,15 +197,16 @@ var Verb = module.exports = function(statement, type, bag, path) {
     };
 
     this.patchStatus = function(resourceUri, params, status, headers, respData) {
+        var parsed = new MutableURI(resourceUri);
         return this['patch status']({
-                uri: resourceUri,
+                uri: parsed,
                 statement: statement,
                 params: params,
                 status: status,
                 headers: headers,
                 body: respData
             }) || res.statusCode;
-    }
+    };
 
     this.exec = function(args) {
         var self = this, holder = {};
