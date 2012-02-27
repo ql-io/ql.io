@@ -129,9 +129,8 @@ var Verb = module.exports = function(statement, type, bag, path) {
     };
 
     this.patchHeaders = function(uri, params, headers) {
-        var parsed = new MutableURI(uri);
         return this['patch headers']({
-            uri: parsed,
+            uri: uri,
             statement: this,
             params: params,
             headers: headers
@@ -139,10 +138,8 @@ var Verb = module.exports = function(statement, type, bag, path) {
     };
 
     this.bodyTemplate = function(uri, params, headers) {
-       var parsed;
-        parsed = new MutableURI(uri);
         return this['body template']({
-            uri: parsed,
+            uri: uri,
             statement: this,
             params: params,
             headers: headers
@@ -150,9 +147,8 @@ var Verb = module.exports = function(statement, type, bag, path) {
     };
 
     this.patchBody = function(uri, params, headers, body) {
-        var parsed = new MutableURI(uri);
         return this['patch body']({
-            uri: parsed,
+            uri: uri,
             statement: this,
             params: params,
             body: body,
@@ -162,9 +158,8 @@ var Verb = module.exports = function(statement, type, bag, path) {
 
     // TODO: Repeated URI parsing!
     this.parseResponse = function(uri, params, headers, body) {
-        var parsed = new MutableURI(uri);
         return this['parse response']({
-            uri: parsed,
+            uri: uri,
             statement: this,
             params: params,
             body: body,
@@ -173,9 +168,8 @@ var Verb = module.exports = function(statement, type, bag, path) {
     };
 
     this.patchResponse = function(uri, params, status, headers, body) {
-        var parsed = new MutableURI(uri);
         return this['patch response']({
-            uri: parsed,
+            uri: uri,
             statement: this,
             params: params,
             status: status,
@@ -185,9 +179,8 @@ var Verb = module.exports = function(statement, type, bag, path) {
     };
 
     this.patchMediaType = function(uri, params, status, headers, body) {
-        var parsed = new MutableURI(uri);
         return this['patch mediaType']({
-            uri: parsed,
+            uri: uri,
             statement: statement,
             params: params,
             status: status,
@@ -196,16 +189,15 @@ var Verb = module.exports = function(statement, type, bag, path) {
         });
     };
 
-    this.patchStatus = function(resourceUri, params, status, headers, respData) {
-        var parsed = new MutableURI(resourceUri);
+    this.patchStatus = function(uri, params, status, headers, respData) {
         return this['patch status']({
-                uri: parsed,
-                statement: statement,
-                params: params,
-                status: status,
-                headers: headers,
-                body: respData
-            }) || res.statusCode;
+            uri: uri,
+            statement: statement,
+            params: params,
+            status: status,
+            headers: headers,
+            body: respData
+        }) || res.statusCode;
     };
 
     this.exec = function(args) {

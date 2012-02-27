@@ -23,6 +23,7 @@ var _ = require('underscore'),
     strTemplate = require('../peg/str-template.js'),
     project = require('../project.js'),
     eventTypes = require('../event-types.js'),
+    MutableURI = require('ql.io-mutable-uri'),
     _headers = require('headers'),
     http = require('http'),
     https = require('https'),
@@ -69,16 +70,19 @@ exports.send = function(args, resourceUri, params, holder, cb) {
 
     headers[requestId.name]  = requestId.value;
 
+    // Prepare once - used by patches
+    var parsed = new MutableURI(resourceUri);
+
     // Monkey patch headers
     try {
-        headers = args.resource.patchHeaders(resourceUri, args.prams, headers);
+        headers = args.resource.patchHeaders(parsed, args.prams, headers);
     }
     catch(e) {
         return cb(e);
     }
 
     // Request body
-    var body = args.resource.bodyTemplate(resourceUri, params, headers);
+    var body = args.resource.bodyTemplate(parsed, params, headers);
     var content = body.content || args.resource.body.content;
     if(content && content.length > 0 &&
         (args.resource.method === 'post' || args.resource.method == 'put')) {
@@ -111,7 +115,7 @@ exports.send = function(args, resourceUri, params, holder, cb) {
             }
         }
 
-        body = args.resource.patchBody(resourceUri, params, headers, requestBody);
+        body = args.resource.patchBody(parsed, params, headers, requestBody);
         requestBody = body.content;
 
         headers['content-length'] = requestBody.length;
@@ -163,11 +167,11 @@ exports.send = function(args, resourceUri, params, holder, cb) {
     client = isTls ? https : http;
 
     // Send
-    sendMessage(config, client, args.emitter, args.logEmitter, args.statement, params, httpReqTx, options, resourceUri, requestBody, headers,
+    sendMessage(config, client, args.emitter, args.logEmitter, args.statement, params, httpReqTx, options, resourceUri, parsed, requestBody, headers,
         requestId,  args.resource, args.xformers, 0);
 }
 
-function sendMessage(config, client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, requestBody, h,
+function sendMessage(config, client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, parsed, requestBody, h,
                      requestId, resource, xformers, retry) {
     var status, clientRequest, start = Date.now(), mediaType, respData, uri;
     var reqStart = Date.now();
@@ -266,11 +270,11 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
             // TODO: Handle redirects
 
 	        // Transform (patch only)
-            var result = resource.parseResponse(resourceUri, params, res.headers, respData);
+            var result = resource.parseResponse(parsed, params, res.headers, respData);
             respData = (result && result.body) ? result.body : respData;
             res.headers = (result && result.headers) ? result.headers : res.headers;
 
-            mediaType = sniffMediaType(resource, resourceUri, params, res, respData);
+            mediaType = sniffMediaType(resource, parsed, params, res, respData);
 
             logEmitter.emitEvent(httpReqTx.event, resourceUri + '  ' +
                 util.inspect(options) + ' ' +
@@ -279,12 +283,12 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
 
             // Parse
             jsonify(respData, mediaType, res.headers, xformers, function(respJson) {
-                status = resource.patchStatus(resourceUri, params, res.statusCode, res.headers, respJson || respData)
+                status = resource.patchStatus(parsed, params, res.statusCode, res.headers, respJson || respData)
                     || res.statusCode;
 
                 if(status >= 200 && status <= 300) {
                     if(respJson) {
-                        respJson = resource.patchResponse(resourceUri, params, res.statusCode, res.headers, respJson);
+                        respJson = resource.patchResponse(parsed, params, res.statusCode, res.headers, respJson);
                         // Projections
                         project.run(resource.resultSet, statement, respJson, function(filtered) {
                             return httpReqTx.cb(undefined, {
@@ -330,7 +334,7 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
         // For select, retry once on network error
         if(retry === 0 && statement.type === 'select') {
             logEmitter.emitEvent(httpReqTx.event, 'retrying - ' + resourceUri + ' - ' + (Date.now() - start) + 'msec');
-            sendMessage(config, client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, requestBody, h,
+            sendMessage(config, client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, parsed, requestBody, h,
                     requestId,  resource, xformers, 1);
         }
         else {
