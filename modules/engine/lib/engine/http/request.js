@@ -42,9 +42,7 @@ exports.send = function(args, resourceUri, params, holder, cb) {
 
     var config = args.config || {};
 
-    //
-    // Headers
-    //
+     // Prep headers
      var headers = {
         'connection' : args.settings['connection'] ? args.settings['connection'] : 'keep-alive',
         'user-agent' : 'ql.io-engine' + require('../../../package.json').version + '/node.js-' + process.version,
@@ -73,29 +71,14 @@ exports.send = function(args, resourceUri, params, holder, cb) {
     headers[requestId.name]  = requestId.value;
 
     // Monkey patch headers
-    if(args.resource.monkeyPatch && args.resource.monkeyPatch['patch headers']) {
-        try {
-            headers = patchHeaders(resourceUri, args.statement, params, headers, args.resource.monkeyPatch['patch headers']);
-        }
-        catch(e) {
-            return cb(e);
-        }
+    try {
+        headers = args.resource.patchHeaders(resourceUri, args.prams, headers);
+    }
+    catch(e) {
+        return cb(e);
     }
 
-    //
-    // Authenticate the request
-    //
-    if(args.resource.auth) {
-        args.resource.auth.auth(params, config, function(err) {
-            if(err) {
-                return cb(err);
-            }
-        });
-    }
-
-    //
     // Request body
-    //
     var body = {};
     if(args.resource.monkeyPatch && args.resource.monkeyPatch['body template']) {
         body = bodyTemplate(resourceUri, args.statement, params, headers, args.resource.monkeyPatch['body template']);
@@ -391,20 +374,6 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
     });
     clientRequest.end();
 }
-
-function patchHeaders(uri, statement, params, headers, fn) {
-   var parsed;
-    parsed = new MutableURI(uri);
-    var ret = fn({
-        uri: parsed,
-        statement: statement,
-        params: params,
-        headers: headers
-    });
-    ret = ret || {};
-    return ret;
-}
-
 
 function setEncoding(res){
     var contentType = headers.parse('content-type', res.headers['content-type'] || '');

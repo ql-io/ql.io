@@ -37,7 +37,7 @@ var Verb = module.exports = function(statement, type, bag, path) {
     };
     this['patch uri'] = function(args) { return args.uri; };
     this['udf'] = function() {};
-    this['patch headers'] = function() {};
+    this['patch headers'] = function(args) { return args.headers; };
     this['body template'] = function() {};
     this['patch body'] = function() {};
     this['parse response'] = function() {};
@@ -126,10 +126,21 @@ var Verb = module.exports = function(statement, type, bag, path) {
             }
         });
         return temp;
-    }
+    };
+
+    this.patchHeaders = function(uri, params, headers) {
+        var parsed = new MutableURI(uri);
+        var ret = this['patch headers']({
+            uri: parsed,
+            statement: statement,
+            params: params,
+            headers: headers
+        });
+        return ret || {};
+    };
 
     this.exec = function(args) {
-        var holder = {};
+        var self = this, holder = {};
 
         //
         // The order of args here defines how params get overridden.
@@ -191,7 +202,8 @@ var Verb = module.exports = function(statement, type, bag, path) {
                             }
                         }
                         rem[args.resource.body.foreach] = param;
-                        request.send(args, resourceUri[0], rem, holder, function (e, r) {
+                        // TODO: merge rem and holder into one
+                        send(self, args, resourceUri[0], rem, holder, function (e, r) {
                             callback(e, r);
                         });
                     }
@@ -375,7 +387,14 @@ function _process(self, statement, bag, root) {
     }
     if(statement.auth) {
         // auth is the compiled auth module
-        statement.auth = require(statement.auth);
+        try {
+            statement.auth = require(statement.auth);
+        }
+        catch(e) {
+            // Not found in a module path. Try current dir
+            path = root + statement.auth;
+            statement.auth = require(path);
+        }
     }
 }
 
@@ -390,4 +409,17 @@ function cloneDeep(obj) {
         copy[key] = cloneDeep(obj[key]);
     }
     return copy;
+}
+
+function send(verb, args, uri, params, holder, callback) {
+    // Authenticate the request
+    if(verb.auth) {
+        verb.auth.auth(params, config, function (err) {
+            if(err) {
+                return cb(err);
+            }
+        });
+    }
+
+    request.send(args, uri, params, holder, callback);
 }
