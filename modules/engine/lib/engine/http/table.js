@@ -77,7 +77,7 @@ var Verb = function(statement, type, bag, path) {
     this['validate param'] = function() {
         return true;
     };
-    this['patch uris'] = function() {};
+    this['patch uri'] = function(args) { return args.uri; };
     this['udf'] = function() {};
     this['patch headers'] = function() {};
     this['body template'] = function() {};
@@ -124,6 +124,50 @@ var Verb = function(statement, type, bag, path) {
                 }
             }
         });
+    };
+
+    this.uris = function(args, params) {
+        // Parse the uri template (hits a cache)
+        var template, self = this;
+        try {
+            template = uriTemplate.parse(statement.uri);
+            statement.merge = template.merge();
+        }
+        catch(err) {
+            args.logEmitter.emitWarning(err);
+            return args.callback(err, null);
+        }
+
+        // Format the URI. This may return multiple to accommodate single valued tokens with
+        // multiple values
+        var uris = template.format(params, statement.defaults);
+        uris = _.isArray(uris) ? uris : [uris];
+
+        // Monkey patch
+        var temp = [];
+        _.each(uris, function (u) {
+            var parsed = new MutableURI(u);
+            var patched = self['patch uri']({
+                uri: parsed,
+                statement: args.statement,
+                params: params
+            });
+
+            if(patched) {
+                if(_.isArray(patched)) {
+                    var arr = [];
+                    _.each(patched, function(p) {
+                        arr.push(p.format());
+                    });
+                    patched = arr;
+                }
+                else {
+                    patched = patched.format();
+                }
+                temp = temp.concat(patched);
+            }
+        });
+        return temp;
     }
 
     this.exec = function(args) {
@@ -375,28 +419,6 @@ function _process(self, statement, bag, root) {
         // auth is the compiled auth module
         statement.auth = require(statement.auth);
     }
-
-    statement.uris = function(args, params) {
-        // Parse the uri template (hits a cache)
-        var template;
-        try {
-            template = uriTemplate.parse(statement.uri);
-            statement.merge = template.merge();
-        }
-        catch(err) {
-            args.logEmitter.emitWarning(err);
-            return args.callback(err, null);
-        }
-
-        // Format the URI. If a token is single valued, but we have multiple values in the params array,
-        // formatUri return multiple values.
-        var uris = template.format(params, statement.defaults);
-        uris = _.isArray(uris) ? uris : [uris];
-
-        // Monkey patch
-        uris = patchUris(statement, uris, args.statement, params);
-        return uris;
-    }
 }
 
 // Replace headers and defaults
@@ -430,35 +452,4 @@ function cloneDeep(obj) {
         copy[key] = cloneDeep(obj[key]);
     }
     return copy;
-}
-
-function patchUris(resource, resourceUri, statement, params) {
-    var temp = resourceUri, parsed, patched, arr;
-    if(resource.monkeyPatch && resource.monkeyPatch['patch uri']) {
-        temp = [];
-        _.each(resourceUri, function (u) {
-            parsed = new MutableURI(u);
-            patched = resource.monkeyPatch['patch uri']({
-                uri: parsed,
-                statement: statement,
-                params: params
-            });
-
-            if(patched) {
-                if(_.isArray(patched)) {
-                    arr = [];
-                    _.each(patched, function(p) {
-                        arr.push(p.format());
-                    });
-                    patched = arr;
-                }
-                else {
-                    patched = patched.format();
-                }
-                temp = temp.concat(patched);
-            }
-        });
-    }
-
-    return temp;
 }
