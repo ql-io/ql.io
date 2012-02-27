@@ -139,6 +139,18 @@ var Verb = module.exports = function(statement, type, bag, path) {
         return ret || {};
     };
 
+    this.bodyTemplate = function(uri, params, headers) {
+       var parsed;
+        parsed = new MutableURI(uri);
+        var ret = this['body template']({
+            uri: parsed,
+            statement: statement,
+            params: params,
+            headers: headers
+        });
+        return ret || {};
+    }
+
     this.exec = function(args) {
         var self = this, holder = {};
 

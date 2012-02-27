@@ -79,10 +79,7 @@ exports.send = function(args, resourceUri, params, holder, cb) {
     }
 
     // Request body
-    var body = {};
-    if(args.resource.monkeyPatch && args.resource.monkeyPatch['body template']) {
-        body = bodyTemplate(resourceUri, args.statement, params, headers, args.resource.monkeyPatch['body template']);
-    }
+    var body = args.resource.bodyTemplate(resourceUri, params, headers);
     var content = body.content || args.resource.body.content;
     if(content && content.length > 0 &&
         (args.resource.method === 'post' || args.resource.method == 'put')) {
@@ -459,21 +456,6 @@ function getStatus(resourceUri, statement, params, res, resource, respJson, resp
         })
     }
     return overrideStatus;
-}
-
-function bodyTemplate(uri, statement, params, headers, fn) {
-   var parsed;
-    parsed = new MutableURI(uri);
-    var ret = fn({
-        uri: parsed,
-        statement: statement,
-        params: params,
-        headers: headers
-    });
-    assert.ok(ret, 'body template patch return undefined');
-    assert.ok(ret.type, 'body template type undefined');
-    assert.ok(ret.content, 'body template content undefined');
-    return ret;
 }
 
 function patchBody(uri, statement, params, headers, body, fn) {
