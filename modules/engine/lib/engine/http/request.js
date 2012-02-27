@@ -112,10 +112,8 @@ exports.send = function(args, resourceUri, params, holder, cb) {
             }
         }
 
-        if(args.resource.monkeyPatch && args.resource.monkeyPatch['patch body']) {
-            body = args.resource.patchBody(resourceUri, params, headers, requestBody);
-            requestBody = body.content;
-        }
+        body = args.resource.patchBody(resourceUri, params, headers, requestBody);
+        requestBody = body.content;
 
         headers['content-length'] = requestBody.length;
         if(!headers['content-type']) {
@@ -269,20 +267,9 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
             // TODO: Handle redirects
 
 	        // Transform (patch only)
-            if(resource.monkeyPatch && resource.monkeyPatch['parse response']) {
-                try {
-                    var result = resource.monkeyPatch['parse response']({
-                        body: respData,
-                        headers: res.headers
-                    });
-
-                    respData = result.body;
-                    res.headers = result.headers;
-                }
-                catch(e) {
-                    return httpReqTx.cb(e);
-                }
-            }
+            var result = resource.parseResponse(resourceUri, params, res.headers, respData);
+            respData = (result && result.body) ? result.body : respData;
+            res.headers = (result && result.headers) ? result.headers : res.headers;
 
             mediaType = sniffMediaType(mediaType, resourceUri, resource, statement, res, respData);
 

@@ -39,7 +39,7 @@ var Verb = module.exports = function(statement, type, bag, path) {
     this['udf'] = function() {};
     this['patch headers'] = function(args) { return args.headers; };
     this['body template'] = function() {};
-    this['patch body'] = function(args) { return args.body; };
+    this['patch body'] = function(args) { return { content: args.body}; };
     this['parse response'] = function() {};
     this['patch response'] = function() {};
     this['patch mediaType'] = function() {};
@@ -152,9 +152,21 @@ var Verb = module.exports = function(statement, type, bag, path) {
     };
 
     this.patchBody = function(uri, params, headers, body) {
-        var parsed;
-        parsed = new MutableURI(uri);
+        var parsed = new MutableURI(uri);
         var ret = this['patch body']({
+            uri: parsed,
+            statement: statement,
+            params: params,
+            body: body,
+            headers: headers
+        });
+        return ret;
+    };
+
+    // TODO: Repeated URI parsing!
+    this.parseResponse = function(uri, params, headers, body) {
+        var parsed = new MutableURI(uri);
+        var ret = this['parse response']({
             uri: parsed,
             statement: statement,
             params: params,
