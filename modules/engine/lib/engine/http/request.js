@@ -83,12 +83,13 @@ exports.send = function(args, resourceUri, params, holder, cb) {
     if(args.resource.monkeyPatch && args.resource.monkeyPatch['body template']) {
         body = bodyTemplate(resourceUri, args.statement, params, headers, args.resource.monkeyPatch['body template']);
     }
-    if((args.resource.body || body) &&
+    var content = body.content || args.resource.body.content;
+    if(content && content.length > 0 &&
         (args.resource.method === 'post' || args.resource.method == 'put')) {
 
         if(args.resource.body.type === 'application/x-www-form-urlencoded') {
             try {
-                template = uriTemplate.parse(body.content || args.resource.body.content);
+                template = uriTemplate.parse(content);
             }
             catch(err) {
                 args.logEmitter.emitWarning(err);
@@ -106,11 +107,11 @@ exports.send = function(args, resourceUri, params, holder, cb) {
 
             if(args.resource.body.template && args.resource.body.template.match(/\.ejs/)) {
                 // Use EJS
-                requestBody = ejs.render(body.content || args.resource.body.content, holder);
+                requestBody = ejs.render(content, holder);
             }
             else {
                 // Use Mustache
-                requestBody = mustache.to_html(body.content || args.resource.body.content, holder);
+                requestBody = mustache.to_html(content, holder);
             }
         }
 

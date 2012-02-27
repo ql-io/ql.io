@@ -75,5 +75,64 @@ module.exports = {
                 });
             });
         });
+    },
+
+    'auth-post-ok': function (test) {
+        var server = http.createServer(function (req, res) {
+            res.writeHead(200, {
+                'Content-Type': 'application/json'
+            });
+            res.end(JSON.stringify({'message': 'ok'}));
+        });
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+                tables: __dirname + '/auth'
+            });
+            engine.execute('select * from auth.plugin.post where ok = "ok"', function (emitter) {
+                emitter.on('end', function (err, result) {
+                    if(err) {
+                        console.log(err.stack || util.inspect(err, false, 10));
+                        test.fail('got error');
+                        test.done();
+                    }
+                    else {
+                        test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                        test.equals(result.body.message, 'ok');
+                        test.done();
+                    }
+                    server.close();
+                });
+            });
+        });
+    },
+
+    'auth-post-no-ok': function (test) {
+        var server = http.createServer(function (req, res) {
+            res.writeHead(200, {
+                'Content-Type': 'application/json'
+            });
+            res.end(JSON.stringify({'message': 'ok'}));
+        });
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+                tables: __dirname + '/patch'
+            });
+            engine.execute('select * from auth.plugin.post where ok = "no-ok"', function (emitter) {
+                emitter.on('end', function (err, result) {
+                    if(err) {
+                        test.ok('Ok');
+                        test.done();
+                    }
+                    else {
+                        test.fail('Did not fail');
+                        test.done();
+                    }
+                    server.close();
+                });
+            });
+        });
     }
+
 };

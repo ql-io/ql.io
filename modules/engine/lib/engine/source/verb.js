@@ -214,7 +214,7 @@ var Verb = module.exports = function(statement, type, bag, path) {
             _.each(resourceUri, function (uri) {
                 tasks.push(function (uri) {
                     return function (callback) {
-                        request.send(args, uri, params, holder, function (e, r) {
+                        send(self, args, uri, params, holder, function (e, r) {
                             callback(e, r);
                         });
                     }
@@ -388,12 +388,12 @@ function _process(self, statement, bag, root) {
     if(statement.auth) {
         // auth is the compiled auth module
         try {
-            statement.auth = require(statement.auth);
+            self.auth = require(statement.auth);
         }
         catch(e) {
             // Not found in a module path. Try current dir
             path = root + statement.auth;
-            statement.auth = require(path);
+            self.auth = require(path);
         }
     }
 }
@@ -414,7 +414,7 @@ function cloneDeep(obj) {
 function send(verb, args, uri, params, holder, callback) {
     // Authenticate the request
     if(verb.auth) {
-        verb.auth.auth(params, config, function (err) {
+        verb.auth.auth(params, args.config, function (err) {
             if(err) {
                 return cb(err);
             }
