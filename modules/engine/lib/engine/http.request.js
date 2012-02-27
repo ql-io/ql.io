@@ -28,6 +28,7 @@ var strTemplate = require('./peg/str-template.js'),
     util = require('util'),
     _ = require('underscore'),
     mustache = require('mustache'),
+    ejs = require('ejs'),
     async = require('async'),
     headers = require('headers'),
     uuid = require('node-uuid'),
@@ -114,15 +115,39 @@ exports.exec = function(args) {
     // if template.format() returns multiple URIs, we need to execute all of them in parallel,
     // join on the response, and then send the response to the caller.
     tasks = [];
-    _.each(resourceUri, function(uri) {
-        tasks.push(function(uri) {
-            return function(callback) {
-                sendOneRequest(args, uri, params, holder, function(e, r) {
-                    callback(e, r);
-                });
-            }
-        }(uri));
-    });
+
+    // Split post requests
+    // TODO: need to consider body template patch here.
+    if(resource.body && resource.body.foreach) {
+        _.each(params[resource.body.foreach], function (param) {
+            tasks.push(function (param) {
+                return function (callback) {
+                    var rem = {};
+                    for(var p in params) {
+                        if(p!= resource.body.foreach) {
+                            rem[p] = params[p];
+                        }
+                    }
+                    rem[resource.body.foreach] = param;
+                    sendOneRequest(args, resourceUri[0], rem, holder, function (e, r) {
+                        callback(e, r);
+                    });
+                }
+            }(param));
+        });
+    }
+    else {
+        _.each(resourceUri, function (uri) {
+            tasks.push(function (uri) {
+                return function (callback) {
+                    sendOneRequest(args, uri, params, holder, function (e, r) {
+                        callback(e, r);
+                    });
+                }
+            }(uri));
+        });
+    }
+
     async.parallel(tasks, function(err, results) {
         // In the case of scatter-gather, ignore errors and process the rest.
         if(err && resourceUri.length === 1) {
@@ -143,7 +168,7 @@ exports.exec = function(args) {
                     //
                     // In such cases, we need to merge values of the each object in the results
                     // array. Note that merging may result in single props becoming arrays
-                    ret.body = mergeArray(results, 'body', template.merge());
+                    ret.body = mergeArray(results, 'body', (resource.body && resource.body.foreach) ? 'block' : template.merge());
                 }
                 else {
                     var result = results[0];
@@ -186,7 +211,7 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
     };
 
     h[requestId.name]  = requestId.value;
-    h['user-agent'] = 'ql.io/node.js ' + process.version;
+    h['user-agent'] = 'ql.io-engine' + require('../../package.json').version + '/node.js-' + process.version ;
 
     // Clone headers - also replace any tokens
     _.each(resource.headers, function(v, k) {
@@ -248,7 +273,14 @@ function sendOneRequest(args, resourceUri, params, holder, cb) {
             holder.statement = statement;
             holder.params = params;
 
-            requestBody = mustache.to_html(body.content || resource.body.content, holder);
+            if(resource.body.template && resource.body.template.match(/\.ejs/)) {
+                // Use EJS
+                requestBody = ejs.render(body.content || resource.body.content, holder);
+            }
+            else {
+                // Use Mustache
+                requestBody = mustache.to_html(body.content || resource.body.content, holder);
+            }
         }
 
         if(resource.monkeyPatch && resource.monkeyPatch['patch body']) {

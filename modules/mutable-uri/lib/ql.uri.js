@@ -20,6 +20,8 @@ var _ = require('underscore'),
     url = require('url'),
     assert = require('assert');
 
+exports.version = require('../package.json').version;
+
 /**
  * You will receive an instance of ql.uri in "before request" methods.
  *

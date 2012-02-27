@@ -30,6 +30,8 @@ var winston = require('winston'),
     _ = require('underscore'),
     WebSocketServer = require('websocket').server;
 
+exports.version = require('./package.json').version;
+
 process.on('uncaughtException', function(error) {
     winston.error(error.stack);
 });
@@ -382,7 +384,7 @@ var Console = module.exports = function(config, cb) {
                 href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
                 rel : ['execstate']
             });
-           res.render(__dirname + '/public/views/routes-tables/routes.ejs', {
+            res.render(__dirname + '/public/views/routes-tables/routes.ejs', {
                 title: 'ql.io',
                 layout: __dirname + '/public/views/routes-table-layout',
                 routes: results
@@ -614,7 +616,7 @@ var Console = module.exports = function(config, cb) {
                                 headers: {
                                     'content-type': 'application/json'
                                 },
-                                body: err
+                                body: err.stack || err
                             };
                             connection.sendUTF(JSON.stringify({
                                 type: Engine.Events.SCRIPT_RESULT,

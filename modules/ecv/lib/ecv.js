@@ -19,6 +19,8 @@
 var http = require('http'),
     os = require('os');
 
+exports.version = require('../package.json').version;
+
 /**
  * The ECV check sends a "/tables" request to the running server. Anything other than a valid JSON response is
  * treated as an error.

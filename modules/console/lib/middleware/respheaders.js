@@ -10,7 +10,7 @@ module.exports = function responseTime() {
 
         res.writeHead = function (status, headers) {
             res.setHeader('X-Powered-By', 'ql.io/node.js ' + process.version);
-            res.setHeader('Server', 'ql.io/node.js ' + process.version);
+            res.setHeader('Server', 'ql.io-' + require('../../package.json').version + '/node.js-' + process.version);
             res.setHeader('Date', (new Date()).toUTCString());
             res.writeHead = writeHead;
             res.writeHead(status, headers);

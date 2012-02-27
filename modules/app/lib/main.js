@@ -35,6 +35,8 @@ process.on('uncaughtException', function(error) {
     console.log(error.stack || error);
 });
 
+exports.version = require('../package.json').version;
+
 exports.exec = function(cb, opts) {
     var c, monPort, port, master;
 

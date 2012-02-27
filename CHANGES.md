@@ -1,3 +1,15 @@
+## Feb 22, 2012
+
+* Export version from each module. You can find version of the engine using
+  `require('ql.io-engine').version`.
+* Include version number in `User-Agent` and `Server` headers.
+
+## Feb 19, 2012
+
+* Support scatter-gather for requests with bodies by adding a `foreach 'param'` for the
+  `using bodyTemplate` cluase. This allows scripts to batchup POST and PUT requests.
+* Support ejs body templates.
+
 ## Feb 16, 2012
 
 * Skip files that don't end with `.ql`.
