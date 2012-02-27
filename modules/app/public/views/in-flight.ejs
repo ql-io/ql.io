@@ -1,20 +1,18 @@
-<h2>In-flight Request URLs</h2>
+<h2>In-flight Requests</h2>
 
 <table class='in-flight'>
     <thead>
     <tr>
         <td>PID</td>
-        <td>URL</td>
+        <td>In-flight requests</td>
     </tr>
     </thead>
     <tbody>
-    <% for(var i=0; i < master.workers.length; i++) {%>
-        <% for(id in master.workers[i].inflight) { %>
+        <% for(var id in master.workers) { %>
         <tr>
-            <td><%=master.workers[i].pid%></td>
-            <td><%=master.workers[i].inflight[id]%></td>
+            <td><%=id%></td>
+            <td><%=master.workers[id].inRequests - master.workers[id].outResponses%></td>
         </tr>
         <% } %>
-    <% } %>
     </tbody>
 </table>

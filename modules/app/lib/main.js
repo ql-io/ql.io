@@ -187,19 +187,19 @@ function Master(options) {
         // Collect events from workers
         worker.on('message', function (message) {
                 switch(message.event) {
-                    case 'script-ack':
+                    case 'ack':
                         that.stats.workers[message.pid].inRequests++;
                         that.stats.inRequests++;
                         break;
-                    case 'ql.io-script-done':
+                    case 'script-done':
                         that.stats.workers[message.pid].outResponses++;
                         that.stats.outResponses++;
                         break;
-                    case 'ql.io-statement-request':
+                    case 'statement-request':
                         that.stats.workers[message.pid].outRequests++;
                         that.stats.outRequests++;
                         break;
-                    case 'ql.io-statement-response':
+                    case 'statement-response':
                         that.stats.workers[message.pid].inResponses++;
                         that.stats.inResponses++;
                         break;
