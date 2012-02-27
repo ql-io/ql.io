@@ -312,11 +312,9 @@ module.exports = {
                     {
                         "operator": "udf",
                         "name": "contains",
-                        "args": [
-                            {
-                                "value": "mini cooper"
+                        "args": {
+                                "value": ["mini cooper"]
                             }
-                        ]
                     },
                     {
                         "operator": "udf",
@@ -342,6 +340,51 @@ module.exports = {
         }
         test.done();
     },
+
+    'udf-args': function(test) {
+        var q = 'select * from patch.udf where p1("v1") and p2("2", "3") and p3()';
+        var statement = compiler.compile(q);
+        var e = [
+            {
+                "type": "select",
+                "line": 1,
+                "fromClause": [
+                    {
+                        "name": "patch.udf"
+                    }
+                ],
+                "columns": {name: "*"},
+                "whereCriteria": [
+                    {
+                        "operator": "udf",
+                        "name": "p1",
+                        "args": {
+                            "value": ["v1"]
+                        }
+                    },
+                    {
+                        "operator": "udf",
+                        "name": "p2",
+                        "args": {
+                            "value": [
+                                "2",
+                                "3"
+                            ]
+                        }
+                    },
+                    {
+                        "operator": "udf",
+                        "name": "p3",
+                        "args": ""
+                    }
+                ],
+                id: 0
+            }
+        ];
+        test.deepEqual(statement, e);
+        test.done();
+    },
+
 
     'select-assign': function(test) {
         var q = 'results = select title[0], itemId[0], primaryCategory[0].categoryName[0], ' +

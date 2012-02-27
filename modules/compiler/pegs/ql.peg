@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2011 eBay Software Foundation
  *
@@ -637,9 +638,11 @@ udf = name:identifier insig '(' insig p:udfParams? insig ')' {
 }
 
 udfParams = c:udfParam insig carr:(comma insig udfParam)* {
-  var args = [c];
-  collect(carr,',', args, 'value');
-  return args;
+  var res = [c.value];
+  collect(carr,',', res, 'value');
+  return {
+    value: res
+  }
 }
 
 udfParam = aliasedRef/quotedWord/quotedDigits
@@ -650,7 +653,6 @@ csv =  insig c:csvMember insig carr:(commaCsvMember*) {
   return {
     value: res
   }
-  return c;
 }
 
 commaCsvMember = (insig comma insig v:csvMember) {

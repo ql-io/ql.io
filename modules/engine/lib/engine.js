@@ -30,9 +30,10 @@ var configLoader = require('./engine/config.js'),
     create = require('./engine/create.js'),
     select = require('./engine/select.js'),
     insert = require('./engine/insert.js'),
+    _util = require('./engine/util.js'),
     jsonfill = require('./engine/jsonfill.js'),
     eventTypes = require('./engine/event-types.js'),
-    httpRequest = require('./engine/http.request.js'),
+    httpRequest = require('./engine/http/table.js'),
     LogEmitter = require('./engine/log-emitter.js'),
     winston = require('winston'),
     compiler = require('ql.io-compiler'),
@@ -65,7 +66,32 @@ var Engine = module.exports = function(opts) {
 
     opts = opts || {};
 
-    // Load config
+    opts.logger = opts.logger || new (winston.Logger)();
+    // Attach listeners and loggers before doing anything
+    this.setMaxListeners(25);
+    this.on(Engine.Events.EVENT, function(event, message) {
+        if(message) {
+            opts.logger.info(new Date() + ' - ' + message);
+        }
+    });
+    this.on(Engine.Events.SCRIPT_DONE, function(event, message) {
+        opts.logger.info(new Date() + ' - ' + JSON.stringify(event));
+    });
+    this.on(Engine.Events.ERROR, function(event, message, err) {
+        if(message) {
+            opts.logger.error(new Date() + ' - ' + message);
+        }
+        if(err) {
+            opts.logger.error(err.stack || err);
+        }
+    });
+    this.on(Engine.Events.WARNING, function(event, message) {
+        if(message) {
+            opts.logger.warn(new Date() + ' - ' + message.stack || message);
+        }
+    });
+
+    // Load stuff
     opts.config = opts.config || {};
     this.config = _.isObject(opts.config) ? opts.config : configLoader.load({
         config: opts.config,
@@ -382,10 +408,8 @@ function sweep(opts, parentEvent) {
 
     state = opts.execState[last.id];
     if(pending === 0 && state.waits > 0 && last.type === 'return') {
-        return opts.cb({
-            message: 'Script has unmet dependencies. The return statement depends on one/more other ' +
-                'statement(s), but those are not in-progress.'
-        });
+        return opts.cb('Script has unmet dependencies. The return statement depends on one/more other ' +
+                'statement(s), but those are not in-progress.');
     }
     if(pending == 0 && state.waits == 0) {
         if(last.type === 'return') {
@@ -449,7 +473,7 @@ function _execOne(opts, statement, cb, parentEvent) {
             create.exec(opts, statement, cb, parentEvent);
             break;
         case 'define' :
-            var params = httpRequest.prepareParams(opts.context,
+            var params = _util.prepareParams(opts.context,
                     opts.request.body,
                     opts.request.routeParams,
                     opts.request.params,
@@ -500,12 +524,10 @@ function _execOne(opts, statement, cb, parentEvent) {
             else {
                 lhs = statement.rhs.ref ? opts.context[statement.rhs.ref] : statement.rhs.object;
                 if(_.isNull(lhs)) {
-                    cb({
-                        message: 'Unresolved reference in return'
-                    })
+                    cb('Unresolved reference in return');
                 }
                 else {
-                    var params = httpRequest.prepareParams(opts.context,
+                    var params = _util.prepareParams(opts.context,
                             opts.request.body,
                             opts.request.routeParams,
                             opts.request.params,

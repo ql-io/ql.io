@@ -16,10 +16,9 @@
 
 'use strict';
 
-var httpRequest = require('./http.request.js'),
+var httpRequest = require('./http/table.js'),
     jsonfill = require('./jsonfill.js'),
     _ = require('underscore'),
-    async = require('async'),
     assert = require('assert');
 
 exports.exec = function(opts, statement, cb, parentEvent) {
@@ -61,14 +60,10 @@ exports.exec = function(opts, statement, cb, parentEvent) {
         // Get the resource
         table = opts.tempResources[name] || tables[name];
         if(!table) {
-            return insertTx.cb({
-                message: 'No such resource ' + name
-            });
+            return insertTx.cb('No such table ' + name);
         }
         if(!table.insert) {
-            return insertTx.cb({
-                message: 'Table ' + statement.source.name + ' does not support insert'
-            });
+            return insertTx.cb('Table ' + statement.source.name + ' does not support insert');
         }
 
         httpRequest.exec({

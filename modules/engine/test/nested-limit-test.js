@@ -17,11 +17,7 @@
 "use strict";
 
 var _ = require('underscore'),
-    Engine = require('../lib/engine'),
-    EventEmitter = require('events').EventEmitter,
-    http = require('http'),
-    fs = require('fs'),
-    util = require('util');
+    Engine = require('../lib/engine');
 
 var engine = new Engine({
     tables : __dirname + '/tables',
@@ -35,7 +31,7 @@ module.exports = {
         var q = 'select * from ebay.finding.items.many.results where keywords in (' + keywords.toString() + ')';
         engine.exec(q, function(err, list) {
             if(err) {
-                test.fail('got error: ' + err.stack || err);
+                test.fail('got error ' + err);
                 test.done();
             }
             else {
@@ -52,7 +48,7 @@ module.exports = {
         var q = 'select a.ItemID as itemId, b.keywords as keywords from ebay.finding.items as a, ebay.finding.items.many.results as b where a.keywords = b.keywords and a.keywords  in (' + keywords.toString() + ')';
         engine.exec(q, function(err, list) {
             if(err) {
-                test.fail('got error: ' + err.stack || err);
+                test.fail('got error ' + err);
                 test.done();
             }
             else {

@@ -76,6 +76,7 @@ var LogEmitter = module.exports = function() {
             cb: function(e, r) {
                 var message = 'Success';
                 if (e) {
+                    // TODO: This causes duplicate error events due to unwrapping ...
                     that.emit(eventTypes.ERROR, event, e);
                     message = 'Failure'
                 }
@@ -103,15 +104,19 @@ var LogEmitter = module.exports = function() {
     }
 
     this.emitError = function () {
-        var event = {}, msg = 'Error event raised without message';
+        var event = {}, msg = 'Error event raised without message', cause;
         if (arguments.length > 1) {
             event = arguments[0];
             msg = arguments[1];
+            if(msg.stack) {
+                cause = msg;
+                msg = msg.message;
+            }
         }
         else if (arguments.length === 1) {
             msg = arguments[0];
         }
-        this.emit(eventTypes.ERROR, event, msg);
+        this.emit(eventTypes.ERROR, event, msg, cause);
     }
 
     function getUTimeInSecs() {

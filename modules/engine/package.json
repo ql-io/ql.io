@@ -1,12 +1,12 @@
 {
     "author": "ql.io",
     "name": "ql.io-engine",
-    "version": "0.4.7",
+    "version": "0.4.9",
     "repository": {
         "type": "git",
         "url": "https://github.com/ql-io/ql.io"
     },
-    "engines": {
+    "engine": {
         "node":"> 0.6.0"
     },
     "main": "lib/engine.js",

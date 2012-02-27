@@ -4251,9 +4251,12 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(c, carr) {
-            var args = [c];
-            collect(carr,',', args, 'value');
-            return args;
+            var res = [c.value];
+            collect(carr,',', res, 'value');
+            return {
+              value: res
+            }
+
           })(result1[0], result1[2])
           : null;
         if (result2 !== null) {
@@ -4355,7 +4358,6 @@ module.exports = (function(){
             return {
               value: res
             }
-            return c;
           })(result1[1], result1[3])
           : null;
         if (result2 !== null) {

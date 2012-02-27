@@ -1,5 +1,10 @@
 ## Feb 26, 2012
+
 * Bug https://github.com/ql-io/ql.io/issues/286 reopened and fixed with better tests.
+
+## Feb 24, 2012
+
+* Escalte table/route loading errors to the logger
 
 ## Feb 22, 2012
 
