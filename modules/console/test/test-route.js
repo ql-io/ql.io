@@ -109,6 +109,7 @@ module.exports = {
                         test.ok(json.user, 'missing user data');
                         test.ok(json.user.Ack, 'missing user Ack');
                         test.equal(json.user.Ack, 'Success');
+                        test.equal(json.bestOffers, 'Fixed Value');
                         c.app.close();
                         testHttpapp.close();
                         test.done();
