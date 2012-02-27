@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 eBay Software Foundation
+ * Copyright 2012 eBay Software Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,57 +19,15 @@
 var assert = require('assert'),
     _ = require('underscore'),
     async = require('async'),
-    markdown = require('markdown'),
     MutableURI = require('ql.io-mutable-uri'),
     strTemplate = require('../peg/str-template.js'),
     uriTemplate = require('ql.io-uri-template'),
     fs = require('fs'),
     normalize = require('path').normalize,
-    request = require('./request.js'),
+    request = require('../http/request.js'),
     _util = require('../util.js');
 
-var Table = module.exports = function(opts, comments, statement) {
-    this.statement = statement;
-    this.name = statement.name;
-    this.opts = opts;
-    this.verbs = {};
-    var bag = {
-        config: opts.config
-    };
-
-    // Metadata for describe
-    this.meta = {
-        name: this.statement.name,
-        routes: [],
-        comments: ''
-    };
-    var self = this;
-    if(comments.length > 0) {
-        _.each(comments, function(comment) {
-            self.meta.comments += markdown.markdown.toHTML(comment);
-        });
-    }
-
-    _.each(['select', 'insert', 'update', 'delete'], function(type) {
-        if(self.statement[type]) {
-            try {
-                var verb = new Verb(self.statement[type], type, bag, self.opts.path);
-                self.verbs[type] = verb;
-            }
-            catch(e) {
-
-                self.opts.logEmitter.emitError(e.message || e);
-                return self.opts.cb(e);
-            }
-        }
-    });
-};
-
-Table.prototype.verb = function(type) {
-    return this.verbs[type];
-};
-
-var Verb = function(statement, type, bag, path) {
+var Verb = module.exports = function(statement, type, bag, path) {
     this.type = type;
     this.__proto__ = statement;
 
