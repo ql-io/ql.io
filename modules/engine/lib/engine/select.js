@@ -16,8 +16,7 @@
 
 "use strict";
 
-var httpRequest = require('./http/table.js'),
-    jsonfill = require('./jsonfill.js'),
+var jsonfill = require('./jsonfill.js'),
     project = require('./project.js'),
     _ = require('underscore'),
     async = require('async'),

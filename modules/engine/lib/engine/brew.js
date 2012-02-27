@@ -21,7 +21,7 @@
 'use strict';
 
 var compiler = require('ql.io-compiler'),
-    Table = require('./http/table.js'),
+    Table = require('./source/table.js'),
     assert = require('assert'),
     _ = require('underscore');
 

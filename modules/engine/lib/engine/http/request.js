@@ -19,12 +19,11 @@
 var _ = require('underscore'),
     uriTemplate = require('ql.io-uri-template'),
     os = require('os'),
-    MutableURI = require('ql.io-mutable-uri'),
     assert = require('assert'),
     strTemplate = require('../peg/str-template.js'),
     project = require('../project.js'),
     eventTypes = require('../event-types.js'),
-    headers = require('headers'),
+    _headers = require('headers'),
     http = require('http'),
     https = require('https'),
     URI = require('uri'),
@@ -42,9 +41,7 @@ exports.send = function(args, resourceUri, params, holder, cb) {
 
     var config = args.config || {};
 
-    //
-    // Headers
-    //
+     // Prep headers
      var headers = {
         'connection' : args.settings['connection'] ? args.settings['connection'] : 'keep-alive',
         'user-agent' : 'ql.io-engine' + require('../../../package.json').version + '/node.js-' + process.version,
@@ -73,39 +70,22 @@ exports.send = function(args, resourceUri, params, holder, cb) {
     headers[requestId.name]  = requestId.value;
 
     // Monkey patch headers
-    if(args.resource.monkeyPatch && args.resource.monkeyPatch['patch headers']) {
-        try {
-            headers = patchHeaders(resourceUri, args.statement, params, headers, args.resource.monkeyPatch['patch headers']);
-        }
-        catch(e) {
-            return cb(e);
-        }
+    try {
+        headers = args.resource.patchHeaders(resourceUri, args.prams, headers);
+    }
+    catch(e) {
+        return cb(e);
     }
 
-    //
-    // Authenticate the request
-    //
-    if(args.resource.auth) {
-        args.resource.auth.auth(params, config, function(err) {
-            if(err) {
-                return cb(err);
-            }
-        });
-    }
-
-    //
     // Request body
-    //
-    var body = {};
-    if(args.resource.monkeyPatch && args.resource.monkeyPatch['body template']) {
-        body = bodyTemplate(resourceUri, args.statement, params, headers, args.resource.monkeyPatch['body template']);
-    }
-    if((args.resource.body || body) &&
+    var body = args.resource.bodyTemplate(resourceUri, params, headers);
+    var content = body.content || args.resource.body.content;
+    if(content && content.length > 0 &&
         (args.resource.method === 'post' || args.resource.method == 'put')) {
 
         if(args.resource.body.type === 'application/x-www-form-urlencoded') {
             try {
-                template = uriTemplate.parse(body.content || args.resource.body.content);
+                template = uriTemplate.parse(content);
             }
             catch(err) {
                 args.logEmitter.emitWarning(err);
@@ -123,18 +103,16 @@ exports.send = function(args, resourceUri, params, holder, cb) {
 
             if(args.resource.body.template && args.resource.body.template.match(/\.ejs/)) {
                 // Use EJS
-                requestBody = ejs.render(body.content || args.resource.body.content, holder);
+                requestBody = ejs.render(content, holder);
             }
             else {
                 // Use Mustache
-                requestBody = mustache.to_html(body.content || args.resource.body.content, holder);
+                requestBody = mustache.to_html(content, holder);
             }
         }
 
-        if(args.resource.monkeyPatch && args.resource.monkeyPatch['patch body']) {
-            body = patchBody(resourceUri, args.statement, params, headers, requestBody, args.resource.monkeyPatch['patch body']);
-            requestBody = body.content;
-        }
+        body = args.resource.patchBody(resourceUri, params, headers, requestBody);
+        requestBody = body.content;
 
         headers['content-length'] = requestBody.length;
         if(!headers['content-type']) {
@@ -288,22 +266,11 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
             // TODO: Handle redirects
 
 	        // Transform (patch only)
-            if(resource.monkeyPatch && resource.monkeyPatch['parse response']) {
-                try {
-                    var result = resource.monkeyPatch['parse response']({
-                        body: respData,
-                        headers: res.headers
-                    });
+            var result = resource.parseResponse(resourceUri, params, res.headers, respData);
+            respData = (result && result.body) ? result.body : respData;
+            res.headers = (result && result.headers) ? result.headers : res.headers;
 
-                    respData = result.body;
-                    res.headers = result.headers;
-                }
-                catch(e) {
-                    return httpReqTx.cb(e);
-                }
-            }
-
-            mediaType = sniffMediaType(mediaType, resourceUri, resource, statement, res, respData);
+            mediaType = sniffMediaType(resource, resourceUri, params, res, respData);
 
             logEmitter.emitEvent(httpReqTx.event, resourceUri + '  ' +
                 util.inspect(options) + ' ' +
@@ -312,29 +279,12 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
 
             // Parse
             jsonify(respData, mediaType, res.headers, xformers, function(respJson) {
-                try {
-                    status = getStatus(resourceUri, statement, params, res, resource, respJson, respData);
-                }
-                catch(e) {
-                    return httpReqTx.cb(e);
-                }
+                status = resource.patchStatus(resourceUri, params, res.statusCode, res.headers, respJson || respData)
+                    || res.statusCode;
 
                 if(status >= 200 && status <= 300) {
                     if(respJson) {
-                        if(resource.monkeyPatch && resource.monkeyPatch['patch response']) {
-                            try {
-                                respJson = resource.monkeyPatch['patch response']({
-                                    uri: resourceUri,
-                                    statement: statement,
-                                    params: params,
-                                    headers: res.headers,
-                                    body: respJson
-                                });
-                            }
-                            catch(e) {
-                                return httpReqTx.cb(e);
-                            }
-                        }
+                        respJson = resource.patchResponse(resourceUri, params, res.statusCode, res.headers, respJson);
                         // Projections
                         project.run(resource.resultSet, statement, respJson, function(filtered) {
                             return httpReqTx.cb(undefined, {
@@ -392,22 +342,8 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
     clientRequest.end();
 }
 
-function patchHeaders(uri, statement, params, headers, fn) {
-   var parsed;
-    parsed = new MutableURI(uri);
-    var ret = fn({
-        uri: parsed,
-        statement: statement,
-        params: params,
-        headers: headers
-    });
-    ret = ret || {};
-    return ret;
-}
-
-
 function setEncoding(res){
-    var contentType = headers.parse('content-type', res.headers['content-type'] || '');
+    var contentType = _headers.parse('content-type', res.headers['content-type'] || '');
     var encoding = contentType.subtype === 'csv' ? 'ascii' : 'utf8';
 
     if(contentType.subtype == 'binary') {
@@ -420,18 +356,10 @@ function setEncoding(res){
     res.setEncoding(encoding);
 }
 
-
-function sniffMediaType(mediaType, resourceUri, resource, statement, res, respData) {
+function sniffMediaType(resource, resourceUri, params, res, respData) {
     // 1. If there is a patch, call it to get the media type.
-    mediaType = (resource.monkeyPatch && resource.monkeyPatch['patch mediaType']  &&
-        resource.monkeyPatch['patch mediaType']({
-            uri: resourceUri,
-            statement: statement,
-            params: params,
-            status: res.statusCode,
-            headers: res.headers,
-            body: respData
-        })) || res.headers['content-type'];
+    var mediaType = resource.patchMediaType(resourceUri, params, res.statusCode, res.headers, respData)
+        || res.headers['content-type'];
 
     // 2. If the media type is "XML", treat it as "application/xml"
     mediaType = mediaType === 'XML' ? 'application/xml' : mediaType;
@@ -445,7 +373,7 @@ function sniffMediaType(mediaType, resourceUri, resource, statement, res, respDa
     // 4. If the media type is "text/xml", treat it as "application/xml"
     mediaType = (mediaType === 'text/xml') ? 'application/xml' : mediaType;
 
-    return headers.parse('content-type', mediaType);
+    return _headers.parse('content-type', mediaType);
 }
 
 
@@ -474,50 +402,6 @@ function jsonify(respData, mediaType, headers, xformers, respCb, errorCb) {
     else {
         errorCb({message:"No transformer available", type:mediaType.type, subType:mediaType.subtype})
     }
-}
-
-function getStatus(resourceUri, statement, params, res, resource, respJson, respData) {
-    var overrideStatus = res.statusCode;
-    if(resource.monkeyPatch && resource.monkeyPatch['patch status']) {
-        overrideStatus = resource.monkeyPatch['patch status']({
-            uri: resourceUri,
-            statement: statement,
-            params: params,
-            status: res.statusCode,
-            headers: res.headers,
-            body: respJson || respData
-        })
-    }
-    return overrideStatus;
-}
-
-function bodyTemplate(uri, statement, params, headers, fn) {
-   var parsed;
-    parsed = new MutableURI(uri);
-    var ret = fn({
-        uri: parsed,
-        statement: statement,
-        params: params,
-        headers: headers
-    });
-    assert.ok(ret, 'body template patch return undefined');
-    assert.ok(ret.type, 'body template type undefined');
-    assert.ok(ret.content, 'body template content undefined');
-    return ret;
-}
-
-function patchBody(uri, statement, params, headers, body, fn) {
-   var parsed;
-    parsed = new MutableURI(uri);
-    var ret = fn({
-        uri: parsed,
-        statement: statement,
-        params: params,
-        body: body,
-        headers: headers
-    });
-    assert.ok(ret, 'body patch return undefined');
-    return ret;
 }
 
 function getMaxResponseLength(config, logEmitter) {

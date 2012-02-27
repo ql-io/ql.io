@@ -16,7 +16,7 @@
 
 'use strict';
 
-var httpRequest = require('./http/table.js'),
+var httpRequest = require('./source/table.js'),
     jsonfill = require('./jsonfill.js'),
     _ = require('underscore'),
     assert = require('assert');
