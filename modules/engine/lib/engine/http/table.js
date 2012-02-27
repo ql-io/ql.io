@@ -73,8 +73,7 @@ var Verb = function(statement, type, bag, path) {
     this.type = type;
     this.__proto__ = statement;
 
-    _process(this, statement, bag, path);
-
+    // Default patches
     this['validate param'] = function() {
         return true;
     };
@@ -88,19 +87,23 @@ var Verb = function(statement, type, bag, path) {
     this['patch mediaType'] = function() {};
     this['patch status'] = function() {};
 
+    // May override patches
+    _process(this, statement, bag, path);
+
     this.validateParams = function(params, statement) {
         var validator = this['validate param'];
         if(validator) {
             assert.ok(_.isFunction(validator), 'Validator is not a function');
             var name, value, isValid;
             for(name in params) {
+                if(name === 'config') continue;
                 value = params[name];
                 isValid = validator({
                     statement: statement,
                     params: params
                 }, name, value);
                 if(!isValid) {
-                    throw 'Value of ' + name + '"' + value + '" is not valid';
+                    throw 'Value of ' + name + ' "' + value + '" is not valid';
                 }
             }
         }
@@ -360,6 +363,11 @@ function _process(self, statement, bag, root) {
         var path = root + statement.patch;
         // Monkey patch is the compiled patch module
         statement.monkeyPatch = require(path);
+
+        // Merge the patch functions
+        _.each(statement.monkeyPatch, function(v, k) {
+            self[k] = v;
+        });
     }
     if(statement.auth) {
         // auth is the compiled auth module
