@@ -299,27 +299,24 @@ function execInternal(opts, statement, cb, parentEvent) {
                     resource = tempResources[from.name] || tables[from.name];
                     apiTx = opts.logEmitter.wrapEvent(selectExecTx.event, 'API', from.name, selectExecTx.cb);
                     if(!resource) {
-                        return apiTx.cb({
-                            message: 'No such resource ' + from.name
-                        });
+                        return apiTx.cb('No such table ' + from.name);
                     }
-                    if(!resource.select) {
-                        return apiTx.cb({
-                            message: 'Resource ' + from.name + ' does not support select'
-                        });
+                    var verb = resource.verb('select');
+                    if(!verb) {
+                        return apiTx.cb('Table ' + from.name + ' does not support select');
                     }
 
                     // Limit and offset
-                    var limit = resource.select.aliases && resource.select.aliases.limit || 'limit';
+                    var limit = verb.aliases && verb.aliases.limit || 'limit';
                     params[limit] = statement.limit;
-                    var offset = resource.select.aliases && resource.select.aliases.offset || 'offset';
+                    var offset = verb.aliases && verb.aliases.offset || 'offset';
                     params[offset] = statement.offset;
 
-                    httpRequest.exec({
+                    verb.exec({
                         context: opts.context,
                         config: opts.config,
                         settings: opts.settings,
-                        resource: resource.select,
+                        resource: verb,
                         xformers: opts.xformers,
                         params: params,
                         request: request,

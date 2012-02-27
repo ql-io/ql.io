@@ -4,5 +4,5 @@ create table ebay.finding.items.many.results
        with aliases format = 'RESPONSE-DATA-FORMAT', json = 'JSON', xml = 'XML'
        using defaults format = 'XML', globalid = 'EBAY-US', sortorder ='BestMatch',
              apikey =  "{config.ebay.apikey}", limit = 10, pageNumber = 1
-       using patch 'test/tables/ebay.finding.items.js'
+       using patch 'ebay.finding.items.js'
        resultset 'findItemsByKeywordsResponse.searchResult.item';

@@ -30,6 +30,7 @@ var configLoader = require('./engine/config.js'),
     create = require('./engine/create.js'),
     select = require('./engine/select.js'),
     insert = require('./engine/insert.js'),
+    _util = require('./engine/util.js'),
     jsonfill = require('./engine/jsonfill.js'),
     eventTypes = require('./engine/event-types.js'),
     httpRequest = require('./engine/http/table.js'),
@@ -472,7 +473,7 @@ function _execOne(opts, statement, cb, parentEvent) {
             create.exec(opts, statement, cb, parentEvent);
             break;
         case 'define' :
-            var params = httpRequest.prepareParams(opts.context,
+            var params = _util.prepareParams(opts.context,
                     opts.request.body,
                     opts.request.routeParams,
                     opts.request.params,
@@ -526,7 +527,7 @@ function _execOne(opts, statement, cb, parentEvent) {
                     cb('Unresolved reference in return');
                 }
                 else {
-                    var params = httpRequest.prepareParams(opts.context,
+                    var params = _util.prepareParams(opts.context,
                             opts.request.body,
                             opts.request.routeParams,
                             opts.request.params,
