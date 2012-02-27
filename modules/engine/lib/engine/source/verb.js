@@ -379,26 +379,6 @@ function _process(self, statement, bag, root) {
     }
 }
 
-// Replace headers and defaults
-function replace(col, bag, meta) {
-    var compiled;
-    _.each(col, function(v, n) {
-        try {
-            compiled = strTemplate.parse(v);
-
-            // Keep non-matching tokens here so that they can be replaced at engine.exec time.
-            col[n] = compiled.format(bag, true);
-            meta.push({
-                name: n,
-                value: col[n]
-            })
-        }
-        catch(e) {
-            // Ignore as we want to treat non-conformat strings as opaque
-        }
-    });
-}
-
 function cloneDeep(obj) {
     if(obj == null || typeof(obj) != 'object') {
         return obj;
