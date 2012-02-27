@@ -279,16 +279,12 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
 
             // Parse
             jsonify(respData, mediaType, res.headers, xformers, function(respJson) {
-                try {
-                    status = resource.patchStatus(resourceUri, params, res.statusCode, res.headers, respJson || respData)
-                }
-                catch(e) {
-                    return httpReqTx.cb(e);
-                }
+                status = resource.patchStatus(resourceUri, params, res.statusCode, res.headers, respJson || respData)
+                    || res.statusCode;
 
                 if(status >= 200 && status <= 300) {
                     if(respJson) {
-                        respJson = resource.patchResponse(resourceUri, params, res.headers, respJson);
+                        respJson = resource.patchResponse(resourceUri, params, res.statusCode, res.headers, respJson);
                         // Projections
                         project.run(resource.resultSet, statement, respJson, function(filtered) {
                             return httpReqTx.cb(undefined, {

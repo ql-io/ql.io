@@ -41,9 +41,9 @@ var Verb = module.exports = function(statement, type, bag, path) {
     this['body template'] = function() {};
     this['patch body'] = function(args) { return { content: args.body}; };
     this['parse response'] = function() {};
-    this['patch response'] = function() {};
-    this['patch mediaType'] = function() {};
-    this['patch status'] = function() {};
+    this['patch response'] = function(args) {return args.body; };
+    this['patch mediaType'] = function(args) { return args.headers['content-type']};
+    this['patch status'] = function(args) { return args.status; };
 
     // May override patches
     _process(this, statement, bag, path);
@@ -132,7 +132,7 @@ var Verb = module.exports = function(statement, type, bag, path) {
         var parsed = new MutableURI(uri);
         var ret = this['patch headers']({
             uri: parsed,
-            statement: statement,
+            statement: this,
             params: params,
             headers: headers
         });
@@ -144,7 +144,7 @@ var Verb = module.exports = function(statement, type, bag, path) {
         parsed = new MutableURI(uri);
         var ret = this['body template']({
             uri: parsed,
-            statement: statement,
+            statement: this,
             params: params,
             headers: headers
         });
@@ -155,7 +155,7 @@ var Verb = module.exports = function(statement, type, bag, path) {
         var parsed = new MutableURI(uri);
         var ret = this['patch body']({
             uri: parsed,
-            statement: statement,
+            statement: this,
             params: params,
             body: body,
             headers: headers
@@ -168,13 +168,48 @@ var Verb = module.exports = function(statement, type, bag, path) {
         var parsed = new MutableURI(uri);
         var ret = this['parse response']({
             uri: parsed,
-            statement: statement,
+            statement: this,
             params: params,
             body: body,
             headers: headers
         });
         return ret;
     };
+
+    this.patchResponse = function(uri, params, status, headers, body) {
+        var parsed = new MutableURI(uri);
+        return this['patch response']({
+            uri: parsed,
+            statement: this,
+            params: params,
+            status: status,
+            headers: headers,
+            body: body
+        });
+    };
+
+    this.patchMediaType = function(uri, params, status, headers, body) {
+        var parsed = new MutableURI(uri);
+        return this['patch mediaType']({
+            uri: parsed,
+            statement: statement,
+            params: params,
+            status: status,
+            headers: headers,
+            body: body
+        });
+    };
+
+    this.patchStatus = function(resourceUri, params, status, headers, respData) {
+        return this['patch status']({
+                uri: resourceUri,
+                statement: statement,
+                params: params,
+                status: status,
+                headers: headers,
+                body: respData
+            }) || res.statusCode;
+    }
 
     this.exec = function(args) {
         var self = this, holder = {};
@@ -414,11 +449,10 @@ function _process(self, statement, bag, root) {
     }
     if(statement.patch) {
         var path = root + statement.patch;
-        // Monkey patch is the compiled patch module
-        statement.monkeyPatch = require(path);
 
-        // Merge the patch functions
-        _.each(statement.monkeyPatch, function(v, k) {
+        // Monkey patch is the compiled patch module
+        var patch = require(path);
+        _.each(patch, function(v, k) {
             self[k] = v;
         });
     }
