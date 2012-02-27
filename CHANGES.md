@@ -1,3 +1,8 @@
+## Feb 26, 2012
+
+* Refactor request processing - this work is in progress.
+* Bug https://github.com/ql-io/ql.io/issues/286 reopened and fixed with better tests.
+
 ## Feb 24, 2012
 
 * Escalte table/route loading errors to the logger

@@ -6,3 +6,4 @@ Authors in the order of first contribution
 * [Prabhakhar Kaliamurthy](https://github.com/prabhakhar)
 * [Igor Dralyuk](https://github.com/idralyuk)
 * [Ramesh Arekatla](https://github.com/arekatla)
+* [Jeromy Carriere](https://github.com/sjcarriere)
