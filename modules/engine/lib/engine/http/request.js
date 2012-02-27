@@ -113,7 +113,7 @@ exports.send = function(args, resourceUri, params, holder, cb) {
         }
 
         if(args.resource.monkeyPatch && args.resource.monkeyPatch['patch body']) {
-            body = patchBody(resourceUri, args.statement, params, headers, requestBody, args.resource.monkeyPatch['patch body']);
+            body = args.resource.patchBody(resourceUri, params, headers, requestBody);
             requestBody = body.content;
         }
 
@@ -456,20 +456,6 @@ function getStatus(resourceUri, statement, params, res, resource, respJson, resp
         })
     }
     return overrideStatus;
-}
-
-function patchBody(uri, statement, params, headers, body, fn) {
-   var parsed;
-    parsed = new MutableURI(uri);
-    var ret = fn({
-        uri: parsed,
-        statement: statement,
-        params: params,
-        body: body,
-        headers: headers
-    });
-    assert.ok(ret, 'body patch return undefined');
-    return ret;
 }
 
 function getMaxResponseLength(config, logEmitter) {
