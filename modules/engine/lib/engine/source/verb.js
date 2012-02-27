@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 eBay Software Foundation
+ * Copyright 2012 eBay Software Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,57 +19,15 @@
 var assert = require('assert'),
     _ = require('underscore'),
     async = require('async'),
-    markdown = require('markdown'),
     MutableURI = require('ql.io-mutable-uri'),
     strTemplate = require('../peg/str-template.js'),
     uriTemplate = require('ql.io-uri-template'),
     fs = require('fs'),
     normalize = require('path').normalize,
-    request = require('./request.js'),
+    request = require('../http/request.js'),
     _util = require('../util.js');
 
-var Table = module.exports = function(opts, comments, statement) {
-    this.statement = statement;
-    this.name = statement.name;
-    this.opts = opts;
-    this.verbs = {};
-    var bag = {
-        config: opts.config
-    };
-
-    // Metadata for describe
-    this.meta = {
-        name: this.statement.name,
-        routes: [],
-        comments: ''
-    };
-    var self = this;
-    if(comments.length > 0) {
-        _.each(comments, function(comment) {
-            self.meta.comments += markdown.markdown.toHTML(comment);
-        });
-    }
-
-    _.each(['select', 'insert', 'update', 'delete'], function(type) {
-        if(self.statement[type]) {
-            try {
-                var verb = new Verb(self.statement[type], type, bag, self.opts.path);
-                self.verbs[type] = verb;
-            }
-            catch(e) {
-
-                self.opts.logEmitter.emitError(e.message || e);
-                return self.opts.cb(e);
-            }
-        }
-    });
-};
-
-Table.prototype.verb = function(type) {
-    return this.verbs[type];
-};
-
-var Verb = function(statement, type, bag, path) {
+var Verb = module.exports = function(statement, type, bag, path) {
     this.type = type;
     this.__proto__ = statement;
 
@@ -77,15 +35,15 @@ var Verb = function(statement, type, bag, path) {
     this['validate param'] = function() {
         return true;
     };
-    this['patch uris'] = function() {};
+    this['patch uri'] = function(args) { return args.uri; };
     this['udf'] = function() {};
-    this['patch headers'] = function() {};
+    this['patch headers'] = function(args) { return args.headers; };
     this['body template'] = function() {};
-    this['patch body'] = function() {};
+    this['patch body'] = function(args) { return { content: args.body}; };
     this['parse response'] = function() {};
-    this['patch response'] = function() {};
-    this['patch mediaType'] = function() {};
-    this['patch status'] = function() {};
+    this['patch response'] = function(args) {return args.body; };
+    this['patch mediaType'] = function(args) { return args.headers['content-type']};
+    this['patch status'] = function(args) { return args.status; };
 
     // May override patches
     _process(this, statement, bag, path);
@@ -124,10 +82,134 @@ var Verb = function(statement, type, bag, path) {
                 }
             }
         });
-    }
+    };
+
+    this.uris = function(args, params) {
+        // Parse the uri template (hits a cache)
+        var template, self = this;
+        try {
+            template = uriTemplate.parse(statement.uri);
+            statement.merge = template.merge();
+        }
+        catch(err) {
+            args.logEmitter.emitWarning(err);
+            return args.callback(err, null);
+        }
+
+        // Format the URI. This may return multiple to accommodate single valued tokens with
+        // multiple values
+        var uris = template.format(params, statement.defaults);
+        uris = _.isArray(uris) ? uris : [uris];
+
+        // Monkey patch
+        var temp = [];
+        _.each(uris, function (u) {
+            var parsed = new MutableURI(u);
+            var patched = self['patch uri']({
+                uri: parsed,
+                statement: args.statement,
+                params: params
+            });
+
+            if(patched) {
+                if(_.isArray(patched)) {
+                    var arr = [];
+                    _.each(patched, function(p) {
+                        arr.push(p.format());
+                    });
+                    patched = arr;
+                }
+                else {
+                    patched = patched.format();
+                }
+                temp = temp.concat(patched);
+            }
+        });
+        return temp;
+    };
+
+    this.patchHeaders = function(uri, params, headers) {
+        var parsed = new MutableURI(uri);
+        return this['patch headers']({
+            uri: parsed,
+            statement: this,
+            params: params,
+            headers: headers
+        }) || {};
+    };
+
+    this.bodyTemplate = function(uri, params, headers) {
+       var parsed;
+        parsed = new MutableURI(uri);
+        return this['body template']({
+            uri: parsed,
+            statement: this,
+            params: params,
+            headers: headers
+        }) || {};
+    };
+
+    this.patchBody = function(uri, params, headers, body) {
+        var parsed = new MutableURI(uri);
+        return this['patch body']({
+            uri: parsed,
+            statement: this,
+            params: params,
+            body: body,
+            headers: headers
+        });
+    };
+
+    // TODO: Repeated URI parsing!
+    this.parseResponse = function(uri, params, headers, body) {
+        var parsed = new MutableURI(uri);
+        return this['parse response']({
+            uri: parsed,
+            statement: this,
+            params: params,
+            body: body,
+            headers: headers
+        });
+    };
+
+    this.patchResponse = function(uri, params, status, headers, body) {
+        var parsed = new MutableURI(uri);
+        return this['patch response']({
+            uri: parsed,
+            statement: this,
+            params: params,
+            status: status,
+            headers: headers,
+            body: body
+        });
+    };
+
+    this.patchMediaType = function(uri, params, status, headers, body) {
+        var parsed = new MutableURI(uri);
+        return this['patch mediaType']({
+            uri: parsed,
+            statement: statement,
+            params: params,
+            status: status,
+            headers: headers,
+            body: body
+        });
+    };
+
+    this.patchStatus = function(resourceUri, params, status, headers, respData) {
+        var parsed = new MutableURI(resourceUri);
+        return this['patch status']({
+                uri: parsed,
+                statement: statement,
+                params: params,
+                status: status,
+                headers: headers,
+                body: respData
+            }) || res.statusCode;
+    };
 
     this.exec = function(args) {
-        var holder = {};
+        var self = this, holder = {};
 
         //
         // The order of args here defines how params get overridden.
@@ -189,7 +271,8 @@ var Verb = function(statement, type, bag, path) {
                             }
                         }
                         rem[args.resource.body.foreach] = param;
-                        request.send(args, resourceUri[0], rem, holder, function (e, r) {
+                        // TODO: merge rem and holder into one
+                        send(self, args, resourceUri[0], rem, holder, function (e, r) {
                             callback(e, r);
                         });
                     }
@@ -200,7 +283,7 @@ var Verb = function(statement, type, bag, path) {
             _.each(resourceUri, function (uri) {
                 tasks.push(function (uri) {
                     return function (callback) {
-                        request.send(args, uri, params, holder, function (e, r) {
+                        send(self, args, uri, params, holder, function (e, r) {
                             callback(e, r);
                         });
                     }
@@ -363,60 +446,24 @@ function _process(self, statement, bag, root) {
     }
     if(statement.patch) {
         var path = root + statement.patch;
-        // Monkey patch is the compiled patch module
-        statement.monkeyPatch = require(path);
 
-        // Merge the patch functions
-        _.each(statement.monkeyPatch, function(v, k) {
+        // Monkey patch is the compiled patch module
+        var patch = require(path);
+        _.each(patch, function(v, k) {
             self[k] = v;
         });
     }
     if(statement.auth) {
         // auth is the compiled auth module
-        statement.auth = require(statement.auth);
-    }
-
-    statement.uris = function(args, params) {
-        // Parse the uri template (hits a cache)
-        var template;
         try {
-            template = uriTemplate.parse(statement.uri);
-            statement.merge = template.merge();
-        }
-        catch(err) {
-            args.logEmitter.emitWarning(err);
-            return args.callback(err, null);
-        }
-
-        // Format the URI. If a token is single valued, but we have multiple values in the params array,
-        // formatUri return multiple values.
-        var uris = template.format(params, statement.defaults);
-        uris = _.isArray(uris) ? uris : [uris];
-
-        // Monkey patch
-        uris = patchUris(statement, uris, args.statement, params);
-        return uris;
-    }
-}
-
-// Replace headers and defaults
-function replace(col, bag, meta) {
-    var compiled;
-    _.each(col, function(v, n) {
-        try {
-            compiled = strTemplate.parse(v);
-
-            // Keep non-matching tokens here so that they can be replaced at engine.exec time.
-            col[n] = compiled.format(bag, true);
-            meta.push({
-                name: n,
-                value: col[n]
-            })
+            self.auth = require(statement.auth);
         }
         catch(e) {
-            // Ignore as we want to treat non-conformat strings as opaque
+            // Not found in a module path. Try current dir
+            path = root + statement.auth;
+            self.auth = require(path);
         }
-    });
+    }
 }
 
 function cloneDeep(obj) {
@@ -432,33 +479,15 @@ function cloneDeep(obj) {
     return copy;
 }
 
-function patchUris(resource, resourceUri, statement, params) {
-    var temp = resourceUri, parsed, patched, arr;
-    if(resource.monkeyPatch && resource.monkeyPatch['patch uri']) {
-        temp = [];
-        _.each(resourceUri, function (u) {
-            parsed = new MutableURI(u);
-            patched = resource.monkeyPatch['patch uri']({
-                uri: parsed,
-                statement: statement,
-                params: params
-            });
-
-            if(patched) {
-                if(_.isArray(patched)) {
-                    arr = [];
-                    _.each(patched, function(p) {
-                        arr.push(p.format());
-                    });
-                    patched = arr;
-                }
-                else {
-                    patched = patched.format();
-                }
-                temp = temp.concat(patched);
+function send(verb, args, uri, params, holder, callback) {
+    // Authenticate the request
+    if(verb.auth) {
+        verb.auth.auth(params, args.config, function (err) {
+            if(err) {
+                return cb(err);
             }
         });
     }
 
-    return temp;
+    request.send(args, uri, params, holder, callback);
 }
