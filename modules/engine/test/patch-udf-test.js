@@ -19,19 +19,19 @@ var Engine = require('../lib/engine'),
     util = require('util');
 
 module.exports = {
-    'valid': function (test) {
+    'udf': function (test) {
         var server = http.createServer(function (req, res) {
             res.writeHead(200, {
                 'Content-Type': 'application/json'
             });
-            res.end(JSON.stringify({'state':'ok'}));
+            res.end(JSON.stringify({'path': req.url}));
         });
         server.listen(3000, function () {
             // Do the test here.
             var engine = new Engine({
                 tables: __dirname + '/patch'
             });
-            engine.execute('select * from patch.validate.params where p1 = v1 and p2 = 10', function (emitter) {
+            engine.execute('select * from patch.udf where p1("v1") and p2("2", "3")', function (emitter) {
                 emitter.on('end', function (err, result) {
                     if(err) {
                         console.log(err.stack || util.inspect(err, false, 10));
@@ -40,7 +40,7 @@ module.exports = {
                     }
                     else {
                         test.equals(result.headers['content-type'], 'application/json', 'json expected');
-                        test.equals(result.body.state, 'ok');
+                        test.equals(result.body.path, '/?p1=v1&p2=5');
                         test.done();
                     }
                     server.close();
@@ -49,26 +49,26 @@ module.exports = {
         });
     },
 
-    'invalid': function (test) {
+    'udf missing': function (test) {
         var server = http.createServer(function (req, res) {
             res.writeHead(200, {
                 'Content-Type': 'application/json'
             });
-            res.end(JSON.stringify({'state': 'ok'}));
+            res.end(JSON.stringify({'path': req.url}));
         });
         server.listen(3000, function () {
             // Do the test here.
             var engine = new Engine({
                 tables: __dirname + '/patch'
             });
-            engine.execute('select * from patch.validate.params where p1 = v1 and p2 = 100', function (emitter) {
+            engine.execute('select * from patch.udf where p1("v1") and p2("2", "3") and p3()', function (emitter) {
                 emitter.on('end', function (err, result) {
                     if(err) {
                         test.ok('Ok');
                         test.done();
                     }
                     else {
-                        test.fail('Did not got error');
+                        test.fail('Did not fail');
                         test.done();
                     }
                     server.close();

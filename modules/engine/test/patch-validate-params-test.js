@@ -68,7 +68,7 @@ module.exports = {
                         test.done();
                     }
                     else {
-                        test.fail('Did not got error');
+                        test.fail('Did not fail');
                         test.done();
                     }
                     server.close();

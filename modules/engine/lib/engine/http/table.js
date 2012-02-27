@@ -109,6 +109,23 @@ var Verb = function(statement, type, bag, path) {
         }
     };
 
+    this.invokeUdf = function(statement, resource, holder) {
+        var self = this;
+        _.each(statement.whereCriteria, function (c) {
+            if(c.operator === 'udf') {
+                var funcs = self.udf();
+                if(funcs[c.name]) {
+                    holder[c.name] = funcs[c.name].apply(self, c.args.value);
+                }
+                else {
+                    throw {
+                        message: 'udf ' + c.name + ' not defined'
+                    };
+                }
+            }
+        });
+    }
+
     this.exec = function(args) {
         var holder = {};
 
@@ -134,6 +151,14 @@ var Verb = function(statement, type, bag, path) {
             return args.callback(e);
         }
 
+        // Invoke UDFs - defined by monkey patch
+        try {
+            args.resource.invokeUdf(args.statement, args.resource, params);
+        }
+        catch(e) {
+            return args.callback(e.stack || e);
+        }
+
         var resourceUri;
         try {
             resourceUri = args.resource.uris(args, params);
@@ -145,14 +170,6 @@ var Verb = function(statement, type, bag, path) {
         // If there are no URIs, just return now
         if(!resourceUri || resourceUri.length === 0) {
             return args.callback(undefined, {});
-        }
-
-        // Invoke UDFs - defined by monkey patch
-        try {
-            invokeUdf(args.statement, args.resource, holder);
-        }
-        catch(e) {
-            return args.callback(e.stack || e);
         }
 
         // if template.format() returns multiple URIs, we need to execute all of them in parallel,
@@ -235,21 +252,6 @@ var Verb = function(statement, type, bag, path) {
 //
 // Monkey patch methods - default no-ops
 //
-
-function invokeUdf(statement, resource, holder) {
-    _.each(statement.whereCriteria, function (c) {
-        if(c.operator === 'udf') {
-            if(resource.monkeyPatch && resource.monkeyPatch['udf']) {
-                holder[c.name] = resource.monkeyPatch.udf[c.name](c.args);
-            }
-            else {
-                throw {
-                    message: 'udf ' + c.name + ' not defined'
-                };
-            }
-        }
-    });
-}
 
 function mergeArray(uarr, prop, merge) {
     // Remove undefined.
@@ -392,7 +394,7 @@ function _process(self, statement, bag, root) {
         uris = _.isArray(uris) ? uris : [uris];
 
         // Monkey patch
-            uris = patchUris(statement, uris, args.statement, params);
+        uris = patchUris(statement, uris, args.statement, params);
         return uris;
     }
 }
