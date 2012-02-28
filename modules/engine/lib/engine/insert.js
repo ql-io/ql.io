@@ -16,8 +16,7 @@
 
 'use strict';
 
-var httpRequest = require('./source/table.js'),
-    jsonfill = require('./jsonfill.js'),
+var jsonfill = require('./jsonfill.js'),
     _ = require('underscore'),
     assert = require('assert');
 
@@ -62,16 +61,17 @@ exports.exec = function(opts, statement, cb, parentEvent) {
         if(!table) {
             return insertTx.cb('No such table ' + name);
         }
-        if(!table.insert) {
+        var verb = table.verb('insert');
+        if(!verb) {
             return insertTx.cb('Table ' + statement.source.name + ' does not support insert');
         }
-
-        httpRequest.exec({
+        verb.exec({
             context: opts.context,
             config: opts.config,
             settings: opts.settings,
-            resource: table.insert,
+            resource: verb,
             xformers: opts.xformers,
+            serializers: opts.serializers,
             params: values,
             request: request,
             statement: statement,

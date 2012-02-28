@@ -17,127 +17,35 @@
 'use strict';
 
 var _ = require('underscore'),
-    uriTemplate = require('ql.io-uri-template'),
-    os = require('os'),
     assert = require('assert'),
-    strTemplate = require('../peg/str-template.js'),
-    project = require('../project.js'),
     eventTypes = require('../event-types.js'),
     _headers = require('headers'),
     http = require('http'),
     https = require('https'),
     URI = require('uri'),
-    util = require('util'),
-    ejs = require('ejs'),
-    mustache = require('mustache'),
+    response = require('./response.js'),
     uuid = require('node-uuid');
 
-exports.send = function(args, resourceUri, params, holder, cb) {
+exports.send = function(args) {
 
-    var requestBody, client, options, template;
+    var client, options;
     var uri, heirpart, authority, host, port, path, useProxy = false, proxyHost, proxyPort;
 
-    var httpReqTx = args.logEmitter.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
-
-    var config = args.config || {};
-
-     // Prep headers
-     var headers = {
-        'connection' : args.settings['connection'] ? args.settings['connection'] : 'keep-alive',
-        'user-agent' : 'ql.io-engine' + require('../../../package.json').version + '/node.js-' + process.version,
-        'accept' : _.pluck(args.xformers, 'accept').join(',')
-    };
-
-    // Copy headers from the table def
-    _.each(args.resource.headers, function(v, k) {
-        var compiled;
-        try {
-            compiled = strTemplate.parse(v);
-            v = compiled.format(params);
-        }
-        catch(e) {
-            // Ignore as we want to treat non-conformant strings as opaque
-            args.logEmitter.emitWarning(httpReqTx.event, 'unable to parse header ' + v + ' error: ' + e.stack || e);
-        }
-        headers[k.toLowerCase()] = v;
-    });
-
-    var requestId = {
-        name : args.settings['request-id'] ? args.settings['request-id'] : 'request-id',
-        value : (params['request-id'] || args.resource.headers['request-id'] || httpReqTx.event.uuid) + '!ql.io' + '!' + getIp() + '['
-    };
-
-    headers[requestId.name]  = requestId.value;
-
-    // Monkey patch headers
-    try {
-        headers = args.resource.patchHeaders(resourceUri, args.prams, headers);
-    }
-    catch(e) {
-        return cb(e);
-    }
-
-    // Request body
-    var body = args.resource.bodyTemplate(resourceUri, params, headers);
-    var content = body.content || args.resource.body.content;
-    if(content && content.length > 0 &&
-        (args.resource.method === 'post' || args.resource.method == 'put')) {
-
-        if(args.resource.body.type === 'application/x-www-form-urlencoded') {
-            try {
-                template = uriTemplate.parse(content);
-            }
-            catch(err) {
-                args.logEmitter.emitWarning(err);
-                return cb(err, null);
-            }
-            var arr = template.format(params, args.resource.defaults);
-            requestBody = _.isArray(arr) ? arr : [arr];
-
-            assert.ok(requestBody.length === 1, 'Body template processing resulted in an array. INTERNAL ERROR');
-            requestBody = requestBody[0];
-        }
-        else {
-            holder.statement = args.statement;
-            holder.params = params;
-
-            if(args.resource.body.template && args.resource.body.template.match(/\.ejs/)) {
-                // Use EJS
-                requestBody = ejs.render(content, holder);
-            }
-            else {
-                // Use Mustache
-                requestBody = mustache.to_html(content, holder);
-            }
-        }
-
-        body = args.resource.patchBody(resourceUri, params, headers, requestBody);
-        requestBody = body.content;
-
-        headers['content-length'] = requestBody.length;
-        if(!headers['content-type']) {
-            headers['content-type'] = body.type || args.resource.body.type;
-        }
-    }
-
-    //
-    // Send
-    //
-    var isTls = resourceUri.indexOf('https://') == 0;
-    uri = new URI(resourceUri, false);
+    var isTls = args.uri.indexOf('https://') == 0;
+    uri = new URI(args.uri, false);
 
     heirpart = uri.heirpart();
-    assert.ok(heirpart, 'URI [' + resourceUri + '] is invalid');
+    assert.ok(heirpart, 'URI [' + args.uri + '] is invalid');
     authority = heirpart.authority();
-    assert.ok(authority, 'URI [' + resourceUri + '] is invalid');
+    assert.ok(authority, 'URI [' + args.uri  + '] is invalid');
     host = authority.host();
-    assert.ok(host, 'Host of URI [' + resourceUri + '] is invalid');
+    assert.ok(host, 'Host of URI [' + args.uri  + '] is invalid');
     port = authority.port() || (isTls ? 443 : 80);
-    assert.ok(port, 'Port of URI [' + resourceUri + '] is invalid');
+    assert.ok(port, 'Port of URI [' + args.uri  + '] is invalid');
     path = (heirpart.path().value || '') + (uri.querystring() || '');
 
-    if(config.proxy) {
-        var proxyConfig = config.proxy;
+    if(args.config.proxy) {
+        var proxyConfig = args.config.proxy;
         if (proxyConfig[host] && !proxyConfig[host].host) {
             useProxy = false;
         }
@@ -157,18 +65,16 @@ exports.send = function(args, resourceUri, params, holder, cb) {
         host: useProxy ? proxyHost : host,
         port: useProxy? proxyPort : port,
         path: useProxy? uri.scheme() + '//' + host + path : path,
-        method: args.resource.method || 'GET',
-        headers: headers
+        method: args.method,
+        headers: args.headers
     };
     client = isTls ? https : http;
 
     // Send
-    sendMessage(config, client, args.emitter, args.logEmitter, args.statement, params, httpReqTx, options, resourceUri, requestBody, headers,
-        requestId,  args.resource, args.xformers, 0);
+    sendMessage(args, client, options, 0);
 }
 
-function sendMessage(config, client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, requestBody, h,
-                     requestId, resource, xformers, retry) {
+function sendMessage(args, client, options, retry) {
     var status, clientRequest, start = Date.now(), mediaType, respData, uri;
     var reqStart = Date.now();
     var timings = {
@@ -180,31 +86,30 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
         "receive": -1
     };
 
-    if(emitter) {
+    if(args.emitter) {
         var uniqueId = uuid();
         var packet = {
-            line: statement.line,
+            line: args.statement.line,
             id: uniqueId,
-            uuid: httpReqTx.event.uuid,
+            uuid: args.httpReqTx.event.uuid,
             method: options.method,
-            uri: resourceUri,
+            uri: args.uri,
             headers: [],
-            body: requestBody,
+            body: args.body,
             start: reqStart,
             type: eventTypes.STATEMENT_REQUEST
         };
-        if(requestBody) {
-            packet.body = requestBody;
+        if(args.body) {
+            packet.body = args.body;
         }
-        _.each(h, function(v, n) {
+        _.each(args.headers, function(v, n) {
             packet.headers.push({
                 name: n,
                 value: v
             });
         });
-        emitter.emit(packet.type, packet);
+        args.emitter.emit(packet.type, packet);
     }
-
 
     clientRequest = client.request(options, function(res) {
         setEncoding(res);
@@ -213,130 +118,43 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
         res.on('data', function (chunk) {
             responseLength += chunk.length;
 
-            var maxResponseLength = getMaxResponseLength(config, logEmitter);
+            var maxResponseLength = getMaxResponseLength(args.config, args.logEmitter);
 
             if (responseLength > maxResponseLength) {
                 var err = new Error('Response length exceeds limit');
-                err.uri = resourceUri;
+                err.uri = args.uri;
                 err.status = 502;
 
-                logEmitter.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
+                args.logEmitter.emitError(args.httpReqTx.event, 'error with uri - ' + args.uri + ' - ' +
                     'response length ' + responseLength + ' exceeds config.maxResponseLength of ' + maxResponseLength +
                     ' ' + (Date.now() - start) + 'msec');
                 res.socket.destroy();
-                return httpReqTx.cb(err);
+                return args.httpReqTx.cb(err);
             }
             respData += chunk;
 
         });
         res.on('end', function() {
-            timings.receive = Date.now() - reqStart;
-            if(emitter) {
-                var packet = {
-                    line: statement.line,
-                    uuid: httpReqTx.event.uuid,
-                    id: uniqueId,
-                    status: res.statusCode,
-                    statusText: http.STATUS_CODES[res.statusCode],
-                    headers: [],
-                    time: new Date() - start,
-                    body: respData,
-                    type: eventTypes.STATEMENT_RESPONSE,
-                    timings: timings
-                };
-                _.each(res.headers, function(v, n) {
-                    packet.headers.push({
-                        name: n,
-                        value: v
-                    });
-                });
-                emitter.emit(eventTypes.STATEMENT_RESPONSE, packet);
-
-                if(res.headers[requestId.name]) {
-                    emitter.emit(eventTypes.REQUEST_ID_RECEIVED, res.headers[requestId.name]);
-                }
-                else {
-                    // Send back the uuid created in ql.io, if the underlying api
-                    // doesn't support the request tracing or the table is not configured with
-                    // the right name of the header.
-                    emitter.emit(eventTypes.REQUEST_ID_RECEIVED, h[requestId.name]);
-                }
-            }
-
-            // TODO: Handle redirects
-
-	        // Transform (patch only)
-            var result = resource.parseResponse(resourceUri, params, res.headers, respData);
-            respData = (result && result.body) ? result.body : respData;
-            res.headers = (result && result.headers) ? result.headers : res.headers;
-
-            mediaType = sniffMediaType(resource, resourceUri, params, res, respData);
-
-            logEmitter.emitEvent(httpReqTx.event, resourceUri + '  ' +
-                util.inspect(options) + ' ' +
-                res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
-                util.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
-
-            // Parse
-            jsonify(respData, mediaType, res.headers, xformers, function(respJson) {
-                status = resource.patchStatus(resourceUri, params, res.statusCode, res.headers, respJson || respData)
-                    || res.statusCode;
-
-                if(status >= 200 && status <= 300) {
-                    if(respJson) {
-                        respJson = resource.patchResponse(resourceUri, params, res.statusCode, res.headers, respJson);
-                        // Projections
-                        project.run(resource.resultSet, statement, respJson, function(filtered) {
-                            return httpReqTx.cb(undefined, {
-                                headers: {
-                                    'content-type':  'application/json'
-                                },
-                                body: filtered
-                            });
-                        });
-                    }
-                    else {
-
-                        return httpReqTx.cb(undefined, {
-                            headers: {
-                                'content-type': mediaType
-                            },
-                            body: respData
-                        });
-                    }
-                }
-                else {
-                    return httpReqTx.cb({
-                        headers: {
-                            'content-type':  respJson ? 'application/json' : mediaType
-                        },
-                        body: respJson || respData
-                    });
-                }
-            }, function(error) {
-                error.body = respData;
-                return httpReqTx.cb(error);
-            });
+            response.exec(timings, reqStart, args, uniqueId, res, start, respData, mediaType, options, status);
         });
     });
 
-    if(requestBody) {
-        clientRequest.write(requestBody);
+    if(args.body) {
+        clientRequest.write(args.body);
         timings.send = Date.now() - reqStart;
     }
     clientRequest.on('error', function(err) {
-        logEmitter.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
+        args.logEmitter.emitError(args.httpReqTx.event, 'error with uri - ' + args.uri + ' - ' +
             err.message + ' ' + (Date.now() - start) + 'msec');
         // For select, retry once on network error
-        if(retry === 0 && statement.type === 'select') {
-            logEmitter.emitEvent(httpReqTx.event, 'retrying - ' + resourceUri + ' - ' + (Date.now() - start) + 'msec');
-            sendMessage(config, client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, requestBody, h,
-                    requestId,  resource, xformers, 1);
+        if(retry === 0 && args.statement.type === 'select') {
+            args.logEmitter.emitEvent(args.httpReqTx.event, 'retrying - ' + args.uri + ' - ' + (Date.now() - start) + 'msec');
+            sendMessage(args, client, options, 1);
         }
         else {
             err.uri = uri;
             err.status = 502;
-            return httpReqTx.cb(err);
+            return args.httpReqTx.cb(err);
         }
     });
     clientRequest.end();
@@ -356,54 +174,6 @@ function setEncoding(res){
     res.setEncoding(encoding);
 }
 
-function sniffMediaType(resource, resourceUri, params, res, respData) {
-    // 1. If there is a patch, call it to get the media type.
-    var mediaType = resource.patchMediaType(resourceUri, params, res.statusCode, res.headers, respData)
-        || res.headers['content-type'];
-
-    // 2. If the media type is "XML", treat it as "application/xml"
-    mediaType = mediaType === 'XML' ? 'application/xml' : mediaType;
-
-    // 3. If the media type is "JSON", treat it as "application/json"
-    mediaType = mediaType === 'JSON' ? 'application/json' : mediaType;
-
-    // If none found, assume "application/json"
-    mediaType = mediaType || 'application/json';
-
-    // 4. If the media type is "text/xml", treat it as "application/xml"
-    mediaType = (mediaType === 'text/xml') ? 'application/xml' : mediaType;
-
-    return _headers.parse('content-type', mediaType);
-}
-
-
-function jsonify(respData, mediaType, headers, xformers, respCb, errorCb) {
-
-    if (!respData || /^\s*$/.test(respData)) {
-        respCb({});
-    }
-    else if(mediaType.subtype === 'xml' || /\+xml$/.test(mediaType.subtype)) {
-        xformers['xml'].toJson(respData, respCb, errorCb, headers);
-    }
-    else if(mediaType.subtype === 'json') {
-        xformers['json'].toJson(respData, respCb, errorCb, headers);
-    }
-    else if(mediaType.subtype === 'csv') {
-        xformers['csv'].toJson(respData, respCb, errorCb,
-            (mediaType.params && mediaType.params.header != undefined));
-    }
-    else if(mediaType.type === 'text') {
-        // Try JSON first
-        xformers['json'].toJson(respData, respCb, function() {
-            // if error Try XML
-            xformers['xml'].toJson(respData, respCb, errorCb);
-        });
-    }
-    else {
-        errorCb({message:"No transformer available", type:mediaType.type, subType:mediaType.subtype})
-    }
-}
-
 function getMaxResponseLength(config, logEmitter) {
     if(config && config.maxResponseLength) {
         return config.maxResponseLength;
@@ -413,12 +183,4 @@ function getMaxResponseLength(config, logEmitter) {
         logEmitter.emitWarning('config.maxResponseLength is undefined! Defaulting to ' + max);
         return max;
     }
-}
-
-function getIp() {
-    var ips = _.pluck(_.filter(_.flatten(_.values(os.networkInterfaces())), function (ip) {
-        return ip.internal === false && ip.family === 'IPv4';
-    }), 'address');
-
-    return ips.length > 0 ? ips[0] : '127.0.0.1';
 }
