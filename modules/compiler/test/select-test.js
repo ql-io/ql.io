@@ -147,6 +147,45 @@ module.exports = {
         test.done();
     },
 
+    'select-in-csv-numbers': function (test) {
+        var q = "select * from a where a in (1, 2, '3')";
+        var statement = compiler.compile(q);
+        test.ok(statement.length, 1);
+        test.ok(statement[0].whereCriteria[0].operator, 'in');
+        test.ok(statement[0].whereCriteria[0].lhs, 'a');
+        test.ok(statement[0].whereCriteria[0].rhs.value, [1,2,'3']);
+        test.done();
+    },
+
+    'select-in-csv-numbers-2': function (test) {
+        var q = "select * from a where a in ('1', 2, '3')";
+        var statement = compiler.compile(q);
+        test.ok(statement.length, 1);
+        test.ok(statement[0].whereCriteria[0].operator, 'in');
+        test.ok(statement[0].whereCriteria[0].lhs, 'a');
+        test.ok(statement[0].whereCriteria[0].rhs.value, ['1',2,'3']);
+        test.done();
+    },
+
+    'select-args': function(test) {
+        var q = "select * from a where a in (1, 2, '3') and foo('bar', '1', '2') and bar(1, 'baz', 2) and baz()";
+        var statement = compiler.compile(q);
+        test.ok(statement.length, 1);
+        test.ok(statement[0].whereCriteria[0].operator, 'in');
+        test.ok(statement[0].whereCriteria[0].lhs, 'a');
+        test.ok(statement[0].whereCriteria[0].rhs.value, [1,2,'3']);
+        test.ok(statement[0].whereCriteria[1].operator, 'udf');
+        test.ok(statement[0].whereCriteria[1].name, 'foo');
+        test.ok(statement[0].whereCriteria[1].args.value, ['bar','1','2']);
+        test.ok(statement[0].whereCriteria[2].operator, 'udf');
+        test.ok(statement[0].whereCriteria[2].name, 'bar');
+        test.ok(statement[0].whereCriteria[2].args.value, [1,'baz',2]);
+        test.ok(statement[0].whereCriteria[2].operator, 'udf');
+        test.ok(statement[0].whereCriteria[2].name, 'baz');
+        test.ok(statement[0].whereCriteria[2].args, '');
+        test.done();
+    },
+
     'select-join': function(test) {
         var q = "select e.Title, e.ItemID, g.geometry.location from ebay.item as e, google.geocode as g where e.itemId in \
             (select itemId from ebay.finding.items where keywords = 'mini') and g.address = e.Location"

@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2011 eBay Software Foundation
  *
@@ -69,7 +68,7 @@
         collect(arr[i], separator, ret, f);
       }
       else if(arr[i] != "" && arr[i] != separator) {
-        if(f) {
+        if(f && arr[i][f]) {
           ret.push(arr[i][f]);
         }
         else {
@@ -638,17 +637,17 @@ udf = name:identifier insig '(' insig p:udfParams? insig ')' {
 }
 
 udfParams = c:udfParam insig carr:(comma insig udfParam)* {
-  var res = [c.value];
+  var res = [c.value || c];
   collect(carr,',', res, 'value');
   return {
     value: res
   }
 }
 
-udfParam = aliasedRef/quotedWord/quotedDigits
+udfParam = aliasedRef/quotedWord/quotedDigits/digits
 
 csv =  insig c:csvMember insig carr:(commaCsvMember*) {
-  var res = [c.value];
+  var res = [c.value || c];
   collect(carr,',', res, 'value');
   return {
     value: res
@@ -659,7 +658,7 @@ commaCsvMember = (insig comma insig v:csvMember) {
  return v;
 }
 
-csvMember = quotedWord/quotedDigits/ref
+csvMember = quotedWord/quotedDigits/digits/ref
 
 ref = i:identifier {
   return {
