@@ -1,3 +1,11 @@
+## Feb 28, 2012
+
+* Enable numbers in `in` clause and args of udfs
+
+## Feb 27, 2012
+
+* Refactor request processing - add more tests.
+
 ## Feb 26, 2012
 
 * Refactor request processing - this work is in progress.
