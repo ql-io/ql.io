@@ -25,7 +25,7 @@ var assert = require('assert'),
     uriTemplate = require('ql.io-uri-template'),
     fs = require('fs'),
     normalize = require('path').normalize,
-    request = require('../http/_request.js'),
+    request = require('../http/request.js'),
     _util = require('../util.js');
 
 var Verb = module.exports = function(statement, type, bag, path) {
