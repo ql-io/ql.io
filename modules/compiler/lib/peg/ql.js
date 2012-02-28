@@ -4251,12 +4251,11 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(c, carr) {
-            var res = [c.value];
+            var res = [c.value || c];
             collect(carr,',', res, 'value');
             return {
               value: res
             }
-
           })(result1[0], result1[2])
           : null;
         if (result2 !== null) {
@@ -4284,19 +4283,24 @@ module.exports = (function(){
         }
 
 
-        var result3 = parse_aliasedRef();
-        if (result3 !== null) {
-          var result0 = result3;
+        var result4 = parse_aliasedRef();
+        if (result4 !== null) {
+          var result0 = result4;
         } else {
-          var result2 = parse_quotedWord();
-          if (result2 !== null) {
-            var result0 = result2;
+          var result3 = parse_quotedWord();
+          if (result3 !== null) {
+            var result0 = result3;
           } else {
-            var result1 = parse_quotedDigits();
-            if (result1 !== null) {
-              var result0 = result1;
+            var result2 = parse_quotedDigits();
+            if (result2 !== null) {
+              var result0 = result2;
             } else {
-              var result0 = null;;
+              var result1 = parse_digits();
+              if (result1 !== null) {
+                var result0 = result1;
+              } else {
+                var result0 = null;;
+              };
             };
           };
         }
@@ -4353,7 +4357,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(c, carr) {
-            var res = [c.value];
+            var res = [c.value || c];
             collect(carr,',', res, 'value');
             return {
               value: res
@@ -4442,19 +4446,24 @@ module.exports = (function(){
         }
 
 
-        var result3 = parse_quotedWord();
-        if (result3 !== null) {
-          var result0 = result3;
+        var result4 = parse_quotedWord();
+        if (result4 !== null) {
+          var result0 = result4;
         } else {
-          var result2 = parse_quotedDigits();
-          if (result2 !== null) {
-            var result0 = result2;
+          var result3 = parse_quotedDigits();
+          if (result3 !== null) {
+            var result0 = result3;
           } else {
-            var result1 = parse_ref();
-            if (result1 !== null) {
-              var result0 = result1;
+            var result2 = parse_digits();
+            if (result2 !== null) {
+              var result0 = result2;
             } else {
-              var result0 = null;;
+              var result1 = parse_ref();
+              if (result1 !== null) {
+                var result0 = result1;
+              } else {
+                var result0 = null;;
+              };
             };
           };
         }
@@ -7935,7 +7944,7 @@ module.exports = (function(){
 
         else if(arr[i] != "" && arr[i] != separator) {
 
-          if(f) {
+          if(f && arr[i][f]) {
 
             ret.push(arr[i][f]);
 

@@ -17,6 +17,7 @@
 'use strict';
 
 var assert = require('assert'),
+    os = require('os'),
     _ = require('underscore'),
     async = require('async'),
     MutableURI = require('ql.io-mutable-uri'),
@@ -39,7 +40,7 @@ var Verb = module.exports = function(statement, type, bag, path) {
     this['udf'] = function() {};
     this['patch headers'] = function(args) { return args.headers; };
     this['body template'] = function() {};
-    this['patch body'] = function(args) { return { content: args.body}; };
+    this['patch body'] = function(args) { return args.body; };
     this['parse response'] = function() {};
     this['patch response'] = function(args) {return args.body; };
     this['patch mediaType'] = function(args) { return args.headers['content-type']};
@@ -48,6 +49,9 @@ var Verb = module.exports = function(statement, type, bag, path) {
     // May override patches
     _process(this, statement, bag, path);
 
+    //
+    // TODO: Negative tests needed - Assert return types of all monkey patch methods
+    //
     this.validateParams = function(params, statement) {
         var validator = this['validate param'];
         if(validator) {
@@ -129,30 +133,45 @@ var Verb = module.exports = function(statement, type, bag, path) {
     };
 
     this.patchHeaders = function(uri, params, headers) {
-        var parsed = new MutableURI(uri);
         return this['patch headers']({
-            uri: parsed,
+            uri: uri,
             statement: this,
             params: params,
             headers: headers
         }) || {};
     };
 
-    this.bodyTemplate = function(uri, params, headers) {
-       var parsed;
-        parsed = new MutableURI(uri);
-        return this['body template']({
-            uri: parsed,
+    this.tmpl = function(uri, params, headers, serializers) {
+        var self = this;
+        var body = this['body template']({
+            uri: uri,
             statement: this,
             params: params,
             headers: headers
         }) || {};
+
+        var content = body.content || this.body.content;
+        var type = body.type || this.body.type;
+        var payload =  {
+            content: undefined,
+            type: type
+        };
+
+        if(content && content.length > 0) {
+            var serializer = _.find(serializers, function(serializer) {
+                return serializer.accepts(type, self.body.template, content);
+            });
+            payload.content = serializer.serialize(self.body.type, content, self, params, self.defaults);
+        }
+
+        var ret = this.patchBody(uri, params, headers, payload) || payload;
+        return ret;
+
     };
 
     this.patchBody = function(uri, params, headers, body) {
-        var parsed = new MutableURI(uri);
         return this['patch body']({
-            uri: parsed,
+            uri: uri,
             statement: this,
             params: params,
             body: body,
@@ -162,9 +181,8 @@ var Verb = module.exports = function(statement, type, bag, path) {
 
     // TODO: Repeated URI parsing!
     this.parseResponse = function(uri, params, headers, body) {
-        var parsed = new MutableURI(uri);
         return this['parse response']({
-            uri: parsed,
+            uri: uri,
             statement: this,
             params: params,
             body: body,
@@ -173,9 +191,8 @@ var Verb = module.exports = function(statement, type, bag, path) {
     };
 
     this.patchResponse = function(uri, params, status, headers, body) {
-        var parsed = new MutableURI(uri);
         return this['patch response']({
-            uri: parsed,
+            uri: uri,
             statement: this,
             params: params,
             status: status,
@@ -185,9 +202,8 @@ var Verb = module.exports = function(statement, type, bag, path) {
     };
 
     this.patchMediaType = function(uri, params, status, headers, body) {
-        var parsed = new MutableURI(uri);
         return this['patch mediaType']({
-            uri: parsed,
+            uri: uri,
             statement: statement,
             params: params,
             status: status,
@@ -196,16 +212,15 @@ var Verb = module.exports = function(statement, type, bag, path) {
         });
     };
 
-    this.patchStatus = function(resourceUri, params, status, headers, respData) {
-        var parsed = new MutableURI(resourceUri);
+    this.patchStatus = function(uri, params, status, headers, respData) {
         return this['patch status']({
-                uri: parsed,
-                statement: statement,
-                params: params,
-                status: status,
-                headers: headers,
-                body: respData
-            }) || res.statusCode;
+            uri: uri,
+            statement: statement,
+            params: params,
+            status: status,
+            headers: headers,
+            body: respData
+        }) || res.statusCode;
     };
 
     this.exec = function(args) {
@@ -480,6 +495,8 @@ function cloneDeep(obj) {
 }
 
 function send(verb, args, uri, params, holder, callback) {
+    var util = require('util');
+
     // Authenticate the request
     if(verb.auth) {
         verb.auth.auth(params, args.config, function (err) {
@@ -489,5 +506,81 @@ function send(verb, args, uri, params, holder, callback) {
         });
     }
 
-    request.send(args, uri, params, holder, callback);
+    // Mint a tx for logging and consistent callback handling
+    var httpReqTx = args.logEmitter.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, callback);
+
+    // Parse - used by downstream patches
+    var parsed = new MutableURI(uri);
+
+    // Headers
+    var headers = {
+        'connection' : args.settings['connection'] ? args.settings['connection'] : 'keep-alive',
+        'user-agent' : 'ql.io-engine' + require('../../../package.json').version + '/node.js-' + process.version,
+        'accept' : _.pluck(args.xformers, 'accept').join(',')
+    };
+
+    // Copy headers from the table def
+    _.each(args.resource.headers, function(v, k) {
+        var compiled;
+        try {
+            compiled = strTemplate.parse(v);
+            v = compiled.format(params);
+        }
+        catch(e) {
+            // Ignore as we want to treat non-conformant strings as opaque
+            args.logEmitter.emitWarning(httpReqTx.event, 'unable to parse header ' + v + ' error: ' + e.stack || e);
+        }
+        headers[k.toLowerCase()] = v;
+    });
+
+    var name = args.settings['request-id'] ? args.settings['request-id'] : 'request-id';
+    headers[name]  = (params['request-id'] || args.resource.headers['request-id'] ||
+        httpReqTx.event.uuid) + '!ql.io' + '!' + getIp() + '[';
+
+    // Monkey patch headers
+    try {
+        headers = args.resource.patchHeaders(parsed, args.params, headers);
+    }
+    catch(e) {
+        return cb(e);
+    }
+
+    // Body
+    var body;
+    if(args.resource.method === 'post' || args.resource.method == 'put') {
+        var payload = args.resource.tmpl(parsed, params, headers, args.serializers);
+        body = payload.content;
+        if(body) {
+            headers['content-length'] = body.length;
+        }
+        if(!headers['content-type'] && payload.type) {
+            headers['content-type'] = payload.type || verb.body.type;
+        }
+    }
+
+    request.send({
+        config: args.config || {},
+        uri: uri,
+        parsed: parsed,
+        method: args.resource.method || 'GET',
+        headers: headers,
+        body: body,
+        params: params,
+        httpReqTx: httpReqTx, // TODO: clumsy
+        requestId: name,
+        emitter: args.emitter,
+        logEmitter: args.logEmitter,
+        statement: args.statement,
+        resource: args.resource,
+        xformers: args.xformers
+    });
+}
+
+
+function getIp() {
+    var ips = _.pluck(_.filter(_.flatten(_.values(os.networkInterfaces())), function (ip) {
+        return ip.internal === false && ip.family === 'IPv4';
+    }), 'address');
+
+    return ips.length > 0 ? ips[0] : '127.0.0.1';
 }
