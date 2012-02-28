@@ -553,7 +553,24 @@ function send(verb, args, uri, params, holder, callback) {
         }
     }
 
-    request.send(args, uri, parsed, headers, body, params, holder, callback, httpReqTx, name);
+    request.send({
+        config: args.config || {},
+        uri: uri,
+        parsed: parsed,
+        method: args.resource.method || 'GET',
+        headers: headers,
+        body: body,
+        params: params,
+        holder: holder,
+        calllback: callback, // TODO: why this
+        httpReqTx: httpReqTx, // TODO: clumsy
+        requestId: name,
+        emitter: args.emitter,
+        logEmitter: args.logEmitter,
+        statement: args.statement,
+        resource: args.resource,
+        xformers: args.xformers
+    });
 }
 
 

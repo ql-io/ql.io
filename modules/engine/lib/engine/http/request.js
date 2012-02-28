@@ -28,28 +28,26 @@ var _ = require('underscore'),
     util = require('util'),
     uuid = require('node-uuid');
 
-exports.send = function(args, resourceUri, parsed, headers, body, params, holder, cb, httpReqTx, requestId) {
+exports.send = function(args) {
 
     var client, options;
     var uri, heirpart, authority, host, port, path, useProxy = false, proxyHost, proxyPort;
 
-    var config = args.config || {};
-
-    var isTls = resourceUri.indexOf('https://') == 0;
-    uri = new URI(resourceUri, false);
+    var isTls = args.uri.indexOf('https://') == 0;
+    uri = new URI(args.uri, false);
 
     heirpart = uri.heirpart();
-    assert.ok(heirpart, 'URI [' + resourceUri + '] is invalid');
+    assert.ok(heirpart, 'URI [' + args.uri + '] is invalid');
     authority = heirpart.authority();
-    assert.ok(authority, 'URI [' + resourceUri + '] is invalid');
+    assert.ok(authority, 'URI [' + args.uri  + '] is invalid');
     host = authority.host();
-    assert.ok(host, 'Host of URI [' + resourceUri + '] is invalid');
+    assert.ok(host, 'Host of URI [' + args.uri  + '] is invalid');
     port = authority.port() || (isTls ? 443 : 80);
-    assert.ok(port, 'Port of URI [' + resourceUri + '] is invalid');
+    assert.ok(port, 'Port of URI [' + args.uri  + '] is invalid');
     path = (heirpart.path().value || '') + (uri.querystring() || '');
 
-    if(config.proxy) {
-        var proxyConfig = config.proxy;
+    if(args.config.proxy) {
+        var proxyConfig = args.config.proxy;
         if (proxyConfig[host] && !proxyConfig[host].host) {
             useProxy = false;
         }
@@ -69,19 +67,16 @@ exports.send = function(args, resourceUri, parsed, headers, body, params, holder
         host: useProxy ? proxyHost : host,
         port: useProxy? proxyPort : port,
         path: useProxy? uri.scheme() + '//' + host + path : path,
-        method: args.resource.method || 'GET',
-        headers: headers
+        method: args.method,
+        headers: args.headers
     };
     client = isTls ? https : http;
 
     // Send
-    sendMessage(config, client, args.emitter, args.logEmitter, args.statement, params, httpReqTx, options, resourceUri, parsed, body, headers,
-        requestId,  args.resource, args.xformers, 0);
+    sendMessage(args, client, options, 0);
 }
 
-function sendMessage(config, client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, parsed, body, h,
-                     requestId, resource, xformers, retry) {
-
+function sendMessage(args, client, options, retry) {
     var status, clientRequest, start = Date.now(), mediaType, respData, uri;
     var reqStart = Date.now();
     var timings = {
@@ -93,29 +88,29 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
         "receive": -1
     };
 
-    if(emitter) {
+    if(args.emitter) {
         var uniqueId = uuid();
         var packet = {
-            line: statement.line,
+            line: args.statement.line,
             id: uniqueId,
-            uuid: httpReqTx.event.uuid,
+            uuid: args.httpReqTx.event.uuid,
             method: options.method,
-            uri: resourceUri,
+            uri: args.uri,
             headers: [],
-            body: body,
+            body: args.body,
             start: reqStart,
             type: eventTypes.STATEMENT_REQUEST
         };
-        if(body) {
-            packet.body = body;
+        if(args.body) {
+            packet.body = args.body;
         }
-        _.each(h, function(v, n) {
+        _.each(args.headers, function(v, n) {
             packet.headers.push({
                 name: n,
                 value: v
             });
         });
-        emitter.emit(packet.type, packet);
+        args.emitter.emit(packet.type, packet);
     }
 
     clientRequest = client.request(options, function(res) {
@@ -125,28 +120,28 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
         res.on('data', function (chunk) {
             responseLength += chunk.length;
 
-            var maxResponseLength = getMaxResponseLength(config, logEmitter);
+            var maxResponseLength = getMaxResponseLength(args.config, args.logEmitter);
 
             if (responseLength > maxResponseLength) {
                 var err = new Error('Response length exceeds limit');
-                err.uri = resourceUri;
+                err.uri = args.uri;
                 err.status = 502;
 
-                logEmitter.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
+                args.logEmitter.emitError(args.httpReqTx.event, 'error with uri - ' + args.uri + ' - ' +
                     'response length ' + responseLength + ' exceeds config.maxResponseLength of ' + maxResponseLength +
                     ' ' + (Date.now() - start) + 'msec');
                 res.socket.destroy();
-                return httpReqTx.cb(err);
+                return args.httpReqTx.cb(err);
             }
             respData += chunk;
 
         });
         res.on('end', function() {
             timings.receive = Date.now() - reqStart;
-            if(emitter) {
+            if(args.emitter) {
                 var packet = {
-                    line: statement.line,
-                    uuid: httpReqTx.event.uuid,
+                    line: args.statement.line,
+                    uuid: args.httpReqTx.event.uuid,
                     id: uniqueId,
                     status: res.statusCode,
                     statusText: http.STATUS_CODES[res.statusCode],
@@ -162,44 +157,44 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
                         value: v
                     });
                 });
-                emitter.emit(eventTypes.STATEMENT_RESPONSE, packet);
+                args.emitter.emit(eventTypes.STATEMENT_RESPONSE, packet);
 
-                if(res.headers[requestId]) {
-                    emitter.emit(eventTypes.REQUEST_ID_RECEIVED, res.headers[requestId]);
+                if(res.headers[args.requestId]) {
+                    args.emitter.emit(eventTypes.REQUEST_ID_RECEIVED, res.headers[args.requestId]);
                 }
                 else {
                     // Send back the uuid created in ql.io, if the underlying api
                     // doesn't support the request tracing or the table is not configured with
                     // the right name of the header.
-                    emitter.emit(eventTypes.REQUEST_ID_RECEIVED, h[requestId]);
+                    args.emitter.emit(eventTypes.REQUEST_ID_RECEIVED, args.headers[args.requestId]);
                 }
             }
 
             // TODO: Handle redirects
 
 	        // Transform (patch only)
-            var result = resource.parseResponse(parsed, params, res.headers, respData);
+            var result = args.resource.parseResponse(args.parsed, args.params, res.headers, respData);
             respData = (result && result.body) ? result.body : respData;
             res.headers = (result && result.headers) ? result.headers : res.headers;
 
-            mediaType = sniffMediaType(resource, parsed, params, res, respData);
+            mediaType = sniffMediaType(args.resource, args.parsed, args.params, res, respData);
 
-            logEmitter.emitEvent(httpReqTx.event, resourceUri + '  ' +
+            args.logEmitter.emitEvent(args.httpReqTx.event, args.uri + '  ' +
                 util.inspect(options) + ' ' +
                 res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
                 util.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
 
             // Parse
-            jsonify(respData, mediaType, res.headers, xformers, function(respJson) {
-                status = resource.patchStatus(parsed, params, res.statusCode, res.headers, respJson || respData)
+            jsonify(respData, mediaType, res.headers, args.xformers, function(respJson) {
+                status = args.resource.patchStatus(args.parsed, args.params, res.statusCode, res.headers, respJson || respData)
                     || res.statusCode;
 
                 if(status >= 200 && status <= 300) {
                     if(respJson) {
-                        respJson = resource.patchResponse(parsed, params, res.statusCode, res.headers, respJson);
+                        respJson = args.resource.patchResponse(args.parsed, args.params, res.statusCode, res.headers, respJson);
                         // Projections
-                        project.run(resource.resultSet, statement, respJson, function(filtered) {
-                            return httpReqTx.cb(undefined, {
+                        project.run(args.resource.resultSet, args.statement, respJson, function(filtered) {
+                            return args.httpReqTx.cb(undefined, {
                                 headers: {
                                     'content-type':  'application/json'
                                 },
@@ -209,7 +204,7 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
                     }
                     else {
 
-                        return httpReqTx.cb(undefined, {
+                        return args.httpReqTx.cb(undefined, {
                             headers: {
                                 'content-type': mediaType
                             },
@@ -218,7 +213,7 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
                     }
                 }
                 else {
-                    return httpReqTx.cb({
+                    return args.httpReqTx.cb({
                         headers: {
                             'content-type':  respJson ? 'application/json' : mediaType
                         },
@@ -227,28 +222,27 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
                 }
             }, function(error) {
                 error.body = respData;
-                return httpReqTx.cb(error);
+                return args.httpReqTx.cb(error);
             });
         });
     });
 
-    if(body) {
-        clientRequest.write(body);
+    if(args.body) {
+        clientRequest.write(args.body);
         timings.send = Date.now() - reqStart;
     }
     clientRequest.on('error', function(err) {
-        logEmitter.emitError(httpReqTx.event, 'error with uri - ' + resourceUri + ' - ' +
+        args.logEmitter.emitError(args.httpReqTx.event, 'error with uri - ' + args.uri + ' - ' +
             err.message + ' ' + (Date.now() - start) + 'msec');
         // For select, retry once on network error
-        if(retry === 0 && statement.type === 'select') {
-            logEmitter.emitEvent(httpReqTx.event, 'retrying - ' + resourceUri + ' - ' + (Date.now() - start) + 'msec');
-            sendMessage(config, client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, parsed, body, h,
-                    requestId,  resource, xformers, 1);
+        if(retry === 0 && args.statement.type === 'select') {
+            args.logEmitter.emitEvent(args.httpReqTx.event, 'retrying - ' + args.uri + ' - ' + (Date.now() - start) + 'msec');
+            sendMessage(args, client, options, 1);
         }
         else {
             err.uri = uri;
             err.status = 502;
-            return httpReqTx.cb(err);
+            return args.httpReqTx.cb(err);
         }
     });
     clientRequest.end();
@@ -325,12 +319,4 @@ function getMaxResponseLength(config, logEmitter) {
         logEmitter.emitWarning('config.maxResponseLength is undefined! Defaulting to ' + max);
         return max;
     }
-}
-
-function getIp() {
-    var ips = _.pluck(_.filter(_.flatten(_.values(os.networkInterfaces())), function (ip) {
-        return ip.internal === false && ip.family === 'IPv4';
-    }), 'address');
-
-    return ips.length > 0 ? ips[0] : '127.0.0.1';
 }
