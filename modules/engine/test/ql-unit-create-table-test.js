@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-var _ = require('underscore'),
-    http = require('http'),
-    fs = require('fs'),
-    util = require('util');;
+var Engine = require('../lib/engine');
 
+module.exports = require('ql-unit').init({
+    tests:__dirname + '/create-table-test',
+    engine:new Engine({
+        tables:__dirname + '/tables'
 
-exports.test = function (test, err, list) {
-    if(err) {
-        console.log(err.stack || util.inspect(err, false, 10));
-        test.fail('got error');
-        
-    }
-    else {
-        test.equals(list.headers['content-type'], 'application/json', 'HTML expected');
-        test.ok(_.isArray(list.body), 'expected an array');
-        test.ok(list.body.length > 0, 'expected some items');
-        test.ok(!_.isArray(list.body[0]), 'expected object in the array');
-        
-    }
-}
+    })});
+
