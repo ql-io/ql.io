@@ -14,7 +14,8 @@
 
 ## Feb 24, 2012
 
-* Escalte table/route loading errors to the logger
+* Escalate table/route loading errors to the logger
+* Fix in-flight.ejs. https://github.com/ql-io/ql.io/issues/266
 
 ## Feb 22, 2012
 
