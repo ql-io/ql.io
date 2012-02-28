@@ -40,7 +40,7 @@ var Verb = module.exports = function(statement, type, bag, path) {
     this['udf'] = function() {};
     this['patch headers'] = function(args) { return args.headers; };
     this['body template'] = function() {};
-    this['patch body'] = function(args) { return { content: args.body}; };
+    this['patch body'] = function(args) { return args.body; };
     this['parse response'] = function() {};
     this['patch response'] = function(args) {return args.body; };
     this['patch mediaType'] = function(args) { return args.headers['content-type']};
@@ -49,6 +49,9 @@ var Verb = module.exports = function(statement, type, bag, path) {
     // May override patches
     _process(this, statement, bag, path);
 
+    //
+    // TODO: Negative tests needed - Assert return types of all monkey patch methods
+    //
     this.validateParams = function(params, statement) {
         var validator = this['validate param'];
         if(validator) {
@@ -149,21 +152,21 @@ var Verb = module.exports = function(statement, type, bag, path) {
 
         var content = body.content || this.body.content;
         var type = body.type || this.body.type;
+        var payload =  {
+            content: undefined,
+            type: type
+        };
+
         if(content && content.length > 0) {
             var serializer = _.find(serializers, function(serializer) {
                 return serializer.accepts(type, self.body.template, content);
             });
-            var payload = serializer.serialize(self.body.type, content, self, params, self.defaults);
-            return {
-                content: payload,
-                type: type
-            }
+            payload.content = serializer.serialize(self.body.type, content, self, params, self.defaults);
         }
-        else {
-            return {
-                content: ''
-            };
-        }
+
+        var ret = this.patchBody(uri, params, headers, payload) || payload;
+        return ret;
+
     };
 
     this.patchBody = function(uri, params, headers, body) {
@@ -547,7 +550,9 @@ function send(verb, args, uri, params, holder, callback) {
     if(args.resource.method === 'post' || args.resource.method == 'put') {
         var payload = args.resource.tmpl(parsed, params, headers, args.serializers);
         body = payload.content;
-        headers['content-length'] = body.length;
+        if(body) {
+            headers['content-length'] = body.length;
+        }
         if(!headers['content-type'] && payload.type) {
             headers['content-type'] = payload.type || verb.body.type;
         }
@@ -561,8 +566,6 @@ function send(verb, args, uri, params, holder, callback) {
         headers: headers,
         body: body,
         params: params,
-        holder: holder,
-        calllback: callback, // TODO: why this
         httpReqTx: httpReqTx, // TODO: clumsy
         requestId: name,
         emitter: args.emitter,
