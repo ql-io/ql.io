@@ -17,6 +17,7 @@
 'use strict';
 
 var assert = require('assert'),
+    os = require('os'),
     _ = require('underscore'),
     async = require('async'),
     MutableURI = require('ql.io-mutable-uri'),
@@ -24,7 +25,7 @@ var assert = require('assert'),
     uriTemplate = require('ql.io-uri-template'),
     fs = require('fs'),
     normalize = require('path').normalize,
-    request = require('../http/request.js'),
+    request = require('../http/_request.js'),
     _util = require('../util.js');
 
 var Verb = module.exports = function(statement, type, bag, path) {
@@ -137,13 +138,32 @@ var Verb = module.exports = function(statement, type, bag, path) {
         }) || {};
     };
 
-    this.bodyTemplate = function(uri, params, headers) {
-        return this['body template']({
+    this.tmpl = function(uri, params, headers, serializers) {
+        var self = this;
+        var body = this['body template']({
             uri: uri,
             statement: this,
             params: params,
             headers: headers
         }) || {};
+
+        var content = body.content || this.body.content;
+        var type = body.type || this.body.type;
+        if(content && content.length > 0) {
+            var serializer = _.find(serializers, function(serializer) {
+                return serializer.accepts(type, self.body.template, content);
+            });
+            var payload = serializer.serialize(self.body.type, content, self, params, self.defaults);
+            return {
+                content: payload,
+                type: type
+            }
+        }
+        else {
+            return {
+                content: ''
+            };
+        }
     };
 
     this.patchBody = function(uri, params, headers, body) {
@@ -472,6 +492,8 @@ function cloneDeep(obj) {
 }
 
 function send(verb, args, uri, params, holder, callback) {
+    var util = require('util');
+
     // Authenticate the request
     if(verb.auth) {
         verb.auth.auth(params, args.config, function (err) {
@@ -481,5 +503,64 @@ function send(verb, args, uri, params, holder, callback) {
         });
     }
 
-    request.send(args, uri, params, holder, callback);
+    // Mint a tx for logging and consistent callback handling
+    var httpReqTx = args.logEmitter.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, callback);
+
+    // Parse - used by downstream patches
+    var parsed = new MutableURI(uri);
+
+    // Headers
+    var headers = {
+        'connection' : args.settings['connection'] ? args.settings['connection'] : 'keep-alive',
+        'user-agent' : 'ql.io-engine' + require('../../../package.json').version + '/node.js-' + process.version,
+        'accept' : _.pluck(args.xformers, 'accept').join(',')
+    };
+
+    // Copy headers from the table def
+    _.each(args.resource.headers, function(v, k) {
+        var compiled;
+        try {
+            compiled = strTemplate.parse(v);
+            v = compiled.format(params);
+        }
+        catch(e) {
+            // Ignore as we want to treat non-conformant strings as opaque
+            args.logEmitter.emitWarning(httpReqTx.event, 'unable to parse header ' + v + ' error: ' + e.stack || e);
+        }
+        headers[k.toLowerCase()] = v;
+    });
+
+    var name = args.settings['request-id'] ? args.settings['request-id'] : 'request-id';
+    headers[name]  = (params['request-id'] || args.resource.headers['request-id'] ||
+        httpReqTx.event.uuid) + '!ql.io' + '!' + getIp() + '[';
+
+    // Monkey patch headers
+    try {
+        headers = args.resource.patchHeaders(parsed, args.params, headers);
+    }
+    catch(e) {
+        return cb(e);
+    }
+
+    // Body
+    var body;
+    if(args.resource.method === 'post' || args.resource.method == 'put') {
+        var payload = args.resource.tmpl(parsed, params, headers, args.serializers);
+        body = payload.content;
+        headers['content-length'] = body.length;
+        if(!headers['content-type'] && payload.type) {
+            headers['content-type'] = payload.type || verb.body.type;
+        }
+    }
+
+    request.send(args, uri, parsed, headers, body, params, holder, callback, httpReqTx, name);
+}
+
+
+function getIp() {
+    var ips = _.pluck(_.filter(_.flatten(_.values(os.networkInterfaces())), function (ip) {
+        return ip.internal === false && ip.family === 'IPv4';
+    }), 'address');
+
+    return ips.length > 0 ? ips[0] : '127.0.0.1';
 }

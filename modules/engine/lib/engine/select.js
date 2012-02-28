@@ -317,6 +317,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                         settings: opts.settings,
                         resource: verb,
                         xformers: opts.xformers,
+                        serializers: opts.serializers,
                         params: params,
                         request: request,
                         statement: statement,

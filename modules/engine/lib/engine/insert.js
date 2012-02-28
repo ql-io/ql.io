@@ -72,6 +72,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
             settings: opts.settings,
             resource: table.insert,
             xformers: opts.xformers,
+            serializers: this.serializers,
             params: values,
             request: request,
             statement: statement,

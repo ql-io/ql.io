@@ -17,116 +17,24 @@
 'use strict';
 
 var _ = require('underscore'),
-    uriTemplate = require('ql.io-uri-template'),
     os = require('os'),
     assert = require('assert'),
-    strTemplate = require('../peg/str-template.js'),
     project = require('../project.js'),
     eventTypes = require('../event-types.js'),
-    MutableURI = require('ql.io-mutable-uri'),
     _headers = require('headers'),
     http = require('http'),
     https = require('https'),
     URI = require('uri'),
     util = require('util'),
-    ejs = require('ejs'),
-    mustache = require('mustache'),
     uuid = require('node-uuid');
 
-exports.send = function(args, resourceUri, params, holder, cb) {
+exports.send = function(args, resourceUri, parsed, headers, body, params, holder, cb, httpReqTx, requestId) {
 
-    var requestBody, client, options, template;
+    var client, options;
     var uri, heirpart, authority, host, port, path, useProxy = false, proxyHost, proxyPort;
-
-    var httpReqTx = args.logEmitter.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
 
     var config = args.config || {};
 
-     // Prep headers
-     var headers = {
-        'connection' : args.settings['connection'] ? args.settings['connection'] : 'keep-alive',
-        'user-agent' : 'ql.io-engine' + require('../../../package.json').version + '/node.js-' + process.version,
-        'accept' : _.pluck(args.xformers, 'accept').join(',')
-    };
-
-    // Copy headers from the table def
-    _.each(args.resource.headers, function(v, k) {
-        var compiled;
-        try {
-            compiled = strTemplate.parse(v);
-            v = compiled.format(params);
-        }
-        catch(e) {
-            // Ignore as we want to treat non-conformant strings as opaque
-            args.logEmitter.emitWarning(httpReqTx.event, 'unable to parse header ' + v + ' error: ' + e.stack || e);
-        }
-        headers[k.toLowerCase()] = v;
-    });
-
-    var requestId = {
-        name : args.settings['request-id'] ? args.settings['request-id'] : 'request-id',
-        value : (params['request-id'] || args.resource.headers['request-id'] || httpReqTx.event.uuid) + '!ql.io' + '!' + getIp() + '['
-    };
-
-    headers[requestId.name]  = requestId.value;
-
-    // Prepare once - used by patches
-    var parsed = new MutableURI(resourceUri);
-
-    // Monkey patch headers
-    try {
-        headers = args.resource.patchHeaders(parsed, args.prams, headers);
-    }
-    catch(e) {
-        return cb(e);
-    }
-
-    // Request body
-    var body = args.resource.templ(parsed, params, headers);
-    var content = body.content || args.resource.body.content;
-    if(content && content.length > 0 &&
-        (args.resource.method === 'post' || args.resource.method == 'put')) {
-
-        if(args.resource.body.type === 'application/x-www-form-urlencoded') {
-            try {
-                template = uriTemplate.parse(content);
-            }
-            catch(err) {
-                args.logEmitter.emitWarning(err);
-                return cb(err, null);
-            }
-            var arr = template.format(params, args.resource.defaults);
-            requestBody = _.isArray(arr) ? arr : [arr];
-
-            assert.ok(requestBody.length === 1, 'Body template processing resulted in an array. INTERNAL ERROR');
-            requestBody = requestBody[0];
-        }
-        else {
-            holder.statement = args.statement;
-            holder.params = params;
-
-            if(args.resource.body.template && args.resource.body.template.match(/\.ejs/)) {
-                // Use EJS
-                requestBody = ejs.render(content, holder);
-            }
-            else {
-                // Use Mustache
-                requestBody = mustache.to_html(content, holder);
-            }
-        }
-
-        body = args.resource.patchBody(parsed, params, headers, requestBody);
-        requestBody = body.content;
-
-        headers['content-length'] = requestBody.length;
-        if(!headers['content-type']) {
-            headers['content-type'] = body.type || args.resource.body.type;
-        }
-    }
-
-    //
-    // Send
-    //
     var isTls = resourceUri.indexOf('https://') == 0;
     uri = new URI(resourceUri, false);
 
@@ -167,12 +75,13 @@ exports.send = function(args, resourceUri, params, holder, cb) {
     client = isTls ? https : http;
 
     // Send
-    sendMessage(config, client, args.emitter, args.logEmitter, args.statement, params, httpReqTx, options, resourceUri, parsed, requestBody, headers,
+    sendMessage(config, client, args.emitter, args.logEmitter, args.statement, params, httpReqTx, options, resourceUri, parsed, body, headers,
         requestId,  args.resource, args.xformers, 0);
 }
 
-function sendMessage(config, client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, parsed, requestBody, h,
+function sendMessage(config, client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, parsed, body, h,
                      requestId, resource, xformers, retry) {
+
     var status, clientRequest, start = Date.now(), mediaType, respData, uri;
     var reqStart = Date.now();
     var timings = {
@@ -193,12 +102,12 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
             method: options.method,
             uri: resourceUri,
             headers: [],
-            body: requestBody,
+            body: body,
             start: reqStart,
             type: eventTypes.STATEMENT_REQUEST
         };
-        if(requestBody) {
-            packet.body = requestBody;
+        if(body) {
+            packet.body = body;
         }
         _.each(h, function(v, n) {
             packet.headers.push({
@@ -208,7 +117,6 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
         });
         emitter.emit(packet.type, packet);
     }
-
 
     clientRequest = client.request(options, function(res) {
         setEncoding(res);
@@ -256,14 +164,14 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
                 });
                 emitter.emit(eventTypes.STATEMENT_RESPONSE, packet);
 
-                if(res.headers[requestId.name]) {
-                    emitter.emit(eventTypes.REQUEST_ID_RECEIVED, res.headers[requestId.name]);
+                if(res.headers[requestId]) {
+                    emitter.emit(eventTypes.REQUEST_ID_RECEIVED, res.headers[requestId]);
                 }
                 else {
                     // Send back the uuid created in ql.io, if the underlying api
                     // doesn't support the request tracing or the table is not configured with
                     // the right name of the header.
-                    emitter.emit(eventTypes.REQUEST_ID_RECEIVED, h[requestId.name]);
+                    emitter.emit(eventTypes.REQUEST_ID_RECEIVED, h[requestId]);
                 }
             }
 
@@ -324,8 +232,8 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
         });
     });
 
-    if(requestBody) {
-        clientRequest.write(requestBody);
+    if(body) {
+        clientRequest.write(body);
         timings.send = Date.now() - reqStart;
     }
     clientRequest.on('error', function(err) {
@@ -334,7 +242,7 @@ function sendMessage(config, client, emitter, logEmitter, statement, params, htt
         // For select, retry once on network error
         if(retry === 0 && statement.type === 'select') {
             logEmitter.emitEvent(httpReqTx.event, 'retrying - ' + resourceUri + ' - ' + (Date.now() - start) + 'msec');
-            sendMessage(config, client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, parsed, requestBody, h,
+            sendMessage(config, client, emitter, logEmitter, statement, params, httpReqTx, options, resourceUri, parsed, body, h,
                     requestId,  resource, xformers, 1);
         }
         else {

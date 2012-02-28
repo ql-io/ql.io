@@ -114,9 +114,16 @@ var Engine = module.exports = function(opts) {
 
     // These are transformers for data formats.
     this.xformers = {
-        'xml': require('./xformers/xml.js'),
-        'json': require('./xformers/json.js'),
+        'xml' : require('./xformers/xml.js'),
+        'json' : require('./xformers/json.js'),
         'csv' : require('./xformers/csv.js')
+    }
+
+    // Serializers for bodies
+    this.serializers = {
+        'uri-encoded' : require('./serializers/uri-encoded.js'),
+        'mustache' : require('./serializers/mustache.js'),
+        'ejs' : require('./serializers/ejs.js')
     }
 }
 
@@ -250,6 +257,7 @@ Engine.prototype.execute = function() {
                         settings: this.settings,
                         config: this.config,
                         xformers: this.xformers,
+                        serializers: this.serializers,
                         tempResources: tempResources,
                         context: context,
                         request: request,
@@ -272,6 +280,7 @@ Engine.prototype.execute = function() {
                 config: this.config,
                 settings: this.settings,
                 xformers: this.xformers,
+                serializers: this.serializers,
                 tempResources: tempResources,
                 context: context,
                 request: request,
