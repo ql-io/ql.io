@@ -17,15 +17,13 @@
 'use strict';
 
 var _ = require('underscore'),
-    os = require('os'),
     assert = require('assert'),
-    project = require('../project.js'),
     eventTypes = require('../event-types.js'),
     _headers = require('headers'),
     http = require('http'),
     https = require('https'),
     URI = require('uri'),
-    util = require('util'),
+    response = require('./response.js'),
     uuid = require('node-uuid');
 
 exports.send = function(args) {
@@ -137,93 +135,7 @@ function sendMessage(args, client, options, retry) {
 
         });
         res.on('end', function() {
-            timings.receive = Date.now() - reqStart;
-            if(args.emitter) {
-                var packet = {
-                    line: args.statement.line,
-                    uuid: args.httpReqTx.event.uuid,
-                    id: uniqueId,
-                    status: res.statusCode,
-                    statusText: http.STATUS_CODES[res.statusCode],
-                    headers: [],
-                    time: new Date() - start,
-                    body: respData,
-                    type: eventTypes.STATEMENT_RESPONSE,
-                    timings: timings
-                };
-                _.each(res.headers, function(v, n) {
-                    packet.headers.push({
-                        name: n,
-                        value: v
-                    });
-                });
-                args.emitter.emit(eventTypes.STATEMENT_RESPONSE, packet);
-
-                if(res.headers[args.requestId]) {
-                    args.emitter.emit(eventTypes.REQUEST_ID_RECEIVED, res.headers[args.requestId]);
-                }
-                else {
-                    // Send back the uuid created in ql.io, if the underlying api
-                    // doesn't support the request tracing or the table is not configured with
-                    // the right name of the header.
-                    args.emitter.emit(eventTypes.REQUEST_ID_RECEIVED, args.headers[args.requestId]);
-                }
-            }
-
-            // TODO: Handle redirects
-
-	        // Transform (patch only)
-            var result = args.resource.parseResponse(args.parsed, args.params, res.headers, respData);
-            respData = (result && result.body) ? result.body : respData;
-            res.headers = (result && result.headers) ? result.headers : res.headers;
-
-            mediaType = sniffMediaType(args.resource, args.parsed, args.params, res, respData);
-
-            args.logEmitter.emitEvent(args.httpReqTx.event, args.uri + '  ' +
-                util.inspect(options) + ' ' +
-                res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
-                util.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
-
-            // Parse
-            jsonify(respData, mediaType, res.headers, args.xformers, function(respJson) {
-                status = args.resource.patchStatus(args.parsed, args.params, res.statusCode, res.headers, respJson || respData)
-                    || res.statusCode;
-
-                if(status >= 200 && status <= 300) {
-                    if(respJson) {
-                        respJson = args.resource.patchResponse(args.parsed, args.params, res.statusCode, res.headers, respJson);
-                        // Projections
-                        project.run(args.resource.resultSet, args.statement, respJson, function(filtered) {
-                            return args.httpReqTx.cb(undefined, {
-                                headers: {
-                                    'content-type':  'application/json'
-                                },
-                                body: filtered
-                            });
-                        });
-                    }
-                    else {
-
-                        return args.httpReqTx.cb(undefined, {
-                            headers: {
-                                'content-type': mediaType
-                            },
-                            body: respData
-                        });
-                    }
-                }
-                else {
-                    return args.httpReqTx.cb({
-                        headers: {
-                            'content-type':  respJson ? 'application/json' : mediaType
-                        },
-                        body: respJson || respData
-                    });
-                }
-            }, function(error) {
-                error.body = respData;
-                return args.httpReqTx.cb(error);
-            });
+            response.exec(timings, reqStart, args, uniqueId, res, start, respData, mediaType, options, status);
         });
     });
 
@@ -260,54 +172,6 @@ function setEncoding(res){
         encoding = contentType.params.charset == 'us-ascii' ? 'ascii' : 'utf8';
     }
     res.setEncoding(encoding);
-}
-
-function sniffMediaType(resource, resourceUri, params, res, respData) {
-    // 1. If there is a patch, call it to get the media type.
-    var mediaType = resource.patchMediaType(resourceUri, params, res.statusCode, res.headers, respData)
-        || res.headers['content-type'];
-
-    // 2. If the media type is "XML", treat it as "application/xml"
-    mediaType = mediaType === 'XML' ? 'application/xml' : mediaType;
-
-    // 3. If the media type is "JSON", treat it as "application/json"
-    mediaType = mediaType === 'JSON' ? 'application/json' : mediaType;
-
-    // If none found, assume "application/json"
-    mediaType = mediaType || 'application/json';
-
-    // 4. If the media type is "text/xml", treat it as "application/xml"
-    mediaType = (mediaType === 'text/xml') ? 'application/xml' : mediaType;
-
-    return _headers.parse('content-type', mediaType);
-}
-
-
-function jsonify(respData, mediaType, headers, xformers, respCb, errorCb) {
-
-    if (!respData || /^\s*$/.test(respData)) {
-        respCb({});
-    }
-    else if(mediaType.subtype === 'xml' || /\+xml$/.test(mediaType.subtype)) {
-        xformers['xml'].toJson(respData, respCb, errorCb, headers);
-    }
-    else if(mediaType.subtype === 'json') {
-        xformers['json'].toJson(respData, respCb, errorCb, headers);
-    }
-    else if(mediaType.subtype === 'csv') {
-        xformers['csv'].toJson(respData, respCb, errorCb,
-            (mediaType.params && mediaType.params.header != undefined));
-    }
-    else if(mediaType.type === 'text') {
-        // Try JSON first
-        xformers['json'].toJson(respData, respCb, function() {
-            // if error Try XML
-            xformers['xml'].toJson(respData, respCb, errorCb);
-        });
-    }
-    else {
-        errorCb({message:"No transformer available", type:mediaType.type, subType:mediaType.subtype})
-    }
 }
 
 function getMaxResponseLength(config, logEmitter) {
