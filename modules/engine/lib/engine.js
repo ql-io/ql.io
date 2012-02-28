@@ -85,7 +85,8 @@ var Engine = module.exports = function(opts) {
     });
     this.on(Engine.Events.WARNING, function(event, message) {
         if(message) {
-            opts.logger.warn(new Date() + ' - ' + message.stack || message);
+            var warn = opts.logger.warn || opts.logger.warning;
+            warn(new Date() + ' - ' + message.stack || message);
         }
     });
 
