@@ -1,5 +1,6 @@
 ## Feb 28, 2012
 
+* mkdir logs dir if not present when initing the console
 * Enable numbers in `in` clause and args of udfs
 
 ## Feb 27, 2012
