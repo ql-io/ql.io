@@ -20,6 +20,7 @@ var winston = require('winston'),
     express = require('express'),
     browserify = require('browserify'),
     headers = require('headers'),
+    fs = require('fs'),
     sanitize = require('validator').sanitize,
     connect = require('connect'),
     expat = require('xml2json'),
@@ -44,14 +45,30 @@ var Console = module.exports = function(config, cb) {
 
     config = config || {};
 
-    var logger = new (winston.Logger)({
+    // Ensure logs dir.
+    var logdir = false;
+    try {
+        fs.readdirSync(process.cwd() + '/logs');
+        logdir = true;
+    }
+    catch(e) {
+        try {
+            fs.mkdirSync(process.cwd() + '/logs/', parseInt('755', 8));
+            logdir = true;
+        }
+        catch(e) {
+        }
+    }
+
+    var logger = logdir ? new (winston.Logger)({
         transports: [
             new (winston.transports.File)({
                 filename: process.cwd() + '/logs/ql.io.log',
                 maxsize: 1024000 * 5
             })
         ]
-    });
+    }) : new (winston.Logger)();
+
     logger.setLevels(config['log levels'] || winston.config.cli.levels);
     config.logger = config.logger || logger;
     var engine = new Engine(config);
