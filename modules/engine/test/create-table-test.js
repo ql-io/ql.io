@@ -49,7 +49,6 @@ var cooked ={
 
                 }
                 else {
-//                    console.log(util.inspect(result,false,null));
                     test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
                     test.ok(_.isArray(result.body), 'expected an array');
                     test.ok(result.body.length > 0, 'expected some items');
@@ -63,7 +62,4 @@ var cooked ={
 
 module.exports = require('../node_modules/ql-unit/lib/unit').init({
     cooked: cooked
-//    tables:__dirname + '/tables',
-//    routes:__dirname + '/routes',
-//    config:__dirname + '/config/dev.json'
 });
