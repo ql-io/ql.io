@@ -44,11 +44,9 @@ var cooked = {
         udf: {
             test : function (test, err, result) {
                 if(err) {
-//        console.log(util.inspect(err,false,null));
                     test.ok(false,'got error: ' + err.stack || err);
                 }
                 else {
-//        console.log(util.inspect(result,false,null));
                     test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
                     test.ok(_.isArray(result.body), 'expected an array');
                     test.ok(result.body.length > 0, 'expected some items');
