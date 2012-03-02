@@ -18,48 +18,43 @@
 var util = require('util'),
     _    = require('underscore');
 
-var cooked ={
+var Engine = require('../lib/engine');
+
+var cooked = {
     createtable: {
         ports: [
-            {
-                port: 3000,
-                status: 200,
-                type: "application",
-                subType: "soap+xml",
-                payload:
-                    '<?xml version="1.0"?>' +
-                    '<findItemsByKeywordsResponse xmlns="http://www.ebay.com/marketplace/search/v1/services">' +
-                    '<item> <itemId>280770598060</itemId>'+
-                    '<title>Apple iPhone 4S (Latest Model) - 16GB - White (AT&amp;T) Smartphone- New In Box</title></item>' +
-                    '<item> <itemId>200673744437</itemId>'+
-                    '<title>Apple iPhone 4S (Latest Model) 64GB White, GSM Factory Unlocked</title></item>'+
-                    '</findItemsByKeywordsResponse>'
-            }
-        ],
+                 {
+                    port: 3000,
+                    status: 200,
+                    type: "application",
+                    subType: "json",
+                    payload: JSON.stringify({'message' : 'ok'})
+                 }
+               ],
         script: 'create table items on select get from "http://localhost:3000/" '+
-                'resultset "findItemsByKeywordsResponse";'+
-                'FindItemsByKeywordsResponse = select * from items;'+
-                'return "{FindItemsByKeywordsResponse.$..item}";',
-
+                'resultset "message";'+
+                'return select * from items;',
         udf: {
             test : function (test, err, result) {
-                if(err) {
+                if(err)
+                {
                     console.log(err.stack || util.inspect(err, false, 10));
                     test.fail('got error');
 
                 }
-                else {
-                    test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
-                    test.ok(_.isArray(result.body), 'expected an array');
-                    test.ok(result.body.length > 0, 'expected some items');
-                    test.ok(!_.isArray(result.body[0]), 'expected object in the array');
-
+                else
+                {
+                    test.equals(result.headers['content-type'], 'application/json');
+                    test.equals(result.body, 'ok');
                 }
             }
        }
     }
 }
 
-module.exports = require('../node_modules/ql-unit/lib/unit').init({
-    cooked: cooked
+module.exports = require('ql-unit').init({
+    cooked: cooked,
+    engine:new Engine({
+
+    })
 });
