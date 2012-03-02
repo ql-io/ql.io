@@ -1,3 +1,7 @@
+## Mar 02, 2012
+
+* Removed /in-flight requests api.
+
 ## Feb 28, 2012
 
 * mkdir logs dir if not present when initing the console
