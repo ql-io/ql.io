@@ -381,7 +381,6 @@ module.exports = {
                     test.equals(table.name, 'ebay.trading.bestoffers');
                     test.equals(table.about, '/table?name=ebay.trading.bestoffers');
                     test.equals(table.info, '');
-                    console.log(table.routes.length);
                     test.ok(_.isArray(table.routes) & table.routes.length == 2);
                     test.ok(table.select && table.select.request && table.select.params
                         && table.select.headers && table.select.body);

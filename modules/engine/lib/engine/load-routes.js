@@ -132,8 +132,8 @@ function loadInternal(path, prefix, logEmitter, routes, tablesInfo) {
                     _.each(tables, function(table){
                         var tableDef = tablesInfo[table];
                         if(tableDef){
-                            tableDef.meta.routes = tableDef.meta.routes || [];
-                            tableDef.meta.routes.push('/route?path=' +
+                            tableDef.routes = tableDef.routes || [];
+                            tableDef.routes.push('/route?path=' +
                                 encodeURIComponent(typeReturn.route.path.value) + '&method='
                                 + typeReturn.route.method);
                         }
