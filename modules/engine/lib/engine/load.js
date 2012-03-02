@@ -60,25 +60,28 @@ function loadInternal(path, prefix, logEmitter, config, tables) {
         else if(stats.isFile() && /\.ql$/.test(filename)) {
             // Load script files from the disk
             script = fs.readFileSync(path + filename, 'utf8');
-
-            name = filename.substring(0, filename.lastIndexOf('.'));
-
-            // Get the semantic model
-            brew.go({
-                    path: path,
-                    name: name,
-                    config: config,
-                    script: script,
-                    logEmitter: logEmitter,
-                    cb: function(err, table) {
-                            if(err) {
-                                logEmitter.emitError(err);
-                            } else {
-                                assert.ok(table, 'table should not be null');
-                                tables[table.name] = table;
-                            }
-                        }
-                    });
+            if (!script) {
+                logEmitter.emitWarning('Empty table - ' + path + filename);
             }
+            else {
+                name = filename.substring(0, filename.lastIndexOf('.'));
+                // Get the semantic model
+                brew.go({
+                    path:path,
+                    name:name,
+                    config:config,
+                    script:script,
+                    logEmitter:logEmitter,
+                    cb:function (err, table) {
+                        if (err) {
+                            logEmitter.emitError(err);
+                        } else {
+                            assert.ok(table, 'table should not be null');
+                            tables[table.name] = table;
+                        }
+                    }
+                });
+            }
+        }
     });
 }
