@@ -54,6 +54,44 @@ var cooked = {
                 }
             }
         }
+    },
+    selectstarport:{
+        ports: [
+            {
+                port: 3026,
+                status: 200,
+                type: "application",
+                subType: "soap+xml",
+                payload:
+                    '<?xml version="1.0"?>' +
+                        '<findItemsByKeywordsResponse xmlns="http://www.ebay.com/marketplace/search/v1/services">' +
+                        '<searchResult count="10">'+
+                        '<item><itemId>140697152294</itemId>'+
+                        '<title>New Sealed Apple iPad 2 16GB, Wi-Fi + 3G (Unlocked), 9.7in - White (MC982LL/A) </title></item>'+
+                        '<item><itemId>320839939720</itemId>'+
+                        '<title>Apple iPad 32GB, Wi-Fi + 3G (AT&amp;T), 9.7in - Black</title></item>'+
+                        '</searchResult> </findItemsByKeywordsResponse>'
+            }
+        ],
+        script: 'create table finditems on select get from "http://localhost:3026" '+
+            'resultset "findItemsByKeywordsResponse.searchResult.item"; '+
+            'web = select * from finditems where keywords = "ipad";'+
+            'return "{web}"',
+
+        udf: {
+            test : function (test, err, result) {
+                if(err) {
+                    test.ok(false,'got error: ' + err.stack || err);
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
+                    test.ok(_.isArray(result.body), 'expected an array');
+                    test.ok(result.body.length > 0, 'expected some items');
+                    test.ok(!_.isArray(result.body[0]), 'expected object in the array');
+                }
+            }
+        }
+
     }
 }
 
