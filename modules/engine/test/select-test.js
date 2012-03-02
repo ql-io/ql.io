@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-var util = require('util'),
-    _    = require('underscore');
+var _    = require('underscore');
+
+var Engine = require('../lib/engine');
 
 var cooked = {
     selectstar:{
@@ -24,9 +25,9 @@ var cooked = {
                 port: 3000,
                 status: 200,
                 type: "application",
-                subType: "soap+xml",
+                subType: "xml",
                 payload:
-                    '<?xml version="1.0"?>' +
+                        '<?xml version="1.0"?>' +
                         '<findItemsByKeywordsResponse xmlns="http://www.ebay.com/marketplace/search/v1/services">' +
                         '<searchResult count="10">'+
                         '<item><itemId>140697152294</itemId>'+
@@ -61,20 +62,12 @@ var cooked = {
                 port: 3026,
                 status: 200,
                 type: "application",
-                subType: "soap+xml",
-                payload:
-                    '<?xml version="1.0"?>' +
-                        '<findItemsByKeywordsResponse xmlns="http://www.ebay.com/marketplace/search/v1/services">' +
-                        '<searchResult count="10">'+
-                        '<item><itemId>140697152294</itemId>'+
-                        '<title>New Sealed Apple iPad 2 16GB, Wi-Fi + 3G (Unlocked), 9.7in - White (MC982LL/A) </title></item>'+
-                        '<item><itemId>320839939720</itemId>'+
-                        '<title>Apple iPad 32GB, Wi-Fi + 3G (AT&amp;T), 9.7in - Black</title></item>'+
-                        '</searchResult> </findItemsByKeywordsResponse>'
+                subType: "json",
+                payload: JSON.stringify({'message' : 'ok'})
             }
         ],
         script: 'create table finditems on select get from "http://localhost:3026" '+
-            'resultset "findItemsByKeywordsResponse"; ',
+                'resultset "findItemsByKeywordsResponse"; ',
 
         udf: {
             test : function (test, err, result) {
@@ -83,7 +76,7 @@ var cooked = {
                 }
                 else {
                     test.ok((result.body), { message: 'ok' });
-            }
+                }
             }
         }
 
@@ -96,7 +89,7 @@ var cooked = {
                 type: "application",
                 subType: "xml",
                 payload:
-                    '<?xml version="1.0"?>' +
+                        '<?xml version="1.0"?>' +
                         '<findItemsByKeywordsResponse>' +
                         '<item><itemId>220944750971</itemId>'+
                         '<title>Mini : Clubman S 2011 MINI COOPER S CLUBMAN*CONVENIENCE PKG,PREMIUM PKG,XENON LIGHTS=SWEET RIDE</title>'+
@@ -132,6 +125,9 @@ var cooked = {
     }
 }
 
-module.exports = require('../node_modules/ql-unit/lib/unit').init({
-    cooked: cooked
+module.exports = require('ql-unit').init({
+    cooked: cooked,
+    engine:new Engine({
+
+    })
 });
