@@ -50,10 +50,10 @@ exports.exec = function(opts, statement, cb) {
     table = tables[statement.source.name] || tempTables[statement.source.name];
     if (table) {
         desc = {
-            'name':table.meta.name,
-            'about':'/table?name=' + encodeURIComponent(table.meta.name),
-            'info':table.meta.comments || '',
-            'routes':table.meta.routes
+            'name':table.name,
+            'about':'/table?name=' + encodeURIComponent(table.name),
+            'info':table.comments || '',
+            'routes':table.routes
         };
         _.each(['select', 'insert', 'update', 'delete'], function(type) {
             var verb = table.verb(type);
