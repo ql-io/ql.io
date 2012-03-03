@@ -19,6 +19,7 @@
 var assert = require('assert'),
     os = require('os'),
     _ = require('underscore'),
+    headers = require('headers'),
     async = require('async'),
     MutableURI = require('ql.io-mutable-uri'),
     strTemplate = require('../peg/str-template.js'),
@@ -41,7 +42,21 @@ var Verb = module.exports = function(statement, type, bag, path) {
     this['patch headers'] = function(args) { return args.headers; };
     this['body template'] = function() {};
     this['patch body'] = function(args) { return args.body; };
-    this['parse response'] = function() {};
+    this['parse response'] = function(args) { // Just append bufs to a string
+        var encoding = 'UTF-8';
+        if(args.headers['content-type']) {
+            var contentType = headers.parse('content-type', args.headers['content-type'] || '');
+            encoding = contentType.params.charset ? contentType.params.charset :
+                contentType.subtype === 'csv' ? 'ASCII' : 'UTF-8';
+        }
+        var str = '';
+        _.each(args.body, function(buf) {
+            str += buf.toString(encoding);
+        });
+        return {
+            content: str
+        };
+    };
     this['patch response'] = function(args) {return args.body; };
     this['patch mediaType'] = function(args) { return args.headers['content-type']};
     this['patch status'] = function(args) { return args.status; };
