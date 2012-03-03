@@ -21,8 +21,16 @@ var _ = require('underscore'),
     http = require('http'),
     util = require('util');
 
-exports.exec = function(timings, reqStart, args, uniqueId, res, start, respData, mediaType, options, status) {
+exports.exec = function(timings, reqStart, args, uniqueId, res, start, bufs, mediaType, options, status) {
     timings.receive = Date.now() - reqStart;
+
+    // TODO: Handle redirects
+
+    // The default patch decodes the response
+    var result = args.resource.parseResponse(args.parsed, args.params, res.headers, bufs);
+    res.headers['content-type'] = result.type || res.headers['content-type'];
+    var respData = result.content;
+
     if(args.emitter) {
         var packet = {
             line: args.statement.line,
@@ -54,13 +62,6 @@ exports.exec = function(timings, reqStart, args, uniqueId, res, start, respData,
             args.emitter.emit(eventTypes.REQUEST_ID_RECEIVED, args.headers[args.requestId]);
         }
     }
-
-    // TODO: Handle redirects
-
-    // Transform (patch only)
-    var result = args.resource.parseResponse(args.parsed, args.params, res.headers, respData);
-    respData = (result && result.body) ? result.body : respData;
-    res.headers = (result && result.headers) ? result.headers : res.headers;
 
     mediaType = sniffMediaType(args.resource, args.parsed, args.params, res, respData);
 
