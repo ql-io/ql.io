@@ -19,7 +19,6 @@
 var _ = require('underscore'),
     assert = require('assert'),
     eventTypes = require('../event-types.js'),
-    _headers = require('headers'),
     http = require('http'),
     https = require('https'),
     URI = require('uri'),
@@ -112,10 +111,11 @@ function sendMessage(args, client, options, retry) {
     }
 
     clientRequest = client.request(options, function(res) {
-        setEncoding(res);
-        respData = '';
+        var bufs = []; // array for bufs for each chunk
         var responseLength = 0;
         res.on('data', function (chunk) {
+            // Chunk is a buf as we don't set any encoding on the response
+            bufs.push(chunk);
             responseLength += chunk.length;
 
             var maxResponseLength = getMaxResponseLength(args.config, args.logEmitter);
@@ -131,11 +131,9 @@ function sendMessage(args, client, options, retry) {
                 res.socket.destroy();
                 return args.httpReqTx.cb(err);
             }
-            respData += chunk;
-
         });
         res.on('end', function() {
-            response.exec(timings, reqStart, args, uniqueId, res, start, respData, mediaType, options, status);
+            response.exec(timings, reqStart, args, uniqueId, res, start, bufs, mediaType, options, status);
         });
     });
 
@@ -158,20 +156,6 @@ function sendMessage(args, client, options, retry) {
         }
     });
     clientRequest.end();
-}
-
-function setEncoding(res){
-    var contentType = _headers.parse('content-type', res.headers['content-type'] || '');
-    var encoding = contentType.subtype === 'csv' ? 'ascii' : 'utf8';
-
-    if(contentType.subtype == 'binary') {
-        encoding = 'binary';
-    }
-
-    if(contentType.params && contentType.params.charset){
-        encoding = contentType.params.charset == 'us-ascii' ? 'ascii' : 'utf8';
-    }
-    res.setEncoding(encoding);
 }
 
 function getMaxResponseLength(config, logEmitter) {

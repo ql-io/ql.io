@@ -1,5 +1,7 @@
 ## Mar 02, 2012
 
+* Simplify response decoding. In stead of setting encoding on the response, collect buffers into
+  array, and then decode in the default impl of 'parse response'. Also add tests.
 * Removed /in-flight requests api.
 
 ## Feb 28, 2012
