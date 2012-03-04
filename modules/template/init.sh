@@ -8,7 +8,7 @@
 #
 # curl "https://raw.github.com/ql-io/ql.io/master/modules/template/init.sh" | sh
 #
-git clone https://git@github.com:ql-io/ql.io-template.git ql.io-template
+git clone git@github.com:ql-io/ql.io-template.git ql.io-template
 mv ql.io-template/* .
 mv ql.io-template/.gitignore .
 rm -rf ql.io-template
