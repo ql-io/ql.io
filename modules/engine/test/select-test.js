@@ -161,7 +161,55 @@ var cooked = {
                 }
             }
         }
+    },
+    nestedselection:{
+        ports: [
+            {
+                port: 3000,
+                status: 200,
+                type: "application",
+                subType: "xml",
+                payload:
+                        '<?xml version="1.0"?>'+
+                        '<findItemsByKeywordsResponse >'+
+                        '<item><primaryCategory><categoryId>171485</categoryId></primaryCategory></item>'+
+                        '</findItemsByKeywordsResponse>'
+            },
+            {
+                port: 3026,
+                status: 200,
+                type: "application",
+                subType: "xml",
+                payload:
+                    '<?xml version="1.0"?>'+
+                    '<findItemsByCategoryResponse>'+
+                    '<item><itemId>250987484343</itemId>'+
+                    '<title>Skytex Skypad SX-SP700A 4GB, Wi-Fi, Android v2.3 7in - Black </title>'+
+                    '<primaryCategory><categoryId>171485</categoryId></primaryCategory></item>'+
+                    '</findItemsByCategoryResponse>'
+            }
+        ],
+        script: 'create table finditems on select get from "http://localhost:3000"'+
+                'resultset "findItemsByKeywordsResponse.item";'+
+                'create table findcategoryitems on select get from "http://localhost:3026"'+
+                'resultset "findItemsByCategoryResponse.item";'+
+                'select itemId, title from findcategoryitems where categoryId in (select primaryCategory.categoryId from finditems where keywords="ipad" limit 1) and zip = "98074" and distance = "10"',
+        udf: {
+            test : function (test, err, result) {
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
 
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
+                    test.ok(_.isArray(result.body), 'expected an array');
+                    test.ok(result.body.length > 0, 'expected some items');
+                    test.ok(_.isArray(result.body[0]), 'expected array in the array');
+                    test.equals(2, result.body[0].length, 'expected two fields');
+
+                }
+            }
+        }
     }
 }
 
