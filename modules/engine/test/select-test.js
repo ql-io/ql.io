@@ -80,7 +80,6 @@ var cooked = {
                 }
             }
         }
-
     },
     selectsome:{
         ports: [
@@ -286,6 +285,41 @@ var cooked = {
             }
         }
 
+    },
+    validator:{
+        ports: [
+            {
+                port: 3000,
+                status: 500,
+                type: "application",
+                subType: "xml",
+                payload:
+                    '<?xml version="1.0"?>'+
+                    '<errorMessage>'+
+                    '<error><errorId>9001</errorId>'+
+                    '<domain>CoreRuntime</domain>'+
+                    '<severity>Error</severity>'+
+                    '<category>Request</category>'+
+                    '<message>No such global ID: XYZ</message>'+
+                    '<subdomain>Inbound_Meta_Data</subdomain>'+
+                    '<parameter name="Param1">XYZ</parameter>'+
+                    '</error></errorMessage>'
+            }
+        ],
+        script: 'create table finditems on select get from "http://localhost:3000"'+
+        'resultset "findItemsByKeywordsResponse.searchResult.item";'+
+        'select * from finditems where keywords = "ipad" and globalid="XYZ"',
+
+        udf: {
+            test : function (test, err, result) {
+                if(err) {
+                    test.ok(true, 'Good.');
+                }
+                else {
+                    test.ok(false, 'Expected to fail');
+                }
+            }
+        }
     }
 }
 
