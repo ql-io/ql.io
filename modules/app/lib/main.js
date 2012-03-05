@@ -60,9 +60,6 @@ exports.exec = function(cb, opts) {
     port = parseInt(program.port);
 
     if(program.cluster) {
-        misc.ensureDir(process.cwd() + '/pids'); // Ensure pids dir
-        misc.ensureDir(process.cwd() + '/logs'); // Ensure logs dir
-
         monPort = parseInt(program.monPort);
         master = new Master({
             pids: process.cwd() + '/pids',
@@ -223,6 +220,9 @@ function Master(options) {
 
 Master.prototype.listen = function(app, cb) {
     if(cluster.isMaster) {
+        misc.ensureDir(process.cwd() + '/pids', true); // Ensure pids dir
+        misc.ensureDir(process.cwd() + '/logs'); // Ensure logs dir
+
         this.stats.pid = process.pid;
         this.stats.start = new Date();
         this.stats.totalmem = os.totalmem();
