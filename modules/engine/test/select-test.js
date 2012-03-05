@@ -210,6 +210,82 @@ var cooked = {
                 }
             }
         }
+    },
+    equalsreplace:{
+        ports: [
+            {
+                port: 3000,
+                status: 200,
+                type: "application",
+                subType: "xml",
+                payload:
+                        '<?xml version="1.0"?>'+
+                        '<findItemsByKeywordsResponse >'+
+                        '<item><itemId>270906634850</itemId></item>'+
+                        '</findItemsByKeywordsResponse>'
+            },
+            {
+                port: 3026,
+                status: 200,
+                type: "application",
+                subType: "json",
+                payload:JSON.stringify(
+                    {
+                        "Item":
+                            [
+                                {"ItemID":"270906634850","BuyItNowAvailable":true,
+                                    "ConvertedBuyItNowPrice":
+                                    {
+                                        "Value":2.75,
+                                        "CurrencyID":"USD"},
+                                    "EndTime":"2012-02-10T19:03:54.000Z",
+                                    "ViewItemURLForNaturalSearch":"http://www.ebay.com/itm/2011-Hot-Wheels-Ferrari-California-Black-HTF-/270906634850",
+                                    "ListingType":"Chinese",
+                                    "Location":"Greenwood lake, NY",
+                                    "GalleryURL":"http://thumbs3.ebaystatic.com/pict/2709066348508080_1.jpg",
+                                    "PictureURL":["http://i.ebayimg.com/00/s/NDgwWDY0MA==/$(KGrHqZ,!p!E8VkrBh00BPLC9Q4s8Q~~60_1.JPG?set_id=8800005007"],
+                                    "PrimaryCategoryID":"223",
+                                    "PrimaryCategoryName":"Toys & Hobbies:Diecast & Toy Vehicles:Cars, Trucks & Vans:Diecast-Modern Manufacture",
+                                    "BidCount":0,
+                                    "ConvertedCurrentPrice":
+                                    {
+                                        "Value":2.5,
+                                        "CurrencyID":"USD"
+                                    },
+                                    "ListingStatus":"Active",
+                                    "TimeLeft":"PT8M42S",
+                                    "Title":"2011 Hot Wheels Ferrari California Black HTF",
+                                    "Country":"US",
+                                    "AutoPay":false,
+                                    "ConditionID":1000,
+                                    "ConditionDisplayName":"New"
+                                }
+                            ]
+                    }
+                )
+
+            }
+        ],
+        script: 'create table finditems on select get from "http://localhost:3000"'+
+                'resultset "findItemsByKeywordsResponse.searchResult.item";'+
+                'create table shoppingitems on select get from "http://localhost:3026"'+
+                'resultset "Item"'+
+                'itemId = select itemId from finditems where keywords = "ferrari" limit 1'+
+                'details = select * from shoppingitems where itemId = "{itemId}"'+
+                'return {"details" : "{details}"}',
+        udf: {
+            test : function (test, err, result) {
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
+
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'JSON expected');
+                    test.ok(result.body.details);
+                }
+            }
+        }
+
     }
 }
 
