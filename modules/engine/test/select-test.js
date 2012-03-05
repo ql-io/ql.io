@@ -162,7 +162,7 @@ var cooked = {
             }
         }
     },
-    locationsearch:{
+    nestedselection:{
         ports: [
             {
                 port: 3000,
@@ -210,8 +210,6 @@ var cooked = {
                 }
             }
         }
-
-
     }
 }
 
