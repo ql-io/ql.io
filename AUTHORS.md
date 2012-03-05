@@ -1,4 +1,4 @@
-Authors in the order of first contribution
+Contributors in the order of first contribution
 
 * [Subbu Allamaraju](https://github.com/s3u)
 * Arun Srinivasan
