@@ -1,3 +1,7 @@
+## Mar 05, 2012
+
+* Recover shutdown/stop from extraneous pid files.
+
 ## Mar 02, 2012
 
 * Simplify response decoding. In stead of setting encoding on the response, collect buffers into
