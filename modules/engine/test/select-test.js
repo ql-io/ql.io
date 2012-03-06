@@ -286,7 +286,7 @@ var cooked = {
         }
 
     },
-    returnstatement:{
+    selectdigits:{
         ports: [
             {
                 port: 3000,
@@ -294,24 +294,22 @@ var cooked = {
                 type: "application",
                 subType: "xml",
                 payload:
-                        '<?xml version="1.0"?>' +
+                    '<?xml version="1.0"?>' +
                         '<findItemsByKeywordsResponse>' +
-                        '<searchResult count="1">'+
-                        '<item><itemId>260946984736</itemId>'+
-                        '<title>Mini : Classic Mini CALL SHAWN B 1978 MINI, RARE CAR, FULLY RESTORED, L@@K AT ME,IM CUTE!!!</title></item>'+
-                        '<item><itemId>220949278891</itemId>'+
-                        '<title>Mini : Classic Mini 1000 Sedan Austin Mini 1000 - Classic 1974</title></item>'+
-                        '</searchResult></findItemsByKeywordsResponse>'
+                        '<item><itemId>280817533910</itemId>'+
+                        '<title>Dap DRYDEX WALL REPAIR KIT 12345</title></item>'+
+                        '<item><itemId>180812214303</itemId>'+
+                        '<title>ROCKY 12345 VHS BOX SET VERY GOOD CONDITION</title></item>'+
+                        '</findItemsByKeywordsResponse>'
             }
         ],
         script: 'create table finditems on select get from "http://localhost:3000"'+
-                'resultset "findItemsByKeywordsResponse.searchResult.item";'+
-                'return select * from finditems where keywords = "mini cooper" limit 2;',
-
+                'resultset "findItemsByKeywordsResponse.item";'+
+                'select * from finditems where keywords = 12345',
         udf: {
             test : function (test, err, result) {
                 if(err) {
-                    test.ok(false, 'failed');
+                    test.fail('got error: ' + err.stack || err);
 
                 }
                 else {
@@ -319,6 +317,7 @@ var cooked = {
                     test.ok(_.isArray(result.body), 'expected an array');
                     test.ok(result.body.length > 0, 'expected some items');
                     test.ok(!_.isArray(result.body[0]), 'expected object in the array');
+
                 }
             }
         }
