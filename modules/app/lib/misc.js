@@ -17,15 +17,23 @@
 var fs = require('fs');
 
 // Utility to ensure that certain directories exist
-exports.ensureDir = function(dir) {
+exports.ensureDir = function(dir, clean) {
     try {
         fs.readdirSync(dir);
+        if(clean) {
+            var paths = fs.readdirSync(dir);
+            paths.forEach(function(filename) {
+                try {
+                    fs.unlink(dir + '/' + filename);
+                }
+                catch(e) {}
+            });
+        }
     }
     catch(e) {
         fs.mkdirSync(dir, 0755);
     }
 }
-
 
 exports.forMemoryNum = function(memory) {
     var strMemory;
