@@ -1,3 +1,7 @@
+## Mar 06, 2012
+
+* Gzip and Deflate content encoding support for upstream responses.
+
 ## Mar 05, 2012
 
 * Recover shutdown/stop from extraneous pid files.
