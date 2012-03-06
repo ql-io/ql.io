@@ -286,40 +286,43 @@ var cooked = {
         }
 
     },
-    validator:{
+    returnstatement:{
         ports: [
             {
                 port: 3000,
-                status: 500,
+                status: 200,
                 type: "application",
                 subType: "xml",
                 payload:
-                    '<?xml version="1.0"?>'+
-                    '<errorMessage>'+
-                    '<error><errorId>9001</errorId>'+
-                    '<domain>CoreRuntime</domain>'+
-                    '<severity>Error</severity>'+
-                    '<category>Request</category>'+
-                    '<message>No such global ID: XYZ</message>'+
-                    '<subdomain>Inbound_Meta_Data</subdomain>'+
-                    '<parameter name="Param1">XYZ</parameter>'+
-                    '</error></errorMessage>'
+                        '<?xml version="1.0"?>' +
+                        '<findItemsByKeywordsResponse>' +
+                        '<searchResult count="1">'+
+                        '<item><itemId>260946984736</itemId>'+
+                        '<title>Mini : Classic Mini CALL SHAWN B 1978 MINI, RARE CAR, FULLY RESTORED, L@@K AT ME,IM CUTE!!!</title></item>'+
+                        '<item><itemId>220949278891</itemId>'+
+                        '<title>Mini : Classic Mini 1000 Sedan Austin Mini 1000 - Classic 1974</title></item>'+
+                        '</searchResult></findItemsByKeywordsResponse>'
             }
         ],
         script: 'create table finditems on select get from "http://localhost:3000"'+
-        'resultset "findItemsByKeywordsResponse.searchResult.item";'+
-        'select * from finditems where keywords = "ipad" and globalid="XYZ"',
+                'resultset "findItemsByKeywordsResponse.searchResult.item";'+
+                'return select * from finditems where keywords = "mini cooper" limit 2;',
 
         udf: {
             test : function (test, err, result) {
                 if(err) {
-                    test.ok(true, 'Good.');
+                    test.ok(false, 'failed');
+
                 }
                 else {
-                    test.ok(false, 'Expected to fail');
+                    test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
+                    test.ok(_.isArray(result.body), 'expected an array');
+                    test.ok(result.body.length > 0, 'expected some items');
+                    test.ok(!_.isArray(result.body[0]), 'expected object in the array');
                 }
             }
         }
+
     }
 }
 
