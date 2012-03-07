@@ -1,5 +1,7 @@
 ## Mar 07, 2012
 
+* Add a page showing all installed packages. Try http://<host>:<monport>/deps
+  (or http://localhost:3001/deps).
 * There are many conventions to convert xml to json. If the default xml2json does not work you, you
   can override it on table by table basis. To override, specify path to an xformers.json file. Here
   is an example.

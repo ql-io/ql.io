@@ -337,6 +337,27 @@ Monitor.prototype.listen = function(cb) {
         }
     });
 
+    app.get('/deps', function(req, res) {
+        var npm = require('npm');
+        npm.load({}, function() {
+            npm.commands.ls({}, true, function(e, data) {
+                res.writeHead(200, {
+                    'Content-Type': 'application/json'
+                });
+
+                var seen = []
+                var out = JSON.stringify(data, function (k, o) {
+                    if(typeof o === "object") {
+                        if(-1 !== seen.indexOf(o)) return '[Circular]';
+                        seen.push(o);
+                    }
+                    return o;
+                }, 2);
+                res.end(out);
+            });
+        });
+    });
+
     app.listen(this.options.port, cb);
 
     var wsServer = new WebSocketServer({
