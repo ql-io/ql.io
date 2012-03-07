@@ -30,8 +30,6 @@
     },
     "devDependencies": {
         "nodeunit": "0.6.4",
-        "ql-unit":"",
-        "ql.io-engine": ""
-
-    }
+        "ql-unit":""
+          }
 }
