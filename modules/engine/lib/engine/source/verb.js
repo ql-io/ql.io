@@ -531,7 +531,8 @@ function send(verb, args, uri, params, holder, callback) {
     var headers = {
         'connection' : args.settings['connection'] ? args.settings['connection'] : 'keep-alive',
         'user-agent' : 'ql.io-engine' + require('../../../package.json').version + '/node.js-' + process.version,
-        'accept' : _.pluck(args.xformers, 'accept').join(',')
+        'accept' : _.pluck(args.xformers, 'accept').join(','),
+        'accept-encoding' : 'gzip, deflate'
     };
 
     // Copy headers from the table def

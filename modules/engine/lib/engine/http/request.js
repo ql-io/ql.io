@@ -23,6 +23,7 @@ var _ = require('underscore'),
     https = require('https'),
     URI = require('uri'),
     response = require('./response.js'),
+    zlib = require('zlib'),
     uuid = require('node-uuid');
 
 exports.send = function(args) {
@@ -113,9 +114,55 @@ function sendMessage(args, client, options, retry) {
     clientRequest = client.request(options, function(res) {
         var bufs = []; // array for bufs for each chunk
         var responseLength = 0;
+        var contentEncoding = res.headers['content-encoding'];
+        var zipped = false, unzip;
+        if (contentEncoding) {
+            contentEncoding = contentEncoding.toLowerCase();
+            if (contentEncoding === 'gzip') {
+                unzip = zlib.createGunzip();
+            }
+            else if (contentEncoding === 'deflate') {
+                unzip = zlib.createInflate();
+            }
+            else {
+                var err = new Error('Content-Encoding \'' + contentEncoding + '\' is not supported');
+                err.uri = args.uri;
+                err.status = 502;
+                args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
+                    'Content encoding ' + contentEncoding + ' is not supported' +
+                    ' ' + (Date.now() - start) + 'msec');
+                res.socket.destroy();
+                return args.httpReqTx.cb(err);
+            }
+            zipped = true;
+
+            unzip.on('data', function (chunk) {
+                bufs.push(chunk);
+            });
+            unzip.on('end', function () {
+                response.exec(timings, reqStart, args, uniqueId, res, start, bufs, mediaType, options, status);
+            });
+            unzip.on('error', function (err) {
+                var err = new Error('Corrupted stream');
+                err.uri = args.uri;
+                err.status = 502;
+                args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
+                    'Stream is corrupted' +
+                    ' ' + (Date.now() - start) + 'msec');
+                res.socket.destroy();
+                return args.httpReqTx.cb(err);
+            });
+        }
+
         res.on('data', function (chunk) {
-            // Chunk is a buf as we don't set any encoding on the response
-            bufs.push(chunk);
+            if(zipped) {
+                // TODO Check for corrupted stream. Empty 'bufs' may indicate invalid stream
+                unzip.write(chunk);
+            }
+            else {
+                // Chunk is a buf as we don't set any encoding on the response
+                bufs.push(chunk);
+            }
             responseLength += chunk.length;
 
             var maxResponseLength = getMaxResponseLength(args.config, args.logEmitter);
@@ -133,7 +180,12 @@ function sendMessage(args, client, options, retry) {
             }
         });
         res.on('end', function() {
-            response.exec(timings, reqStart, args, uniqueId, res, start, bufs, mediaType, options, status);
+            if(zipped) {
+                unzip.end();
+            }
+            else {
+                response.exec(timings, reqStart, args, uniqueId, res, start, bufs, mediaType, options, status);
+            }
         });
     });
 
