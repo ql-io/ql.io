@@ -1,3 +1,12 @@
+## Mar 07, 2012
+
+* There are many conventions to convert xml to json. If the default xml2json does not work you, you
+  can override it on table by table basis. To override, specify path to an xformers.json file. Here
+  is an example.
+      {
+          "some.table" : "modulename relative to process.cwd()"
+      }
+
 ## Mar 06, 2012
 
 * Gzip and Deflate content encoding support for upstream responses.

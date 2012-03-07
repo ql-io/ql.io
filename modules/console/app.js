@@ -82,6 +82,9 @@ var Console = module.exports = function(config, cb) {
     if(config.config) {
         logger.info('Loading config from ' + config.config);
     }
+    if(config.xformers) {
+        logger.info('Loading xformers from ' + config.xformers);
+    }
 
     var app = this.app = express.createServer();
 

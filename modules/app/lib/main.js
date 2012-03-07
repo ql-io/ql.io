@@ -48,6 +48,7 @@ exports.exec = function(cb, opts) {
         option('-m, --monPort <monPort>', 'port for monitoring', 3001).
         option('-t, --tables <tables>', 'path of dir containing tables', cwd + '/../tables').
         option('-r, --routes <routes>', 'path of dir containing routes', cwd + '/../routes').
+        option('-x, --xformers <xformers>', 'path of dir containing xformers', cwd + '/../xformers').
         option('-a, --ecvPath <ecvPath>', 'ecv path', '/ecv').
         option('-e, --disableConsole', 'disable the console', false).
         option('-q, --disableQ', 'disable /q', false);
@@ -388,6 +389,7 @@ function createConsole(program, cb) {
         'tables': program.tables,
         'routes': program.routes,
         'config': program.config,
+        'xformers': program.xformers,
         'enable console': !disableConsole,
         'enable q': !disableQ,
         'log levels': require('winston').config.syslog.levels}, cb);

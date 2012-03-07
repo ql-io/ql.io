@@ -71,7 +71,7 @@ exports.exec = function(timings, reqStart, args, uniqueId, res, start, bufs, med
         util.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
 
     // Parse
-    jsonify(respData, mediaType, res.headers, args.xformers, function (respJson) {
+    jsonify(args.table, respData, mediaType, res.headers, args.xformers, function (respJson) {
         status = args.resource.patchStatus(args.parsed, args.params, res.statusCode, res.headers, respJson || respData)
             || res.statusCode;
 
@@ -112,10 +112,13 @@ exports.exec = function(timings, reqStart, args, uniqueId, res, start, bufs, med
     });
 }
 
-function jsonify(respData, mediaType, headers, xformers, respCb, errorCb) {
+function jsonify(table, respData, mediaType, headers, xformers, respCb, errorCb) {
 
     if (!respData || /^\s*$/.test(respData)) {
         respCb({});
+    }
+    else if(xformers[table]) {
+        xformers[table].toJson(respData, respCb, errorCb, headers);
     }
     else if(mediaType.subtype === 'xml' || /\+xml$/.test(mediaType.subtype)) {
         xformers['xml'].toJson(respData, respCb, errorCb, headers);
