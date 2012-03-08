@@ -29,7 +29,8 @@ var assert = require('assert'),
     request = require('../http/request.js'),
     _util = require('../util.js');
 
-var Verb = module.exports = function(statement, type, bag, path) {
+var Verb = module.exports = function(table, statement, type, bag, path) {
+    this.table = table;
     this.type = type;
     this.__proto__ = statement;
 
@@ -575,6 +576,7 @@ function send(verb, args, uri, params, holder, callback) {
     }
 
     request.send({
+        table: verb.table,
         config: args.config || {},
         uri: uri,
         parsed: parsed,

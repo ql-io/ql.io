@@ -1,3 +1,14 @@
+## Mar 07, 2012
+
+* Add a page showing all installed packages. Try http://<host>:<monport>/deps
+  (or http://localhost:3001/deps).
+* There are many conventions to convert xml to json. If the default xml2json does not work you, you
+  can override it on table by table basis. To override, specify path to an xformers.json file. Here
+  is an example.
+      {
+          "some.table" : "modulename relative to process.cwd() or a module from NODE_PATH"
+      }
+
 ## Mar 06, 2012
 
 * Gzip and Deflate content encoding support for upstream responses.
