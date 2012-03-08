@@ -80,7 +80,6 @@ var cooked = {
                 }
             }
         }
-
     },
     selectsome:{
         ports: [
@@ -282,6 +281,43 @@ var cooked = {
                 else {
                     test.equals(result.headers['content-type'], 'application/json', 'JSON expected');
                     test.ok(result.body.details);
+                }
+            }
+        }
+
+    },
+    selectdigits:{
+        ports: [
+            {
+                port: 3000,
+                status: 200,
+                type: "application",
+                subType: "xml",
+                payload:
+                    '<?xml version="1.0"?>' +
+                        '<findItemsByKeywordsResponse>' +
+                        '<item><itemId>280817533910</itemId>'+
+                        '<title>Dap DRYDEX WALL REPAIR KIT 12345</title></item>'+
+                        '<item><itemId>180812214303</itemId>'+
+                        '<title>ROCKY 12345 VHS BOX SET VERY GOOD CONDITION</title></item>'+
+                        '</findItemsByKeywordsResponse>'
+            }
+        ],
+        script: 'create table finditems on select get from "http://localhost:3000"'+
+                'resultset "findItemsByKeywordsResponse.item";'+
+                'select * from finditems where keywords = 12345',
+        udf: {
+            test : function (test, err, result) {
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
+
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
+                    test.ok(_.isArray(result.body), 'expected an array');
+                    test.ok(result.body.length > 0, 'expected some items');
+                    test.ok(!_.isArray(result.body[0]), 'expected object in the array');
+
                 }
             }
         }
