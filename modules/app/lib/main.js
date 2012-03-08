@@ -46,9 +46,9 @@ exports.exec = function(cb, opts) {
         option('-c, --config <configFile>', 'path to config', cwd + '/../config/dev.json').
         option('-p, --port <port>', 'port to bind to', 3000).
         option('-m, --monPort <monPort>', 'port for monitoring', 3001).
-        option('-t, --tables <tables>', 'path of dir containing tables', cwd + '/../tables').
-        option('-r, --routes <routes>', 'path of dir containing routes', cwd + '/../routes').
-        option('-x, --xformers <xformers>', 'path of dir containing xformers', cwd + '/../xformers').
+        option('-t, --tables <tables>', 'path of dir containing tables', cwd + '/tables').
+        option('-r, --routes <routes>', 'path of dir containing routes', cwd + '/routes').
+        option('-x, --xformers <xformers>', 'path of dir containing xformers', cwd + '/config/xformers.json').
         option('-a, --ecvPath <ecvPath>', 'ecv path', '/ecv').
         option('-e, --disableConsole', 'disable the console', false).
         option('-q, --disableQ', 'disable /q', false);

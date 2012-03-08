@@ -125,8 +125,13 @@ var Engine = module.exports = function(opts) {
                         self.xformers[k] = require(process.cwd() + v);
                     }
                     catch(e) {
-                        delete self.xformers[k];
-                        self.emitError('Unable to load xformer ' + v);
+                        try {
+                            self.xformers[k] = require(v);
+                        }
+                        catch(e) {
+                            delete self.xformers[k];
+                            self.emitError('Unable to load xformer ' + v);
+                        }
                     }
                 }
                 else {
