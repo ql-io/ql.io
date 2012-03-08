@@ -3172,7 +3172,12 @@ module.exports = (function(){
                 if (result7 !== null) {
                   var result8 = parse_insig();
                   if (result8 !== null) {
-                    var result9 = parse_whereClause();
+                    var result9 = [];
+                    var result10 = parse_whereClause();
+                    while (result10 !== null) {
+                      result9.push(result10);
+                      var result10 = parse_whereClause();
+                    }
                     if (result9 !== null) {
                       var result1 = [result3, result4, result5, result6, result7, result8, result9];
                     } else {
@@ -4604,26 +4609,43 @@ module.exports = (function(){
         }
 
 
-        var result4 = parse_aliasedRef();
-        if (result4 !== null) {
-          var result0 = result4;
+        var savedPos0 = pos;
+        var result6 = parse_aliasedRef();
+        if (result6 !== null) {
+          var result1 = result6;
         } else {
-          var result3 = parse_quotedWord();
-          if (result3 !== null) {
-            var result0 = result3;
+          var result5 = parse_quotedWord();
+          if (result5 !== null) {
+            var result1 = result5;
           } else {
-            var result2 = parse_quotedDigits();
-            if (result2 !== null) {
-              var result0 = result2;
+            var result4 = parse_quotedDigits();
+            if (result4 !== null) {
+              var result1 = result4;
             } else {
-              var result1 = parse_digits();
-              if (result1 !== null) {
-                var result0 = result1;
+              var result3 = parse_digits();
+              if (result3 !== null) {
+                var result1 = result3;
               } else {
-                var result0 = null;;
+                var result1 = null;;
               };
             };
           };
+        }
+        var result2 = result1 !== null
+          ? (function(r) {
+            if(!r.hasOwnProperty('value')) {
+              r = {
+                value: r
+              }
+            }
+            return r;
+          })(result1)
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
         }
 
 

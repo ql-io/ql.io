@@ -541,7 +541,7 @@ insertStatement = 'insert' insig 'in' 'to' insig s:source insig '(' insig c:colu
 
 ///////////////////////////////////////////////////////////
 // delete statement
-deleteStatement = 'delete' insig 'from' insig s:source insig wc:whereClause {
+deleteStatement = 'delete' insig 'from' insig s:source insig wc:whereClause* {
   return {
     type: 'delete',
     source: s,
@@ -670,7 +670,14 @@ lhs = field
 
 operator = (insig '=' insig/ insig 'in' insig)
 
-rhs = (aliasedRef/quotedWord/quotedDigits/digits)
+rhs = r:(aliasedRef/quotedWord/quotedDigits/digits) {
+  if(!r.hasOwnProperty('value')) {
+    r = {
+      value: r
+    }
+  }
+  return r;
+}
 
 aliasedRef = chars:((selector ('.' selector)*)) {
   return {

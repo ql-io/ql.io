@@ -27,7 +27,7 @@ function run(resultSet, statement, results, cb) {
 
     // Find the row-equivalent from the representation
     obj = select(resultSet, results);
-    if(statement.columns.name === '*' || statement.type === 'insert' ||
+    if(!statement.columns || statement.columns.name === '*' || statement.type === 'insert' ||
         (_.isArray(obj) && obj.length === 0) || // Skip these cases - there is nothing to project
         !obj) {
         // Can't filter non-array results

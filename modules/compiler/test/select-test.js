@@ -785,7 +785,7 @@ module.exports = {
             test.ok(true, 'compilation did not fail');
             test.equals(cooked[0].type, 'select');
             test.ok(cooked[0].whereCriteria[0]);
-            test.equals(cooked[0].whereCriteria[0].rhs, 1234);
+            test.equals(cooked[0].whereCriteria[0].rhs.value, 1234);
             test.done();
         }
         catch(e) {
@@ -828,7 +828,9 @@ module.exports = {
             {
                 "operator": "=",
                 "lhs": {name: "products.siteid"},
-                "rhs": 0
+                "rhs": {
+                    "value": 0
+                }
             }
         ]);
         test.deepEqual(statement[0].fromClause[0], {

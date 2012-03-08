@@ -30,6 +30,7 @@ var configLoader = require('./engine/config.js'),
     create = require('./engine/create.js'),
     select = require('./engine/select.js'),
     insert = require('./engine/insert.js'),
+    delet = require('./engine/delet.js'),
     _util = require('./engine/util.js'),
     jsonfill = require('./engine/jsonfill.js'),
     eventTypes = require('./engine/event-types.js'),
@@ -528,6 +529,8 @@ function _execOne(opts, statement, cb, parentEvent) {
         case 'insert' :
             insert.exec(opts, statement, cb, parentEvent);
             break;
+        case 'delete' :
+            delet.exec(opts, statement, cb, parentEvent);
         case 'show' :
             show.exec(opts, statement, cb);
             break;
@@ -547,14 +550,13 @@ function _execOne(opts, statement, cb, parentEvent) {
             // here below is sub-optimal.
             // lhs can be a reference to an object in the context or a JS object.
             if(statement.rhs.type === 'select') {
-                select.exec(opts, statement.rhs, function(err, result) {
-                    if(err) {
-                        cb(err);
-                    }
-                    else {
-                        cb(undefined, result);
-                    }
-                });
+                select.exec(opts, statement.rhs, cb, parentEvent);
+            }
+            else if(statement.rhs.type === 'insert') {
+                insert.exec(opts, statement.rhs, cb, parentEvent);
+            }
+            else if(statement.rhs.type === 'delete') {
+                delet.exec(opts, statement.rhs, cb, parentEvent);
             }
             else {
                 lhs = statement.rhs.ref ? opts.context[statement.rhs.ref] : statement.rhs.object;
