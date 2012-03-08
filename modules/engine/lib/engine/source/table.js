@@ -45,7 +45,7 @@ var Table = module.exports = function(opts, comments, statement) {
     _.each(['select', 'insert', 'update', 'delete'], function(type) {
         if(self.statement[type]) {
             try {
-                var verb = new Verb(self.statement[type], type, bag, self.opts.path);
+                var verb = new Verb(self.name, self.statement[type], type, bag, self.opts.path);
                 self.verbs[type] = verb;
             }
             catch(e) {
