@@ -6,7 +6,7 @@
   can override it on table by table basis. To override, specify path to an xformers.json file. Here
   is an example.
       {
-          "some.table" : "modulename relative to process.cwd()"
+          "some.table" : "modulename relative to process.cwd() or a module from NODE_PATH"
       }
 
 ## Mar 06, 2012
