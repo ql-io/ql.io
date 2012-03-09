@@ -1,3 +1,7 @@
+## Mar 08, 2012
+
+* Support for content-encoding for ql.io clients. gzip and deflate supported.
+
 ## Mar 07, 2012
 
 * Add a page showing all installed packages. Try http://<host>:<monport>/deps
