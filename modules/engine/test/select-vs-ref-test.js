@@ -54,14 +54,14 @@ var cooked = {
                 )
             }
         ],
-        script: 'create table buying on select get from "http://localhost:3000/"'+
-                'create table itemDetails on select get from "http://localhost:3026/";'+
-                'GetMyeBayBuyingResponse = select * from buying;'+
-                'be1 = select Errors from GetMyeBayBuyingResponse;'+
-                'be2 = "{GetMyeBayBuyingResponse.Errors}";'+
-                'GetMultipleItemsResponse = select * from itemDetails;'+
-                'me1 = select Errors from GetMultipleItemsResponse;'+
-                'me2 = "{GetMultipleItemsResponse.Errors}";'+
+        script: 'create table first on select get from "http://localhost:3000/"'+
+                'create table second on select get from "http://localhost:3026/";'+
+                'firstResponse = select * from first;'+
+                'be1 = select Errors from firstResponse;'+
+                'be2 = "{firstResponse.Errors}";'+
+                'secondResponse = select * from second;'+
+                'me1 = select Errors from secondResponse;'+
+                'me2 = "{secondResponse.Errors}";'+
                 'return { "be1" : "{be1}", "be2" : "{be2}", "me1" : "{me1}", "me2" : "{me2}" }',
         udf: {
             test : function (test, err, result) {
@@ -71,7 +71,6 @@ var cooked = {
 
                 }
                 else {
-                    console.log(util.inspect(result,false,null));
                     result = result.body;
                     test.ok(_.isArray(result.be1));
                     test.ok(_.isUndefined(result.be1[0]));
