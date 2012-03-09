@@ -562,7 +562,7 @@ function send(verb, args, uri, params, callback) {
 
     // Body
     var body;
-    if(args.resource.method === 'post' || args.resource.method == 'put') {
+    if(args.resource.method === 'post' || args.resource.method === 'put' || args.resource.method === 'delete' || args.resource.method === 'patch') {
         var payload = args.resource.tmpl(parsed, params, headers, args.serializers);
         body = payload.content;
         if(body) {

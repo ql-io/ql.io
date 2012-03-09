@@ -531,6 +531,7 @@ function _execOne(opts, statement, cb, parentEvent) {
             break;
         case 'delete' :
             delet.exec(opts, statement, cb, parentEvent);
+            break;
         case 'show' :
             show.exec(opts, statement, cb);
             break;

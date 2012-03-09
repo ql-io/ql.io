@@ -75,7 +75,7 @@ exports.send = function(args) {
 }
 
 function sendMessage(args, client, options, retry) {
-    var status, clientRequest, start = Date.now(), mediaType, respData, uri;
+    var status, clientRequest, start = Date.now(), mediaType, uri;
     var reqStart = Date.now();
     var timings = {
         "blocked": -1,

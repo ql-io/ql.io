@@ -50,14 +50,17 @@ function _iterate(resource, statement, context, source, keep) {
         }
         return expected;
     });
-    // Wrap into an array if source is not an array. Otherwise we will end up
-    // iterating over its props.
+
+    // Initially, everything is a match. We then iteratively reduce the set.
     var filtered = [];
+    var matched = [];
+    for(i = 0; i < resource.length; i++) {
+        matched.push(i);
+    }
+    // All and conditions should match. If the RHS of a condition
+    // has multiple values, they are ORed.
+    //
     if(statement.whereCriteria && statement.whereCriteria.length > 0) {
-        filtered = _.isArray(resource) ? resource : [resource];
-        // All and conditions should match. If the RHS of a condition
-        // has multiple values, they are ORed.
-        //
         for(i = 0; i < statement.whereCriteria.length; i++) {
             var cond = statement.whereCriteria[i];
             var expected = expecteds[i];
@@ -66,18 +69,30 @@ function _iterate(resource, statement, context, source, keep) {
                 path = path.substr(source.alias.length + 1);
             }
 
-            var op = keep ? _.filter : _.reject
-            filtered = op(filtered, function (row) {
-                var matched = false;
+            var _matched = [];
+            for(var k = 0; k < matched.length; k++) {
+                var match = false;
+                var row = resource[matched[k]];
                 var result = jsonPath.eval(row, path, {flatten: true});
                 // If the result matches any expected[], keep it.
                 for(j = 0; j < expected.length; j++) {
-                    if(!matched && result && _.isArray(result) && result.length == 1 && result[0] == expected[j]) {
-                        matched = true;
+                    if(!match && result && _.isArray(result) && result.length == 1 && result[0] == expected[j]) {
+                        match = true;
                     }
                 }
-                return matched;
-            });
+                if(match) {
+                    _matched.push(k);
+                }
+            }
+            matched = _matched;
+        }
+        for(i = 0; i < resource.length; i++) {
+            if(keep && _.contains(matched, i)) {
+                filtered.push(resource[i]);
+            }
+            else if (!keep && !_.contains(matched, i)) {
+                filtered.push(resource[i]);
+            }
         }
     }
     else {

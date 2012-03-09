@@ -44,14 +44,14 @@ module.exports = {
             });
         });
     },
-    'delete arr': function (test) {
+    'delete arr and': function (test) {
         var script = 'arr = [\
-            {"key" : 1},\
-            {"key" : 2},\
-            {"key" : 3},\
-            {"key" : 4}]\
-            narr = delete from arr where key = 1;\
-            return narr;';
+                    {"key" : 1, "color": "red"},\
+                    {"key" : 2, "color": "green"},\
+                    {"key" : 3, "color": "red"},\
+                    {"key" : 4}]\
+                    narr = delete from arr where key = 1 and color = "red";\
+                    return narr;';
         var engine = new Engine();
         engine.execute(script, function (emitter) {
             emitter.on('end', function (err, result) {
@@ -65,10 +65,82 @@ module.exports = {
                     test.equals(result.body.length, 3);
                     test.deepEqual(result.body, [
                         {
-                            "key": 2
+                            "key": 2, "color": "green"
                         },
                         {
-                            "key": 3
+                            "key": 3, "color": "red"
+                        },
+                        {
+                            "key": 4
+                        }
+                    ]);
+                    test.done();
+                }
+            });
+        });
+    },
+    'delete arr and multival': function (test) {
+        var script = 'colors = ["red", "green"];\
+                arr = [\
+                {"key" : 1, "color": "red"},\
+                {"key" : 2, "color": "green"},\
+                {"key" : 3, "color": "red"},\
+                {"key" : 4}]\
+                narr = delete from arr where key = 1 and color = "{colors}";\
+                return narr;';
+        var engine = new Engine();
+        engine.execute(script, function (emitter) {
+            emitter.on('end', function (err, result) {
+                if(err) {
+                    console.log(err.stack || util.inspect(err, false, 10));
+                    test.fail('got error');
+                    test.done();
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                    test.equals(result.body.length, 3);
+                    test.deepEqual(result.body, [
+                        {
+                            "key": 2, "color": "green"
+                        },
+                        {
+                            "key": 3, "color": "red"
+                        },
+                        {
+                            "key": 4
+                        }
+                    ]);
+                    test.done();
+                }
+            });
+        });
+    },
+    'delete arr and in': function (test) {
+        var script = 'colors = ["red", "green"];\
+                    arr = [\
+                    {"key" : 1, "color": "red"},\
+                    {"key" : 2, "color": "green"},\
+                    {"key" : 3, "color": "red"},\
+                    {"key" : 4}]\
+                    narr = delete from arr where key = 1 and color in "{colors}";\
+                    return narr;';
+        var engine = new Engine();
+        engine.execute(script, function (emitter) {
+            emitter.on('end', function (err, result) {
+                if(err) {
+                    console.log(err.stack || util.inspect(err, false, 10));
+                    test.fail('got error');
+                    test.done();
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                    test.equals(result.body.length, 3);
+                    test.deepEqual(result.body, [
+                        {
+                            "key": 2, "color": "green"
+                        },
+                        {
+                            "key": 3, "color": "red"
                         },
                         {
                             "key": 4
@@ -114,38 +186,37 @@ module.exports = {
         });
     },
     'delete': function (test) {
-        test.done();
-//        var server = http.createServer(function (req, res) {
-//            res.writeHead(200, {
-//                'Content-Type': 'application/json'
-//            });
-//            util.pump(req, res, function (e) {
-//                if(e) {
-//                    console.log(e.stack || e);
-//                }
-//                res.end();
-//            });
-//        });
-//        server.listen(3000, function () {
-//            // Do the test here.
-//            var engine = new Engine({
-//                tables: __dirname + '/insert'
-//            });
-//            engine.execute('delete insert.into (name) values ("hello")', function (emitter) {
-//                emitter.on('end', function (err, result) {
-//                    if(err) {
-//                        console.log(err.stack || util.inspect(err, false, 10));
-//                        test.fail('got error');
-//                        test.done();
-//                    }
-//                    else {
-//                        test.equals(result.headers['content-type'], 'application/json', 'json expected');
-//                        test.equals(result.body.name, 'hello');
-//                        test.done();
-//                    }
-//                    server.close();
-//                });
-//            });
-//        });
+        var server = http.createServer(function (req, res) {
+            res.writeHead(200, {
+                'Content-Type': 'application/json'
+            });
+            util.pump(req, res, function (e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+                tables: __dirname + '/delete'
+            });
+            engine.execute('delete from delete.test where name = 101', function (emitter) {
+                emitter.on('end', function (err, result) {
+                    if(err) {
+                        console.log(err.stack || util.inspect(err, false, 10));
+                        test.fail('got error');
+                        test.done();
+                    }
+                    else {
+                        test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                        test.equals(result.body.name, 101);
+                        test.done();
+                    }
+                    server.close();
+                });
+            });
+        });
     }
 };

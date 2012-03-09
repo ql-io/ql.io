@@ -77,6 +77,7 @@ module.exports = (function(){
         "operator": parse_operator,
         "output": parse_output,
         "pair": parse_pair,
+        "patch": parse_patch,
         "postto": parse_postto,
         "putto": parse_putto,
         "quotedDigits": parse_quotedDigits,
@@ -1126,23 +1127,28 @@ module.exports = (function(){
         }
 
 
-        var result4 = parse_getfrom();
-        if (result4 !== null) {
-          var result0 = result4;
+        var result5 = parse_getfrom();
+        if (result5 !== null) {
+          var result0 = result5;
         } else {
-          var result3 = parse_postto();
-          if (result3 !== null) {
-            var result0 = result3;
+          var result4 = parse_postto();
+          if (result4 !== null) {
+            var result0 = result4;
           } else {
-            var result2 = parse_putto();
-            if (result2 !== null) {
-              var result0 = result2;
+            var result3 = parse_putto();
+            if (result3 !== null) {
+              var result0 = result3;
             } else {
-              var result1 = parse_delete();
-              if (result1 !== null) {
-                var result0 = result1;
+              var result2 = parse_delete();
+              if (result2 !== null) {
+                var result0 = result2;
               } else {
-                var result0 = null;;
+                var result1 = parse_patch();
+                if (result1 !== null) {
+                  var result0 = result1;
+                } else {
+                  var result0 = null;;
+                };
               };
             };
           };
@@ -1380,6 +1386,46 @@ module.exports = (function(){
         var result2 = result1 !== null
           ? (function() {
             return 'delete'
+          })()
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_patch() {
+        var cacheKey = 'patch@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        if (input.substr(pos, 5) === "patch") {
+          var result1 = "patch";
+          pos += 5;
+        } else {
+          var result1 = null;
+          if (reportMatchFailures) {
+            matchFailed("\"patch\"");
+          }
+        }
+        var result2 = result1 !== null
+          ? (function() {
+            return 'patch'
           })()
           : null;
         if (result2 !== null) {
