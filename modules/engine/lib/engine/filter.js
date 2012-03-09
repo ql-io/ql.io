@@ -53,14 +53,19 @@ function _iterate(resource, statement, context, source, keep) {
 
     // Initially, everything is a match. We then iteratively reduce the set.
     var filtered = [];
-    var matched = [];
-    for(i = 0; i < resource.length; i++) {
-        matched.push(i);
-    }
     // All and conditions should match. If the RHS of a condition
     // has multiple values, they are ORed.
     //
     if(statement.whereCriteria && statement.whereCriteria.length > 0) {
+        // Wrap into an array if source is not an array. Otherwise we will end up
+        // iterating over its props
+        filtered = _.isArray(resource) ? resource : [resource];
+
+        var matched = [];
+        for(i = 0; i < filtered.length; i++) {
+            matched.push(i);
+        }
+
         for(i = 0; i < statement.whereCriteria.length; i++) {
             var cond = statement.whereCriteria[i];
             var expected = expecteds[i];
@@ -72,7 +77,7 @@ function _iterate(resource, statement, context, source, keep) {
             var _matched = [];
             for(var k = 0; k < matched.length; k++) {
                 var match = false;
-                var row = resource[matched[k]];
+                var row = filtered[matched[k]];
                 var result = jsonPath.eval(row, path, {flatten: true});
                 // If the result matches any expected[], keep it.
                 for(j = 0; j < expected.length; j++) {
@@ -86,14 +91,16 @@ function _iterate(resource, statement, context, source, keep) {
             }
             matched = _matched;
         }
-        for(i = 0; i < resource.length; i++) {
+        var ret = [];
+        for(i = 0; i < filtered.length; i++) {
             if(keep && _.contains(matched, i)) {
-                filtered.push(resource[i]);
+                ret.push(resource[i]);
             }
             else if (!keep && !_.contains(matched, i)) {
-                filtered.push(resource[i]);
+                ret.push(resource[i]);
             }
         }
+        filtered = ret;
     }
     else {
         // If there are no where conditions, use the original
