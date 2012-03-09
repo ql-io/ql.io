@@ -303,7 +303,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
                         }
                         rem[args.resource.body.foreach] = param;
                         // TODO: merge rem and holder into one
-                        send(self, args, resourceUri[0], rem, holder, function (e, r) {
+                        send(self, args, resourceUri[0], rem, function (e, r) {
                             callback(e, r);
                         });
                     }
@@ -314,7 +314,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             _.each(resourceUri, function (uri) {
                 tasks.push(function (uri) {
                     return function (callback) {
-                        send(self, args, uri, params, holder, function (e, r) {
+                        send(self, args, uri, params, function (e, r) {
                             callback(e, r);
                         });
                     }
@@ -510,9 +510,7 @@ function cloneDeep(obj) {
     return copy;
 }
 
-function send(verb, args, uri, params, holder, callback) {
-    var util = require('util');
-
+function send(verb, args, uri, params, callback) {
     // Authenticate the request
     if(verb.auth) {
         verb.auth.auth(params, args.config, function (err) {
@@ -564,7 +562,7 @@ function send(verb, args, uri, params, holder, callback) {
 
     // Body
     var body;
-    if(args.resource.method === 'post' || args.resource.method == 'put') {
+    if(args.resource.method === 'post' || args.resource.method === 'put' || args.resource.method === 'delete' || args.resource.method === 'patch') {
         var payload = args.resource.tmpl(parsed, params, headers, args.serializers);
         body = payload.content;
         if(body) {

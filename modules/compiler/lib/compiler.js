@@ -114,6 +114,11 @@ function introspect(line, cooked, symbols) {
             introspectObject(line.object, symbols, line.dependsOn, line.id);
             cooked.push(line);
             break;
+        case 'delete' :
+            // Find dependencies from where
+            line = introspectWhere(line, symbols);
+            cooked.push(line);
+            break;
         case 'select' :
             // Find dependencies from fromClause
             findFrom(line, symbols);
@@ -124,50 +129,7 @@ function introspect(line, cooked, symbols) {
             }
 
             // Find dependencies in where
-            if(line.whereCriteria) {
-                for(j = 0; j < line.whereCriteria.length; j++) {
-                    where = line.whereCriteria[j];
-                    switch(where.operator) {
-                        case 'in' :
-                            if(_.isArray(where.rhs.value)) {
-                                for(k = 0; k < where.rhs.value.length; k++) {
-                                    ref = where.rhs.value[k];
-                                    if(_.isString(ref) && ref.indexOf('{') === 0) {
-                                        refname = ref.substring(1, ref.length - 1);
-                                        index = refname.indexOf('.');
-                                        if(index > 0) {
-                                            refname = refname.substring(0, index);
-                                        }
-                                        dependency = symbols[refname];
-                                        if(dependency) {
-                                            line.dependsOn.push(dependency.id);
-                                            dependency.listeners.push(line.id);
-                                        }
-                                    }
-                                }
-                            }
-                            else if(where.rhs.type === 'select') {
-                                findFrom(where.rhs, symbols, line);
-                            }
-                            break;
-                        case '=' :
-                            ref = where.rhs.value;
-                            if(_.isString(ref) && ref.indexOf('{') === 0) {
-                                refname = ref.substring(1, ref.length - 1);
-                                index = refname.indexOf('.');
-                                if(index > 0) {
-                                    refname = refname.substring(0, index);
-                                }
-                                dependency = symbols[refname];
-                                if(dependency) {
-                                    line.dependsOn.push(dependency.id);
-                                    dependency.listeners.push(line.id);
-                                }
-                            }
-                            break;
-                    }
-                }
-            }
+            line = introspectWhere(line, symbols);
             cooked.push(line);
             break;
         case 'return' :
@@ -267,3 +229,52 @@ function findFrom(line, symbols, parent) {
     }
 }
 
+
+function introspectWhere(line, symbols) {
+    var j, where, k, ref, refname, index, dependency;
+    if(line.whereCriteria) {
+        for(j = 0; j < line.whereCriteria.length; j++) {
+            where = line.whereCriteria[j];
+            switch(where.operator) {
+                case 'in' :
+                    if(_.isArray(where.rhs.value)) {
+                        for(k = 0; k < where.rhs.value.length; k++) {
+                            ref = where.rhs.value[k];
+                            if(_.isString(ref) && ref.indexOf('{') === 0) {
+                                refname = ref.substring(1, ref.length - 1);
+                                index = refname.indexOf('.');
+                                if(index > 0) {
+                                    refname = refname.substring(0, index);
+                                }
+                                dependency = symbols[refname];
+                                if(dependency) {
+                                    line.dependsOn.push(dependency.id);
+                                    dependency.listeners.push(line.id);
+                                }
+                            }
+                        }
+                    }
+                    else if(where.rhs.type === 'select') {
+                        findFrom(where.rhs, symbols, line);
+                    }
+                    break;
+                case '=' :
+                    ref = where.rhs.value;
+                    if(_.isString(ref) && ref.indexOf('{') === 0) {
+                        refname = ref.substring(1, ref.length - 1);
+                        index = refname.indexOf('.');
+                        if(index > 0) {
+                            refname = refname.substring(0, index);
+                        }
+                        dependency = symbols[refname];
+                        if(dependency) {
+                            line.dependsOn.push(dependency.id);
+                            dependency.listeners.push(line.id);
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+    return line;
+}
