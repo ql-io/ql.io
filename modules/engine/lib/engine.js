@@ -58,6 +58,7 @@ process.on('uncaughtException', function(error) {
  *
  */
 var Engine = module.exports = function(opts) {
+    var self = this;
 
     // Engine is a LogEmitter.
     LogEmitter.call(this);
@@ -114,11 +115,37 @@ var Engine = module.exports = function(opts) {
     });
 
     // These are transformers for data formats.
-    this.xformers = {
-        'xml' : require('./xformers/xml.js'),
-        'json' : require('./xformers/json.js'),
-        'csv' : require('./xformers/csv.js')
+    this.xformers = {};
+    if(opts.xformers) {
+        try {
+            this.xformers = require(opts.xformers);
+            _.each(this.xformers, function(v, k) {
+                if(_.isString(v)) {
+                    try {
+                        self.xformers[k] = require(process.cwd() + v);
+                    }
+                    catch(e) {
+                        try {
+                            self.xformers[k] = require(v);
+                        }
+                        catch(e) {
+                            delete self.xformers[k];
+                            self.emitError('Unable to load xformer ' + v);
+                        }
+                    }
+                }
+                else {
+                    delete self.xformers[k];
+                }
+            })
+        }
+        catch (e) {
+            self.emitError('Unable to load xformers from ' + opts.xformers);
+        }
     }
+    this.xformers['xml'] = require('./xformers/xml.js');
+    this.xformers['json'] = require('./xformers/json.js');
+    this.xformers['csv'] = require('./xformers/csv.js');
 
     // Serializers for bodies
     this.serializers = {

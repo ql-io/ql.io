@@ -55,8 +55,9 @@ exports.exec = function(cb, opts) {
         option('-c, --config <configFile>', 'path to config', cwd + '/../config/dev.json').
         option('-p, --port <port>', 'port to bind to', 3000).
         option('-m, --monPort <monPort>', 'port for monitoring', 3001).
-        option('-t, --tables <tables>', 'path of dir containing tables', cwd + '/../tables').
-        option('-r, --routes <routes>', 'path of dir containing routes', cwd + '/../routes').
+        option('-t, --tables <tables>', 'path of dir containing tables', cwd + '/tables').
+        option('-r, --routes <routes>', 'path of dir containing routes', cwd + '/routes').
+        option('-x, --xformers <xformers>', 'path of dir containing xformers', cwd + '/config/xformers.json').
         option('-a, --ecvPath <ecvPath>', 'ecv path', '/ecv').
         option('-e, --disableConsole', 'disable the console', false).
         option('-q, --disableQ', 'disable /q', false);
@@ -347,6 +348,27 @@ Monitor.prototype.listen = function(cb) {
         }
     });
 
+    app.get('/deps', function(req, res) {
+        var npm = require('npm');
+        npm.load({}, function() {
+            npm.commands.ls({}, true, function(e, data) {
+                res.writeHead(200, {
+                    'Content-Type': 'application/json'
+                });
+
+                var seen = []
+                var out = JSON.stringify(data, function (k, o) {
+                    if(typeof o === "object") {
+                        if(-1 !== seen.indexOf(o)) return '[Circular]';
+                        seen.push(o);
+                    }
+                    return o;
+                }, 2);
+                res.end(out);
+            });
+        });
+    });
+
     app.listen(this.options.port, cb);
 
     var wsServer = new WebSocketServer({
@@ -394,6 +416,7 @@ function createConsole(program, cb) {
         'tables': program.tables,
         'routes': program.routes,
         'config': program.config,
+        'xformers': program.xformers,
         'enable console': !disableConsole,
         'enable q': !disableQ,
         'log levels': require('winston').config.syslog.levels,
