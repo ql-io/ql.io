@@ -29,6 +29,7 @@ var winston = require('winston'),
     Engine = require('ql.io-engine'),
     MutableURI = require('ql.io-mutable-uri'),
     _ = require('underscore'),
+    zlib = require('zlib'),
     WebSocketServer = require('websocket').server;
 
 exports.version = require('./package.json').version;
@@ -40,6 +41,18 @@ process.on('uncaughtException', function(error) {
 var skipHeaders = ['connection', 'host', 'referer', 'content-length', 'accept', 'accept-charset',
     'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers',
     'transfer-encoding', 'upgrade'];
+
+var compressMethods = {
+    'gzip' : zlib.createGzip,
+    'deflate' : zlib.createDeflate,
+    '*' : zlib.createGzip
+};
+
+// Default behaviour for cpuBusy.
+// config.load parameter can specify well-defined behaviour to override.
+var cpuBusy = function() {
+    return false;
+};
 
 var Console = module.exports = function(config, cb) {
 
@@ -81,6 +94,9 @@ var Console = module.exports = function(config, cb) {
     }
     if(config.config) {
         logger.info('Loading config from ' + config.config);
+    }
+    if(config.load) {
+         cpuBusy = config.load;
     }
 
     var app = this.app = express.createServer();
@@ -707,6 +723,82 @@ var Console = module.exports = function(config, cb) {
         }
     }
 
+    function encode(res, acceptEncoding, h) {
+        var write = res.write;
+        var end = res.end;
+        var method, stream;
+        // TODO right options for the compression
+        var options = {};
+        // Default to gzip.
+        if('*' === acceptEncoding.trim()) {
+            method = 'gzip';
+        }
+        if(!method) {
+            // find the accept method quick, considering
+            // typical accept-encoding values.
+            var encodings = headers.parse('accept-encoding', acceptEncoding);
+            for(var i = 0, len = encodings.length; i < len ; ++i) {
+                if(!encodings[i].params.q) {
+                    // q factor of 1
+                    method = encodings[i].encoding;
+                    break;
+                }
+                if(encodings[i].params.q === '0') {
+                    delete encodings[i];
+                }
+            }
+            if(!method) {
+                encodings = _.without(encodings, 'undefined'); // Removed deleted elements (q=0)
+                if(encodings.length > 0) {
+                    var ordered = _.sortBy(encodings, function(enc) {
+                        return -enc.params.q;
+                    });
+                    for(var i = 0, len = ordered.length; i < len ; ++i) {
+                        if(_.has(compressMethods, ordered[i].encoding)) {
+                            method = ordered[i].encoding;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if(method) {
+            // http://www.subbu.org/blog/2007/12/vary-header-for-restful-applications
+            h['vary'] = 'accept-encoding';
+
+            stream = compressMethods[method](options);
+            h['content-encoding'] =  method === '*'? 'gzip' : method;
+            // Proxy for res.write and res.end
+            res.write = function (chunk, enc) {
+                return stream ? stream.write(chunk, enc) : write.call(res, chunk, enc);
+            };
+
+            res.end = function (chunk, enc) {
+                if (chunk) {
+                    this.write(chunk, enc);
+                }
+                return stream ? stream.end() : end.call(res);
+            };
+
+            stream.on('data', function(chunk) {
+                write.call(res, chunk);
+            })
+
+            stream.on('end', function() {
+                end.call(res);
+            });
+        }
+        //
+        // else {
+        //     res.writeHead(406)....
+        // }
+        //
+        // Instead of sending 406, if not capable of generating response
+        // entities which have content characteristics not acceptable according
+        // to the accept headers sent in the request, send 'identity'.
+        //
+    }
+
     function handleResponseCB(req, res, execState, err, results) {
         var cb = req.param('callback');
         if (err) {
@@ -736,6 +828,14 @@ var Console = module.exports = function(config, cb) {
                 'content-type' : cb ? 'application/javascript' : contentType,
                 'Request-Id' : results.headers['request-id']
             };
+
+            if(!cpuBusy()) {
+                var acceptEncoding = req.headers['accept-encoding'];
+                if(acceptEncoding && acceptEncoding.trim() !== '') {
+                    encode(res, acceptEncoding, h);
+                }
+            }
+
             if(execState.length > 0) {
                 h['Link'] = headers.format('Link', {
                     href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
