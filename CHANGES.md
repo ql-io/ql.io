@@ -1,6 +1,7 @@
 ## Mar 10, 2012
 
-* Fix
+* Fix "Can't render headers after they are sent to the client" error
+
 ## Mar 09, 2012
 
 * Support DELETE statements
