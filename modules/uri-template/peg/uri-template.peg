@@ -77,16 +77,27 @@ URITemplate  = c:( literal / expression )* {
                 else {
                     val = select(ele.variable, values) || select(ele.variable, defaults);
                     if(val) {
+                        var encode = !ele.dontencode;
                         if(val.constructor == Array) {
                             // But is the token multivalued?
-                            if(val.length === 1) {
-                                str = _append(str, val, true);
+                            if(val.length === 0) {
+                                throw {
+                                    error: 'Token ' + ele.variable + ' not specified. Processed ' + str
+                                }
+                            }
+                            else if(val.length === 1) {
+                                if(!val[0] && ele.required) {
+                                    throw {
+                                        error: 'Token ' + ele.variable + ' not specified. Processed ' + str
+                                    }
+                                }
+                                str = _append(str, val, encode);
                             }
                             else if(ele.multivalued) {
                                 if(ele.max) {
                                     if(val.length <= ele.max) {
                                         // Append as usual
-                                        str = _append(str, val, true);
+                                        str = _append(str, val, encode);
                                     }
                                     else {
                                         // Split the values into multiple and append each
@@ -103,7 +114,7 @@ URITemplate  = c:( literal / expression )* {
                                             var start = 0, end = ele.max;
                                             for(j = 0; j < val.length/ele.max; j++) {
                                                 subset = val.slice(start, end);
-                                                arr.push(_append(str, subset, true));
+                                                arr.push(_append(str, subset, encode));
                                                 start += ele.max;
                                                 end += ele.max;
                                             }
@@ -112,7 +123,7 @@ URITemplate  = c:( literal / expression )* {
                                     }
                                 }
                                 else {
-                                    str = _append(str, val, true);
+                                    str = _append(str, val, encode);
                                 }
                             }
                             else {
@@ -127,14 +138,14 @@ URITemplate  = c:( literal / expression )* {
                                     // Split and continue.
                                     arr = [];
                                     for(j = 0; j < val.length; j++) {
-                                        arr.push(_append(str, val[j], true));
+                                        arr.push(_append(str, val[j], encode));
                                     }
                                     str = arr;
                                 }
                             }
                         }
                         else {
-                            str = _append(str, val, false);
+                            str = _append(str, val, encode);
                         }
                     }
                     else if(ele.required) {
@@ -182,7 +193,7 @@ expression =  "{" op:operator* v:variable "}" {
     return token;
 }
 
-operator = required / blockMerge / multivalued
+operator = required / blockMerge / multivalued / dontencode
 
 required = '^' {
     return {
@@ -193,6 +204,12 @@ required = '^' {
 blockMerge = '#' {
     return {
         merge: 'block'
+    }
+}
+
+dontencode = '`' {
+    return {
+        dontencode: true
     }
 }
 
