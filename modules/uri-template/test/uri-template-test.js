@@ -324,7 +324,6 @@ module.exports = {
     'nested-tokens': function(test) {
         var u = 'http://www.foo.com?p1={p1}&p2={config.{ua}.apikey}';
         var p = uriTemplate.parse(u);
-        var util = require('util');
 
         var s = p.format({
             p1: 'v1',
@@ -338,5 +337,22 @@ module.exports = {
 
         test.equal(s, 'http://www.foo.com?p1=v1&p2=1234');
         test.done();
+    },
+
+    'required multiples': function (test) {
+        var u = 'http://www.foo.com?p1={^p1}';
+        var p = uriTemplate.parse(u);
+
+        try {
+            var s = p.format({
+                p1: []
+            }, true);
+            test.ok(false, 'Expected to fail');
+            test.done();
+        }
+        catch(e) {
+            test.ok(true, 'Expected to fail');
+            test.done();
+        }
     }
 };

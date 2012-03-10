@@ -749,11 +749,13 @@ var Console = module.exports = function(config, cb) {
             if (cb) {
                 res.write(cb + '(');
             }
-            if (contentType === 'application/json') {
-                res.write(JSON.stringify(results.body));
-            }
-            else {
-                res.write(results.body);
+            if(results.body) {
+                if (contentType === 'application/json') {
+                    res.write(JSON.stringify(results.body));
+                }
+                else {
+                    res.write(results.body);
+                }
             }
             if (cb) {
                 res.write(')');
