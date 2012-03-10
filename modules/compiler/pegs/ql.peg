@@ -378,7 +378,7 @@ act = 'on' insig t:type insig m:actname insig u:uri insig  insig a:withAliases? 
   return ret;
 }
 
-actname = getfrom / postto / putto / delete
+actname = getfrom / postto / putto / delete / patch
 
 getfrom = 'get' insig 'from' {
   return 'get'
@@ -391,6 +391,10 @@ putto = 'put' insig 'to' {
 }
 delete = 'delete' {
   return 'delete'
+}
+
+patch = 'patch' {
+  return 'patch'
 }
 
 usingDefaults = 'using' insig 'defaults' d:nvps {
@@ -541,7 +545,7 @@ insertStatement = 'insert' insig 'in' 'to' insig s:source insig '(' insig c:colu
 
 ///////////////////////////////////////////////////////////
 // delete statement
-deleteStatement = 'delete' insig 'from' insig s:source insig wc:whereClause {
+deleteStatement = 'delete' insig 'from' insig s:source insig wc:whereClause* {
   return {
     type: 'delete',
     source: s,
@@ -670,7 +674,14 @@ lhs = field
 
 operator = (insig '=' insig/ insig 'in' insig)
 
-rhs = (aliasedRef/quotedWord/quotedDigits/digits)
+rhs = r:(aliasedRef/quotedWord/quotedDigits/digits) {
+  if(!r.hasOwnProperty('value')) {
+    r = {
+      value: r
+    }
+  }
+  return r;
+}
 
 aliasedRef = chars:((selector ('.' selector)*)) {
   return {

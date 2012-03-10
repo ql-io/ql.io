@@ -42,3 +42,17 @@ exports.prepareParams = function() {
     return params;
 }
 
+
+var maxRequests;
+exports.getMaxRequests = function(config, logEmitter) {
+    if (config && config.maxNestedRequests) {
+        maxRequests = config.maxNestedRequests;
+    }
+
+    if (!maxRequests) {
+        maxRequests = 50;
+        logEmitter.emitWarning('config.maxNestedRequests is undefined! Defaulting to ' + maxRequests);
+    }
+
+    return maxRequests;
+}

@@ -16,14 +16,13 @@
 
 "use strict";
 
-var jsonfill = require('./jsonfill.js'),
+var filter = require('./filter.js'),
+    _util = require('./util.js'),
+    where = require('./where.js'),
     project = require('./project.js'),
     _ = require('underscore'),
     async = require('async'),
-    jsonPath = require('JSONPath'),
     assert = require('assert');
-
-var maxRequests;
 
 exports.exec = function(opts, statement, cb, parentEvent) {
 
@@ -32,7 +31,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
     assert.ok(cb, 'Argument cb can not be undefined');
     assert.ok(opts.xformers, 'No xformers set');
 
-    var funcs, cloned, joiningColumn, selectEvent, i;
+    var funcs, cloned, joiningColumn, selectEvent;
     selectEvent = opts.logEmitter.wrapEvent(parentEvent, 'QlIoSelect', null, cb);
 
     execInternal(opts, statement, function(err, results) {
@@ -54,7 +53,8 @@ exports.exec = function(opts, statement, cb, parentEvent) {
                 cloned.whereCriteria[0].rhs.value = (_.isArray(row) || _.isObject(row)) ? row[joiningColumn] : row;
 
                 // Determine whether the number of funcs is within the limit, otherwise break out of the loop
-                if (funcs.length >= (maxRequests || getMaxRequests(opts))) {
+                var maxRequests = _util.getMaxRequests(opts.config, opts.logEmitter);
+                if (funcs.length >= maxRequests) {
                     opts.logEmitter.emitWarning('Pruning the number of nested requests to config.maxNestedRequests = ' + maxRequests + '.');
                     return;
                 }
@@ -99,7 +99,7 @@ exports.exec = function(opts, statement, cb, parentEvent) {
                             else {
                                 sel.push(val);
                             }
-                        })
+                        });
                         body.push(sel);
                     }
                 });
@@ -121,220 +121,103 @@ exports.exec = function(opts, statement, cb, parentEvent) {
 // Execute a parsed select statement with no joins
 function execInternal(opts, statement, cb, parentEvent) {
     var tables = opts.tables, tempResources = opts.tempResources, context = opts.context,
-        request = opts.request, emitter = opts.emitter, key;
+         request = opts.request, emitter = opts.emitter;
 
     var selectExecTx = opts.logEmitter.wrapEvent(parentEvent, 'QlIoSelectExec', null, cb);
     //
     // Analyze where conditions and fetch any dependent data
-    var name, ret, params, value, i, r, p, max, resource, apiTx;
-    var tasks = [];
-    _.each(statement.whereCriteria, function(cond) {
-        if(cond.operator === '=') {
-            name = cond.lhs.name;
-            //
-            // This is a string value. No need to do any remote fetch.
-            // This is a curry. There are more curried functions below. If you don't know
-            // what currying is, don't touch this code unless you read Crockford's book.
-            tasks.push(function(cond, name) {
-                return function(callback) {
-                    ret = {};
-                    key = (cond.rhs.value !== undefined) ? cond.rhs.value : cond.rhs;
-                    ret[name] = jsonfill.lookup(key, context);
-                    callback(null, ret);
-                };
-            }(cond, name));
-        }
-        //
-        // This is an IN condition. RHS could be a comma separated values or a SELECT
-        else if(cond.operator === 'in') {
-            name = cond.lhs.name;
-            if(cond.rhs.fromClause) {
-                tasks.push(function(cond, name) {
-                    return function(callback) {
-                        execInternal(opts, cond.rhs, function(e, r) {
-                            if(e) {
-                                callback(e);
-                            }
-                            else {
-                                ret = {};
-                                ret[name] = r.body;
-                                callback(null, ret);
-                            }
-                        }, selectExecTx.event);
-                    };
-                }(cond, name));
-            }
-            else if(_.isArray(cond.rhs.value)) {
-                tasks.push(function(cond, name) {
-                    return function(callback) {
-                        ret = {};
-                        ret[name] = [];
+    var name, params, value, r, p, max, resource, apiTx;
 
-                        // Determine whether the number of values is within the limit and prune the values array
-                        if (cond.rhs.value.length > (maxRequests || getMaxRequests(opts))) {
-                            opts.logEmitter.emitWarning('Pruning the number of nested requests in in-clause to config.maxNestedRequests = ' + maxRequests + '.');
-                            cond.rhs.value = cond.rhs.value.slice(0, maxRequests);
+    where.exec(opts, statement.whereCriteria, function(err, results) {
+        var i, j;
+        // Now fetch each resource from left to right
+        _.each(statement.fromClause, function(from) {
+            // Reorder results - results is an array of objects, but we just want an object
+            params = {};
+            for(i = 0,max = results.length; i < max; i++) {
+                r = results[i];
+                for(p in r) {
+                    if(r.hasOwnProperty(p)) {
+                        value = r[p];
+                        // Resolve alias
+                        if(p.indexOf(from.alias + '.') === 0) {
+                            p = p.substr(from.alias.length + 1);
                         }
-
-                        // Expand variables from context
-                        _.each(cond.rhs.value, function(key) {
-                            var arr = jsonfill.lookup(key, context);
-                            if(_.isArray(arr)) {
-                                _.each(arr, function(v) {
-                                    ret[name].push(v);
-                                });
-                            }
-                            else {
-                                ret[name].push(arr);
-                            }
-                        });
-                        callback(null, ret);
-                    };
-                }(cond, name));
+                        params[p] = value;
+                    }
+                }
             }
-        }
-    });
+
+            name = from.name;
+            // Lookup context for the source - we do this since the compiler puts the name in
+            // braces to denote the source as a variable and not a table.
+            if(name.indexOf("{") === 0 && name.indexOf("}") === name.length - 1) {
+                name = name.substring(1, from.name.length - 1);
+            }
+            resource = context[name];
+            if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
+                apiTx = opts.logEmitter.wrapEvent(selectExecTx.event, 'API', name, selectExecTx.cb);
+                var filtered = filter.filter(resource, statement, context, from);
+
+                // Project
+                project.run('', statement, filtered, function (projected) {
+                    if(statement.assign) {
+                        context[statement.assign] = projected;
+                        emitter.emit(statement.assign, projected);
+                    }
+                    return apiTx.cb(null, {
+                        headers: {
+                            'content-type': 'application/json'
+                        },
+                        body: projected
+                    });
+                });
+            }
+            else {
+                // Get the resource
+                resource = tempResources[from.name] || tables[from.name];
+                apiTx = opts.logEmitter.wrapEvent(selectExecTx.event, 'API', from.name, selectExecTx.cb);
+                if(!resource) {
+                    return apiTx.cb('No such table ' + from.name);
+                }
+                var verb = resource.verb('select');
+                if(!verb) {
+                    return apiTx.cb('Table ' + from.name + ' does not support select');
+                }
+
+                // Limit and offset
+                var limit = verb.aliases && verb.aliases.limit || 'limit';
+                params[limit] = statement.limit;
+                var offset = verb.aliases && verb.aliases.offset || 'offset';
+                params[offset] = statement.offset;
+
+                verb.exec({
+                    context: opts.context,
+                    config: opts.config,
+                    settings: opts.settings,
+                    resource: verb,
+                    xformers: opts.xformers,
+                    serializers: opts.serializers,
+                    params: params,
+                    request: request,
+                    statement: statement,
+                    emitter: emitter,
+                    logEmitter: opts.logEmitter,
+                    parentEvent: apiTx.event,
+                    callback: function(err, result) {
+                        if(result) {
+                            context[statement.assign] = result.body;
+                            emitter.emit(statement.assign, result.body);
+                        }
+                        return apiTx.cb(err, result);
+                    }
+                });
+            }
+        });
+    }, parentEvent);
+
 
     // Run tasks asynchronously and join on the callback. On completion, the results array will
-    // have the values to execute this statement
-    async.parallel(tasks,
-        function(err, results) {
-            var i, j;
-            // Now fetch each resource from left to right
-            _.each(statement.fromClause, function(from) {
-                // Reorder results - async results is an array of objects, but we just want an object
-                params = {};
-                for(i = 0,max = results.length; i < max; i++) {
-                    r = results[i];
-                    for(p in r) {
-                        if(r.hasOwnProperty(p)) {
-                            value = r[p];
-                            // Resolve alias
-                            if(p.indexOf(from.alias + '.') === 0) {
-                                p = p.substr(from.alias.length + 1);
-                            }
-                            params[p] = value;
-                        }
-                    }
-                }
-
-                name = from.name;
-                // Lookup context for the source - we do this since the compiler puts the name in
-                // braces to denote the source as a variable and not a table.
-                if(name.indexOf("{") === 0 && name.indexOf("}") === name.length - 1) {
-                    name = name.substring(1, from.name.length - 1);
-                }
-                resource = context[name];
-                if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
-                    apiTx = opts.logEmitter.wrapEvent(selectExecTx.event, 'API', name, selectExecTx.cb);
-                    resource = jsonfill.unwrap(resource);
-
-                    // Local filtering (rudimentary)
-                    // Prep expected once
-                    var expecteds = _.map(statement.whereCriteria, function(cond) {
-                        var expected = [];
-                        if(cond.operator === 'in') {
-                            _.each(cond.rhs.value, function (val) {
-                                expected = expected.concat(jsonfill.fill(val, context));
-                            });
-                        }
-                        else if(cond.operator === '=') {
-                            expected = expected.concat(jsonfill.fill(cond.rhs.value, context));
-                        }
-                        else {
-                            assert.ok(cond.operator === '=', 'Local filtering supported for = only');
-                        }
-                        return expected;
-                    });
-                    // Wrap into an array if source is not an array. Otherwise we will end up
-                    // iterating over its props.
-                    var filtered = resource;
-                    if(statement.whereCriteria && statement.whereCriteria.length > 0) {
-                        filtered = _.isArray(resource) ? resource : [resource];
-                        // All and conditions should match. If the RHS of a condition
-                        // has multiple values, they are ORed.
-                        //
-                        for(i = 0; i < statement.whereCriteria.length; i++) {
-                            var cond = statement.whereCriteria[i];
-                            var expected = expecteds[i];
-                            var path = cond.lhs.name;
-                            if(path.indexOf(from.alias + '.') === 0) {
-                                path = path.substr(from.alias.length + 1);
-                            }
-                            filtered = _.filter(filtered, function(row) {
-                                var matched = false;
-                                var result = jsonPath.eval(row, path, {flatten: true});
-                                // If the result matches any expected[], keep it.
-                                for(j = 0; j < expected.length; j++) {
-                                    if(!matched && result && _.isArray(result) && result.length == 1 && result[0] == expected[j]) {
-                                        matched = true;
-                                    }
-                                }
-                                return matched;
-                            });
-                        }
-                    }
-                    else {
-                        // If there are no where conditions, use the original
-                        filtered = resource;
-                    }
-
-                    // Project
-                    project.run('', statement, filtered, function(projected) {
-                        if(statement.assign) {
-                            context[statement.assign] = projected;
-                            emitter.emit(statement.assign, projected);
-                        }
-                        return apiTx.cb(null, {
-                            headers: {
-                                'content-type': 'application/json'
-                            },
-                            body: projected
-                        });
-                    });
-                }
-                else {
-                    // Get the resource
-                    resource = tempResources[from.name] || tables[from.name];
-                    apiTx = opts.logEmitter.wrapEvent(selectExecTx.event, 'API', from.name, selectExecTx.cb);
-                    if(!resource) {
-                        return apiTx.cb('No such table ' + from.name);
-                    }
-                    var verb = resource.verb('select');
-                    if(!verb) {
-                        return apiTx.cb('Table ' + from.name + ' does not support select');
-                    }
-
-                    // Limit and offset
-                    var limit = verb.aliases && verb.aliases.limit || 'limit';
-                    params[limit] = statement.limit;
-                    var offset = verb.aliases && verb.aliases.offset || 'offset';
-                    params[offset] = statement.offset;
-
-                    verb.exec({
-                        context: opts.context,
-                        config: opts.config,
-                        settings: opts.settings,
-                        resource: verb,
-                        xformers: opts.xformers,
-                        serializers: opts.serializers,
-                        params: params,
-                        request: request,
-                        statement: statement,
-                        emitter: emitter,
-                        logEmitter: opts.logEmitter,
-                        parentEvent: apiTx.event,
-                        callback: function(err, result) {
-                            if(result) {
-                                context[statement.assign] = result.body;
-                                emitter.emit(statement.assign, result.body);
-                            }
-                            return apiTx.cb(err, result);
-                        }
-                    });
-                }
-            });
-        });
 }
 
 var clone = function(obj) {
@@ -349,18 +232,3 @@ var clone = function(obj) {
     }
     return temp;
 };
-
-function getMaxRequests(opts) {
-    var config = opts.config;
-
-    if (config && config.maxNestedRequests) {
-        maxRequests = config.maxNestedRequests;
-    }
-
-    if (!maxRequests) {
-        maxRequests = 50;
-        opts.logEmitter.emitWarning('config.maxNestedRequests is undefined! Defaulting to ' + maxRequests);
-    }
-
-    return maxRequests;
-}

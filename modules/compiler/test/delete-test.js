@@ -26,13 +26,13 @@ exports['delete'] = function (test) {
         "source": {
             "name": "foo"
         },
-        "whereCriteria": {
+        "whereCriteria": [{
             "operator": "=",
             "lhs": {name: "bar"},
             "rhs": {
                 "value": "a"
             }
-        },
+        }],
         "line": 1,
         "id": 0
     }];
@@ -47,13 +47,13 @@ exports['delete-csv'] = function (test) {
         type: 'delete',
         "source" :
             {name: 'ebay.item'},
-        whereCriteria: {
+        whereCriteria: [{
             operator: 'in',
             lhs: {name: 'itemId'},
             "rhs":{
                 value: ['180652013910', '120711247507']
             }
-        },
+        }],
         line: 1,
         id: 0
     }];
