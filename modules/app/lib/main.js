@@ -37,6 +37,15 @@ process.on('uncaughtException', function(error) {
 
 exports.version = require('../package.json').version;
 
+// get cpu load every 10 secs
+var cpus = os.cpus().length;
+var busy = os.loadavg()[0] > cpus/2 ;
+var loadavgInterval = setInterval(function () {
+    // take one minute avg load
+    // 50% (cpus/2) and above indicates busy cpu.
+    busy = os.loadavg()[0] > cpus/2;
+}, 10000);
+
 exports.exec = function(cb, opts) {
     var c, monPort, port, master;
 
@@ -267,10 +276,12 @@ Master.prototype.listen = function(app, cb) {
 };
 
 Master.prototype.stop = function() {
+    clearInterval(loadavgInterval);
     this.killall('SIGKILL');
 };
 
 Master.prototype.shutdown = function() {
+    clearInterval(loadavgInterval);
     this.killall('SIGTERM');
 };
 
@@ -398,11 +409,6 @@ function getStats(master, socket) {
     return {master: master};
 }
 
-function getInflight(master) {
-    return getStats(master);
-}
-
-
 function createConsole(program, cb) {
     var disableConsole = Boolean(program.disableConsole);
     var disableQ = Boolean(program.disableQ);
@@ -413,8 +419,9 @@ function createConsole(program, cb) {
         'xformers': program.xformers,
         'enable console': !disableConsole,
         'enable q': !disableQ,
-        'log levels': require('winston').config.syslog.levels}, cb);
+        'log levels': require('winston').config.syslog.levels,
+        'load' : function () {
+            return busy;
+        }
+    }, cb);
 }
-
-
-
