@@ -1,3 +1,10 @@
+## Mar 10, 2012
+
+* Fix
+## Mar 09, 2012
+
+* Support DELETE statements
+
 ## Mar 07, 2012
 
 * Add a page showing all installed packages. Try http://<host>:<monport>/deps
