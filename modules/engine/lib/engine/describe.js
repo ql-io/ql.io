@@ -59,7 +59,8 @@ exports.exec = function(opts, statement, cb) {
             var verb = table.verb(type);
             if(verb) {
                 desc[verb.type] = {
-                    'request':verb.method + ' ' + verb.uri,
+                    'method': verb.method,
+                    'uri': verb.uri,
                     'params':verb.params,
                     'headers':verb.headers
                 };

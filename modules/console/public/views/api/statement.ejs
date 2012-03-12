@@ -1,0 +1,52 @@
+<h3 class="desc-statement">&raquo; <%=type%></h3>
+
+<table>
+    <tr>
+        <td>Method</td>
+        <td colspan='2'><%=statement.method.toUpperCase()%></td>
+    </tr>
+    <tr>
+        <td>URI</td>
+        <td colspan='2'><code><%=statement.uri%></code></td>
+    </tr>
+    <% if(statement.headers.length > 0) {%>
+    <tr>
+        <td>Headers</td>
+        <%for(var i=0; i<statement.headers.length; i++){%>
+        <td><code><%=statement.headers[i].name%>></code></td>
+        <td><code><%=statement.headers[i].value%></code></td>
+        <% }%>
+    </tr>
+    <% } %>
+    <% if(statement.body){%>
+    <tr>
+        <td>Body</td>
+        <td><code><%=statement.body.type%></code></td>
+        <td><code><%=statement.body.content%></code></td>
+    </tr>
+    <%}%>
+</table>
+
+<% if(type !== 'insert') { %>
+<h4>params</h4>
+
+<p>Use the params below in the <code>where</code> clause. These are in addition to any tokens listed in the headers/body listed above.</p>
+
+<table class= "api">
+    <thead>
+        <th>name</th>
+        <th>required</th>
+        <th>default</th>
+    </thead>
+    <tbody>
+    <% for(var i=0; i<statement.params.length; i++) {%>
+    <tr>
+        <td><code><%=statement.params[i].variable%></code></td>
+        <td><%=statement.params[i].required||'false'%></td>
+        <td><code><%=statement.params[i].defautl||''%></code></td>
+    </tr>
+    <% } %>
+    </tbody>
+</table>
+
+<% } %>

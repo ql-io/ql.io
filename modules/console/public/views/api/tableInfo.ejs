@@ -1,0 +1,43 @@
+<div class='api'>
+    <h2><a href="/api">routes</a> | <a href="/tables">tables</a> &raquo; <%=tableInfo.name%></h2>
+
+    <div class='info'>
+        <%-tableInfo.info || '<p>-</p>'%>
+    </div>
+
+    <% if(tableInfo.select) {%>
+    <%- partial('statement.ejs', {type: 'select', statement: tableInfo.select}) %>
+    <% } %>
+    <% if(tableInfo.insert) {%>
+    <%- partial('statement.ejs', {type: 'insert', statement: tableInfo.insert}) %>
+    <% } %>
+    <% if(tableInfo.create) {%>
+    <%- partial('statement.ejs', {type: 'create', statement: tableInfo.create}) %>
+    <% } %>
+    <% if(tableInfo.delete) {%>
+    <%- partial('statement.ejs', {type: 'delete', statement: tableInfo.delete}) %>
+    <% } %>
+    <% if(tableInfo.update) {%>
+    <%- partial('statement.ejs', {type: 'create', statement: tableInfo.update}) %>
+    <% } %>
+
+    <div class='related'>
+        <h3>related routes</h3>
+        <% if(routes && routes.length > 0) { %>
+            <ul>
+                <%- partial('relatedRoute', routes) %>
+            </ul>
+        <% } else { %>
+            -
+        <% } %>
+    </div>
+
+
+</div>
+
+
+
+
+
+
+
