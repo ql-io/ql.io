@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-"use strict"
+'use strict'
 
 var _ = require('underscore'),
     Console = require('../app.js'),
@@ -23,7 +23,7 @@ var _ = require('underscore'),
     url = require('url');
 
 module.exports = {
-    'check /routes html':function (test) {
+    'check /api html':function (test) {
         var c = new Console({
             tables:__dirname + '/tables',
             routes:__dirname + '/routes/',
@@ -35,7 +35,7 @@ module.exports = {
             var options = {
                 host:'localhost',
                 port:3000,
-                path:'/routes',
+                path:'/api',
                 method:'GET'
             };
             var req = http.request(options);
@@ -54,7 +54,7 @@ module.exports = {
 
         });
     },
-    'check /routes':function (test) {
+    'check /api':function (test) {
         var c = new Console({
             tables:__dirname + '/tables',
             routes:__dirname + '/routes/',
@@ -66,7 +66,7 @@ module.exports = {
             var options = {
                 host:'localhost',
                 port:3000,
-                path:'/routes',
+                path:'/api',
                 method:'GET',
                 headers:{
                     'accept':'application/json'
@@ -82,7 +82,7 @@ module.exports = {
                     var routes = JSON.parse(data);
                     test.ok(_.isArray(routes), 'show routes result is not array');
                     _.each(routes, function (route) {
-                        test.ok(route.path, 'expected route info to contain "path"');
+                        test.ok(route.path, 'expected route info to contain /path"');
                         test.ok(route.method, 'expected route info to contain "method"');
                         test.ok(route.about, 'expected route info to contain "about"');
                         test.ok(_.isString(route.info), 'expected route info to contain "info"');
@@ -95,7 +95,7 @@ module.exports = {
 
         });
     },
-    'check /routes?format=json':function (test) {
+    'check /api?format=json':function (test) {
         var c = new Console({
             tables:__dirname + '/tables',
             routes:__dirname + '/routes/',
@@ -107,7 +107,7 @@ module.exports = {
             var options = {
                 host:'localhost',
                 port:3000,
-                path:'/routes?format=json',
+                path:'/api?format=json',
                 method:'GET'
             };
             var req = http.request(options);
@@ -382,7 +382,7 @@ module.exports = {
                     test.equals(table.about, '/table?name=ebay.trading.bestoffers');
                     test.equals(table.info, '');
                     test.ok(_.isArray(table.routes) & table.routes.length == 2);
-                    test.ok(table.select && table.select.request && table.select.params
+                    test.ok(table.select && table.select.uri && table.select.uri && table.select.params
                         && table.select.headers && table.select.body);
                     c.app.close();
                     test.done();
@@ -422,7 +422,7 @@ module.exports = {
                     test.equals(table.about, '/table?name=ebay.trading.bestoffers');
                     test.equals(table.info, '');
                     test.ok(_.isArray(table.routes) & table.routes.length == 2);
-                    test.ok(table.select && table.select.request && table.select.params
+                    test.ok(table.select && table.select.method && table.select.uri && table.select.params
                         && table.select.headers && table.select.body);
                     c.app.close();
                     test.done();

@@ -16,19 +16,18 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
-    util = require('util'),
     logger = require('winston');
 
 logger.remove(logger.transports.Console);
 logger.add(logger.transports.Console, {level: 'error'});
 
-exports["describe route '/foo/bar/{selector}?userid={userId}&itemid={itemId}' using method get"] = function (test) {
+exports['describe route "/foo/bar/{selector}?userid={userId}&itemid={itemId}" using method get'] = function (test) {
     var engine = new Engine({
             tables : __dirname + '/mock-routes/tables',
             routes : __dirname + '/mock-routes/routes',
             config : __dirname + '/config/dev.json'
         });
-    var q = "describe route '/foo/bar/{selector}?userid={userId}&itemid={itemId}' using method get";
+    var q = 'describe route "/foo/bar/{selector}?userid={userId}&itemid={itemId}" using method get';
         engine.exec(q, function(err, list) {
 
             if (err) {
@@ -50,13 +49,13 @@ exports["describe route '/foo/bar/{selector}?userid={userId}&itemid={itemId}' us
 
 };
 
-exports["describe route '/ping/pong' using method put"] = function (test) {
+exports['describe route "/ping/pong" using method put'] = function (test) {
     var engine = new Engine({
             tables : __dirname + '/mock-routes/tables',
             routes : __dirname + '/mock-routes/routes',
             config : __dirname + '/config/dev.json'
         });
-    var q = "describe route '/ping/pong' using method put";
+    var q = 'describe route "/ping/pong" using method put';
         engine.exec(q, function(err, list) {
 
             if (err) {
@@ -99,8 +98,9 @@ exports['check routes in desc table'] = function (test) {
                 test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
                 test.equals(list.body.name, 'testing.for.post');
                 test.equals(list.body.about, '/table?name=testing.for.post');
-                test.ok(list.body.select, "expected statement select");
-                test.ok(list.body.select.request, "expected request for statement select");
+                test.ok(list.body.select, 'expected statement select');
+                test.equals(list.body.select.method, 'post', 'expected method for statement select');
+                test.equals(list.body.select.uri, 'http://localhost:80126/ping/pong', 'expected uri for statement select');
                 test.ok(_.isArray(list.body.routes), 'expected list.body.routes to be array');
                 test.ok(list.body.routes.length > 0, 'expected list.body.routes to not be empty');
                 test.done();

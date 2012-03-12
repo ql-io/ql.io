@@ -1,0 +1,72 @@
+div.api {
+    margin-left: 10px;
+}
+
+.api h2 a, h2 a:visited {
+    color: #386CBD;
+    text-decoration: none;
+}
+
+.api table {
+    border: 1px solid #DFDFDF;
+    background-color: #F9F9F9;
+    width: 90%;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    color: #333;
+    border-collapse: collapse;
+}
+
+.api tr {
+}
+
+.api td, .api th {
+    color: #555;
+    border-top-color: white;
+    border-bottom: 1px solid #DFDFDF;
+}
+
+.api a, .api a:visited {
+    color: #386CBD;
+    text-decoration: none;
+}
+
+.api th {
+    font-weight: bold;
+    text-shadow: rgba(255, 255, 255, 0.796875) 0px 1px 0px;
+    padding: 7px 7px 8px;
+    text-align: left;
+    line-height: 1.3em;
+}
+
+.api td {
+    padding: 4px 7px 4px;
+    vertical-align: top;
+}
+
+.api td p {
+    padding: 0;
+    margin: 2px;
+}
+
+.api div.info {
+    background-color: #F9F9F9;
+    width: 90%;
+    border: 1px solid #DFDFDF;
+}
+
+.api div.info p {
+    padding: 0px 4px;
+}
+
+.api ul {
+    list-style: none;
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+.api ul li:before {
+    content: "\00BB \0020";
+}
