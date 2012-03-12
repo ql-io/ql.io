@@ -1,0 +1,29 @@
+<div class='api'>
+    <h2><a href="/tables">tables</a> | <a href="/tables">routes</a> &raquo; <%=routeInfo.method.toUpperCase()%> <%=routeInfo.path%></h2>
+
+    <div class='info'>
+        <%-routeInfo.info || '<p>-</p>'%>
+    </div>
+
+    <div class='related'>
+        <h4>tables referenced</h4>
+        <% if(tables && tables.length > 0) { %>
+        <ul>
+            <%- partial('refTable', tables) %>
+        </ul>
+        <% } else { %>
+            -
+        <% } %>
+    </div>
+
+    <div class='related'>
+        <h4>related routes</h4>
+        <% if(related && related.length > 0) { %>
+            <ul>
+                <%- partial('relatedRoute', related) %>
+            </ul>
+        <% } else { %>
+            -
+        <% } %>
+    </div>
+</div>

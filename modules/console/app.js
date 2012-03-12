@@ -143,7 +143,7 @@ var Console = module.exports = function(config, cb) {
                     'treeview.css',
                     'har-viewer.css',
                     'jquery-ui.css',
-                    'routestables.css'
+                    'api.css'
                 ],
                 'preManipulate': {
                     // Regexp to match user-agents including MSIE.
@@ -284,9 +284,9 @@ var Console = module.exports = function(config, cb) {
                 href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
                 rel : ['execstate']
             });
-            res.render(__dirname + '/public/views/routes-tables/tables.ejs', {
+            res.render(__dirname + '/public/views/api/tables.ejs', {
                 title: 'ql.io',
-                layout: __dirname + '/public/views/routes-table-layout',
+                layout: __dirname + '/public/views/api-layout',
                 tables: results
             });
         }
@@ -322,9 +322,9 @@ var Console = module.exports = function(config, cb) {
                 href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
                 rel : ['execstate']
             });
-            res.render(__dirname + '/public/views/routes-tables/tableInfo.ejs', {
+            res.render(__dirname + '/public/views/api/tableInfo.ejs', {
                 title: 'ql.io',
-                layout: __dirname + '/public/views/routes-table-layout',
+                layout: __dirname + '/public/views/api-layout',
                 tableInfo: result,
                 routes:
                     _(result.routes).chain()
@@ -371,7 +371,7 @@ var Console = module.exports = function(config, cb) {
     });
 
     // HTTP indirection for 'show routes' command
-    app.get('/routes', function(req,res){
+    app.get('/api', function(req,res){
         var holder = {
             params: {},
             headers: {}
@@ -385,9 +385,9 @@ var Console = module.exports = function(config, cb) {
                 href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
                 rel : ['execstate']
             });
-            res.render(__dirname + '/public/views/routes-tables/routes.ejs', {
+            res.render(__dirname + '/public/views/api/api.ejs', {
                 title: 'ql.io',
-                layout: __dirname + '/public/views/routes-table-layout',
+                layout: __dirname + '/public/views/api-layout',
                 routes: results
             });
         }
@@ -437,9 +437,9 @@ var Console = module.exports = function(config, cb) {
                 href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),
                 rel : ['execstate']
             });
-            res.render(__dirname + '/public/views/routes-tables/routeInfo.ejs', {
+            res.render(__dirname + '/public/views/api/routeInfo.ejs', {
                 title: 'ql.io',
-                layout: __dirname + '/public/views/routes-table-layout',
+                layout: __dirname + '/public/views/api-layout',
                 routeInfo: result,
                 related:
                     _(result.related).chain()
