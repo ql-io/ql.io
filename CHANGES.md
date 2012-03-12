@@ -1,5 +1,9 @@
 ## Mar 12, 2012
 
+* content-encoding support for ql.io clients. gzip and deflate supported. default is gzip.
+
+## Mar 12, 2012
+
 * Remame `/routes` to `/api`
 * Restyle routes and tables navigation
 

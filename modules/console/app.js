@@ -112,6 +112,11 @@ var Console = module.exports = function(config, cb) {
     app.use(bodyParser); // parses the body for application/x-www-form-urlencoded and application/json
     var respHeaders = require(__dirname + '/lib/middleware/respheaders');
     app.use(respHeaders());
+
+    // compress middleware
+    var compress =   require(__dirname + '/lib/middleware/compress.js');
+    app.use(compress());
+
     if(config['enable console']) {
         // If you want unminified JS and CSS, jus add property debug: true to js and css vars below.
         var qlAssets = {
