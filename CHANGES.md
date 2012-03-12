@@ -1,3 +1,8 @@
+## Mar 12, 2012
+
+* Remame `/routes` to `/api`
+* Restyle routes and tables navigation
+
 ## Mar 10, 2012
 
 * Fix "Can't render headers after they are sent to the client" error

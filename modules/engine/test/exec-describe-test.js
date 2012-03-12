@@ -44,9 +44,9 @@ exports['describe'] = function (test) {
                 test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
                 test.equals(list.body.name, 'ebay.finding.items');
                 test.equals(list.body.about, '/table?name=ebay.finding.items');
-                test.ok(list.body.select, "expected statement select");
-                test.ok(list.body.select.request, "expected request for statement select");
-                test.ok(list.body.select.params, "expected params for statement select");
+                test.ok(list.body.select, 'expected statement select');
+                test.equal(list.body.select.method, 'get', 'expected request for statement select');
+                test.ok(list.body.select.params, 'expected params for statement select');
                 test.done();
             }
         }

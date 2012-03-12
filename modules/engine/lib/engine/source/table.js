@@ -32,13 +32,13 @@ var Table = module.exports = function(opts, comments, statement) {
     // Metadata for describe
     this.meta = {
         name: this.statement.name,
-        routes: [],
-        comments: ''
+        routes: []
     };
     var self = this;
+    self.comments = '';
     if(comments.length > 0) {
         _.each(comments, function(comment) {
-            self.meta.comments += markdown.markdown.toHTML(comment);
+            self.comments += markdown.markdown.toHTML(comment);
         });
     }
 
