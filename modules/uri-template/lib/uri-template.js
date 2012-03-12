@@ -191,7 +191,17 @@ module.exports = (function(){
                                   var encode = !ele.dontencode;
                                   if(val.constructor == Array) {
                                       // But is the token multivalued?
-                                      if(val.length === 1) {
+                                      if(val.length === 0) {
+                                          throw {
+                                              error: 'Token ' + ele.variable + ' not specified. Processed ' + str
+                                          }
+                                      }
+                                      else if(val.length === 1) {
+                                          if(!val[0] && ele.required) {
+                                              throw {
+                                                  error: 'Token ' + ele.variable + ' not specified. Processed ' + str
+                                              }
+                                          }
                                           str = _append(str, val, encode);
                                       }
                                       else if(ele.multivalued) {
