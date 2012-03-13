@@ -70,9 +70,31 @@ exports['describe route "/ping/pong" using method put'] = function (test) {
                 test.ok(_.isArray(list.body.tables), 'list.body.tables is not array');
                 test.ok(list.body.tables.length == 1 , 'Expected length = 1');
                 test.ok(_.isArray(list.body.related), 'list.body.related is not array');
-                test.ok(list.body.related.length == 1 , 'Expected length = 1');            }
+                test.ok(list.body.related.length == 1 , 'Expected length = 1');
+            }
             test.done();
+        }
+    );
+};
+
+// This method is not supported for the route
+exports['describe route "/ping/pong" using method patch'] = function (test) {
+    var engine = new Engine({
+            tables : __dirname + '/mock-routes/tables',
+            routes : __dirname + '/mock-routes/routes',
+            config : __dirname + '/config/dev.json'
         });
+    var q = 'describe route "/ping/pong" using method patch';
+        engine.exec(q, function(err, list) {
+            if (err) {
+                test.ok('Failed as expected');
+            }
+            else {
+                test.fail('Expected to fail');
+            }
+            test.done();
+        }
+    );
 };
 
 exports['check routes in desc table'] = function (test) {
@@ -103,6 +125,36 @@ exports['check routes in desc table'] = function (test) {
                 test.equals(list.body.select.uri, 'http://localhost:80126/ping/pong', 'expected uri for statement select');
                 test.ok(_.isArray(list.body.routes), 'expected list.body.routes to be array');
                 test.ok(list.body.routes.length > 0, 'expected list.body.routes to not be empty');
+                test.done();
+            }
+        }
+    };
+
+    engine.exec(opts);
+};
+
+exports['check table deps for route with insert'] = function (test) {
+    var engine = new Engine({
+        tables : __dirname + '/mock-routes/tables',
+        routes : __dirname + '/mock-routes/routes',
+        config : __dirname + '/config/dev.json'
+    });
+
+    var opts = {
+        request: {
+            headers: {},
+            params: {fromRoute: true}
+        },
+        script: 'describe route "/bitly/shorten" using method post',
+        cb: function(err, list) {
+            if (err) {
+                test.fail('got error: ' + err.stack);
+                test.done();
+            }
+            else {
+                test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+                test.equals(list.body.path, '/bitly/shorten');
+                test.equals(list.body.tables[0], '/table?name=bitly.shorten');
                 test.done();
             }
         }

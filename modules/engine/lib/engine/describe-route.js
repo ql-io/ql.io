@@ -48,7 +48,7 @@ var arr = [], routes = opts.routes, context = opts.context, record, otherVerbs =
     record = routes.simpleMap[statement.method + ':' + statement.path.value];
 
     if(!record) {
-        cb('No such route ' + statement.path.value + ' for HTTP method "' + 'statement.method"');
+        return cb('No such route ' + statement.path.value + ' for HTTP method ' + statement.method.toUpperCase());
     }
 
     cb(null, {

@@ -164,37 +164,41 @@ function getRouteInfo(cooked){
     return info;
 }
 
-function findTables(cooked){
-    return walk(cooked, []);
-}
-
-function walk(obj, tables){
-    if(_.isArray(obj)){
-        tables = walkArray(obj, tables);
-    }
-    else if (!_.isString(obj) && !_.isNumber(obj)){
-        tables  = walkObj(obj, tables);
-    }
-    return tables;
-}
-
-function walkObj(obj, tables){
-    _.each(obj, function(value, name){
-        if (name === 'fromClause') {
-           tables =  _.union(tables,_.filter(_.pluck(value,'name'), function(entry) {
-                return entry && !(entry.indexOf("{") === 0);
-            }));
-        }
-        else {
-            tables = walk(value, tables);
+function findTables(cooked) {
+    var tables = [];
+    _.each(cooked, function(row) {
+        switch(row.type) {
+            case 'return' :
+                if(row.rhs.type) {
+                    tables = tables.concat(findTablesFromStatement(row.rhs));
+                }
+                break;
+            case 'comment' :
+                break;
+            default:
+                tables = tables.concat(findTablesFromStatement(row));
         }
     });
     return tables;
 }
 
-function walkArray(arr, tables){
-   _.each(arr, function(ele){
-       tables = walk(ele,tables);
-   });
+function findTablesFromStatement(statement) {
+    var arr;
+    switch(statement.type) {
+        case 'select' :
+            arr = statement.fromClause;
+            break;
+        case 'insert' :
+        case 'delete' :
+            arr = [statement.source];
+            break;
+        case 'update' :
+            // TODO
+            break;
+    }
+
+    var tables =  _.filter(_.pluck(arr,'name'), function(entry) {
+        return entry && !(entry.indexOf("{") === 0);
+    });
     return tables;
 }
