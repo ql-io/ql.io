@@ -1,5 +1,6 @@
 ## Mar 12, 2012
 
+* Fix route to table dependency resoluton for non-selects
 * Remame `/routes` to `/api`
 * Restyle routes and tables navigation
 
