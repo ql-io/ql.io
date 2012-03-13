@@ -192,6 +192,9 @@ function findTablesFromStatement(statement) {
         case 'delete' :
             arr = [statement.source];
             break;
+        case 'update' :
+            // TODO
+            break;
     }
 
     var tables =  _.filter(_.pluck(arr,'name'), function(entry) {
