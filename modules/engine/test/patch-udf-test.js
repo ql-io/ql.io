@@ -75,5 +75,35 @@ module.exports = {
                 });
             });
         });
-    }
+    },
+
+    'udf-patch-uri': function (test) {
+        var server = http.createServer(function (req, res) {
+            res.writeHead(200, {
+                'Content-Type': 'application/json'
+            });
+            res.end(JSON.stringify({'path': req.url}));
+        });
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+                tables: __dirname + '/patch'
+            });
+            engine.execute('select * from patch.udf.uri where p1("v1") and p2("2", "3")', function (emitter) {
+                emitter.on('end', function (err, result) {
+                    if(err) {
+                        console.log(err.stack || util.inspect(err, false, 10));
+                        test.fail('got error');
+                        test.done();
+                    }
+                    else {
+                        test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                        test.equals(result.body.path, '/?P1=v1&P2=5');
+                        test.done();
+                    }
+                    server.close();
+                });
+            });
+        });
+    },
 };

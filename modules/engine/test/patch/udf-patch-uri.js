@@ -25,3 +25,10 @@ exports['udf'] = function() {
     };
 };
 
+exports['patch uri'] = function(args) {
+    args.uri.removeParam('p1');
+    args.uri.addParam('P1', args.params.p1);
+    args.uri.removeParam('p2');
+    args.uri.addParam('P2', args.params.p2);
+    return args.uri;
+}

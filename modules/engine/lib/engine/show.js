@@ -34,11 +34,11 @@ exports.exec = function(opts, statement, cb) {
     assert.ok(cb, 'Argument cb can not be undefined');
 
     _.each(tables, function(v, r) {
-        arr.push({name:r, info:v.meta.comments});
+        arr.push({name:r, info:v.comments});
     })
 
     _.each(tempResources, function(v, r) {
-        arr.push({name:r, info:v.meta.comments});
+        arr.push({name:r, info:v.comments});
     });
 
     if(statement.assign) {

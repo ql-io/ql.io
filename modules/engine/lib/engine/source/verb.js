@@ -294,7 +294,12 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
 
         // If there are no URIs, just return now
         if(!resourceUri || resourceUri.length === 0) {
-            return args.callback(undefined, {});
+            return args.callback(undefined, {
+                headers: {
+                    'content-type': 'application/json'
+                },
+                body: {}
+            });
         }
 
         // if template.format() returns multiple URIs, we need to execute all of them in parallel,

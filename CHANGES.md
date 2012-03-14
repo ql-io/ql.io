@@ -1,3 +1,17 @@
+## Mar 12, 2012
+
+* Fix route to table dependency resoluton for non-selects
+* Remame `/routes` to `/api`
+* Restyle routes and tables navigation
+
+## Mar 10, 2012
+
+* Fix "Can't render headers after they are sent to the client" error
+
+## Mar 09, 2012
+
+* Support DELETE statements
+
 ## Mar 07, 2012
 
 * Add a page showing all installed packages. Try http://<host>:<monport>/deps

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 eBay Software Foundation
+ * Copyright 2011 eBay Software Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-exports['udf'] = function() {
-    return {
-        'p1' : function(v1) {
-            return v1
-        },
-        'p2' : function(a, b) {
-            return Number(a) + Number(b);
-        }
-    };
-};
+exports['patch uri'] = function(args) {
 
+    var arr = [];
+    var times = args.params.times || 3;
+    for(var i = 0; i < times; i++) {
+        arr.push(args.uri);
+    }
+    return arr;
+}
