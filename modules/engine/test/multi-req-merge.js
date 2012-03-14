@@ -126,23 +126,30 @@ var cooked = {
                 subType: "json",
                 payload: JSON.stringify (
                     {
-                        "ProductID": {
+                        "ProductID": [
+                        {
                             "Value": "99700122",
                             "Type": "Reference"
-                        }
-                    },
-                    {
-                        "ProductID": {
+                        },
+                        {
                             "Value": "99700123",
                             "Type": "Reference"
+                        },
+                        {
+                            "Value": "99700124",
+                            "Type": "Reference"
+                        },
+                        {
+                            "Value": "99700125",
+                            "Type": "Reference"
                         }
+                        ]
                     }
-
                 )
             }
         ],
         script: 'create table product on select get from "http://localhost:3000/"'+
-                'return select * from product where ProductID in ("99700122","99700123" );',
+                'return select * from product where ProductID in ("99700122","99700123","99700124" );',
 
 
         udf: {
@@ -152,12 +159,17 @@ var cooked = {
                     test.ok(false, 'Grrr');
                 }
                 else {
+
                     result = result.body;
                     test.ok(_.isObject(result),'expected an object');
-                    test.equals(result.ProductID.Value, 99700122);
-                    _.each(result, function(Value) {
-                        test.equals(Value.Value, 99700122);
-                    });
+                    test.ok(_.isArray(result.ProductID));
+
+                    test.equals(result.ProductID[0].Value, 99700122);
+                    test.equals(result.ProductID[1].Value, 99700123);
+                    test.equals(result.ProductID[2].Value, 99700124);
+                    test.equals(result.ProductID[3].Value, 99700125);
+
+
                 }
             }
         }
