@@ -154,6 +154,7 @@ var Engine = module.exports = function(opts) {
         'mustache' : require('./serializers/mustache.js'),
         'ejs' : require('./serializers/ejs.js')
     }
+    this.cache = opts.cache;
 }
 
 util.inherits(Engine, LogEmitter);
@@ -293,7 +294,8 @@ Engine.prototype.execute = function() {
                         logEmitter: this,
                         emitter: emitter,
                         start: start,
-                        cb: engineEvent.cb
+                        cb: engineEvent.cb,
+                        cache: this.cache
                     }, engineEvent.event);
                 }
                 catch (err) {
@@ -314,7 +316,8 @@ Engine.prototype.execute = function() {
                 context: context,
                 request: request,
                 emitter: emitter,
-                logEmitter: this
+                logEmitter: this,
+                cache: this.cache
             }, cooked[0], function(err, results) {
                 if(err) {
                     that.emitError(engineEvent.event, err);
