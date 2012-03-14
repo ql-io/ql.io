@@ -15,7 +15,8 @@
  */
 
 var _    = require('underscore'),
-    util = require('util');
+    util = require('util'),
+    express = require('express');
 
 var Engine = require('../lib/engine');
 
@@ -359,7 +360,220 @@ var cooked = {
                 }
             }
         }
+    },
+    subselect: {
+        ports: [
+            {
+                port: 3000,
+                status: 200,
+                type: "application",
+                subType: "json",
+                payload:  JSON.stringify(  [
+                    {
+                        "ItemID":"270898130171",
+                        "Title": "ipad black"
+                    },
+                    {
+                        "ItemID":"330682531497",
+                        "Title": "ipad white"
+                    } ]
+                )
+            },
+            {
+                port: 3026,
+                status: 200,
+                type: "application",
+                subType: "json",
+                payload:JSON.stringify( [
+                    {
+                        "ItemID":"270898130171",
+                        "Location":"Clearwater, Florida"
+                    },
+                    {
+                        "ItemID":"330682531497",
+                        "Location":"Not Specified"
+                    }
+                ]
+                )
+            }
+        ],
+        script: 'create table first on select get from "http://localhost:3000"'+
+                'create table second on select get from "http://localhost:3026"'+
+                'Resp1 = select ItemID from first '+
+                'return select Location from second where ItemID in (select ItemID from first)',
+
+        udf: {
+            test : function (test, err, result) {
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
+
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
+                    test.ok(_.isArray(result.body), 'expected an array');
+                    test.ok(result.body.length > 0, 'expected some items');
+                    test.equals(2, result.body.length, 'expected 2 locations');
+
+                }
+            }
+        }
+    },
+    inand : {
+        ports: [
+            {
+                port: 3000,
+                status: 200,
+                type: "application",
+                subType: "json",
+                payload:  JSON.stringify(  [
+                    {
+                        "ItemID":"270898130171",
+                        "Title": "ipad black"
+                    },
+                    {
+                        "ItemID":"330682531497",
+                        "Title": "ipad white"
+                    } ]
+                )
+            }
+        ],
+        script: 'create table first on select get from "http://localhost:3000"\r\n'+
+                'create table second on select get from "http://localhost:3026?ItemID={^ItemID}&Shipping={^Shipping}"\r\n'+
+                'return select Location from second where ItemID in (select ItemID from first) and Shipping = "yes"\r\n',
+
+        udf: {
+            test : function (test, err, result) {
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
+
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'JSON expected');
+                    test.ok(_.isArray(result.body), 'expected an array');
+                    test.equals(2, result.body.length, 'expected 2 items');
+                    test.equals(result.body[0], 'Clearwater, Florida');
+                    test.ok(result.body[1], 'San jose,California');
+                }
+            },
+            setup: function (cb) {
+
+                var resultDictionary = {
+                    "270898130171:yes":[
+                        {
+                            "ItemID":"270898130171",
+                            "Location":"Clearwater, Florida",
+                            "Shipping":"yes"
+                        }
+                    ],
+                    "330682531497:yes":[
+                        {
+                            "ItemID":"330682531497",
+                            "Location":"San jose,California",
+                            "Shipping":"yes"
+                        }
+                    ],
+                    "330682531497:no":[
+                        {
+                            "ItemID":"330682531498",
+                            "Location":"Austin, Texas",
+                            "Shipping":"no"
+                        }
+                    ]};
+
+                var server = express.createServer(function (req, res) {
+                    var data;
+                    data = resultDictionary[req.query.ItemID + ':' + req.query.Shipping] || [];
+                    res.send(data);
+                });
+                server.listen(3026, function () {
+                    cb({server:server});
+                });
+            },
+            tearDown : function(cb, ctx){
+                ctx.server.close();
+                cb();
+            }
+        }
+    },
+    selectwithincomments : {
+        ports : [
+            {
+                port: 3000,
+                status: 200,
+                type: "application",
+                subType: "json",
+                payload:JSON.stringify(
+                       [
+                            {
+                                "ItemID":"230747343910"
+                            },
+                            {
+                                "ItemID":"230747343911"
+                            }]
+                )
+            }
+        ],
+        script :  '--blah \n'+
+            '--blah \n'+
+            'create table first on select get from "http://localhost:3000" '+
+            'return select * from first'+
+            '-- blah',
+        udf : {
+            test : function (test, err, result) {
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
+
+                }
+                else {
+                    result = result.body;
+                    test.ok(result.length > 0, 'expected some items');
+
+                }
+            }
+        }
+    },
+    selectincsv : {
+        ports: [
+            {
+                port: 3026,
+                status: 200,
+                type: "application",
+                subType: "json",
+                payload:JSON.stringify( [
+                    {
+                        "ItemID":"270898130171",
+                        "Location":"Clearwater, Florida"
+                    },
+                    {
+                        "ItemID":"330682531497",
+                        "Location":"Not Specified"
+                    }
+                ]
+                )
+            }
+        ],
+        script: 'create table second on select get from "http://localhost:3026"'+
+                'return select Location from second where ItemID in ("270898130171","330682531497")',
+
+        udf: {
+            test : function (test, err, result) {
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
+
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
+                    test.ok(_.isArray(result.body), 'expected an array');
+                    test.ok(result.body.length > 0, 'expected some items');
+                    test.equals(2, result.body.length, 'expected 2 locations');
+
+                }
+            }
+        }
+
     }
+
+
 }
 
 module.exports = require('ql-unit').init({
