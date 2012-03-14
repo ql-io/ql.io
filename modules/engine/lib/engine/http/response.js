@@ -21,13 +21,18 @@ var _ = require('underscore'),
     http = require('http'),
     util = require('util');
 
-exports.exec = function(timings, reqStart, args, uniqueId, res, start, bufs, mediaType, options, status) {
+parseResponse = exports.parseResponse = function(timings, reqStart, args, res, bufs) {
     timings.receive = Date.now() - reqStart;
 
     // TODO: Handle redirects
-
     // The default patch decodes the response
     var result = args.resource.parseResponse(args.parsed, args.params, res.headers, bufs);
+    return result;
+}
+
+exports.exec = function(timings, reqStart, args, uniqueId, res, start, result, options, status) {
+    var mediaType;
+
     res.headers['content-type'] = result.type || res.headers['content-type'];
     var respData = result.content;
 

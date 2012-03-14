@@ -42,11 +42,11 @@ var app = c.app;
 module.exports = {
     'post body': function(test) {
         app.listen(3000, function() {
-            var statement = 'select itemId from finditems where keywords = "iPad"';
+            var statement = 'select itemId from finditems where keywords = "iPad" and  q = "{q}"';
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/q?s=' + encodeURIComponent(statement),
+                path: '/q?q=test&s=' + encodeURIComponent(statement),
                 method: 'GET',
                 headers: {
                     host: 'localhost',
