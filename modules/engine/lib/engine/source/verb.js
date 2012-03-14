@@ -43,6 +43,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
     this['patch headers'] = function(args) { return args.headers; };
     this['body template'] = function() {};
     this['patch body'] = function(args) { return args.body; };
+    this['compute key'] = function(args) {};
     this['parse response'] = function(args) { // Just append bufs to a string
         var encoding = 'UTF-8';
         if(args.headers['content-type']) {
@@ -194,6 +195,17 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             headers: headers
         });
     };
+
+    this.computeKey = function(table, method, uri, params, headers, body){
+        return this['compute key']({
+            table: table,
+            method: method,
+            uri: uri,
+            params: params,
+            body: body,
+            headers: headers
+        });
+    }
 
     // TODO: Repeated URI parsing!
     this.parseResponse = function(uri, params, headers, body) {
@@ -578,6 +590,9 @@ function send(verb, args, uri, params, callback) {
         }
     }
 
+    // Resource key to use in the cache
+    var key = args.resource.computeKey(verb.table, args.resource.method || 'GET', uri, params, headers, body);
+
     request.send({
         table: verb.table,
         config: args.config || {},
@@ -593,7 +608,9 @@ function send(verb, args, uri, params, callback) {
         logEmitter: args.logEmitter,
         statement: args.statement,
         resource: args.resource,
-        xformers: args.xformers
+        xformers: args.xformers,
+        key: key,
+        cache: args.cache
     });
 }
 
