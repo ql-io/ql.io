@@ -158,7 +158,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
         }) || {};
     };
 
-    this.tmpl = function(uri, params, headers, serializers) {
+    this.tmpl = function(uri, params, headers, serializers, args) {
         var self = this;
         var body = this['body template']({
             uri: uri,
@@ -181,18 +181,19 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             payload.content = serializer.serialize(self.body.type, content, self, params, self.defaults);
         }
 
-        var ret = this.patchBody(uri, params, headers, payload) || payload;
+        var ret = this.patchBody(uri, params, headers, payload, args) || payload;
         return ret;
 
     };
 
-    this.patchBody = function(uri, params, headers, body) {
+    this.patchBody = function(uri, params, headers, body, args) {
         return this['patch body']({
             uri: uri,
             statement: this,
             params: params,
             body: body,
-            headers: headers
+            headers: headers,
+            log: this.curry(this.log, args.logEmitter, args.parentEvent)
         });
     };
 
@@ -378,6 +379,34 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             }
         });
     };
+
+    // Curry function for money patch logging
+    this.curry = function(log) {
+        var slice = Array.prototype.slice,
+            partialArgs = slice.call(arguments, 1);
+        return function () {
+            var args = slice.call(arguments);
+            return log.apply(null, partialArgs.concat(args));
+        }
+    };
+
+    this.log = function(emitter, parentEvent, severity, message) {
+
+        severity = severity || '';
+
+        switch(severity.toLowerCase()) {
+            case 'error':
+                emitter.emitError(parentEvent, message);
+                break;
+            case 'warn':
+                emitter.emitWarning(parentEvent, message);
+                break;
+            default:
+                emitter.emitEvent(parentEvent, message);
+        }
+
+    };
+
 };
 
 //
@@ -580,7 +609,7 @@ function send(verb, args, uri, params, callback) {
     // Body
     var body;
     if(args.resource.method === 'post' || args.resource.method === 'put' || args.resource.method === 'delete' || args.resource.method === 'patch') {
-        var payload = args.resource.tmpl(parsed, params, headers, args.serializers);
+        var payload = args.resource.tmpl(parsed, params, headers, args.serializers, args);
         body = payload.content;
         if(body) {
             headers['content-length'] = body.length;
@@ -621,4 +650,4 @@ function getIp() {
     }), 'address');
 
     return ips.length > 0 ? ips[0] : '127.0.0.1';
-}
+};
