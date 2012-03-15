@@ -13,8 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var _ = require('underscore');
 
 exports['compute key'] = function(args) {
-    return args.uri;
+    //return args.uri;
+    var key = [];
+    key.push(args.table);
+    key.push(args.uri);
+    key.push(JSON.stringify(args.params));
+    key.push(JSON.stringify(_.chain(args.headers)
+        .keys()
+        .without("connection","user-agent","accept","accept-encoding","request-id")
+        .reduce(function(obj,header){
+            obj[header] = args.headers[header];
+            return obj;
+        },{})
+        .value()));
+    return(key.join(':'));
 };
 

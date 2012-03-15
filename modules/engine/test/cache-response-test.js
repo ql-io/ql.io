@@ -20,7 +20,7 @@ var Engine = require('../lib/engine'),
     util = require('util');
 
 module.exports = {
-    'cache json':function (test) {
+    'patch-compute cache json':function (test) {
         var counter = 1;
 
         var server = http.createServer(function (req, res) {
@@ -336,6 +336,51 @@ module.exports = {
                                 test.ok(results[2].length === 7, "Array of length 7 expected");
                                 test.ok(results[3].length === 3, "Array of length 3 expected");
                             }
+                            test.done();
+                        }
+                        server.close();
+                    });
+                }
+            });
+        });
+    },
+    'auto-compute cache json':function (test) {
+        var counter = 1;
+
+        var server = http.createServer(function (req, res) {
+            res.writeHead(200, {
+                'Content-Type':'application/json'
+            });
+            res.end(JSON.stringify({'counter':counter}));
+            counter++;
+        });
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+                tables:__dirname + '/cache',
+                cache:new mockCache()
+            });
+            var script = "select * from auto.compute.key";
+
+            engine.exec(script, function (err, result) {
+                if (err) {
+                    console.log(err.stack || util.inspect(err, false, 10));
+                    test.fail('got error');
+                    test.done();
+                    server.close();
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                    test.deepEqual(result.body, {counter:1});
+                    engine.exec(script, function (err, result) {
+                        if (err) {
+                            console.log(err.stack || util.inspect(err, false, 10));
+                            test.fail('got error');
+                            test.done();
+                        }
+                        else {
+                            test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                            test.deepEqual(result.body, {counter:1});
                             test.done();
                         }
                         server.close();

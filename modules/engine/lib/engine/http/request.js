@@ -188,7 +188,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
 
 function sendMessage(args, client, options, retry) {
     var start = Date.now(), key = args.key, cache = args.cache,
-        timeout = args.timeout || 3600;
+        timeout = args.cacheDuration || 3600;
     var reqStart = Date.now();
     var timings = {
         "blocked": -1,

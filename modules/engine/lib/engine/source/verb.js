@@ -33,6 +33,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
     this.table = table;
     this.type = type;
     this.__proto__ = statement;
+    this.cacheDuration = statement.cache.duration;
 
     // Default patches
     this['validate param'] = function() {
@@ -43,7 +44,24 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
     this['patch headers'] = function(args) { return args.headers; };
     this['body template'] = function() {};
     this['patch body'] = function(args) { return args.body; };
-    this['compute key'] = function(args) {};
+    this['compute key'] = function(args) {
+        if(this.cacheDuration){
+            //table, method, uri, params, headers, body
+            var key = [];
+            key.push(args.table);
+            key.push(args.uri);
+            key.push(JSON.stringify(args.params));
+            key.push(JSON.stringify(_.chain(args.headers)
+                .keys()
+                .without("connection","user-agent","accept","accept-encoding","request-id")
+                .reduce(function(obj,header){
+                    obj[header] = args.headers[header];
+                    return obj;
+                },{})
+                .value()));
+            return(key.join(':'));
+        }
+    };
     this['parse response'] = function(args) { // Just append bufs to a string
         var encoding = 'UTF-8';
         if(args.headers['content-type']) {
@@ -610,7 +628,8 @@ function send(verb, args, uri, params, callback) {
         resource: args.resource,
         xformers: args.xformers,
         key: key,
-        cache: args.cache
+        cache: args.cache,
+        cacheDuration: verb.cacheDuration
     });
 }
 
