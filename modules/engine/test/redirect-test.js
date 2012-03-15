@@ -30,34 +30,45 @@ var localhost = "127.0.0.1", protocol = "http";
 // http/request.js will follow up to 10 redirects
 
 var servers_positive = [
-    { 'host' : localhost, 'port' : '8300' },
-    { 'host' : localhost, 'port' : '8301' },
-    { 'host' : localhost, 'port' : '8302' },
-    { 'host' : localhost, 'port' : '8303' },
-    { 'host' : localhost, 'port' : '8304' },
-    { 'host' : localhost, 'port' : '8305' },
-    { 'host' : localhost, 'port' : '8306' },
-    { 'host' : localhost, 'port' : '8307' },
-    { 'host' : localhost, 'port' : '8308' },
-    { 'host' : localhost, 'port' : '8309' },
+    { 'host' : localhost, 'port' : '8300', 'status' : 301 },
+    { 'host' : localhost, 'port' : '8301', 'status' : 302 },
+    { 'host' : localhost, 'port' : '8302', 'status' : 303 },
+    { 'host' : localhost, 'port' : '8303', 'status' : 307 },
+    { 'host' : localhost, 'port' : '8304', 'status' : 301 },
+    { 'host' : localhost, 'port' : '8305', 'status' : 302 },
+    { 'host' : localhost, 'port' : '8306', 'status' : 303 },
+    { 'host' : localhost, 'port' : '8307', 'status' : 307 },
+    { 'host' : localhost, 'port' : '8308', 'status' : 301 },
+    { 'host' : localhost, 'port' : '8309', 'status' : 302 },
     { 'host' : localhost, 'port' : '8310' }
 ];
 
 var servers_negative = [
-    { 'host' : localhost, 'port' : '8300' },
-    { 'host' : localhost, 'port' : '8301' },
-    { 'host' : localhost, 'port' : '8302' },
-    { 'host' : localhost, 'port' : '8303' },
-    { 'host' : localhost, 'port' : '8304' },
-    { 'host' : localhost, 'port' : '8305' },
-    { 'host' : localhost, 'port' : '8306' },
-    { 'host' : localhost, 'port' : '8307' },
-    { 'host' : localhost, 'port' : '8308' },
-    { 'host' : localhost, 'port' : '8309' },
-    { 'host' : localhost, 'port' : '8310' },
-    { 'host' : localhost, 'port' : '8311' },
+    { 'host' : localhost, 'port' : '8300', 'status' : 301 },
+    { 'host' : localhost, 'port' : '8301', 'status' : 302 },
+    { 'host' : localhost, 'port' : '8302', 'status' : 303 },
+    { 'host' : localhost, 'port' : '8303', 'status' : 307 },
+    { 'host' : localhost, 'port' : '8304', 'status' : 301 },
+    { 'host' : localhost, 'port' : '8305', 'status' : 302 },
+    { 'host' : localhost, 'port' : '8306', 'status' : 303 },
+    { 'host' : localhost, 'port' : '8307', 'status' : 307 },
+    { 'host' : localhost, 'port' : '8308', 'status' : 301 },
+    { 'host' : localhost, 'port' : '8309', 'status' : 302 },
+    { 'host' : localhost, 'port' : '8310', 'status' : 303 },
+    { 'host' : localhost, 'port' : '8311', 'status' : 307 },
     { 'host' : localhost, 'port' : '8312' }
 ];
+
+var servers_no_location = [
+    { 'host' : localhost, 'port' : '8300', 'status' : 301 },
+    { 'host' : localhost, 'port' : '8301' }
+];
+
+var servers_305 = [
+    { 'host' : localhost, 'port' : '8300', 'status' : 305 },
+    { 'host' : localhost, 'port' : '8301' }
+];
+
 
 function setupServers(servers) {
 
@@ -66,7 +77,7 @@ function setupServers(servers) {
         servers[i].instance = http.createServer((function(j) {
             return function (req, res) {
                 var location = protocol + '://' + servers[j + 1].host + ':' + servers[j + 1].port + req.url;
-                res.writeHead(300 + j, { 'Location': location });
+                res.writeHead(servers[j].status, { 'Location': location });
                 res.end();
             }
         })(i)).listen(servers[i].port, servers[i].host);
@@ -153,5 +164,87 @@ module.exports = {
             }
         });
 
+    },
+    'no-location-header':function (test) {
+        var servers = servers_no_location;
+
+        // Special case: need to create bad server
+        servers[0].instance = http.createServer(function (req, res) {
+            var location = protocol + '://' + servers[1].host + ':' + servers[1].port + req.url;
+            res.writeHead(servers[0].status, { 'WrongLocationHeader': location });
+            res.end();
+        }).listen(servers[0].port, servers[0].host);
+
+        // create the final server, the one that's going to return data
+        servers[1].instance = http.createServer(function (req, res) {
+            var file = __dirname + '/mock' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type':file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                'Content-Length':stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function (e) {
+                if (e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        }).listen(servers[1].port, servers[1].host);
+
+        var engine = new Engine({
+            config:__dirname + '/config/dev.json'
+        });
+
+        var script = fs.readFileSync(__dirname + '/mock/redirect.ql', 'UTF-8');
+
+        engine.exec({
+            script:script,
+            cb:function (err, result) {
+                try {
+                    if (!err) {
+                        test.ok(false, "Error expected.");
+                    } else {
+                        test.ok(err.message === "Missing Location header in redirect");
+                    }
+                    test.done();
+                }
+                finally {
+                    for (var i = 0; i < servers.length; i++) {
+                        servers[i].instance.close();
+                    }
+                }
+            }
+        });
+    },
+    'status-305':function (test) {
+        var servers = servers_305;
+
+        setupServers(servers);
+
+        var engine = new Engine({
+            config:__dirname + '/config/dev.json'
+        });
+
+        var script = fs.readFileSync(__dirname + '/mock/redirect.ql', 'UTF-8');
+
+        engine.exec({
+            script:script,
+            cb:function (err, result) {
+                try {
+                    if (!err) {
+                        test.ok(false, "Error expected.");
+                    } else {
+                        test.ok(err.message === "Received status code 305 from downstream server");
+                    }
+                    test.done();
+                }
+                finally {
+                    for (var i = 0; i < servers.length; i++) {
+                        servers[i].instance.close();
+                    }
+                }
+            }
+        });
     }
 }

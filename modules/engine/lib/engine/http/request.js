@@ -85,35 +85,45 @@ var followRedirects = true, maxRedirects = 10;
 
 function sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, timeout, uniqueId, status, retry, redirects) {
     var clientRequest = client.request(options, function (res) {
-        if (followRedirects && res.statusCode >= 300 && res.statusCode < 400) {
+        if (followRedirects && (res.statusCode >= 301 && res.statusCode <= 307) &&
+            (options.method.toUpperCase() === 'GET' || options.method.toUpperCase() === 'HEAD')) {
             res.socket.destroy();
-            if (res.headers.location) {
-                if (redirects++ >= maxRedirects) {
+            if (res.statusCode === 305) { // Log but don't follow
+                args.logEmitter.emitWarning(args.httpReqTx.event, 'Warning with uri - ' + args.uri + ' - ' +
+                    'Received status code 305 ' + (Date.now() - start) + 'msec');
+                var err = new Error('Received status code 305 from downstream server');
+                err.uri = args.uri;
+                err.status = 502;
+                return args.httpReqTx.cb(err);
+            } else if (res.statusCode !== 304 && res.statusCode !== 306) { // Only follow 301, 302, 303, 307
+                if (res.headers.location) {
+                    if (redirects++ >= maxRedirects) {
+                        args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
+                            'Exceeded max redirects (' + maxRedirects + '). In a loop? ' + (Date.now() - start) + 'msec');
+                        var err = new Error('Exceeded max redirects');
+                        err.uri = args.uri;
+                        err.status = 502;
+                        return args.httpReqTx.cb(err);
+                    }
+
+                    var location = new URI(res.headers.location, false);
+                    options.host = location.heirpart().authority().host();
+                    options.port = location.heirpart().authority().port();
+                    options.path = location.heirpart().path();
+
+                    args.logEmitter.emitEvent(args.httpReqTx.event, 'being redirected for the ' + redirects + ' time, ' +
+                        'going to ' + options.host + ':' + options.port + options.path + ' - ' + args.uri + ' - ' + (Date.now() - start) + 'msec');
+                    sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, timeout, uniqueId, status, retry, redirects);
+                    return;
+                } else {
                     args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
-                        'Exceeded max redirects (' + maxRedirects + '). In a loop? ' + (Date.now() - start) + 'msec');
-                    var err = new Error('Exceeded max redirects');
+                        'Received status code ' + res.statusCode + ', but Location header was not provided' +
+                        ' ' + (Date.now() - start) + 'msec');
+                    var err = new Error('Missing Location header in redirect');
                     err.uri = args.uri;
                     err.status = 502;
                     return args.httpReqTx.cb(err);
                 }
-
-                var location = new URI(res.headers.location, false);
-                options.host = location.heirpart().authority().host();
-                options.port = location.heirpart().authority().port();
-                options.path = location.heirpart().path();
-
-                args.logEmitter.emitEvent(args.httpReqTx.event, 'being redirected for the ' + redirects + ' time, ' +
-                    'going to ' + options.host + ':' + options.port + options.path + ' - ' + args.uri + ' - ' + (Date.now() - start) + 'msec');
-                sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, timeout, uniqueId, status, retry, redirects);
-                return;
-            } else {
-                args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
-                    'Received status code ' + res.statusCode + ', but Location header was not provided' +
-                    ' ' + (Date.now() - start) + 'msec');
-                var err = new Error('Missing Location header in redirect');
-                err.uri = args.uri;
-                err.status = 502;
-                return args.httpReqTx.cb(err);
             }
         }
 
