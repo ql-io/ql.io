@@ -16,7 +16,8 @@
 
 var _    = require('underscore'),
     util = require('util'),
-    express = require('express');
+    http = require('http'),
+    url = require('url');
 
 var Engine = require('../lib/engine');
 
@@ -480,10 +481,13 @@ var cooked = {
                         }
                     ]};
 
-                var server = express.createServer(function (req, res) {
-                    var data;
-                    data = resultDictionary[req.query.ItemID + ':' + req.query.Shipping] || [];
-                    res.send(data);
+                var server = http.createServer(function (req, res) {
+                    res.writeHead(200, {
+                        'Content-Type': 'application/json'
+                    });
+
+                    var query = url.parse(req.url, true).query;
+                    res.end(JSON.stringify(resultDictionary[query.ItemID + ':' + query.Shipping] || []));
                 });
                 server.listen(3026, function () {
                     cb({server:server});
