@@ -81,8 +81,36 @@ function putInCache(key, cache, result, res, timeout) {
     }
 }
 
-function sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, timeout, uniqueId, status, retry) {
+var followRedirects = true, maxRedirects = 10;
+
+function sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, timeout, uniqueId, status, retry, redirects) {
     var clientRequest = client.request(options, function (res) {
+        if (followRedirects && res.statusCode >= 300 && res.statusCode < 400) {
+            res.socket.destroy();
+            if (res.headers.location) {
+                if (redirects++ >= maxRedirects) {
+                    args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
+                        'Exceeded max redirects (' + maxRedirects + '). In a loop? ' + (Date.now() - start) + 'msec');
+                    return args.httpReqTx.cb(err);
+                }
+
+                var location = new URI(res.headers.location, false);
+                options.host = location.heirpart().authority().host();
+                options.port = location.heirpart().authority().port();
+                options.path = location.heirpart().path();
+
+                args.logEmitter.emitEvent(args.httpReqTx.event, 'being redirected for the ' + redirects + ' time, ' +
+                    'going to ' + options.host + ':' + options.port + options.path + ' - ' + args.uri + ' - ' + (Date.now() - start) + 'msec');
+                sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, timeout, uniqueId, status, retry, redirects);
+                return;
+            } else {
+                args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
+                    'Received status code ' + res.statusCode + ', but Location header was not provided' +
+                    ' ' + (Date.now() - start) + 'msec');
+                return args.httpReqTx.cb(err);
+            }
+        }
+
         var bufs = []; // array for bufs for each chunk
         var responseLength = 0;
         var contentEncoding = res.headers['content-encoding'];
@@ -228,7 +256,7 @@ function sendMessage(args, client, options, retry) {
         cache.get(key,function(err,result){
             if(err || !result.data){
                 sendHttpRequest(client, options, args, start, timings, reqStart,
-                    key, cache, timeout, uniqueId, status, retry);
+                    key, cache, timeout, uniqueId, status, retry, 0);
             }
             else {
                 response.exec(timings, reqStart, args, uniqueId, res, result.start, result.result, options, status);
@@ -236,7 +264,7 @@ function sendMessage(args, client, options, retry) {
         });
     }
     else {
-        sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, timeout, uniqueId, status, retry);
+        sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, timeout, uniqueId, status, retry, 0);
     }
 }
 
