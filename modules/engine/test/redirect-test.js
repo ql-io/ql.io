@@ -138,12 +138,10 @@ module.exports = {
             script:script,
             cb:function (err, result) {
                 try {
-                    if (err) {
-                        console.log(err.stack || err);
-                        test.ok(false);
-                    }
-                    else {
-                        test.ok(result && !result.body);
+                    if (!err) {
+                        test.ok(false, "Error expected.");
+                    } else {
+                        test.ok(err.message === "Exceeded max redirects");
                     }
                     test.done();
                 }

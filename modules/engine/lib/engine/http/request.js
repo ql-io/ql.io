@@ -91,6 +91,9 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
                 if (redirects++ >= maxRedirects) {
                     args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
                         'Exceeded max redirects (' + maxRedirects + '). In a loop? ' + (Date.now() - start) + 'msec');
+                    var err = new Error('Exceeded max redirects');
+                    err.uri = args.uri;
+                    err.status = 502;
                     return args.httpReqTx.cb(err);
                 }
 
@@ -107,6 +110,9 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
                 args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
                     'Received status code ' + res.statusCode + ', but Location header was not provided' +
                     ' ' + (Date.now() - start) + 'msec');
+                var err = new Error('Missing Location header in redirect');
+                err.uri = args.uri;
+                err.status = 502;
                 return args.httpReqTx.cb(err);
             }
         }
