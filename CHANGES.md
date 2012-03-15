@@ -1,3 +1,23 @@
+## Mar 14, 2012
+
+* Caching support based on new `expires <seconds>` keyword ***create table*** (example below) and/or `compute key` monkey patch.
+
+**create table**
+ 
+create table auto.compute.key on select get from 'http://a.uri.net' …other things… `expires 10`;
+
+**compute key** (monkey patch)
+
+	exports['compute key'] = function(args) {
+    	//return args.uri;
+	    var key = [];
+    	key.push(args.table);
+	    key.push(args.uri);
+    	key.push(JSON.stringify(args.params));
+	    return(key.join(':'));
+	};
+
+
 ## Mar 12, 2012
 
 * Fix route to table dependency resoluton for non-selects
