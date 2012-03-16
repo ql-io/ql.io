@@ -43,24 +43,24 @@ var cooked = {
                 }
             ]
             )
-              }
+        }
 
-            ],
+        ],
     script: 'create table first on select get from "http://localhost:3026"'+
             'return select * from first where address = "Mount Everest"',
 
     udf: {
-    test : function (test, err, result) {
-        if (err) {
-            console.log(err.stack || err);
-            test.ok(false);
-        }
-        else {
-            test.ok(result && result.body[0].geometry);
+         test : function (test, err, result) {
+            if (err) {
+                console.log(err.stack || err);
+                test.ok(false);
+            }
+            else {
+                test.ok(result && result.body[0].geometry);
+            }
+            }
         }
     }
-}
-}
 }
 
 
