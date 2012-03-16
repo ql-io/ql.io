@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+var assert = require('assert');
+
 exports['udf'] = function() {
     return {
         'p1' : function(v1) {
@@ -26,6 +28,7 @@ exports['udf'] = function() {
 };
 
 exports['patch uri'] = function(args) {
+    assert(typeof args.log === 'function');
     args.uri.removeParam('p1');
     args.uri.addParam('P1', args.params.p1);
     args.uri.removeParam('p2');
