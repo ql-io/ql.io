@@ -33,16 +33,29 @@ module.exports = {
             });
         });
         server.listen(3000, function () {
-            var error = 0;
+            var error = 0, warn = 0, info = 0;
             // Do the test here.
             var engine = new Engine({
                 tables: __dirname + '/patch'
             });
 
             engine.on(Engine.Events.ERROR, function(event, message, err) {
-                ++error;
+                if('Something went wrong' === message) {
+                    ++error;
+                }
             });
 
+            engine.on(Engine.Events.WARNING, function(event, message, err) {
+                if('Watch out' === message) {
+                    ++warn;
+                }
+            });
+
+            engine.on(Engine.Events.EVENT, function(event, message, err) {
+                if('Something to note' === message) {
+                    ++info;
+                }
+            });
             engine.execute('select * from logger.patch', function (emitter) {
 
                 emitter.on('end', function (err, result) {
@@ -51,7 +64,9 @@ module.exports = {
                         test.fail('got error');
                         test.done();
                     }
-                    test.ok(error === 1, "One error event expected");
+                    test.ok(error === 1, "One ERROR event expected");
+                    test.ok(warn === 1, "One WARNING event expected");
+                    test.ok(info === 1, "One INFO event expected");
                     test.done();
                     server.close();
                 });
