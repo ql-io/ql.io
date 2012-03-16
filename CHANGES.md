@@ -1,3 +1,7 @@
+## Mar 15, 2012
+
+* Fix the broken template app
+
 ## Mar 12, 2012
 
 * Fix route to table dependency resoluton for non-selects
