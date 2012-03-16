@@ -7,6 +7,8 @@
           log('Warn', 'Watch out'); // throws a warning event
           return {};
       }
+* Fix the broken template app
+
 ## Mar 12, 2012
 
 * Fix route to table dependency resoluton for non-selects
