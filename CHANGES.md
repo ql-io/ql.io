@@ -1,5 +1,12 @@
 ## Mar 15, 2012
 
+* logging support in monkey patches. Ex.
+      exports['patch body'] = function(args) {
+          var log = args.log;
+          log('Error', 'Something went wrong'); // throws an error event
+          log('Warn', 'Watch out'); // throws a warning event
+          return {};
+      }
 * Fix the broken template app
 
 ## Mar 12, 2012

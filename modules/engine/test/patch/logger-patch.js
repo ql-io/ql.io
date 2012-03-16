@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-var assert = require('assert');
-
 exports['patch body'] = function(args) {
-    assert(typeof args.log === 'function');
+    var log = args.log;
+
+    log('Error', 'Something went wrong');
+    log('Warn', 'Watch out');
+    log('Info', 'Something to note');
+
     return {
         type: 'application/json',
         content: JSON.stringify({message : 'ok'})
