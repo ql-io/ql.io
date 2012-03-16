@@ -18,6 +18,7 @@ var _ = require('underscore');
 
 // args.body would be an array of buffers
 exports['parse response'] = function(args) {
+    assert(typeof args.log === 'function');
     var str = '';
     _.each(args.body, function(buf) {
         str += buf.toString('UTF-8');
@@ -26,4 +27,9 @@ exports['parse response'] = function(args) {
         type: 'application/json',
         content: str
     };
+}
+
+exports['patch mediaType'] = function(args) {
+    assert(typeof args.log === 'function');
+    return args.headers['content-type'];
 }

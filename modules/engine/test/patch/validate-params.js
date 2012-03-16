@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+assert = require('assert');
 
 exports['validate param'] = function(options, param, value) {
+    assert(typeof options.log === 'function');
     switch(param) {
         case 'p1' :
             return value === 'v1';
