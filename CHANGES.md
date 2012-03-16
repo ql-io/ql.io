@@ -1,3 +1,7 @@
+## Mar 16, 2012
+
+* Upgrade CodeMirror to 2.22
+
 ## Mar 15, 2012
 
 * logging support in monkey patches. Ex.
