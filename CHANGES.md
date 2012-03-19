@@ -1,3 +1,7 @@
+## Mar 18, 2012
+
+* Fix https://github.com/ql-io/ql.io/issues/372.
+
 ## Mar 16, 2012
 
 * Upgrade CodeMirror to 2.22
