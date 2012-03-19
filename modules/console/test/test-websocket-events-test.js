@@ -169,6 +169,23 @@ module.exports = testCase({
                 response : 6
             }, c.app)
         })
+    },
+
+    'create table error': function (test) {
+        var c = new Console();
+        c.app.listen(3000, function () {
+            var script = 'create table foo on insert post to "foo" using bodyTemplate "foo.xml.mu" type "application/xml"';
+            testRunner(script, test, {
+                ack: 1,
+                compileError: 0,
+                inFlight: 1,
+                success: 0,
+                error: 1,
+                done: 1,
+                request: 0,
+                response: 0
+            }, c.app)
+        })
     }
 });
 
