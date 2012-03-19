@@ -1,3 +1,7 @@
+## Mar 19, 2012
+
+* Remove extraneous event emitted while processing the where clause.
+
 ## Mar 18, 2012
 
 * Fix https://github.com/ql-io/ql.io/issues/372.
