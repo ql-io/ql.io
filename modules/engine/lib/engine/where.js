@@ -25,10 +25,10 @@ var jsonfill = require('./jsonfill.js'),
 //
 // Preps the where clause, once done hands off to cb
 //
-exports.exec = function(opts, where, cb, parentEvent) {
+exports.exec = function(opts, where, cb, selectExecTx) {
     var context = opts.context, key;
 
-    var selectExecTx = opts.logEmitter.wrapEvent(parentEvent, 'QlIoSelectExec', null, cb);
+//    var selectExecTx = opts.logEmitter.wrapEvent(parentEvent, 'QlIoSelectExec', null, cb);
     //
     // Analyze where conditions and fetch any dependent data
     var name, ret, i, r, max;
