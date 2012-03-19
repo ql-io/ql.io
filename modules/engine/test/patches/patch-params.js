@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-var _ = require('underscore');
+var _ = require('underscore'),
+    assert = require('assert');
 
 exports['patch uri'] = function(args) {
+    assert(typeof args.log === 'function');
     args.params['a'] = 'A';
     args.params['b'] = 'B';
     return args.uri;
 }
+
 exports['patch response'] = function(args) {
+    assert(typeof args.log === 'function');
     return args.params;
 }

@@ -16,13 +16,16 @@
 
 var MutableURI = require('ql.io-mutable-uri'),
     fs = require('fs'),
-    mustache = require('mustache');
+    mustache = require('mustache'),
+    assert = require('assert');
 
 exports['patch uri'] = function(args) {
+    assert(typeof args.log === 'function');
     return new MutableURI('https://api.ebay.com/ws/api.dll?appid=Qlio1a92e-fea5-485d-bcdb-1140ee96527&version=723');
 }
 
 exports['patch headers'] = function(args) {
+    assert(typeof args.log === 'function');
     return {
         'X-EBAY-API-SITEID': '0',
         'X-EBAY-API-COMPATIBILITY-LEVEL': '723',
@@ -34,6 +37,7 @@ exports['patch headers'] = function(args) {
 }
 
 exports['body template'] = function(args) {
+    assert(typeof args.log === 'function');
     var content = fs.readFileSync(__dirname + '/getitem.xml.mu', 'utf8');
     return {
         type: 'application/xml',
@@ -42,6 +46,7 @@ exports['body template'] = function(args) {
 }
 
 exports['patch body'] = function(args) {
+    assert(typeof args.log === 'function');
     var content = fs.readFileSync(__dirname + '/getitem.xml.mu', 'utf8');
     content = mustache.to_html(content, {
         params: args.params

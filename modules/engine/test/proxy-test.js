@@ -178,28 +178,5 @@ module.exports = {
                 }
             });
         });
-    },
-
-    'dont-use-proxy':function (test) {
-
-        var engine = new Engine({
-            tables:__dirname + '/tables',
-            config:__dirname + '/config/proxy.json'
-        });
-
-        var script = "select * from google.geocode where address = 'Mount Everest'";
-        engine.exec({
-            script:script,
-            cb:function (err, result) {
-                if (err) {
-                    console.log(err.stack || err);
-                    test.ok(false);
-                }
-                else {
-                    test.ok(result && result.body[0].geometry);
-                }
-                test.done();
-            }
-        });
     }
 };

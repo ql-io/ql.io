@@ -30,10 +30,10 @@ exports.exec = function(opts, statement, cb, parentEvent) {
         config: opts.config,
         settings: opts.settings,
         name: '',
+        logEmitter: opts.logEmitter,
         statement: statement,
         cb: function(err, resource) {
             if(err) {
-                opts.logEmitter.emitError(err);
                 return cb(err);
             }
             else {

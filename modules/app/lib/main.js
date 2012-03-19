@@ -93,7 +93,9 @@ exports.exec = function(cb, opts) {
             ecv.enable(app, port, program.ecvPath);
             app.listen(port, function() {
                 console.log('Listening on ' + port);
-                cb(app, program, emitter);
+                if(cb) {
+                    cb(app, program, emitter);
+                }
             });
         });
     }
