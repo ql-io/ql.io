@@ -4,7 +4,6 @@ clean:
 	-rm -fr node_modules;\
 
 install:
-	npm link ql.io-ecv;\
 	npm link ql.io-compiler;\
 	npm link ql.io-console;\
 	npm link ql.io-engine;\
@@ -13,7 +12,7 @@ install:
 
 .PHONY : test
 test: install
-	#node_modules/.bin/nodeunit test
+	node_modules/.bin/nodeunit test
 
 test-part:
 	#node_modules/.bin/nodeunit test --reporter junit --output ../../reports

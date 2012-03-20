@@ -20,15 +20,28 @@ var testCase = require('nodeunit').testCase,
     http = require('http'),
     _ = require('underscore');
 
+var debug = false;
+
 module.exports = testCase({
     setUp: function (callback) {
         this.startProc = require('child_process').spawn('test/start.sh');
-        this.startProc.stdout.on('data', function (data) {
-        });
-        callback();
+        if(debug) {
+            this.startProc.stdout.setEncoding('utf8');
+            this.startProc.stdout.on('data', function (data) {
+                console.log(data);
+            });
+        }
+        setTimeout(callback, 5000);
+
     },
     tearDown: function (callback) {
         var stopProc = require('child_process').spawn('test/stop.sh');
+        if(debug) {
+            stopProc.stdout.setEncoding('utf8');
+            stopProc.stdout.on('data', function (data) {
+                console.log(data);
+            });
+        }
         stopProc.on('exit', function() {
             callback();
         })
@@ -38,26 +51,26 @@ module.exports = testCase({
         test.done();
     },
     'check test app': function(test) {
-        var interval = setInterval(function() {
+        var interval = setTimeout(function() {
             test.ok(false, 'test app does not work');
             test.done();
-            clearInterval(interval);
-            clearInterval(testInterval);
-        }, 10000);
+            clearTimeout(interval);
+            clearTimeout(testInterval);
+        }, 12000);
 
-        var testInterval = setInterval(function() {
+        var testInterval = setTimeout(function() {
+            clearTimeout(testInterval);
             try {
                 var cl = http.createClient(3036, 'localhost');
                 var req = cl.request('GET', '/');
                 req.addListener('response', function(resp) {
                     test.equals(302, resp.statusCode);
                     resp.addListener('end', function() {
+                        clearTimeout(interval);
                         test.done();
-                        clearInterval(interval);
                     });
                 });
                 req.end();
-                clearInterval(testInterval);
             }
             catch(e) {
                 console.log(e.stack || e);
@@ -66,45 +79,47 @@ module.exports = testCase({
     },
     'check mon html': function(test) {
         var re = new RegExp('<!DOCTYPE html>.*');
-        var interval = setInterval(function() {
+        var interval = setTimeout(function() {
             test.ok(false, 'test app does not work');
             test.done();
-            clearInterval(interval);
-            clearInterval(testInterval);
-        }, 5000);
+            clearTimeout(interval);
+            clearTimeout(testInterval);
+        }, 12000);
 
-        var testInterval = setInterval(function() {
+        var testInterval = setTimeout(function() {
+            clearTimeout(testInterval);
             try {
                 var cl = http.createClient(3037, 'localhost');
                 var req = cl.request('GET', '/');
                 req.addListener('response', function(resp) {
+
                     var data = '';
                     resp.addListener('data', function(chunk) {
                         data += chunk;
                     });
                     resp.addListener('end', function() {
                         test.ok(data.toString().match(re), 'Expected html output got: ' + data.toString());
+                        clearTimeout(interval);
                         test.done();
-                        clearInterval(interval);
                     });
                 });
                 req.end();
-                clearInterval(testInterval);
             }
             catch(e) {
                 console.log(e);
             }
-        }, 3000);
+        }, 6000);
     },
     'check mon json': function(test) {
-        var interval = setInterval(function() {
+        var interval = setTimeout(function() {
             test.ok(false, 'test app does not work');
             test.done();
-            clearInterval(interval);
-            clearInterval(testInterval);
-        }, 5000);
+            clearTimeout(interval);
+            clearTimeout(testInterval);
+        }, 12000);
 
-        var testInterval = setInterval(function() {
+        var testInterval = setTimeout(function() {
+            clearTimeout(testInterval);
             try {
                 var options = {
                     host: 'localhost',
@@ -125,7 +140,7 @@ module.exports = testCase({
                             var json = JSON.parse(data);
                             test.ok(json.master, 'missing master data');
                             if (json.master) {
-                                var fields = ['host',
+                                var fields = ['hostname',
                                     'os',
                                     'start',
                                     'averageLoad',
@@ -134,7 +149,6 @@ module.exports = testCase({
                                     'totalMem',
                                     'currentMemoryUsage',
                                     'hostCpu',
-                                    'restarts',
                                     'workersKilled'];
                                 fields.forEach(function(field) {
                                     test.ok(json.master[field] != undefined, 'Missing field in master:' + field);
@@ -158,15 +172,14 @@ module.exports = testCase({
                             test.ok(false, 'failure parsing mon json');
                         }
                         test.done();
-                        clearInterval(interval);
+                        clearTimeout(interval)
                     });
                 });
                 req.end();
-                clearInterval(testInterval);
             }
             catch(e) {
                 console.log(e);
             }
-        }, 3000);
+        }, 6000);
     }
 });

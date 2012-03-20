@@ -17,6 +17,7 @@
 'use strict';
 
 var cluster2 = require('cluster2'),
+    os = require('os'),
     _ = require('underscore'),
     program = require('commander'),
     Console = require('ql.io-console'),
@@ -42,6 +43,7 @@ exports.exec = function(cb, opts) {
         option('-r, --routes <routes>', 'path of dir containing routes', cwd + '/routes').
         option('-x, --xformers <xformers>', 'path of dir containing xformers', cwd + '/config/xformers.json').
         option('-a, --ecvPath <ecvPath>', 'ecv path', '/ecv').
+        option('-n, --noWorkers <noWorkers>', 'no of workers', os.cpus.length).
         option('-e, --disableConsole', 'disable the console', false).
         option('-q, --disableQ', 'disable /q', false);
     if(opts) {
@@ -61,6 +63,7 @@ exports.exec = function(cb, opts) {
         xformers: program.xformers,
         disableConsole: program.disableConsole,
         disableQ: program.disableQ,
+        noWorkers: program.noWorkers,
         ecv: {
             monitor: '/tables',
             validator: function(status, headers, data) {
@@ -83,8 +86,9 @@ exports.exec = function(cb, opts) {
                 cb2(app);
             })
         }, function(app) {
-            // TODO: Why emitter?
-            cb(app, program, emitter);
+            if(cb) {
+                cb(app, program, emitter);
+            }
         });
     }
 }
