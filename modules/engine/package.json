@@ -1,7 +1,7 @@
 {
     "author": "ql.io",
     "name": "ql.io-engine",
-    "version": "0.4.19",
+    "version": "0.4.20",
     "repository": {
         "type": "git",
         "url": "https://github.com/ql-io/ql.io"
