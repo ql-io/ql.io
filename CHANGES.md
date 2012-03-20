@@ -1,3 +1,8 @@
+## Mar 20, 2012
+
+* Factor out cluster function into [cluster2](https://github.com/ql-io/cluster2). This change
+  also moves ECV checks to cluster2.
+
 ## Mar 19, 2012
 
 * Remove extraneous event emitted while processing the where clause.
