@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-var _    = require('underscore'),
-    util = require('util'),
-    http = require('http'),
-    url = require('url');
+var _    = require('underscore');
 
 var Engine = require('../lib/engine');
 
