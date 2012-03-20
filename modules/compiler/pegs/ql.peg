@@ -457,7 +457,7 @@ nvp = insig lhs:(lhs/quotedWord) insig '=' insig rhs:rhs insig {
 
 expires = insig 'expires' insig d:digits insig {
     return {
-        duration: d
+        expires: d
     }
 }
 

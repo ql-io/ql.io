@@ -74,14 +74,14 @@ exports.send = function(args) {
     sendMessage(args, client, options, 0);
 }
 
-function putInCache(key, cache, result, res, timeout) {
+function putInCache(key, cache, result, res, expires) {
     if (key && cache) {
         cache.put(key, {result:result, res:{headers:res.headers,
-            statusCode:res.statusCode}}, timeout);
+            statusCode:res.statusCode}}, expires);
     }
 }
 
-function sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, timeout, uniqueId, retry) {
+function sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, expires, uniqueId, retry) {
     var clientRequest = client.request(options, function (res) {
         var bufs = []; // array for bufs for each chunk
         var responseLength = 0;
@@ -113,7 +113,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             });
             unzip.on('end', function () {
                 result = response.parseResponse(timings, reqStart, args, res, bufs);
-                putInCache(key, cache, result, res, timeout);
+                putInCache(key, cache, result, res, expires);
                 response.exec(timings, reqStart, args, uniqueId, res, start, result, options);
             });
             unzip.on('error', function (err) {
@@ -159,7 +159,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             }
             else {
                 result = response.parseResponse(timings, reqStart, args, res, bufs);
-                putInCache(key, cache, result, res, timeout);
+                putInCache(key, cache, result, res, expires);
                 response.exec(timings, reqStart, args, uniqueId, res, start, result, options);
             }
         });
@@ -188,7 +188,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
 
 function sendMessage(args, client, options, retry) {
     var start = Date.now(), key = args.key, cache = args.cache,
-        timeout = args.cacheDuration || 3600;
+        expires = args.expires || 3600;
     var reqStart = Date.now();
     var timings = {
         "blocked": -1,
@@ -228,7 +228,7 @@ function sendMessage(args, client, options, retry) {
         cache.get(key,function(err,result){
             if(err || !result.data){
                 sendHttpRequest(client, options, args, start, timings, reqStart,
-                    key, cache, timeout, uniqueId, retry);
+                    key, cache, expires, uniqueId, retry);
             }
             else {
                 response.exec(timings, reqStart, args, uniqueId, result.data.res, start, result.data.result, options);
@@ -236,7 +236,7 @@ function sendMessage(args, client, options, retry) {
         });
     }
     else {
-        sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, timeout, uniqueId, retry);
+        sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, expires, uniqueId, retry);
     }
 }
 

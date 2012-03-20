@@ -29,11 +29,14 @@ var assert = require('assert'),
     request = require('../http/request.js'),
     _util = require('../util.js');
 
+var skipHeaders = ['connection', 'host', 'referer', 'content-length',
+    'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers',
+    'transfer-encoding', 'upgrade', "user-agent", "request-id"];
+
 var Verb = module.exports = function(table, statement, type, bag, path) {
     this.table = table;
     this.type = type;
     this.__proto__ = statement;
-    this.cacheDuration = statement.cache.duration;
 
     // Default patches
     this['validate param'] = function() {
@@ -45,7 +48,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
     this['body template'] = function() {};
     this['patch body'] = function(args) { return args.body; };
     this['compute key'] = function(args) {
-        if(this.cacheDuration){
+        if(statement.cache.expires){
             //table, method, uri, params, headers, body
             var key = [];
             key.push(args.table);
@@ -53,7 +56,8 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             key.push(JSON.stringify(args.params));
             key.push(JSON.stringify(_.chain(args.headers)
                 .keys()
-                .without("connection","user-agent","accept","accept-encoding","request-id")
+                .without(skipHeaders)
+                .sortBy(function(header){return header;})
                 .reduce(function(obj,header){
                     obj[header] = args.headers[header];
                     return obj;
@@ -629,7 +633,7 @@ function send(verb, args, uri, params, callback) {
         xformers: args.xformers,
         key: key,
         cache: args.cache,
-        cacheDuration: verb.cacheDuration
+        expires: verb.cache.expires
     });
 }
 

@@ -15,6 +15,7 @@
  */
 var _ = require('underscore');
 
+/* By providing this function the user is choosing to forego default key computation and provide a custom one */
 exports['compute key'] = function(args) {
     //return args.uri;
     var key = [];

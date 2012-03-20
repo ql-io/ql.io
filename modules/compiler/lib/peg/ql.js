@@ -2357,7 +2357,7 @@ module.exports = (function(){
                 var result2 = result1 !== null
                     ? (function(d) {
                     return {
-                        duration: d
+                        expires: d
                     }
                 })(result1[3])
                     : null;
