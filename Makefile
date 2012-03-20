@@ -1,5 +1,5 @@
 MODULES	= modules/uri-template modules/mutable-uri modules/compiler modules/engine \
-          modules/console modules/app modules/ecv
+          modules/console modules/app
 
 DIRS	= $(MODULES)
  
