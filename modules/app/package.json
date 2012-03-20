@@ -20,6 +20,8 @@
         "winston": "0.5.9",
         "express": "2.5.8",
         "underscore": "1.3.1",
+        "mustache": "0.4.0",
+        "headers": "0.9.6",
         "cluster2": ""
     },
     "devDependencies": {

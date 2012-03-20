@@ -59,7 +59,6 @@ module.exports = testCase({
         }, 12000);
 
         var testInterval = setTimeout(function() {
-            clearTimeout(testInterval);
             try {
                 var cl = http.createClient(3036, 'localhost');
                 var req = cl.request('GET', '/');
@@ -82,12 +81,10 @@ module.exports = testCase({
         var interval = setTimeout(function() {
             test.ok(false, 'test app does not work');
             test.done();
-            clearTimeout(interval);
             clearTimeout(testInterval);
         }, 12000);
 
         var testInterval = setTimeout(function() {
-            clearTimeout(testInterval);
             try {
                 var cl = http.createClient(3037, 'localhost');
                 var req = cl.request('GET', '/');
@@ -114,7 +111,6 @@ module.exports = testCase({
         var interval = setTimeout(function() {
             test.ok(false, 'test app does not work');
             test.done();
-            clearTimeout(interval);
             clearTimeout(testInterval);
         }, 12000);
 
