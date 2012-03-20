@@ -59,8 +59,12 @@ var servers_negative = [
     { 'host' : localhost, 'port' : '8312' }
 ];
 
+var servers_rel_location = [
+    { 'host' : localhost, 'port' : '8300', 'status' : 301 }
+];
+
 var servers_no_location = [
-    { 'host' : localhost, 'port' : '8300', 'status' : 301 },
+    { 'host' : localhost, 'port' : '8300', 'status' : 302 },
     { 'host' : localhost, 'port' : '8301' }
 ];
 
@@ -120,8 +124,7 @@ module.exports = {
                     if (err) {
                         console.log(err.stack || err);
                         test.ok(false);
-                    }
-                    else {
+                    } else {
                         test.ok(result && result.body.id === "42");
                     }
                     test.done();
@@ -164,6 +167,109 @@ module.exports = {
             }
         });
 
+    },
+    'rel-location-header':function (test) {
+        var servers = servers_rel_location;
+
+        // Special case: need to create custom server that will redirect if given a special header, but return data otherwise
+        servers[0].instance = http.createServer(function (req, res) {
+            if (req.headers.redirect-test) {
+                res.writeHead(servers[0].status, { 'Location': req.url });
+                res.end();
+                return;
+            }
+
+            var file = __dirname + '/mock' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type':file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                'Content-Length':stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function (e) {
+                if (e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        }).listen(servers[0].port, servers[0].host);
+
+        var engine = new Engine({
+            config:__dirname + '/config/dev.json'
+        });
+
+        var script = fs.readFileSync(__dirname + '/mock/redirect-rel.ql', 'UTF-8');
+
+        engine.exec({
+            script:script,
+            cb:function (err, result) {
+                try {
+                    if (err) {
+                        console.log(err.stack || err);
+                        test.ok(false);
+                    } else {
+                        test.ok(result && result.body.id === "42");
+                    }
+                    test.done();
+                }
+                finally {
+                    for (var i = 0; i < servers.length; i++) {
+                        servers[i].instance.close();
+                    }
+                }
+            }
+        });
+    },
+    'bad-location-header':function (test) {
+        var servers = servers_no_location;
+
+        // Special case: need to create bad server
+        servers[0].instance = http.createServer(function (req, res) {
+            res.writeHead(servers[0].status, { 'Location': 'BadLocationURI' });
+            res.end();
+        }).listen(servers[0].port, servers[0].host);
+
+        // create the final server, the one that's going to return data
+        servers[1].instance = http.createServer(function (req, res) {
+            var file = __dirname + '/mock' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type':file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
+                'Content-Length':stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function (e) {
+                if (e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        }).listen(servers[1].port, servers[1].host);
+
+        var engine = new Engine({
+            config:__dirname + '/config/dev.json'
+        });
+
+        var script = fs.readFileSync(__dirname + '/mock/redirect.ql', 'UTF-8');
+
+        engine.exec({
+            script:script,
+            cb:function (err, result) {
+                try {
+                    if (!err) {
+                        test.ok(false, "Error expected.");
+                    } else {
+                        test.ok(err.status === 502);
+                    }
+                    test.done();
+                }
+                finally {
+                    for (var i = 0; i < servers.length; i++) {
+                        servers[i].instance.close();
+                    }
+                }
+            }
+        });
     },
     'no-location-header':function (test) {
         var servers = servers_no_location;

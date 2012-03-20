@@ -106,9 +106,15 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
                         return args.httpReqTx.cb(err);
                     }
 
-                    var location = new URI(res.headers.location, false);
-                    options.host = location.heirpart().authority().host();
-                    options.port = location.heirpart().authority().port();
+                    var location = new URI(res.headers.location);
+
+                    if (location.isAbsolute()) {
+                        options.host = location.heirpart().authority().host();
+                        options.port = location.heirpart().authority().port();
+                    } else {
+                        location = new URI(args.uri);
+                        location = location.resolveReference(res.headers.location);
+                    }
                     options.path = location.heirpart().path();
 
                     args.logEmitter.emitEvent(args.httpReqTx.event, 'being redirected for the ' + redirects + ' time, ' +
