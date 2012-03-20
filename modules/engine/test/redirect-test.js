@@ -171,10 +171,10 @@ module.exports = {
     'rel-location-header':function (test) {
         var servers = servers_rel_location;
 
-        // Special case: need to create custom server that will redirect if given a special header, but return data otherwise
+        // Special case: need to create custom server that will redirect if given prefix '/rel' in the path, but return data otherwise
         servers[0].instance = http.createServer(function (req, res) {
-            if (req.headers.redirect-test) {
-                res.writeHead(servers[0].status, { 'Location': req.url });
+            if (req.url.indexOf('/rel') === 0) {
+                res.writeHead(servers[0].status, { 'Location': req.url.substring('/rel'.length) });
                 res.end();
                 return;
             }
