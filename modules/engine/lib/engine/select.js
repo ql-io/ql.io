@@ -210,7 +210,8 @@ function execInternal(opts, statement, cb, parentEvent) {
                             emitter.emit(statement.assign, result.body);
                         }
                         return apiTx.cb(err, result);
-                    }
+                    },
+                    cache: opts.cache
                 });
             }
         });

@@ -30,8 +30,8 @@ parseResponse = exports.parseResponse = function(timings, reqStart, args, res, b
     return result;
 }
 
-exports.exec = function(timings, reqStart, args, uniqueId, res, start, result, options, status) {
-    var mediaType;
+exports.exec = function(timings, reqStart, args, uniqueId, res, start, result, options) {
+    var mediaType, status;
 
     res.headers['content-type'] = result.type || res.headers['content-type'];
     var respData = result.content;

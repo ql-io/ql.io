@@ -56,3 +56,58 @@ exports.getMaxRequests = function(config, logEmitter) {
 
     return maxRequests;
 }
+
+
+function isDup(obj, dupGuard) {
+    if(typeof obj === "object") {
+        if(-1 !== dupGuard.indexOf(obj)) {
+            return true;
+        }
+        dupGuard.push(obj);
+    }
+    return false;
+}
+
+var toNormalizedSting = exports.toNormalizedSting = function(obj, dupGuard) {
+    dupGuard = dupGuard || [];
+    var ret = '';
+    if(_.isNull(obj) ||
+        _.isNaN(obj) ||
+        _.isBoolean(obj) ||
+        _.isNumber(obj) ||
+        _.isString(obj) ||
+        _.isDate(obj)) {
+        ret = JSON.stringify(obj);
+    }
+    else if( _.isUndefined(obj) || _.isFunction(obj)){
+        ret = "null";
+    }
+    else if(_.isRegExp(obj) ){
+        ret = obj.toString();
+    }
+    else if (_.isArray(obj)) {
+        ret = JSON.stringify(_.chain(obj)
+            .map(function (ele) {
+                return isDup(ele, dupGuard) ? '<circ>' : toNormalizedSting(ele, dupGuard);
+            })
+            .sortBy(function (ele) {
+                return ele;
+            })
+            .value());
+    }
+    else if(typeof obj == "object"){
+        ret =  JSON.stringify(isDup(obj,dupGuard) ? '<circ>' :
+            _.chain(obj)
+                .keys()
+                .sortBy(function(ele){
+                    return ele;
+                })
+                .reduce(function(memo,key){
+                    memo[key] = toNormalizedSting(obj[key], dupGuard);
+                    return memo;
+                },{})
+                .value());
+    }
+
+    return ret;
+}
