@@ -26,7 +26,7 @@ parseResponse = exports.parseResponse = function(timings, reqStart, args, res, b
 
     // TODO: Handle redirects
     // The default patch decodes the response
-    var result = args.resource.parseResponse(args.parsed, args.params, res.headers, bufs);
+    var result = args.resource.parseResponse(res.headers, bufs, args);
     return result;
 }
 
@@ -68,7 +68,7 @@ exports.exec = function(timings, reqStart, args, uniqueId, res, start, result, o
         }
     }
 
-    mediaType = sniffMediaType(args.resource, args.parsed, args.params, res, respData);
+    mediaType = sniffMediaType(res, respData, args);
 
     args.logEmitter.emitEvent(args.httpReqTx.event, args.uri + '  ' +
         util.inspect(options) + ' ' +
@@ -77,12 +77,12 @@ exports.exec = function(timings, reqStart, args, uniqueId, res, start, result, o
 
     // Parse
     jsonify(args.table, respData, mediaType, res.headers, args.xformers, function (respJson) {
-        status = args.resource.patchStatus(args.parsed, args.params, res.statusCode, res.headers, respJson || respData)
+        status = args.resource.patchStatus(res.statusCode, res.headers, respJson || respData, args)
             || res.statusCode;
 
         if(status >= 200 && status <= 300) {
             if(respJson) {
-                respJson = args.resource.patchResponse(args.parsed, args.params, res.statusCode, res.headers, respJson);
+                respJson = args.resource.patchResponse(res.statusCode, res.headers, respJson, args);
                 // Projections
                 project.run(args.resource.resultSet, args.statement, respJson, function (filtered) {
                     return args.httpReqTx.cb(undefined, {
@@ -148,9 +148,9 @@ function jsonify(table, respData, mediaType, headers, xformers, respCb, errorCb)
 }
 
 
-function sniffMediaType(resource, resourceUri, params, res, respData) {
+function sniffMediaType(res, respData, args) {
     // 1. If there is a patch, call it to get the media type.
-    var mediaType = resource.patchMediaType(resourceUri, params, res.statusCode, res.headers, respData)
+    var mediaType = args.resource.patchMediaType(res.statusCode, res.headers, respData, args)
         || res.headers['content-type'];
 
     // 2. If the media type is "XML", treat it as "application/xml"

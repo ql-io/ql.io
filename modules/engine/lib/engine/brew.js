@@ -58,8 +58,7 @@ exports.go = function(options) {
         });
     }
     catch(e) {
-        logEmitter.emitError('Failed to load ' + root + name, e);
-        cb(e);
+        return cb(e);
     }
 }
 

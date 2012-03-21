@@ -91,7 +91,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
     //
     // TODO: Negative tests needed - Assert return types of all monkey patch methods
     //
-    this.validateParams = function(params, statement) {
+    this.validateParams = function(params, args) {
         var validator = this['validate param'];
         if(validator) {
             assert.ok(_.isFunction(validator), 'Validator is not a function');
@@ -100,8 +100,9 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
                 if(name === 'config') continue;
                 value = params[name];
                 isValid = validator({
-                    statement: statement,
-                    params: params
+                    statement: args.statement,
+                    params: params,
+                    log: this.curry(this.log, args.logEmitter, args.parentEvent)
                 }, name, value);
                 if(!isValid) {
                     throw 'Value of ' + name + ' "' + value + '" is not valid';
@@ -151,7 +152,8 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             var patched = self['patch uri']({
                 uri: parsed,
                 statement: args.statement,
-                params: params
+                params: params,
+                log: self.curry(self.log, args.logEmitter, args.parentEvent)
             });
 
             if(patched) {
@@ -171,22 +173,24 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
         return temp;
     };
 
-    this.patchHeaders = function(uri, params, headers) {
+    this.patchHeaders = function(uri, headers, args) {
         return this['patch headers']({
             uri: uri,
             statement: this,
-            params: params,
-            headers: headers
+            params: args.params,
+            headers: headers,
+            log: this.curry(this.log, args.logEmitter, args.parentEvent)
         }) || {};
     };
 
-    this.tmpl = function(uri, params, headers, serializers) {
+    this.tmpl = function(uri, params, headers, args) {
         var self = this;
         var body = this['body template']({
             uri: uri,
             statement: this,
             params: params,
-            headers: headers
+            headers: headers,
+            log: this.curry(this.log, args.logEmitter, args.parentEvent)
         }) || {};
 
         var content = body.content || this.body.content;
@@ -197,79 +201,85 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
         };
 
         if(content && content.length > 0) {
-            var serializer = _.find(serializers, function(serializer) {
+            var serializer = _.find(args.serializers, function(serializer) {
                 return serializer.accepts(type, self.body.template, content);
             });
             payload.content = serializer.serialize(self.body.type, content, self, params, self.defaults);
         }
 
-        var ret = this.patchBody(uri, params, headers, payload) || payload;
+        var ret = this.patchBody(uri, params, headers, payload, args) || payload;
         return ret;
 
     };
 
-    this.patchBody = function(uri, params, headers, body) {
+    this.patchBody = function(uri, params, headers, body, args) {
         return this['patch body']({
             uri: uri,
             statement: this,
             params: params,
             body: body,
-            headers: headers
+            headers: headers,
+            log: this.curry(this.log, args.logEmitter, args.parentEvent)
         });
     };
 
-    this.computeKey = function(table, method, uri, params, headers, body){
+    this.computeKey = function(table, method, uri, params, headers, body, args){
         return this['compute key']({
             table: table,
             method: method,
             uri: uri,
             params: params,
             body: body,
-            headers: headers
+            headers: headers,
+            log: this.curry(this.log, args.logEmitter, args.parentEvent)
         });
     }
 
     // TODO: Repeated URI parsing!
-    this.parseResponse = function(uri, params, headers, body) {
+    this.parseResponse = function(headers, body, args) {
         return this['parse response']({
-            uri: uri,
+            uri: args.parsed,
             statement: this,
-            params: params,
+            params: args.params,
             body: body,
-            headers: headers
+            headers: headers,
+            log: this.curry(this.log, args.logEmitter, args.parentEvent)
         });
     };
 
-    this.patchResponse = function(uri, params, status, headers, body) {
+    this.patchResponse = function(status, headers, body, args) {
         return this['patch response']({
-            uri: uri,
+            uri: args.parsed,
             statement: this,
-            params: params,
+            params: args.params,
             status: status,
             headers: headers,
-            body: body
+            body: body,
+            log: this.curry(this.log, args.logEmitter, args.parentEvent)
         });
     };
 
-    this.patchMediaType = function(uri, params, status, headers, body) {
+    this.patchMediaType = function(status, headers, body, args) {
         return this['patch mediaType']({
-            uri: uri,
+            uri: args.uri,
             statement: statement,
-            params: params,
+            params: args.params,
             status: status,
             headers: headers,
-            body: body
+            body: body,
+            log: this.curry(this.log, args.logEmitter, args.parentEvent)
         });
     };
 
-    this.patchStatus = function(uri, params, status, headers, respData) {
+    this.patchStatus = function(status, headers, respData, args) {
         return this['patch status']({
-            uri: uri,
+            uri: args.parsed,
             statement: statement,
-            params: params,
+            params: args.params,
             status: status,
             headers: headers,
-            body: respData
+            body: respData,
+            log: this.curry(this.log, args.logEmitter, args.parentEvent)
         }) || res.statusCode;
     };
 
@@ -292,7 +302,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
 
         // Validate each param if the monkey patch has a 'validate param' validator.
         try {
-            args.resource.validateParams(params, args.statement);
+            args.resource.validateParams(params, args);
         }
         catch(e) {
             return args.callback(e);
@@ -400,6 +410,34 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             }
         });
     };
+
+    // Curry function for money patch logging
+    this.curry = function(log) {
+        var slice = Array.prototype.slice,
+            partialArgs = slice.call(arguments, 1);
+        return function () {
+            var args = slice.call(arguments);
+            return log.apply(null, partialArgs.concat(args));
+        }
+    };
+
+    this.log = function(emitter, parentEvent, severity, message) {
+
+        severity = severity || '';
+
+        switch(severity.toLowerCase()) {
+            case 'error':
+                emitter.emitError(parentEvent, message);
+                break;
+            case 'warn':
+                emitter.emitWarning(parentEvent, message);
+                break;
+            default:
+                emitter.emitEvent(parentEvent, message);
+        }
+
+    };
+
 };
 
 //
@@ -549,7 +587,7 @@ function cloneDeep(obj) {
     return copy;
 }
 
-function send(verb, args, uri, params, callback) {
+function send(verb, args, uri, params, cb) {
     // Authenticate the request
     if(verb.auth) {
         verb.auth.auth(params, args.config, function (err) {
@@ -560,7 +598,7 @@ function send(verb, args, uri, params, callback) {
     }
 
     // Mint a tx for logging and consistent callback handling
-    var httpReqTx = args.logEmitter.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, callback);
+    var httpReqTx = args.logEmitter.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
 
     // Parse - used by downstream patches
     var parsed = new MutableURI(uri);
@@ -593,7 +631,7 @@ function send(verb, args, uri, params, callback) {
 
     // Monkey patch headers
     try {
-        headers = args.resource.patchHeaders(parsed, args.params, headers);
+        headers = args.resource.patchHeaders(parsed, headers, args);
     }
     catch(e) {
         return cb(e);
@@ -602,7 +640,7 @@ function send(verb, args, uri, params, callback) {
     // Body
     var body;
     if(args.resource.method === 'post' || args.resource.method === 'put' || args.resource.method === 'delete' || args.resource.method === 'patch') {
-        var payload = args.resource.tmpl(parsed, params, headers, args.serializers);
+        var payload = args.resource.tmpl(parsed, params, headers, args);
         body = payload.content;
         if(body) {
             headers['content-length'] = body.length;
@@ -613,7 +651,7 @@ function send(verb, args, uri, params, callback) {
     }
 
     // Resource key to use in the cache
-    var key = args.resource.computeKey(verb.table, args.resource.method || 'GET', uri, params, headers, body);
+    var key = args.resource.computeKey(verb.table, args.resource.method || 'GET', uri, params, headers, body, args);
 
     request.send({
         table: verb.table,
@@ -644,4 +682,4 @@ function getIp() {
     }), 'address');
 
     return ips.length > 0 ? ips[0] : '127.0.0.1';
-}
+};

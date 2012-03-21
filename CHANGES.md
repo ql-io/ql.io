@@ -1,5 +1,7 @@
-## Mar 14, 2012
+## Mar 20, 2012
 
+* Factor out cluster function into [cluster2](https://github.com/ql-io/cluster2). This change
+  also moves ECV checks to cluster2.
 * Caching support based on new `expires <seconds>` keyword ***create table*** (example below) and/or `compute key` monkey patch.
 
 **create table**
@@ -17,6 +19,29 @@ create table auto.compute.key on select get from 'http://a.uri.net' …other thi
 	    return(key.join(':'));
 	};
 
+## Mar 19, 2012
+
+* Remove extraneous event emitted while processing the where clause.
+
+## Mar 18, 2012
+
+* Fix https://github.com/ql-io/ql.io/issues/372.
+
+## Mar 16, 2012
+
+* Upgrade CodeMirror to 2.22
+
+## Mar 15, 2012
+
+* logging support in monkey patches. Ex.
+      exports['patch body'] = function(args) {
+          var log = args.log;
+          log('Error', 'Something went wrong'); // throws an error event
+          log('Warn', 'Watch out'); // throws a warning event
+          return {};
+      }
+* Fix the broken template app
+>>>>>>> origin/master
 
 ## Mar 12, 2012
 
