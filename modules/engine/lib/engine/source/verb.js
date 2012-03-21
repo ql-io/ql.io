@@ -53,8 +53,8 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             var key = [];
             key.push(args.table);
             key.push(args.uri);
-            key.push(JSON.stringify(args.params));
-            key.push(JSON.stringify(_.chain(args.headers)
+            key.push(_util.toNormalizedSting(args.params));
+            key.push(_util.toNormalizedSting(_.chain(args.headers)
                 .keys()
                 .without(skipHeaders)
                 .sortBy(function(header){return header;})
