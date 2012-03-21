@@ -29,7 +29,8 @@ var winston = require('winston'),
     Engine = require('ql.io-engine'),
     MutableURI = require('ql.io-mutable-uri'),
     _ = require('underscore'),
-    WebSocketServer = require('websocket').server;
+    WebSocketServer = require('websocket').server,
+    compress = require('./lib/compress.js').compress;
 
 exports.version = require('./package.json').version;
 
@@ -525,6 +526,7 @@ var Console = module.exports = function(config, cb) {
 
     // 404 Handling
     app.use(function(req, res, next) {
+        compress(req, res);
         var msg = 'Cannot GET ' + sanitize(req.url).xss();
         var accept = (req.headers || {}).accept || '';
         if (accept.search('json') > 0) {
@@ -544,6 +546,7 @@ var Console = module.exports = function(config, cb) {
 
     // Error-handling middleware
     app.use(function(err, req, res, next){
+        compress(req, res);
         // TODO call next() if recoverable, else next(err).
         var status = err.status || 500;
         var msg =  "Server Error - " + sanitize(err.msg || err).xss();
@@ -723,6 +726,7 @@ var Console = module.exports = function(config, cb) {
     }
 
     function handleResponseCB(req, res, execState, err, results) {
+        compress(req, res);   // TODO replace with a middleware
         var cb = req.param('callback');
         if (err) {
             var status = err.status || 400;
