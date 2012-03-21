@@ -422,10 +422,8 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
     };
 
     this.log = function(emitter, parentEvent, severity, message) {
-
         severity = severity || '';
-
-        switch(severity.toLowerCase()) {
+        switch(severity) {
             case 'error':
                 emitter.emitError(parentEvent, message);
                 break;
@@ -435,9 +433,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             default:
                 emitter.emitEvent(parentEvent, message);
         }
-
     };
-
 };
 
 //
