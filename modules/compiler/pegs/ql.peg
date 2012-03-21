@@ -360,7 +360,7 @@ createStatement = 'create' insig 'table' insig s:nonAliasSource insig a:act* {
 type = 'select' / 'insert' / 'delete' / 'update'
 uri = quotedWord
 
-act = 'on' insig t:type insig m:actname insig u:uri insig  insig a:withAliases? h:usingHeaders? d:usingDefaults? p:usingMonkeyPatch? insig b:usingBodyTemplate? insig auth:authenticateUsing? insig r:resultSet? insig {
+act = 'on' insig t:type insig m:actname insig u:uri insig  insig a:withAliases? h:usingHeaders? d:usingDefaults? p:usingMonkeyPatch? insig b:usingBodyTemplate? insig auth:authenticateUsing? insig r:resultSet? insig exp:expires? {
   var ret = {
     type: t,
     method: m,
@@ -368,7 +368,8 @@ act = 'on' insig t:type insig m:actname insig u:uri insig  insig a:withAliases? 
     defaults: d || {},
     aliases: a || {},
     headers: h || {},
-    resultSet: r || ''
+    resultSet: r || '',
+    cache: exp || {}
   };
   if(auth && auth.length > 0) {
     ret.auth = auth;
@@ -452,6 +453,12 @@ nvp = insig lhs:(lhs/quotedWord) insig '=' insig rhs:rhs insig {
   lhs = lhs.name || lhs;
   o[lhs.hasOwnProperty('value') ? lhs.value : lhs] = rhs.hasOwnProperty('value') ? rhs.value : rhs;
   return o;
+}
+
+expires = insig 'expires' insig d:digits insig {
+    return {
+        expires: d
+    }
 }
 
 ///////////////////////////////////////////////////////////

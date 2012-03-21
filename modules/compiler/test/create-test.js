@@ -32,6 +32,7 @@ exports['simple'] = function(test) {
                 aliases: {},
                 headers: {},
                 resultSet: '',
+                cache: {},
                 body: '' },
             id: 0 }
     ];
@@ -64,6 +65,7 @@ exports['multiple actions'] = function(test) {
                 aliases: {},
                 headers: {},
                 resultSet: 'data.url',
+                cache: {},
                 patch: 'shorten.js',
                 body: '' },
             select:
@@ -76,6 +78,7 @@ exports['multiple actions'] = function(test) {
                 aliases: {},
                 headers: {},
                 resultSet: 'data.expand',
+                cache: {},
                 patch: 'shorten.js',
                 body: '' },
             id: 0 }

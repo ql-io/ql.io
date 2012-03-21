@@ -74,16 +74,15 @@ exports.send = function(args) {
     sendMessage(args, client, options, 0);
 }
 
-function putInCache(key, cache, result, res, timeout) {
+function putInCache(key, cache, result, res, expires) {
     if (key && cache) {
         cache.put(key, {result:result, res:{headers:res.headers,
-            statusCode:res.statusCode}}, timeout);
+            statusCode:res.statusCode}}, expires);
     }
 }
 
+function sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, expires, uniqueId, status, retry, redirects) {
 var followRedirects = true, maxRedirects = 10;
-
-function sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, timeout, uniqueId, status, retry, redirects) {
     var clientRequest = client.request(options, function (res) {
         if (followRedirects && (res.statusCode >= 301 && res.statusCode <= 307) &&
             (options.method.toUpperCase() === 'GET' || options.method.toUpperCase() === 'HEAD')) {
@@ -119,7 +118,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
 
                     args.logEmitter.emitEvent(args.httpReqTx.event, 'being redirected for the ' + redirects + ' time, ' +
                         'going to ' + options.host + ':' + options.port + options.path + ' - ' + args.uri + ' - ' + (Date.now() - start) + 'msec');
-                    sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, timeout, uniqueId, status, retry, redirects);
+                    sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, expires, uniqueId, status, retry, redirects);
                     return;
                 } else {
                     args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
@@ -163,7 +162,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             });
             unzip.on('end', function () {
                 result = response.parseResponse(timings, reqStart, args, res, bufs);
-                putInCache(key, cache, result, res, timeout);
+                putInCache(key, cache, result, res, expires);
                 response.exec(timings, reqStart, args, uniqueId, res, start, result, options, status);
             });
             unzip.on('error', function (err) {
@@ -209,7 +208,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             }
             else {
                 result = response.parseResponse(timings, reqStart, args, res, bufs);
-                putInCache(key, cache, result, res, timeout);
+                putInCache(key, cache, result, res, expires);
                 response.exec(timings, reqStart, args, uniqueId, res, start, result, options, status);
             }
         });
@@ -238,7 +237,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
 
 function sendMessage(args, client, options, retry) {
     var status, start = Date.now(), key = args.key, cache = args.cache,
-        timeout = args.timeout || 3600;
+        expires = args.expires || 3600;
     var reqStart = Date.now();
     var timings = {
         "blocked": -1,
@@ -278,15 +277,15 @@ function sendMessage(args, client, options, retry) {
         cache.get(key,function(err,result){
             if(err || !result.data){
                 sendHttpRequest(client, options, args, start, timings, reqStart,
-                    key, cache, timeout, uniqueId, status, retry, 0);
+                    key, cache, expires, uniqueId, status, retry, 0);
             }
             else {
-                response.exec(timings, reqStart, args, uniqueId, res, result.start, result.result, options, status);
+                response.exec(timings, reqStart, args, uniqueId, result.data.res, start, result.data.result, options, status);
             }
         });
     }
     else {
-        sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, timeout, uniqueId, status, retry, 0);
+        sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, expires, uniqueId, status, retry, 0);
     }
 }
 
