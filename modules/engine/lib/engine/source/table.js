@@ -42,19 +42,20 @@ var Table = module.exports = function(opts, comments, statement) {
         });
     }
 
-    _.each(['select', 'insert', 'update', 'delete'], function(type) {
+    var verbs = ['select', 'insert', 'update', 'delete'];
+    for(var i = 0; i < verbs.length; i++) {
+        var type = verbs[i];
         if(self.statement[type]) {
             try {
                 var verb = new Verb(self.name, self.statement[type], type, bag, self.opts.path);
                 self.verbs[type] = verb;
             }
             catch(e) {
-                console.log(e.stack || e);
                 self.opts.logEmitter.emitError(e.message || e);
                 return self.opts.cb(e);
             }
         }
-    });
+    };
 };
 
 Table.prototype.verb = function(type) {

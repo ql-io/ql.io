@@ -29,6 +29,10 @@ var assert = require('assert'),
     request = require('../http/request.js'),
     _util = require('../util.js');
 
+var skipHeaders = ['connection', 'host', 'referer', 'content-length',
+    'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers',
+    'transfer-encoding', 'upgrade', "user-agent", "request-id"];
+
 var Verb = module.exports = function(table, statement, type, bag, path) {
     this.table = table;
     this.type = type;
@@ -43,7 +47,25 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
     this['patch headers'] = function(args) { return args.headers; };
     this['body template'] = function() {};
     this['patch body'] = function(args) { return args.body; };
-    this['compute key'] = function(args) {};
+    this['compute key'] = function(args) {
+        if(statement.cache.expires){
+            //table, method, uri, params, headers, body
+            var key = [];
+            key.push(args.table);
+            key.push(args.uri);
+            key.push(_util.toNormalizedSting(args.params));
+            key.push(_util.toNormalizedSting(_.chain(args.headers)
+                .keys()
+                .without(skipHeaders)
+                .sortBy(function(header){return header;})
+                .reduce(function(obj,header){
+                    obj[header] = args.headers[header];
+                    return obj;
+                },{})
+                .value()));
+            return(key.join(':'));
+        }
+    };
     this['parse response'] = function(args) { // Just append bufs to a string
         var encoding = 'UTF-8';
         if(args.headers['content-type']) {
@@ -644,7 +666,8 @@ function send(verb, args, uri, params, cb) {
         resource: args.resource,
         xformers: args.xformers,
         key: key,
-        cache: args.cache
+        cache: args.cache,
+        expires: verb.cache.expires
     });
 }
 
