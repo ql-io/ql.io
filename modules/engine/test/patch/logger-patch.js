@@ -17,9 +17,9 @@
 exports['patch body'] = function(args) {
     var log = args.log;
 
-    log('Error', 'Something went wrong');
-    log('Warn', 'Watch out');
-    log('Info', 'Something to note');
+    log('error', 'Something went wrong');
+    log('warn', 'Watch out');
+    log('info', 'Something to note');
 
     return {
         type: 'application/json',
