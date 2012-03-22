@@ -1,3 +1,7 @@
+## Mar 22, 2012
+
+* Externally supply Cache to engine through config.
+
 ## Mar 21, 2012
 
 * Fix https://github.com/ql-io/ql.io/issues/329.
@@ -12,7 +16,7 @@
 
 **create table**
 
-create table auto.compute.key on select get from 'http://a.uri.net' …other things… `expires 10`;
+create table auto.compute.key on select get from 'http://a.uri.net' ‚Ä¶other things‚Ä¶ `expires 10`;
 
 **compute key** (monkey patch)
 
@@ -23,7 +27,7 @@ create table auto.compute.key on select get from 'http://a.uri.net' …other thing
 	    key.push(args.uri);
     	key.push(JSON.stringify(args.params));
 	    return(key.join(':'));
-	};
+	};	
 
 ## Mar 19, 2012
 
