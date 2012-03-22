@@ -133,6 +133,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
 
                     args.logEmitter.emitEvent(args.httpReqTx.event, JSON.stringify({
                         redirects: redirects,
+                        status: res.statusCode,
                         location: res.headers.location
                     }));
                     sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, expires, uniqueId, status, retry, redirects);

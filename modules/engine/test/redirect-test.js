@@ -118,11 +118,11 @@ module.exports = {
 
         var script = fs.readFileSync(__dirname + '/mock/redirect.ql', 'UTF-8');
 
-        var listener = new Listener(engine, false);
+        var listener = new Listener(engine);
         engine.exec({
             script:script,
             cb:function (err, result) {
-//                listener.assert(test);
+                listener.assert(test);
                 try {
                     if (err) {
                         console.log(err.stack || err);
@@ -150,10 +150,11 @@ module.exports = {
         });
 
         var script = fs.readFileSync(__dirname + '/mock/redirect.ql', 'UTF-8');
-
+        var listener = new Listener(engine);
         engine.exec({
             script:script,
             cb:function (err, result) {
+                listener.assert(test);
                 try {
                     if (!err) {
                         test.ok(false, "Error expected.");
@@ -203,9 +204,11 @@ module.exports = {
 
         var script = fs.readFileSync(__dirname + '/mock/redirect-rel.ql', 'UTF-8');
 
+        var listener = new Listener(engine);
         engine.exec({
             script:script,
             cb:function (err, result) {
+                listener.assert(test);
                 try {
                     if (err) {
                         console.log(err.stack || err);
@@ -255,9 +258,11 @@ module.exports = {
 
         var script = fs.readFileSync(__dirname + '/mock/redirect.ql', 'UTF-8');
 
+        var listener = new Listener(engine);
         engine.exec({
             script:script,
             cb:function (err, result) {
+                listener.assert(test);
                 try {
                     if (!err) {
                         test.ok(false, "Error expected.");
@@ -306,10 +311,11 @@ module.exports = {
         });
 
         var script = fs.readFileSync(__dirname + '/mock/redirect.ql', 'UTF-8');
-
+        var listener = new Listener(engine);
         engine.exec({
             script:script,
             cb:function (err, result) {
+                listener.assert(test);
                 try {
                     if (!err) {
                         test.ok(false, "Error expected.");
@@ -337,9 +343,11 @@ module.exports = {
 
         var script = fs.readFileSync(__dirname + '/mock/redirect.ql', 'UTF-8');
 
+        var listener = new Listener(engine);
         engine.exec({
             script:script,
             cb:function (err, result) {
+                listener.assert(test);
                 try {
                     if (!err) {
                         test.ok(false, "Error expected.");

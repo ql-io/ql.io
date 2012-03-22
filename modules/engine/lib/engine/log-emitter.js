@@ -103,6 +103,7 @@ var LogEmitter = module.exports = function() {
     }
 
     this.emitEvent = function(event, msg){
+        event.tx = 'info';
         this.emit(eventTypes.EVENT, event, msg);
     }
 
