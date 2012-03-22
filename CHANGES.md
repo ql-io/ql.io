@@ -7,7 +7,7 @@
 
 * Factor out cluster function into [cluster2](https://github.com/ql-io/cluster2). This change
   also moves ECV checks to cluster2.
-* Caching support based on new `expires <seconds>` keyword ***create table*** (example below) and/or `compute key` monkey patch.
+* Caching support based on new `expires <seconds>` keyword ***create table*** (example below) or `compute key` monkey patch.
 
 **create table**
  
@@ -24,13 +24,13 @@ create table auto.compute.key on select get from 'http://a.uri.net' …other thi
 	    return(key.join(':'));
 	};
 
-## Mar 19, 2012
-
-* Remove extraneous event emitted while processing the where clause.
-
 ## Mar 18, 2012
 
 * Fix https://github.com/ql-io/ql.io/issues/372.
+
+## Mar 19, 2012
+
+* Remove extraneous event emitted while processing the where clause.
 
 ## Mar 16, 2012
 
@@ -46,7 +46,6 @@ create table auto.compute.key on select get from 'http://a.uri.net' …other thi
           return {};
       }
 * Fix the broken template app
->>>>>>> origin/master
 
 ## Mar 12, 2012
 
