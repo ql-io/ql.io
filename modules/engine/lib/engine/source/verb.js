@@ -594,9 +594,6 @@ function send(verb, args, uri, params, cb) {
         });
     }
 
-    // Mint a tx for logging and consistent callback handling
-    var httpReqTx = args.logEmitter.wrapEvent(args.parentEvent, 'QlIoHttpRequest', null, cb);
-
     // Parse - used by downstream patches
     var parsed = new MutableURI(uri);
 
@@ -617,14 +614,14 @@ function send(verb, args, uri, params, cb) {
         }
         catch(e) {
             // Ignore as we want to treat non-conformant strings as opaque
-            args.logEmitter.emitWarning(httpReqTx.event, 'unable to parse header ' + v + ' error: ' + e.stack || e);
+            args.logEmitter.emitWarning(args.parentEvent, 'unable to parse header ' + v + ' error: ' + e.stack || e);
         }
         headers[k.toLowerCase()] = v;
     });
 
     var name = args.settings['request-id'] ? args.settings['request-id'] : 'request-id';
     headers[name]  = (params['request-id'] || args.resource.headers['request-id'] ||
-        httpReqTx.event.uuid) + '!ql.io' + '!' + getIp() + '[';
+        args.parentEvent.uuid) + '!ql.io' + '!' + getIp() + '[';
 
     // Monkey patch headers
     try {
@@ -651,6 +648,7 @@ function send(verb, args, uri, params, cb) {
     var key = args.resource.computeKey(verb.table, args.resource.method || 'GET', uri, params, headers, body, args);
 
     request.send({
+        cb: cb,
         table: verb.table,
         config: args.config || {},
         uri: uri,
@@ -659,7 +657,7 @@ function send(verb, args, uri, params, cb) {
         headers: headers,
         body: body,
         params: params,
-        httpReqTx: httpReqTx, // TODO: clumsy
+        parentEvent: args.parentEvent,
         requestId: name,
         emitter: args.emitter,
         logEmitter: args.logEmitter,

@@ -31,11 +31,15 @@ var engine = new Engine({
     config: __dirname + '/config/dev.json'
 });
 
+var Listener = require('./utils/log-listener.js');
+
 module.exports = {
     'select-star': function(test) {
         var q;
         q = 'select * from ebay.finding.items where keywords = "ipad"';
+        var listener = new Listener(engine);
         engine.exec(q, function(err, list) {
+            listener.assert(test);
             if(err) {
                 test.fail('got error: ' + err.stack || err);
                 test.done();
@@ -57,7 +61,9 @@ module.exports = {
                            apikey = '{config.ebay.apikey}', limit = 10, pageNumber = 1\
                      resultset 'findItemsByKeywordsResponse.searchResult.item';\n\
         select * from mytable where keywords = 'ipad'";
+        var listener = new Listener(engine);
         engine.exec(script, function(err, list) {
+            listener.assert(test);
             if(err) {
                 test.fail('got error: ' + err.stack || err);
                 test.done();
@@ -76,7 +82,9 @@ module.exports = {
             'sellingStatus.currentPrice from ebay.finding.items where keywords="cooper" and ' +
             'FreeShippingOnly = "true" and MinPrice = "100" limit 10 offset 20';
 
+        var listener = new Listener(engine);
         engine.exec(q, function(err, list) {
+            listener.assert(test);
             if(err) {
                 test.fail('got error: ' + err.stack || err);
                 test.done();
@@ -95,7 +103,9 @@ module.exports = {
         var q = 'select title as title, itemId as id, primaryCategory.categoryName as cat,' +
             'sellingStatus.currentPrice as price from ebay.finding.items where keywords="cooper" and' +
             'FreeShippingOnly = "true" and MinPrice = "100" limit 10 offset 20';
+        var listener = new Listener(engine);
         engine.exec(q, function(err, list) {
+            listener.assert(test);
             if(err) {
                 test.fail('got error: ' + err.stack || err);
                 test.done();
@@ -115,7 +125,9 @@ module.exports = {
     },
     'subselect': function(test) {
         var q = "select Location from ebay.shopping.item where itemId in (select itemId from ebay.finding.items where keywords='ipad')"
+        var listener = new Listener(engine);
         engine.exec(q, function(err, list) {
+            listener.assert(test);
             if(err) {
                 test.fail('got error: ' + err.stack || err);
                 test.done();
@@ -132,7 +144,9 @@ module.exports = {
     'select-in-csv': function(test) {
         engine.exec('select itemId from ebay.finding.items where keywords = "mini cooper convertible" limit 2', function(err, list) {
             var q = "select ViewItemURLForNaturalSearch from ebay.shopping.item where itemId in ('" + list.body[0] + "', '" + list.body[1] + "') and includeSelector = 'ShippingCosts'";
+            var listener = new Listener(engine);
             engine.exec(q, function(err, list) {
+                listener.assert(test);
                 if(err) {
                     test.fail('got error: ' + err.stack || err);
                     test.done();
@@ -159,10 +173,12 @@ module.exports = {
 
                 // We need to test that two HTTP requests are made for the following statement below.
                 var q = "select ViewItemURLForNaturalSearch from ebay.shopping.item where itemId in ('" + list.body[0] + "', '" + list.body[1] + "') and includeSelector = 'ShippingCosts'";
+                var listener = new Listener(engine);
                 engine.exec({
                     script : q,
                     emitter: emitter,
                     cb: function(err, list) {
+                        listener.assert(test);
                         if(err) {
                             test.fail('got error: ' + err.stack || err);
                             test.done();
@@ -199,10 +215,12 @@ module.exports = {
                          apikey =  '{config.ebay.apikey}'\
                          resultset 'Item';\
                         select ViewItemURLForNaturalSearch from myitemdetails where itemId in ('" + list.body[0] + "', '" + list.body[1] + "') and includeSelector = 'ShippingCosts'";
+                var listener = new Listener(engine);
                 engine.exec({
                     script : q,
                     emitter: emitter,
                     cb: function(err, list) {
+                        listener.assert(test);
                         if(err) {
                             test.fail('got error: ' + err.stack || err);
                             test.done();
@@ -241,10 +259,12 @@ module.exports = {
                         select ViewItemURLForNaturalSearch from myitemdetails where itemId in ('" +
                     list.body[0] + "', '" + list.body[1] + "', '" + list.body[2] + "', '" + list.body[3] +
                     "') and includeSelector = 'ShippingCosts'";
+                var listener = new Listener(engine);
                 engine.exec({
                     script : q,
                     emitter: emitter,
                     cb: function(err, list) {
+                        listener.assert(test);
                         if(err) {
                             test.fail('got error: ' + err.stack || err);
                             test.done();
@@ -265,7 +285,9 @@ module.exports = {
         var q = "select itemId, title from ebay.finding.category where categoryId in (" +
             "select primaryCategory.categoryId from ebay.finding.items where keywords='ipad' limit 1) " +
             "and zip = '98074' and distance = '10'";
+        var listener = new Listener(engine);
         engine.exec(q, function(err, list) {
+            listener.assert(test);
             if(err) {
                 test.fail('got error: ' + err.stack || err);
                 test.done();
@@ -283,7 +305,9 @@ module.exports = {
     'join': function(test) {
         var i, found = false;
         var q = "select p.Title, ps.inventoryCountResponse.totalCount from ebay.shopping.products as p, ebay.shopping.productstats as ps where p.QueryKeywords = 'iPhone' and p.siteid = '0' and ps.productID = p.ProductID[0].Value";
+        var listener = new Listener(engine);
         engine.exec(q, function(err, list) {
+            listener.assert(test);
             if(err) {
                 test.fail('got error: ' + err.stack || err);
                 test.done();
@@ -305,9 +329,11 @@ module.exports = {
         });
     },
     'in and': function(test) {
+        var listener = new Listener(engine);
         engine.exec('select itemId from ebay.finding.items where keywords = "mini cooper convertible" limit 2', function(err, list) {
             var q = "select * from ebay.shopping.item where itemId in ('" + list.body[0] + "', '" + list.body[1] + "') and includeSelector = 'ShippingCosts'";
             engine.exec(q, function(err, list) {
+                listener.assert(test);
                 if(err) {
                     test.fail('got error: ' + err.stack || err);
                     test.done();
@@ -329,7 +355,9 @@ module.exports = {
                       return {\
                         "details" : "{details}"\
                       };'
+        var listener = new Listener(engine);
         engine.exec(script, function(err, result) {
+            listener.assert(test);
             if(err) {
                 test.fail('got error: ' + err.stack || err);
                 test.done();
@@ -344,7 +372,9 @@ module.exports = {
     'validator': function(test) {
         var q;
         q = 'select * from ebay.finding.items where keywords = "ipad" and globalid="XYZ"';
+//        var listener = new Listener(engine, true);
         engine.exec(q, function(err) {
+//            listener.assert(test);
             if(err) {
                 test.ok(true, 'Good.');
                 test.done();
@@ -367,10 +397,12 @@ module.exports = {
         var emitter = new EventEmitter();
         emitter.addListener(Engine.Events.STATEMENT_REQUEST, listener);
 
+        var listener = new Listener(engine);
         engine.exec({
             emitter: emitter,
             script: q + "110",
             cb: function(err) {
+                listener.assert(test);
                 if(err) {
                     console.log(err.stack || err);
                     test.ok(false, 'Failed.');
@@ -388,7 +420,9 @@ module.exports = {
 
     'return-statement': function(test) {
         var q = "return select * from ebay.finding.items where keywords = 'mini cooper' limit 10;";
+        var listener = new Listener(engine);
         engine.exec(q, function(err, result) {
+            listener.assert(test);
             if(err) {
                 test.ok(false, 'failed');
                 test.done();
@@ -406,7 +440,9 @@ module.exports = {
     'return-ref': function(test) {
         var q = "minis = select * from ebay.finding.items where keywords = 'mini cooper' limit 10;\n\
                  return minis;";
+        var listener = new Listener(engine);
         engine.exec(q, function(err, result) {
+            listener.assert(test);
             if(err) {
                 test.ok(false, 'failed');
                 test.done();
@@ -424,7 +460,9 @@ module.exports = {
     'select-digits': function(test) {
         var q;
         q = 'select * from ebay.finding.items where keywords = 12345';
+        var listener = new Listener(engine);
         engine.exec(q, function(err, list) {
+            listener.assert(test);
             if(err) {
                 test.fail('got error: ' + err.stack || err);
                 test.done();
@@ -446,7 +484,9 @@ module.exports = {
                  resultset "findItemsByKeywordsResponse.searchResult.item";\n\
                 data = select * from myitems where keywords = "iPhone 4S";\n\
                 return select itemId as id, title as t from data;';
+        var listener = new Listener(engine);
         engine.exec(q, function(err, list) {
+            listener.assert(test);
             if(err) {
                 test.fail('got error: ' + err.stack || err);
                 test.done();
@@ -468,7 +508,6 @@ module.exports = {
                   -- blah";
         engine.exec(q, function(err, list) {
             test.fail('nothing to execute and return');
-
         });
         test.ok(true);
         test.done();
@@ -480,7 +519,9 @@ module.exports = {
                   -- blah \n    \
                   select * from ebay.finding.items where keywords = 12345 \n \
                   -- blah";
+        var listener = new Listener(engine);
         engine.exec(q, function(err, list) {
+            listener.assert(test);
             if(err) {
                 test.fail('got error: ' + err.stack || err);
                 test.done();

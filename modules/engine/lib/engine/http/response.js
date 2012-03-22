@@ -69,8 +69,7 @@ exports.exec = function(timings, reqStart, args, uniqueId, res, start, result, o
     }
 
     mediaType = sniffMediaType(res, respData, args);
-    // emit the incoming headers for logging
-    args.logEmitter.emitEvent(args.httpReqTx.event, JSON.stringify(res.headers));
+
     // Parse
     jsonify(args.table, respData, mediaType, res.headers, args.xformers, function (respJson) {
         status = args.resource.patchStatus(res.statusCode, res.headers, respJson || respData, args)
@@ -86,7 +85,7 @@ exports.exec = function(timings, reqStart, args, uniqueId, res, start, result, o
                             'content-type': 'application/json'
                         },
                         body: filtered
-                    });
+                    }, JSON.stringify({'status': res.statusCode, 'headers' : res.headers}));
                 });
             }
             else {

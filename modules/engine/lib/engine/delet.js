@@ -62,7 +62,12 @@ exports.exec = function (opts, statement, cb, parentEvent) {
         }
         resource = context[name];
         if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
-            apiTx = opts.logEmitter.wrapEvent(deleteExecTx.event, 'API', name, deleteExecTx.cb);
+            apiTx = opts.logEmitter.wrapEvent({
+                    parent: deleteExecTx.event,
+                    txType: 'API',
+                    txName: name,
+                    message: {line: statement.line},
+                    cb: deleteExecTx.cb});
 
             if(_.isArray(resource)) {
                 resource = filter.reject(resource, statement, context, statement.source);
