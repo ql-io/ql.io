@@ -26,6 +26,8 @@ var _ = require('underscore'),
     zlib = require('zlib'),
     uuid = require('node-uuid');
 
+var maxResponseLength;
+
 exports.send = function(args) {
 
     var client, options;
@@ -83,6 +85,7 @@ function putInCache(key, cache, result, res, expires) {
 
 function sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, expires, uniqueId, status, retry, redirects) {
 var followRedirects = true, maxRedirects = 10;
+    args.logEmitter.emitEvent(args.httpReqTx.event, JSON.stringify(options));
     var clientRequest = client.request(options, function (res) {
         if (followRedirects && (res.statusCode >= 301 && res.statusCode <= 307) &&
             (options.method.toUpperCase() === 'GET' || options.method.toUpperCase() === 'HEAD')) {
@@ -187,9 +190,7 @@ var followRedirects = true, maxRedirects = 10;
                 bufs.push(chunk);
             }
             responseLength += chunk.length;
-
-            var maxResponseLength = getMaxResponseLength(args.config, args.logEmitter);
-
+            maxResponseLength = maxResponseLength || getMaxResponseLength(args.config, args.logEmitter);
             if (responseLength > maxResponseLength) {
                 var err = new Error('Response length exceeds limit');
                 err.uri = args.uri;

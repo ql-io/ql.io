@@ -22,15 +22,14 @@ var eventTypes = require('./event-types.js'),
     util = require('util');
 
 var LogEmitter = module.exports = function() {
-    var counter = 1;
+    var counter = 0;
     events.EventEmitter.call(this);
 
     this.getEventId = function() {
-        counter++;
         if (counter == 65535) {
             counter = 1; // skip 0, it means non-transaction
         }
-        return counter;
+        return ++counter;
     }
 
     this.beginEvent= function(parent, type, name) {

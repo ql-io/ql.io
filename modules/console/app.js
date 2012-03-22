@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 eBay Software Foundation
+ * Copyright 2012 eBay Software Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -251,20 +251,25 @@ var Console = module.exports = function(config, cb) {
                 holder.connection = {
                     remoteAddress: req.connection.remoteAddress
                 }
+                // Start the top level URL transaction
+                var urlEvent = engine.wrapEvent(null, 'URL', req.originalUrl, function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                });
+                // Emit incoming headers
+                engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
 
                 var execState = [];
                 engine.execute(route.script,
                     {
                         request: holder,
                         route: uri,
-                        context: req.body || {}
+                        context: req.body || {},
+                        parentEvent: urlEvent.event
                     },
                     function(emitter) {
                         setupExecStateEmitter(emitter, execState, req.param('events'));
                         setupCounters(emitter);
-                        emitter.on('end', function(err, results) {
-                            return handleResponseCB(req, res, execState, err, results);
-                        });
+                        emitter.on('end', urlEvent.cb);
                     }
                 );
             });
@@ -292,19 +297,24 @@ var Console = module.exports = function(config, cb) {
             });
         }
 
+        // Start the top level URL transaction
+        var urlEvent = engine.wrapEvent(null, 'URL', req.originalUrl, function(err, results) {
+            return isJson || err ?
+                handleResponseCB(req, res, execState, err, results) :
+                routePage(res,execState,results.body);
+        });
+        // Emit incoming headers
+        engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
         var execState = [];
         engine.execute('show tables',
             {
-                request: holder
+                request: holder,
+                parentEvent: urlEvent.event
             },
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
                 setupCounters(emitter);
-                emitter.on('end', function(err, results) {
-                    return isJson || err ?
-                        handleResponseCB(req, res, execState, err, results) :
-                        routePage(res,execState,results.body);
-                });
+                emitter.on('end', urlEvent.cb);
             }
         );
     });
@@ -354,19 +364,24 @@ var Console = module.exports = function(config, cb) {
             return;
         }
 
+        // Start the top level URL transaction
+        var urlEvent = engine.wrapEvent(null, 'URL', req.originalUrl, function(err, results) {
+            return isJson || err ?
+                handleResponseCB(req, res, execState, err, results) :
+                routePage(res,execState,results.body);
+        });
+        // Emit incoming headers
+        engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
         var execState = [];
         engine.execute('describe' + decodeURIComponent(name),
             {
-                request: holder
+                request: holder,
+                parentEvent: urlEvent.event
             },
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
                 setupCounters(emitter);
-                emitter.on('end', function(err, result) {
-                    return isJson || err ?
-                        handleResponseCB(req, res, execState, err, result):
-                        routePage(res,execState,result.body);
-                });
+                emitter.on('end', urlEvent.cb);
             }
         );
     });
@@ -393,19 +408,24 @@ var Console = module.exports = function(config, cb) {
             });
         }
 
+        // Start the top level URL transaction
+        var urlEvent = engine.wrapEvent(null, 'URL', req.originalUrl, function(err, results) {
+            return isJson || err ?
+                handleResponseCB(req, res, execState, err, results) :
+                routePage(res,execState,results.body);
+        });
+        // Emit incoming headers
+        engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
         var execState = [];
         engine.execute('show routes',
             {
-                request: holder
+                request: holder,
+                parentEvent: urlEvent.event
             },
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
                 setupCounters(emitter);
-                emitter.on('end', function(err, results) {
-                    return isJson || err ?
-                        handleResponseCB(req, res, execState, err, results) :
-                        routePage(res,execState,results.body);
-                });
+                emitter.on('end', urlEvent.cb);
             }
         );
     });
@@ -466,19 +486,25 @@ var Console = module.exports = function(config, cb) {
             });
         }
 
+        // Start the top level URL transaction
+        var urlEvent = engine.wrapEvent(null, 'URL', req.originalUrl, function(err, results) {
+            return isJson || err ?
+                handleResponseCB(req, res, execState, err, results) :
+                routePage(res,execState,results.body);
+        });
+        // Emit incoming headers
+        engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
+
         var execState = [];
         engine.execute('describe route "' + decodeURIComponent(path) + '" using method ' + method,
             {
-                request: holder
+                request: holder,
+                parentEvent: urlEvent.event
             },
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
                 setupCounters(emitter);
-                emitter.on('end', function(err, result) {
-                    return isJson || err ?
-                        handleResponseCB(req, res, execState, err, result) :
-                        routePage(res,execState,result.body);
-                });
+                emitter.on('end', urlEvent.cb);
             }
         );
     });
@@ -509,16 +535,18 @@ var Console = module.exports = function(config, cb) {
             query = sanitize(query).str;
             collectHttpQueryParams(req, holder, true);
             collectHttpHeaders(req, holder);
+            var urlEvent = engine.wrapEvent(null, 'URL', null, function (err, results) {
+                return handleResponseCB(req, res, execState, err, results);
+            });
             var execState = [];
             engine.execute(query,
                 {
-                    request: holder
+                    request: holder,
+                    parentEvent: urlEvent.event
                 }, function(emitter) {
                     setupExecStateEmitter(emitter, execState, req.param('events'));
                     setupCounters(emitter);
-                    emitter.on('end', function(err, results) {
-                        return handleResponseCB(req, res, execState, err, results);
-                    })
+                    emitter.on('end', urlEvent.cb);
                 })
             }
         );

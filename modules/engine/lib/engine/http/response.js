@@ -69,12 +69,8 @@ exports.exec = function(timings, reqStart, args, uniqueId, res, start, result, o
     }
 
     mediaType = sniffMediaType(res, respData, args);
-
-    args.logEmitter.emitEvent(args.httpReqTx.event, args.uri + '  ' +
-        util.inspect(options) + ' ' +
-        res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
-        util.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
-
+    // emit the incoming headers for logging
+    args.logEmitter.emitEvent(args.httpReqTx.event, JSON.stringify(res.headers));
     // Parse
     jsonify(args.table, respData, mediaType, res.headers, args.xformers, function (respJson) {
         status = args.resource.patchStatus(res.statusCode, res.headers, respJson || respData, args)
