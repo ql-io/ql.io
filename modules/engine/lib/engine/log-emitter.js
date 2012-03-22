@@ -88,8 +88,11 @@ var LogEmitter = module.exports = function() {
             cb: function(e, r, m) {
                 var message = 'Success';
                 if (e) {
-                    // TODO: This causes duplicate error events due to unwrapping ...
-                    that.emit(eventTypes.ERROR, event, e);
+                    if(e.emitted === undefined) {
+                        event.tx = 'error';
+                        that.emit(eventTypes.ERROR, event, e);
+                        e.emitted = true;
+                    }
                     message = 'Failure'
                 }
                 that.endEvent(event);
@@ -112,6 +115,7 @@ var LogEmitter = module.exports = function() {
         else if (arguments.length === 1) {
             msg = arguments[0];
         }
+        event.tx = 'warn';
         this.emit(eventTypes.WARNING, event, msg);
     }
 
@@ -128,6 +132,7 @@ var LogEmitter = module.exports = function() {
         else if (arguments.length === 1) {
             msg = arguments[0];
         }
+        event.tx = 'error';
         this.emit(eventTypes.ERROR, event, msg, cause);
     }
 

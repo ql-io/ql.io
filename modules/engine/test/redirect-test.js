@@ -14,13 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-"use strict"
+'use strict'
 
 var Engine = require('../lib/engine'),
     http = require('http'),
     fs = require('fs'),
     util = require('util'),
-    logger = require('winston');
+    logger = require('winston'),
+    Listener = require('./utils/log-listener.js');
 
 logger.remove(logger.transports.Console);
 logger.add(logger.transports.Console, {level:'error'});
@@ -117,9 +118,11 @@ module.exports = {
 
         var script = fs.readFileSync(__dirname + '/mock/redirect.ql', 'UTF-8');
 
+        var listener = new Listener(engine, false);
         engine.exec({
             script:script,
             cb:function (err, result) {
+//                listener.assert(test);
                 try {
                     if (err) {
                         console.log(err.stack || err);

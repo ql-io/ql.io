@@ -372,9 +372,9 @@ module.exports = {
     'validator': function(test) {
         var q;
         q = 'select * from ebay.finding.items where keywords = "ipad" and globalid="XYZ"';
-//        var listener = new Listener(engine, true);
+        var listener = new Listener(engine, false);
         engine.exec(q, function(err) {
-//            listener.assert(test);
+            listener.assert(test);
             if(err) {
                 test.ok(true, 'Good.');
                 test.done();

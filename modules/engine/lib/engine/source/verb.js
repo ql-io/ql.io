@@ -105,7 +105,9 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
                     log: this.curry(this.log, args.logEmitter, args.parentEvent)
                 }, name, value);
                 if(!isValid) {
-                    throw 'Value of ' + name + ' "' + value + '" is not valid';
+                    throw {
+                        message: 'Value of ' + name + ' "' + value + '" is not valid'
+                    };
                 }
             }
         }
