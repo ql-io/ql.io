@@ -8,9 +8,22 @@
 
 * Factor out cluster function into [cluster2](https://github.com/ql-io/cluster2). This change
   also moves ECV checks to cluster2.
-* Caching support based on new `expires <seconds>` clause on `create table` (example below).
+* Caching support based on new `expires <seconds>` keyword ***create table*** (example below) or `compute key` monkey patch.
 
-    create table auto.compute.key on select get from 'http://a.uri.net' ... expires 10;
+**create table**
+
+create table auto.compute.key on select get from 'http://a.uri.net' Éother thingsÉ `expires 10`;
+
+**compute key** (monkey patch)
+
+	exports['compute key'] = function(args) {
+    	//return args.uri;
+	    var key = [];
+    	key.push(args.table);
+	    key.push(args.uri);
+    	key.push(JSON.stringify(args.params));
+	    return(key.join(':'));
+	};
 
 ## Mar 19, 2012
 
@@ -34,7 +47,6 @@
           return {};
       }
 * Fix the broken template app
->>>>>>> origin/master
 
 ## Mar 12, 2012
 
