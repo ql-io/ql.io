@@ -299,6 +299,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             args.resource.defaults,
             {config: args.config}
         );
+        args.params = params;
 
         // Validate each param if the monkey patch has a 'validate param' validator.
         try {

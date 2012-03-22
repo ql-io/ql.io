@@ -1,17 +1,18 @@
 ## Mar 21, 2012
 
-* Compression support for ql.io clients. Responses for routes are compressed as per 'accept-encoding' header.
-  gzip and deflate are supported. Default is gzip.
+* Fix https://github.com/ql-io/ql.io/issues/329.
+* Compression support for ql.io clients. Responses for routes are compressed as per
+  'accept-encoding' header. gzip and deflate are supported. Default is gzip.
 
 ## Mar 20, 2012
 
 * Factor out cluster function into [cluster2](https://github.com/ql-io/cluster2). This change
   also moves ECV checks to cluster2.
-* Caching support based on new `expires <seconds>` keyword ***create table*** (example below) and/or `compute key` monkey patch.
+* Caching support based on new `expires <seconds>` keyword ***create table*** (example below) or `compute key` monkey patch.
 
 **create table**
- 
-create table auto.compute.key on select get from 'http://a.uri.net' â€¦other thingsâ€¦ `expires 10`;
+
+create table auto.compute.key on select get from 'http://a.uri.net' Éother thingsÉ `expires 10`;
 
 **compute key** (monkey patch)
 
@@ -46,7 +47,6 @@ create table auto.compute.key on select get from 'http://a.uri.net' â€¦other thi
           return {};
       }
 * Fix the broken template app
->>>>>>> origin/master
 
 ## Mar 12, 2012
 
