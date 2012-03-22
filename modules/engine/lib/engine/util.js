@@ -86,6 +86,7 @@ var toNormalizedSting = exports.toNormalizedSting = function(obj, dupGuard) {
         ret = obj.toString();
     }
     else if (_.isArray(obj)) {
+        obj.sort();
         ret = JSON.stringify(_.chain(obj)
             .map(function (ele) {
                 return isDup(ele, dupGuard) ? '<circ>' : toNormalizedSting(ele, dupGuard);
@@ -110,4 +111,32 @@ var toNormalizedSting = exports.toNormalizedSting = function(obj, dupGuard) {
     }
 
     return ret;
+}
+
+var getCache = exports.getCache = function (config, cache, errorCb) {
+    errorCb = errorCb || function(e) {};
+    if (cache) {
+        return cache;
+    }
+    if(config.cache && config.cache.name){
+        var cacheConfig = config.cache.options;
+        try {
+            var cache;
+            if(cacheConfig == undefined){
+                cache = new (require(config.cache.name))();
+            }
+            else {
+                cache = new (require(config.cache.name))(cacheConfig);
+            }
+            if(_.isFunction(cache.start)){
+                cache.start();
+            }
+            return cache;
+        }
+        catch(e){
+            errorCb({cache:config.cache,
+                curDir: __dirname,
+                error:e});
+        }
+    }
 }
