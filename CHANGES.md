@@ -1,7 +1,8 @@
 ## Mar 21, 2012
 
-* Compression support for ql.io clients. Responses for routes are compressed as per 'accept-encoding' header.
-  gzip and deflate are supported. Default is gzip.
+* Fix https://github.com/ql-io/ql.io/issues/329.
+* Compression support for ql.io clients. Responses for routes are compressed as per
+  'accept-encoding' header. gzip and deflate are supported. Default is gzip.
 
 ## Mar 20, 2012
 
@@ -10,8 +11,8 @@
 * Caching support based on new `expires <seconds>` keyword ***create table*** (example below) or `compute key` monkey patch.
 
 **create table**
- 
-create table auto.compute.key on select get from 'http://a.uri.net' ‚Ä¶other things‚Ä¶ `expires 10`;
+
+create table auto.compute.key on select get from 'http://a.uri.net' …other things… `expires 10`;
 
 **compute key** (monkey patch)
 
@@ -24,13 +25,13 @@ create table auto.compute.key on select get from 'http://a.uri.net' ‚Ä¶other thi
 	    return(key.join(':'));
 	};
 
-## Mar 18, 2012
-
-* Fix https://github.com/ql-io/ql.io/issues/372.
-
 ## Mar 19, 2012
 
 * Remove extraneous event emitted while processing the where clause.
+
+## Mar 18, 2012
+
+* Fix https://github.com/ql-io/ql.io/issues/372.
 
 ## Mar 16, 2012
 
