@@ -68,7 +68,7 @@ var Engine = module.exports = function(opts) {
 
     opts.logger = opts.logger || new (winston.Logger)();
     // Attach listeners and loggers before doing anything
-    this.setMaxListeners(25);
+    this.setMaxListeners(30);
     this.on(Engine.Events.EVENT, function(event, message) {
         if(message) {
             opts.logger.info(new Date() + ' - ' + message);
