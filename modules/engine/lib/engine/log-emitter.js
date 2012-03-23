@@ -66,20 +66,13 @@ var LogEmitter = module.exports = function() {
         obj.tx = 'end';
     }
 
-    this.wrapEvent = function(parent, txType, txName, cb) {
-        if(arguments.length === 1) {
-            parent = arguments[0].parent;
-            txType = arguments[0].txType;
-            txName = arguments[0].txName;
-            var message = arguments[0].message;
-            cb = arguments[0].cb;
-        }
-        else {
-            parent = arguments[0];
-            txType = arguments[1];
-            txName = arguments[2];
-            cb = arguments[3];
-        }
+    this.wrapEvent = function() {
+        var parent = arguments[0].parent;
+        var txType = arguments[0].txType;
+        var txName = arguments[0].txName;
+        var message = arguments[0].message;
+        var cb = arguments[0].cb;
+
         var event = this.beginEvent(parent, txType, txName);
         this.emit(eventTypes.BEGIN_EVENT, event, message);
         var that = this;
