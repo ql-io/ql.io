@@ -18,7 +18,8 @@ var _ = require('underscore'),
     Engine = require('../lib/engine'),
     http = require('http'),
     fs = require('fs'),
-    util = require('util');
+    util = require('util'),
+    Listener = require('./utils/log-listener.js');
 
 module.exports = {
     'select from csv with headers' : function(test) {
@@ -43,7 +44,9 @@ module.exports = {
             var engine = new Engine({
             });
             var script = fs.readFileSync(__dirname + '/mock/csvSelect.ql', 'UTF-8');
+            var listener = new Listener(engine);
             engine.exec(script, function(err, results) {
+                listener.assert(test);
                 if (err) {
                     console.log(err.stack || err);
                     test.ok(false, 'Grrr');
@@ -86,7 +89,9 @@ module.exports = {
             var engine = new Engine({
             });
             var script = fs.readFileSync(__dirname + '/mock/csvSelect.ql', 'UTF-8');
+            var listener = new Listener(engine);
             engine.exec(script, function(err, results) {
+                listener.assert(test);
                 if (err) {
                     console.log(err.stack || err);
                     test.ok(false, 'Grrr');
@@ -128,7 +133,9 @@ module.exports = {
             var engine = new Engine({
             });
             var script = fs.readFileSync(__dirname + '/mock/utf8csvSelect.ql', 'UTF-8');
+            var listener = new Listener(engine);
             engine.exec(script, function(err, results) {
+                listener.assert(test);
                 if (err) {
                     console.log(err.stack || err);
                     test.ok(false, 'Grrr');

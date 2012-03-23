@@ -22,15 +22,14 @@ var eventTypes = require('./event-types.js'),
     util = require('util');
 
 var LogEmitter = module.exports = function() {
-    var counter = 1;
+    var counter = 0;
     events.EventEmitter.call(this);
 
     this.getEventId = function() {
-        counter++;
         if (counter == 65535) {
             counter = 1; // skip 0, it means non-transaction
         }
-        return counter;
+        return ++counter;
     }
 
     this.beginEvent= function(parent, type, name) {
@@ -68,26 +67,43 @@ var LogEmitter = module.exports = function() {
     }
 
     this.wrapEvent = function(parent, txType, txName, cb) {
+        if(arguments.length === 1) {
+            parent = arguments[0].parent;
+            txType = arguments[0].txType;
+            txName = arguments[0].txName;
+            var message = arguments[0].message;
+            cb = arguments[0].cb;
+        }
+        else {
+            parent = arguments[0];
+            txType = arguments[1];
+            txName = arguments[2];
+            cb = arguments[3];
+        }
         var event = this.beginEvent(parent, txType, txName);
-        this.emit(eventTypes.BEGIN_EVENT, event);
+        this.emit(eventTypes.BEGIN_EVENT, event, message);
         var that = this;
         return {
             event: event,
-            cb: function(e, r) {
+            cb: function(e, r, m) {
                 var message = 'Success';
                 if (e) {
-                    // TODO: This causes duplicate error events due to unwrapping ...
-                    that.emit(eventTypes.ERROR, event, e);
+                    if(e.emitted === undefined) {
+                        event.tx = 'error';
+                        that.emit(eventTypes.ERROR, event, e);
+                        e.emitted = true;
+                    }
                     message = 'Failure'
                 }
                 that.endEvent(event);
-                that.emit(eventTypes.END_EVENT, event, message); //end
+                that.emit(eventTypes.END_EVENT, event, m || message); //end
                 return cb(e, r);
             }
         }
     }
 
     this.emitEvent = function(event, msg){
+        event.tx = 'info';
         this.emit(eventTypes.EVENT, event, msg);
     }
 
@@ -100,6 +116,7 @@ var LogEmitter = module.exports = function() {
         else if (arguments.length === 1) {
             msg = arguments[0];
         }
+        event.tx = 'warn';
         this.emit(eventTypes.WARNING, event, msg);
     }
 
@@ -116,6 +133,7 @@ var LogEmitter = module.exports = function() {
         else if (arguments.length === 1) {
             msg = arguments[0];
         }
+        event.tx = 'error';
         this.emit(eventTypes.ERROR, event, msg, cause);
     }
 

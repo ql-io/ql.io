@@ -219,25 +219,30 @@ Engine.prototype.execute = function() {
     assert.ok(script, 'Missing script');
     assert.ok(this.xformers, 'Missing xformers');
 
-    var engineEvent = this.wrapEvent(parentEvent, 'QlIoEngine', null, function(err, results) {
-        packet = {
-            script: route || script,
-            type: eventTypes.SCRIPT_DONE,
-            elapsed: Date.now() - start,
-            data: 'Done'
-        };
-        if(cooked) {
-            last = _.last(cooked);
-            packet.line = last.line;
+    var engineEvent = this.wrapEvent({
+        parent: parentEvent,
+        txType: 'QlIoEngine',
+        txName: undefined,
+        message: route ? {'route':  route} : {'script' : script},
+        cb: function(err, results) {
+            packet = {
+                script: route || script,
+                type: eventTypes.SCRIPT_DONE,
+                elapsed: Date.now() - start,
+                data: 'Done'
+            };
+            if(cooked) {
+                last = _.last(cooked);
+                packet.line = last.line;
+            }
+            emitter.emit(eventTypes.SCRIPT_DONE, packet);
+            if(results && requestId) {
+                results.headers = results.headers || {};
+                results.headers['request-id'] = requestId;
+            }
+            emitter.emit('end', err, results);
         }
-        emitter.emit(eventTypes.SCRIPT_DONE, packet);
-        if(results && requestId) {
-            results.headers = results.headers || {};
-            results.headers['request-id'] = requestId;
-        }
-        emitter.emit('end', err, results);
     });
-    this.emitEvent(engineEvent.event, route ? 'route:' + route : 'script:' + script);
 
     emitter.emit(eventTypes.SCRIPT_ACK, {
         type: eventTypes.SCRIPT_ACK,

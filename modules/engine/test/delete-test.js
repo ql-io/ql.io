@@ -15,6 +15,7 @@
  */
 
 var Engine = require('../lib/engine'),
+    Listener = require('./utils/log-listener.js'),
     http = require('http'),
     util = require('util');
 
@@ -27,8 +28,10 @@ module.exports = {
         }\
         return delete from obj where a = "A";';
         var engine = new Engine();
+        var listener = new Listener(engine);
         engine.execute(script, function (emitter) {
             emitter.on('end', function (err, result) {
+                listener.assert(test);
                 if(err) {
                     console.log(err.stack || util.inspect(err, false, 10));
                     test.fail('got error');
@@ -53,8 +56,10 @@ module.exports = {
                     narr = delete from arr where key = 1 and color = "red";\
                     return narr;';
         var engine = new Engine();
+        var listener = new Listener(engine);
         engine.execute(script, function (emitter) {
             emitter.on('end', function (err, result) {
+                listener.assert(test);
                 if(err) {
                     console.log(err.stack || util.inspect(err, false, 10));
                     test.fail('got error');
@@ -89,8 +94,10 @@ module.exports = {
                 narr = delete from arr where key = 1 and color = "{colors}";\
                 return narr;';
         var engine = new Engine();
+        var listener = new Listener(engine);
         engine.execute(script, function (emitter) {
             emitter.on('end', function (err, result) {
+                listener.assert(test);
                 if(err) {
                     console.log(err.stack || util.inspect(err, false, 10));
                     test.fail('got error');
@@ -125,8 +132,10 @@ module.exports = {
                     narr = delete from arr where key = 1 and color in "{colors}";\
                     return narr;';
         var engine = new Engine();
+        var listener = new Listener(engine);
         engine.execute(script, function (emitter) {
             emitter.on('end', function (err, result) {
+                listener.assert(test);
                 if(err) {
                     console.log(err.stack || util.inspect(err, false, 10));
                     test.fail('got error');
@@ -159,8 +168,10 @@ module.exports = {
             {"key" : 4}]\
             return delete from arr where key = 1;';
         var engine = new Engine();
+        var listener = new Listener(engine);
         engine.execute(script, function (emitter) {
             emitter.on('end', function (err, result) {
+                listener.assert(test);
                 if(err) {
                     console.log(err.stack || util.inspect(err, false, 10));
                     test.fail('got error');
@@ -202,7 +213,9 @@ module.exports = {
             var engine = new Engine({
                 tables: __dirname + '/delete'
             });
+            var listener = new Listener(engine);
             engine.execute('delete from delete.test where name = 101', function (emitter) {
+                listener.assert(test);
                 emitter.on('end', function (err, result) {
                     if(err) {
                         console.log(err.stack || util.inspect(err, false, 10));

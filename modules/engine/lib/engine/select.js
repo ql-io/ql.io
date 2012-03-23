@@ -32,7 +32,12 @@ exports.exec = function(opts, statement, cb, parentEvent) {
     assert.ok(opts.xformers, 'No xformers set');
 
     var funcs, cloned, joiningColumn, selectEvent;
-    selectEvent = opts.logEmitter.wrapEvent(parentEvent, 'QlIoSelect', null, cb);
+    selectEvent = opts.logEmitter.wrapEvent({
+        parent: parentEvent,
+        txType: 'QlIoSelect',
+        txName: null,
+        message: {line: statement.line},
+        cb: cb});
 
     execInternal(opts, statement, function(err, results) {
         if(err) {
@@ -123,7 +128,13 @@ function execInternal(opts, statement, cb, parentEvent) {
     var tables = opts.tables, tempResources = opts.tempResources, context = opts.context,
          request = opts.request, emitter = opts.emitter;
 
-    var selectExecTx = opts.logEmitter.wrapEvent(parentEvent, 'QlIoSelectExec', null, cb);
+    var selectExecTx  = opts.logEmitter.wrapEvent({
+        parent: parentEvent,
+        txType: 'QlIoSelectExec',
+        txName: null,
+        message: {line: statement.line},
+        cb: cb});
+
     //
     // Analyze where conditions and fetch any dependent data
     var name, params, value, r, p, max, resource, apiTx;
@@ -156,7 +167,13 @@ function execInternal(opts, statement, cb, parentEvent) {
             }
             resource = context[name];
             if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
-                apiTx = opts.logEmitter.wrapEvent(selectExecTx.event, 'API', name, selectExecTx.cb);
+                apiTx = opts.logEmitter.wrapEvent({
+                        parent: selectExecTx.event,
+                        txType: 'API',
+                        txName: name,
+                        message: {line: statement.line},
+                        cb: selectExecTx.cb});
+
                 var filtered = filter.filter(resource, statement, context, from);
 
                 // Project
@@ -176,7 +193,13 @@ function execInternal(opts, statement, cb, parentEvent) {
             else {
                 // Get the resource
                 resource = tempResources[from.name] || tables[from.name];
-                apiTx = opts.logEmitter.wrapEvent(selectExecTx.event, 'API', from.name, selectExecTx.cb);
+                apiTx = opts.logEmitter.wrapEvent({
+                        parent: selectExecTx.event,
+                        txType: 'API',
+                        txName: from.name,
+                        message: {line: statement.line},
+                        cb: selectExecTx.cb});
+
                 if(!resource) {
                     return apiTx.cb('No such table ' + from.name);
                 }

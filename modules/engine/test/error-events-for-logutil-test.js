@@ -70,7 +70,7 @@ module.exports = {
         var errorHandler = function(ctx, msg) {
             ctx = ctx || {};
             test.equals(ctx.type, 'QlIoHttpRequest', 'QlIoHttpRequest expected');
-            test.ok(msg.indexOf('ECONNREFUSED') != -1, 'Expected ECONNREFUSED in error');
+            test.ok(msg.message.indexOf('ECONNREFUSED') != -1, 'Expected ECONNREFUSED in error');
             errorGot = true;
         }
 

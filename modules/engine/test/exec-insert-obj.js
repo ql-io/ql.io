@@ -16,6 +16,7 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
+    Listener = require('./utils/log-listener.js'),
     http = require('http'),
     fs = require('fs'),
     url = require('url'),
@@ -26,7 +27,9 @@ module.exports = {
         var engine = new Engine({
         });
         var script = fs.readFileSync(__dirname + '/mock/insert-obj.ql', 'UTF-8');
+        var listener = new Listener(engine);
         engine.execute(script, function (emitter) {
+            listener.assert(test);
             emitter.on('end', function (err, result) {
                 if(err) {
                     test.fail('Error unexpected');
