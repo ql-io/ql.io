@@ -52,6 +52,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             //table, method, uri, params, headers, body
             var key = [];
             key.push(args.table);
+            key.push(args.method);
             key.push(args.uri);
             key.push(_util.toNormalizedSting(args.params));
             key.push(_util.toNormalizedSting(_.chain(args.headers)
@@ -647,7 +648,10 @@ function send(verb, args, uri, params, cb) {
     }
 
     // Resource key to use in the cache
-    var key = args.resource.computeKey(verb.table, args.resource.method || 'GET', uri, params, headers, body, args);
+    var key;
+    if(verb.cache.expires){
+        key = args.resource.computeKey(verb.table, args.resource.method || 'GET', uri, params, headers, body, args);
+    }
 
     request.send({
         cb: cb,
