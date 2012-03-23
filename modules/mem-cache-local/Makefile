@@ -1,4 +1,5 @@
 memcached := $(shell which memcached)
+user := $(shell whoami)
 all: clean install test
 
 clean:
@@ -10,6 +11,8 @@ install:
 
 .PHONY : test
 test:
+	@echo "You can run 'make unixtest' but it may install memcache if not there"
+unixtest:
 ifeq ($(memcached),)
 	-mkdir -p test/binaries/libevent
 	tar -xzvf test/binaries/libevent-2.0.17-stable.tar.gz -C test/binaries/libevent
@@ -21,7 +24,7 @@ ifeq ($(memcached),)
 	cd test/binaries/memcached/memcached-1.4.13; ./configure; make; make install; cd ../../../..
 	-rm -fr test/binaries/memcached
 endif
-	memcached -u root -d -m 24 -p 8026 &
+	memcached -u $(user) -d -m 24 -p 8026 &
 	node_modules/.bin/nodeunit test;
 	killall memcached
 
