@@ -22,20 +22,26 @@ var Engine = require('../lib/engine'),
 
 module.exports = {
     'patch-compute cache json':function (test) {
-        var counter = 1;
 
         var server = http.createServer(function (req, res) {
             res.writeHead(200, {
                 'Content-Type':'application/json'
             });
-            res.end(JSON.stringify({'counter':counter}));
-            counter++;
+            res.end(JSON.stringify({}));
+            test.ok(false,"Not expected to come here");
         });
+
+        var cache = new mockCache();
+        var result = JSON.stringify({counter:1});
+        cache.put('patch-compute-key',{result:{content:result}, res:{headers:{'content-type':'application/json',
+        'content-length': result.length},
+            statusCode:200}}, 10);
+
         server.listen(3000, function () {
             // Do the test here.
             var engine = new Engine({
                 tables:__dirname + '/cache',
-                cache:new mockCache()
+                cache:cache
             });
             var script = "select * from patch.compute.key";
 
@@ -84,7 +90,7 @@ module.exports = {
                 tables:__dirname + '/cache',
                 cache:new mockCache()
             });
-            var script = "select * from patch.compute.key";
+            var script = "select * from auto.compute.key";
 
             var listener = new Listener(engine);
             engine.exec(script, function (err, result) {
@@ -132,7 +138,7 @@ module.exports = {
                 tables:__dirname + '/cache',
                 cache:new mockCache()
             });
-            var script = "select * from patch.compute.key";
+            var script = "select * from auto.compute.key";
             var listener = new Listener(engine);
             engine.exec(script, function (err, result) {
                 listener.assert(test);
@@ -188,7 +194,7 @@ module.exports = {
                 tables:__dirname + '/cache',
                 cache:new mockCache()
             });
-            var script = "select * from patch.compute.key";
+            var script = "select * from auto.compute.key";
 
             var listener = new Listener(engine);
             engine.exec(script, function (err, results) {
@@ -254,7 +260,7 @@ module.exports = {
                 tables:__dirname + '/cache',
                 cache:new mockCache()
             });
-            var script = "select * from patch.compute.key";
+            var script = "select * from auto.compute.key";
             var listener = new Listener(engine);
             engine.exec(script, function (err, results) {
                 listener.assert(test);
@@ -316,7 +322,7 @@ module.exports = {
                 tables:__dirname + '/cache',
                 cache:new mockCache()
             });
-            var script = "select * from patch.compute.key";
+            var script = "select * from auto.compute.key";
             var listener = new Listener(engine);
             engine.exec(script, function (err, results) {
                 listener.assert(test);
@@ -474,7 +480,7 @@ function mockCache() {
         var result = theCache[key];
 
         if (result === undefined) {
-            return cb(null, {message:'success', data:false});
+            return cb({message:'failure', data:false});
         }
 
         cb(null, {message:'success', data:result});
