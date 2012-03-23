@@ -1,10 +1,6 @@
 {
-    "ebay": {
-        "apikey": "Qlio1a92e-fea5-485d-bcdb-1140ee96527"
 
-    },
-    "maxNestedRequests" : 2,
-    "maxRequestLength" : 10000000,
-    "maxResponseLength" : 10000000
+    "maxNestedRequests" : 2
+
 }
 
