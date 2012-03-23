@@ -57,10 +57,13 @@ exports['cache-interval'] = function (test) {
     setTimeout(function(){
         cache.get('key2', function(err, result){
             if(err){
-                test.ok(false,util.inspect(err,false,null));
+                test.deepEqual({ message: 'failed',
+                    data: { key: 'key2' },
+                    error: 'empty result',
+                    result: false },err);
             }
             else{
-                test.deepEqual(result,{ message: 'success', data: false });
+                test.ok(false,result);
             }
             cache.end();
             test.done();
