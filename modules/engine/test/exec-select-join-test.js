@@ -19,7 +19,8 @@
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
     fs = require('fs'),
-    util = require('util');
+    util = require('util'),
+    Listener = require('./utils/log-listener.js');
 
 var engine = new Engine({
     tables : __dirname + '/tables',
@@ -29,7 +30,9 @@ var engine = new Engine({
 module.exports = {
     'select-join-array-object' : function(test) {
         fs.readFile(__dirname + '/mock/join-array-object.ql', 'UTF-8', function(err, script) {
+            var listener = new Listener(engine);
             engine.exec(script, function (err, list) {
+                listener.assert(test);
                 if(err) {
                     test.fail('got error: ' + err.stack || err);
                     test.done();
@@ -51,7 +54,9 @@ module.exports = {
                       b = [{"id": "1", "name": "abc"}];\
                       return select * from b where id in ("{a}");';
         engine.execute(script, function(emitter) {
+            var listener = new Listener(engine);
             emitter.on('end', function(err, list) {
+                listener.assert(test);
                 if(err) {
                     test.fail('got error: ' + err.stack || err);
                     test.done();
@@ -70,7 +75,9 @@ module.exports = {
                           b = [{"id": "1", "name": "abc"}, {"id": "2", "name": "def"}];\
                           return select * from b where id in ("{a}");';
         engine.execute(script, function (emitter) {
+            var listener = new Listener(engine);
             emitter.on('end', function (err, list) {
+                listener.assert(test);
                 if(err) {
                     test.fail('got error: ' + err.stack || err);
                     test.done();
@@ -91,8 +98,10 @@ module.exports = {
         var script = 'a = ["1", "2"];\
                               b = [{"id": "1", "name": "abc"}, {"id": "2", "name": "def"}];\
                               return select * from b where id in ("{a}") and name = "def";';
+        var listener = new Listener(engine);
         engine.execute(script, function (emitter) {
             emitter.on('end', function (err, list) {
+                listener.assert(test);
                 if(err) {
                     test.fail('got error: ' + err.stack || err);
                     test.done();
@@ -112,8 +121,10 @@ module.exports = {
         var script = 'a = ["1", "3"];\
                               b = [{"id": "1", "name": "abc"}, {"id": "2", "name": "def"}, {"id": "3", "name": "ghi"}];\
                               return select * from b where id in ("{a}") and name = "def";';
+        var listener = new Listener(engine);
         engine.execute(script, function (emitter) {
             emitter.on('end', function (err, list) {
+                listener.assert(test);
                 if(err) {
                     test.fail('got error: ' + err.stack || err);
                     test.done();

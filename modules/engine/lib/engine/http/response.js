@@ -70,11 +70,6 @@ exports.exec = function(timings, reqStart, args, uniqueId, res, start, result, o
 
     mediaType = sniffMediaType(res, respData, args);
 
-    args.logEmitter.emitEvent(args.httpReqTx.event, args.uri + '  ' +
-        util.inspect(options) + ' ' +
-        res.statusCode + ' ' + mediaType.type + '/' + mediaType.subtype + ' ' +
-        util.inspect(res.headers) + ' ' + (Date.now() - start) + 'msec');
-
     // Parse
     jsonify(args.table, respData, mediaType, res.headers, args.xformers, function (respJson) {
         status = args.resource.patchStatus(res.statusCode, res.headers, respJson || respData, args)
@@ -90,7 +85,7 @@ exports.exec = function(timings, reqStart, args, uniqueId, res, start, result, o
                             'content-type': 'application/json'
                         },
                         body: filtered
-                    });
+                    }, JSON.stringify({'status': res.statusCode, 'headers' : res.headers}));
                 });
             }
             else {

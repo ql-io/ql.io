@@ -26,6 +26,8 @@ var _ = require('underscore'),
     zlib = require('zlib'),
     uuid = require('node-uuid');
 
+var maxResponseLength;
+
 exports.send = function(args) {
 
     var client, options;
@@ -71,6 +73,14 @@ exports.send = function(args) {
     client = isTls ? https : http;
 
     // Send
+    args.httpReqTx = args.logEmitter.wrapEvent({
+        parent: args.parentEvent,
+        txType: 'QlIoHttpRequest',
+        txName: undefined,
+        message: JSON.stringify(options),
+        cb: args.cb
+    });
+
     sendMessage(args, client, options, 0);
 }
 
@@ -82,23 +92,28 @@ function putInCache(key, cache, result, res, expires) {
 }
 
 function sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, expires, uniqueId, status, retry, redirects) {
-var followRedirects = true, maxRedirects = 10;
+
+    var followRedirects = true, maxRedirects = 10;
+
     var clientRequest = client.request(options, function (res) {
         if (followRedirects && (res.statusCode >= 301 && res.statusCode <= 307) &&
             (options.method.toUpperCase() === 'GET' || options.method.toUpperCase() === 'HEAD')) {
             res.socket.destroy();
             if (res.statusCode === 305) { // Log but don't follow
-                args.logEmitter.emitWarning(args.httpReqTx.event, 'Warning with uri - ' + args.uri + ' - ' +
-                    'Received status code 305 ' + (Date.now() - start) + 'msec');
+                args.logEmitter.emitWarning(args.httpReqTx.event, JSON.stringify({
+                    status: res.statusCode, headers: res.headers
+                }));
                 var err = new Error('Received status code 305 from downstream server');
                 err.uri = args.uri;
                 err.status = 502;
                 return args.httpReqTx.cb(err);
-            } else if (res.statusCode !== 304 && res.statusCode !== 306) { // Only follow 301, 302, 303, 307
+            }
+            else if (res.statusCode !== 304 && res.statusCode !== 306) { // Only follow 301, 302, 303, 307
                 if (res.headers.location) {
                     if (redirects++ >= maxRedirects) {
-                        args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
-                            'Exceeded max redirects (' + maxRedirects + '). In a loop? ' + (Date.now() - start) + 'msec');
+                        args.logEmitter.emitError(args.httpReqTx.event, JSON.stringify({
+                            redirects: maxRedirects
+                        }));
                         var err = new Error('Exceeded max redirects');
                         err.uri = args.uri;
                         err.status = 502;
@@ -116,14 +131,20 @@ var followRedirects = true, maxRedirects = 10;
                     }
                     options.path = location.heirpart().path();
 
-                    args.logEmitter.emitEvent(args.httpReqTx.event, 'being redirected for the ' + redirects + ' time, ' +
-                        'going to ' + options.host + ':' + options.port + options.path + ' - ' + args.uri + ' - ' + (Date.now() - start) + 'msec');
+                    args.logEmitter.emitEvent(args.httpReqTx.event, JSON.stringify({
+                        redirects: redirects,
+                        status: res.statusCode,
+                        location: res.headers.location
+                    }));
                     sendHttpRequest(client, options, args, start, timings, reqStart, key, cache, expires, uniqueId, status, retry, redirects);
                     return;
-                } else {
-                    args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
-                        'Received status code ' + res.statusCode + ', but Location header was not provided' +
-                        ' ' + (Date.now() - start) + 'msec');
+                }
+                else {
+                    args.logEmitter.emitError(args.httpReqTx.event, JSON.stringify({
+                        message: 'Missing location header',
+                        status: res.statusCode,
+                        headers: res.headers
+                    }));
                     var err = new Error('Missing Location header in redirect');
                     err.uri = args.uri;
                     err.status = 502;
@@ -149,9 +170,9 @@ var followRedirects = true, maxRedirects = 10;
                 var err = new Error('Content-Encoding \'' + contentEncoding + '\' is not supported');
                 err.uri = args.uri;
                 err.status = 502;
-                args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
-                    'Content encoding ' + contentEncoding + ' is not supported' +
-                    ' ' + (Date.now() - start) + 'msec');
+                args.logEmitter.emitError(args.httpReqTx.event, JSON.stringify({
+                    message: 'Content encoding ' + contentEncoding + ' is not supported'
+                }));
                 res.socket.destroy();
                 return args.httpReqTx.cb(err);
             }
@@ -169,9 +190,9 @@ var followRedirects = true, maxRedirects = 10;
                 var err = new Error('Corrupted stream');
                 err.uri = args.uri;
                 err.status = 502;
-                args.logEmitter.emitError(args.httpReqTx.event, 'Error with uri - ' + args.uri + ' - ' +
-                    'Stream is corrupted' +
-                    ' ' + (Date.now() - start) + 'msec');
+                args.logEmitter.emitError(args.httpReqTx.event, JSON.stringify({
+                    message: contentEncoding + ' stream corrupted'
+                }));
                 res.socket.destroy();
                 return args.httpReqTx.cb(err);
             });
@@ -187,17 +208,15 @@ var followRedirects = true, maxRedirects = 10;
                 bufs.push(chunk);
             }
             responseLength += chunk.length;
-
-            var maxResponseLength = getMaxResponseLength(args.config, args.logEmitter);
-
+            maxResponseLength = maxResponseLength || getMaxResponseLength(args.config, args.logEmitter);
             if (responseLength > maxResponseLength) {
                 var err = new Error('Response length exceeds limit');
                 err.uri = args.uri;
                 err.status = 502;
 
-                args.logEmitter.emitError(args.httpReqTx.event, 'error with uri - ' + args.uri + ' - ' +
-                    'response length ' + responseLength + ' exceeds config.maxResponseLength of ' + maxResponseLength +
-                    ' ' + (Date.now() - start) + 'msec');
+                args.logEmitter.emitError(args.httpReqTx.event, JSON.stringify({
+                    message: 'Response length ' + responseLength + ' exceeds config.maxResponseLength of ' + maxResponseLength
+                }));
                 res.socket.destroy();
                 return args.httpReqTx.cb(err);
             }
@@ -219,11 +238,14 @@ var followRedirects = true, maxRedirects = 10;
         timings.send = Date.now() - reqStart;
     }
     clientRequest.on('error', function (err) {
-        args.logEmitter.emitError(args.httpReqTx.event, 'error with uri - ' + args.uri + ' - ' +
-            err.message + ' ' + (Date.now() - start) + 'msec');
+        args.logEmitter.emitError(args.httpReqTx.event, {
+            message: err.message || 'Network error'
+        });
         // For select, retry once on network error
         if (retry === 0 && args.statement.type === 'select') {
-            args.logEmitter.emitEvent(args.httpReqTx.event, 'retrying - ' + args.uri + ' - ' + (Date.now() - start) + 'msec');
+            args.logEmitter.emitEvent(args.httpReqTx.event, {
+                message: 'Retrying - ' + args.uri
+            });
             sendMessage(args, client, options, 1);
         }
         else {
@@ -253,7 +275,7 @@ function sendMessage(args, client, options, retry) {
         var packet = {
             line: args.statement.line,
             id: uniqueId,
-            uuid: args.httpReqTx.event.uuid,
+            uuid: args.parentEvent.uuid,
             method: options.method,
             uri: args.uri,
             headers: [],
@@ -295,7 +317,9 @@ function getMaxResponseLength(config, logEmitter) {
     }
     else {
         var max = 10000000; // default to 10,000,000
-        logEmitter.emitWarning('config.maxResponseLength is undefined! Defaulting to ' + max);
+        logEmitter.emitWarning(JSON.stringify({
+            message: 'config.maxResponseLength is undefined! Defaulting to ' + max
+        }));
         return max;
     }
 }

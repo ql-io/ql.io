@@ -15,6 +15,7 @@
  */
 
 var Engine = require('../lib/engine'),
+    Listener = require('./utils/log-listener.js'),
     http = require('http'),
     util = require('util');
 
@@ -36,8 +37,10 @@ module.exports = {
             var engine = new Engine({
                 tables: __dirname + '/insert'
             });
+            var listener = new Listener(engine);
             engine.execute('insert into insert.into (name) values ("hello")', function (emitter) {
                 emitter.on('end', function (err, result) {
+                    listener.assert(test);
                     if(err) {
                         console.log(err.stack || util.inspect(err, false, 10));
                         test.fail('got error');

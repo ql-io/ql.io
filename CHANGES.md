@@ -1,6 +1,7 @@
 ## Mar 22, 2012
 
 * Externally supply Cache to engine through config.
+* Logging Enhancements. Lot of bugs fixed in hierarchical logging.
 
 ## Mar 21, 2012
 
@@ -16,7 +17,7 @@
 
 **create table**
 
-create table auto.compute.key on select get from 'http://a.uri.net' …other things… `expires 10`;
+create table auto.compute.key on select get from 'http://a.uri.net' ..other things .. `expires 10`;
 
 **compute key** (monkey patch)
 

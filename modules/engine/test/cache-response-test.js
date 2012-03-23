@@ -15,6 +15,7 @@
  */
 
 var Engine = require('../lib/engine'),
+    Listener = require('./utils/log-listener.js'),
     http = require('http'),
     fs = require('fs'),
     util = require('util');
@@ -38,7 +39,9 @@ module.exports = {
             });
             var script = "select * from patch.compute.key";
 
+            var listener = new Listener(engine);
             engine.exec(script, function (err, result) {
+                listener.assert(test);
                 if (err) {
                     console.log(err.stack || util.inspect(err, false, 10));
                     test.fail('got error');
@@ -83,7 +86,9 @@ module.exports = {
             });
             var script = "select * from patch.compute.key";
 
+            var listener = new Listener(engine);
             engine.exec(script, function (err, result) {
+                listener.assert(test);
                 if (err) {
                     console.log(err.stack || util.inspect(err, false, 10));
                     test.fail('got error');
@@ -128,8 +133,9 @@ module.exports = {
                 cache:new mockCache()
             });
             var script = "select * from patch.compute.key";
-
+            var listener = new Listener(engine);
             engine.exec(script, function (err, result) {
+                listener.assert(test);
                 if (err) {
                     console.log(err.stack || util.inspect(err, false, 10));
                     test.fail('got error');
@@ -184,7 +190,9 @@ module.exports = {
             });
             var script = "select * from patch.compute.key";
 
+            var listener = new Listener(engine);
             engine.exec(script, function (err, results) {
+                listener.assert(test);
                 if (err) {
                     console.log(err.stack || err);
                     test.ok(false, 'Grrr');
@@ -247,7 +255,9 @@ module.exports = {
                 cache:new mockCache()
             });
             var script = "select * from patch.compute.key";
+            var listener = new Listener(engine);
             engine.exec(script, function (err, results) {
+                listener.assert(test);
                 if (err) {
                     console.log(err.stack || err);
                     test.ok(false, 'Grrr');
@@ -307,7 +317,9 @@ module.exports = {
                 cache:new mockCache()
             });
             var script = "select * from patch.compute.key";
+            var listener = new Listener(engine);
             engine.exec(script, function (err, results) {
+                listener.assert(test);
                 if (err) {
                     console.log(err.stack || err);
                     test.ok(false, 'Grrr');
@@ -362,7 +374,9 @@ module.exports = {
             });
             var script = "select * from auto.compute.key";
 
+            var listener = new Listener(engine);
             engine.exec(script, function (err, result) {
+                listener.assert(test);
                 if (err) {
                     console.log(err.stack || util.inspect(err, false, 10));
                     test.fail('got error');
