@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 var Cache = require('../lib/cache')
-    util = require('util');
+    util = require('util') ;
 
 exports['life-cycle'] = function (test) {
     var cache = new Cache('127.0.0.1:8026');
