@@ -30,7 +30,12 @@ exports.exec = function(opts, statement, cb, parentEvent) {
         request = opts.request, emitter = opts.emitter,
         insertTx, table, values, name, resource;
 
-    insertTx = opts.logEmitter.wrapEvent(parentEvent, 'QlIoInsert', null, cb);
+    insertTx = opts.logEmitter.wrapEvent({
+        parent: parentEvent,
+        txType: 'QlIoInsert',
+        txName: null,
+        message: {line: statement.line},
+        cb: cb});
 
     values = {};
     _.each(statement.values, function(value, i) {

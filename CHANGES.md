@@ -1,3 +1,7 @@
+## Mar 22, 2012
+
+* Logging Enhancements. Lot of bugs fixed in hierarchical logging.
+
 ## Mar 21, 2012
 
 * Fix https://github.com/ql-io/ql.io/issues/329.
@@ -12,7 +16,7 @@
 
 **create table**
 
-create table auto.compute.key on select get from 'http://a.uri.net' Éother thingsÉ `expires 10`;
+create table auto.compute.key on select get from 'http://a.uri.net' ï¿½other thingsï¿½ `expires 10`;
 
 **compute key** (monkey patch)
 

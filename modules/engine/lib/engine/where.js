@@ -28,10 +28,9 @@ var jsonfill = require('./jsonfill.js'),
 exports.exec = function(opts, where, cb, selectExecTx) {
     var context = opts.context, key;
 
-//    var selectExecTx = opts.logEmitter.wrapEvent(parentEvent, 'QlIoSelectExec', null, cb);
     //
     // Analyze where conditions and fetch any dependent data
-    var name, ret, i, r, max;
+    var name, ret;
     var tasks = [];
     _.each(where, function(cond) {
         if(cond.operator === '=') {

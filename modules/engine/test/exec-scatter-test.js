@@ -18,6 +18,7 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
+    Listener = require('./utils/log-listener.js'),
     fs = require('fs'),
     http = require('http'),
     util = require('util'),
@@ -25,10 +26,10 @@ var _ = require('underscore'),
     logger.remove(logger.transports.Console);
     logger.add(logger.transports.Console, {level: 'error'});
     
-   module.exports = {
+module.exports = {
     'select-times': function(test) {
-	 var server = http.createServer(function(req, res) {
-            var file = __dirname + '/mock/' + req.url;	
+         var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
             var stat = fs.statSync(file);
             res.writeHead(200, {
                 'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
@@ -46,26 +47,27 @@ var _ = require('underscore'),
             // Do the test here.
             var engine = new Engine({
             });
-	    var q = fs.readFileSync(__dirname + '/mock/scatter.ql', 'UTF-8');
+	        var q = fs.readFileSync(__dirname + '/mock/scatter.ql', 'UTF-8');
+            var listener = new Listener(engine);
        	    engine.exec(q, function(err, list) {
-               if(err) {
-                  console.log(err.stack || err);
-                  test.fail('got error: ' + err.stack || err);
-               }
-               else {
-                  test.equals(list.headers['content-type'], 'application/json', 'HTML expected');
-                  test.ok(_.isArray(list.body), 'expected an array');
-                  test.equals(list.body.length, 6, 'expected 6 items since we scatter three requests');
-        
-               }
-	       test.done();
-               server.close();
+                listener.assert(test);
+                if(err) {
+                    console.log(err.stack || err);
+                    test.fail('got error: ' + err.stack || err);
+                }
+                else {
+                    test.equals(list.headers['content-type'], 'application/json', 'HTML expected');
+                    test.ok(_.isArray(list.body), 'expected an array');
+                    test.equals(list.body.length, 6, 'expected 6 items since we scatter three requests');
+                }
+	            test.done();
+                server.close();
             });
         });
     },
 
     'select-context-lookup': function(test) {
-   	 var server = http.createServer(function(req, res) {
+   	    var server = http.createServer(function(req, res) {
             var file = __dirname + '/mock/' + req.url;
             var stat = fs.statSync(file);
             res.writeHead(200, {
@@ -85,27 +87,27 @@ var _ = require('underscore'),
             var engine = new Engine({
             });
 	    var q = fs.readFileSync(__dirname + '/mock/scatter.ql', 'UTF-8');
-            engine.exec({
+        var listener = new Listener(engine);
+        engine.exec({
                 context: {
-                    times: 2
-                 },
-                 script: q,
-                 cb : function(err, list) {
+                   times: 2
+                },
+                script: q,
+                cb : function(err, list) {
+                    listener.assert(test);
                     if(err) {
-                       console.log(err.stack || err);
-                       test.fail('got error: ' + err.stack || err);
-                      
-                     }
-                     else {
-                       test.equals(list.headers['content-type'], 'application/json', 'HTML expected');
-                       test.ok(_.isArray(list.body), 'expected an array');
-                       test.equals(list.body.length, 4, 'expected 4 items since we scatter two requests');
-                      
-                     }
-		     test.done();
-                     server.close();
-                 }
-             });
+                        console.log(err.stack || err);
+                        test.fail('got error: ' + err.stack || err);
+                    }
+                    else {
+                        test.equals(list.headers['content-type'], 'application/json', 'HTML expected');
+                        test.ok(_.isArray(list.body), 'expected an array');
+                        test.equals(list.body.length, 4, 'expected 4 items since we scatter two requests');
+                    }
+		            test.done();
+                    server.close();
+                }
+            });
         });
     }
 };
