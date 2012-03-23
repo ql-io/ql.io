@@ -22,20 +22,26 @@ var Engine = require('../lib/engine'),
 
 module.exports = {
     'patch-compute cache json':function (test) {
-        var counter = 1;
 
         var server = http.createServer(function (req, res) {
             res.writeHead(200, {
                 'Content-Type':'application/json'
             });
-            res.end(JSON.stringify({'counter':counter}));
-            counter++;
+            res.end(JSON.stringify({}));
+            test.ok(false,"Not expected to come here");
         });
+
+        var cache = new mockCache();
+        var result = JSON.stringify({counter:1});
+        cache.put('patch-compute-key',{result:{content:result}, res:{headers:{'content-type':'application/json',
+        'content-length': result.length},
+            statusCode:200}}, 10);
+
         server.listen(3000, function () {
             // Do the test here.
             var engine = new Engine({
                 tables:__dirname + '/cache',
-                cache:new mockCache()
+                cache:cache
             });
             var script = "select * from patch.compute.key";
 
@@ -84,7 +90,7 @@ module.exports = {
                 tables:__dirname + '/cache',
                 cache:new mockCache()
             });
-            var script = "select * from patch.compute.key";
+            var script = "select * from auto.compute.key";
 
             var listener = new Listener(engine);
             engine.exec(script, function (err, result) {
@@ -132,7 +138,7 @@ module.exports = {
                 tables:__dirname + '/cache',
                 cache:new mockCache()
             });
-            var script = "select * from patch.compute.key";
+            var script = "select * from auto.compute.key";
             var listener = new Listener(engine);
             engine.exec(script, function (err, result) {
                 listener.assert(test);
@@ -188,7 +194,7 @@ module.exports = {
                 tables:__dirname + '/cache',
                 cache:new mockCache()
             });
-            var script = "select * from patch.compute.key";
+            var script = "select * from auto.compute.key";
 
             var listener = new Listener(engine);
             engine.exec(script, function (err, results) {
@@ -254,7 +260,7 @@ module.exports = {
                 tables:__dirname + '/cache',
                 cache:new mockCache()
             });
-            var script = "select * from patch.compute.key";
+            var script = "select * from auto.compute.key";
             var listener = new Listener(engine);
             engine.exec(script, function (err, results) {
                 listener.assert(test);
@@ -316,7 +322,7 @@ module.exports = {
                 tables:__dirname + '/cache',
                 cache:new mockCache()
             });
-            var script = "select * from patch.compute.key";
+            var script = "select * from auto.compute.key";
             var listener = new Listener(engine);
             engine.exec(script, function (err, results) {
                 listener.assert(test);
@@ -402,7 +408,53 @@ module.exports = {
                 }
             });
         });
+    },
+    'external cache json':function (test) {
+        var counter = 1;
+
+        var server = http.createServer(function (req, res) {
+            res.writeHead(200, {
+                'Content-Type':'application/json'
+            });
+            res.end(JSON.stringify({'counter':counter}));
+            counter++;
+        });
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+                tables:__dirname + '/cache',
+                config:__dirname + '/cache/dev.json'
+            });
+            var script = "select * from auto.compute.key";
+
+            engine.exec(script, function (err, result) {
+                if (err) {
+                    console.log(err.stack || util.inspect(err, false, 10));
+                    test.fail('got error');
+                    test.done();
+                    server.close();
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                    test.deepEqual(result.body, {counter:1});
+                    engine.exec(script, function (err, result) {
+                        if (err) {
+                            console.log(err.stack || util.inspect(err, false, 10));
+                            test.fail('got error');
+                            test.done();
+                        }
+                        else {
+                            test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                            test.deepEqual(result.body, {counter:1});
+                            test.done();
+                        }
+                        server.close();
+                    });
+                }
+            });
+        });
     }
+
 }
 
 function mockCache() {
@@ -428,7 +480,7 @@ function mockCache() {
         var result = theCache[key];
 
         if (result === undefined) {
-            return cb(null, {message:'success', data:false});
+            return cb({message:'failure', data:false});
         }
 
         cb(null, {message:'success', data:result});
