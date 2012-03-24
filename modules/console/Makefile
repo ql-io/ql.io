@@ -2,7 +2,7 @@ all: clean install test
 
 clean:
 	-rm -fr node_modules
-	-rm -r logs
+	-rm -fr logs
 
 install:
 	mkdir logs;\
