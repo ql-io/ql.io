@@ -154,7 +154,9 @@ var Engine = module.exports = function(opts) {
         'mustache' : require('./serializers/mustache.js'),
         'ejs' : require('./serializers/ejs.js')
     }
-    this.cache = opts.cache;
+    this.cache = _util.getCache(this.config, opts.cache, function (err) {
+        self.emitError('Unable to attach to Cache: ' + JSON.stringify(err, false, null));
+    });
 }
 
 util.inherits(Engine, LogEmitter);
