@@ -803,10 +803,13 @@ var Console = module.exports = function(config, cb) {
             var contentType = results.headers['content-type'];
             var h = {
                 'Connection': 'keep-alive',
-                'Transfer-Encoding' : 'chunked',
-                'content-type' : cb ? 'application/javascript' : contentType,
-                'Request-Id' : results.headers['request-id']
+                'Transfer-Encoding' : 'chunked'
             };
+            _.each(results.headers, function(value, name) {
+                h[name] = value;
+            });
+            h['content-type'] = cb ? 'application/javascript' : contentType;
+
             if(execState.length > 0) {
                 h['Link'] = headers.format('Link', {
                     href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),

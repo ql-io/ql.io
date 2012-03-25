@@ -804,10 +804,11 @@ retref = o:word {
   }
 }
 
-route = 'via' insig 'route' insig p:quotedWord insig 'using' insig 'method' insig m:('get' / 'post' / 'put' / 'delete' / 'patch') {
+route = 'via' insig 'route' insig p:quotedWord insig 'using' insig 'method' insig m:('get' / 'post' / 'put' / 'delete' / 'patch') insig h:usingHeaders? {
   return {
     path: p,
-    method: m
+    method: m,
+    headers: h || {}
   }
 }
 
