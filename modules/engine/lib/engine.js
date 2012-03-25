@@ -186,7 +186,7 @@ util.inherits(Engine, LogEmitter);
 Engine.prototype.execute = function() {
     var script, opts, func;
 
-    var route, context = {}, cooked, execState, parentEvent,
+    var route, context, cooked, execState, parentEvent,
         request, start = Date.now(), tempResources = {}, last, packet, requestId = '', that = this;
 
     if(arguments.length === 2) {
@@ -532,13 +532,13 @@ function _execOne(opts, statement, cb, parentEvent) {
             cb(undefined, opts.context);
             break;
         case 'select' :
-            select.exec(opts, statement, cb, parentEvent);
+            select.exec(opts, statement, parentEvent, cb);
             break;
         case 'insert' :
-            insert.exec(opts, statement, cb, parentEvent);
+            insert.exec(opts, statement, parentEvent, cb);
             break;
         case 'delete' :
-            delet.exec(opts, statement, cb, parentEvent);
+            delet.exec(opts, statement, parentEvent, cb);
             break;
         case 'show' :
             show.exec(opts, statement, cb);
@@ -557,15 +557,33 @@ function _execOne(opts, statement, cb, parentEvent) {
             // TODO: This code needs to refactored when the result is a statement, along with
             // selects in  'in' clauses. Such statements should be scheduled sooner. What we have
             // here below is sub-optimal.
+
+            // If the return is via a route, process any headers from 'using headers' clause
+            var respHeaders = {};
+            if(statement.route && statement.route.headers) {
+                var params = _util.prepareParams(opts.context,
+                    opts.request.body,
+                    opts.request.routeParams,
+                    opts.request.params,
+                    opts.request.headers,
+                    opts.request.connection,
+                    {config: opts.config});
+                _.each(statement.route.headers, function(value, name) {
+                    // Fill name and value
+                    var _name = jsonfill.fill(name, params);
+                    respHeaders[_name] = jsonfill.fill(value, params);
+                });
+            }
+
             // lhs can be a reference to an object in the context or a JS object.
             if(statement.rhs.type === 'select') {
-                select.exec(opts, statement.rhs, cb, parentEvent);
+                select.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
             }
             else if(statement.rhs.type === 'insert') {
-                insert.exec(opts, statement.rhs, cb, parentEvent);
+                insert.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
             }
             else if(statement.rhs.type === 'delete') {
-                delet.exec(opts, statement.rhs, cb, parentEvent);
+                delet.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
             }
             else {
                 lhs = statement.rhs.ref ? opts.context[statement.rhs.ref] : statement.rhs.object;
@@ -581,15 +599,28 @@ function _execOne(opts, statement, cb, parentEvent) {
                             opts.request.connection,
                             {config: opts.config});
 
+                    respHeaders['content-type'] = 'application/json';
                     var ret = {
-                        headers: {
-                            'content-type': 'application/json'
-                        },
-                        body: jsonfill.fill(lhs, params)
+                        body: jsonfill.fill(lhs, params),
+                        headers: respHeaders
                     };
                     cb(undefined, ret);
                 }
             }
+    }
+}
+
+function _routeRespHeaders(respHeaders, cb) {
+    return function(err, res) {
+        if(err) {
+            cb(err);
+        }
+        else {
+            _.each(respHeaders, function(value, name) {
+                res.headers[name] = value;
+            });
+            cb(undefined, res);
+        }
     }
 }
 

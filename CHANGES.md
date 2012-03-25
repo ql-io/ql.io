@@ -1,3 +1,10 @@
+## Mar 25, 2012
+
+* Add `using headers` clause on return statements. Here is an example.
+
+    return 'hello' via route '/hello' using method get
+        using headers 'Cache-Control' = 'max-age=3600'
+
 ## Mar 22, 2012
 
 * Logging Enhancements. Lot of bugs fixed in hierarchical logging.

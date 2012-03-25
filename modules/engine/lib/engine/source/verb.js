@@ -38,7 +38,9 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
     this.type = type;
     this.__proto__ = statement;
 
-    // Default patches
+    //
+    // Monkey patch methods - default no-ops
+    //
     this['validate param'] = function() {
         return true;
     };
@@ -438,10 +440,6 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
         }
     };
 };
-
-//
-// Monkey patch methods - default no-ops
-//
 
 function mergeArray(uarr, prop, merge) {
     // Remove undefined.
