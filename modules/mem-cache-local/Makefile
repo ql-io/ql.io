@@ -29,5 +29,5 @@ endif
 	killall memcached
 
 test-part:
-	node_modules/.bin/nodeunit test --reporter junit --output ../../reports
+	@echo "You can run 'make unixtest' but it may install memcache if not there"
 
