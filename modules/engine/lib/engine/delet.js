@@ -21,7 +21,7 @@ var filter = require('./filter.js'),
     _ = require('underscore'),
     assert = require('assert');
 
-exports.exec = function (opts, statement, cb, parentEvent) {
+exports.exec = function (opts, statement, parentEvent, cb) {
 
     assert.ok(opts.tables, 'Argument tables can not be undefined');
     assert.ok(statement, 'Argument statement can not be undefined');
