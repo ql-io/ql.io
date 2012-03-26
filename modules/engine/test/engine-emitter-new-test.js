@@ -17,7 +17,10 @@
 'use strict';
 
 var _ = require('underscore'),
-    Engine = require('../lib/engine');
+    Engine = require('../lib/engine'),
+    util = require('util'),
+    http = require('http'),
+    fs = require('fs');
 
 module.exports = {
 
@@ -103,7 +106,8 @@ module.exports = {
             config: __dirname + '/config/dev.json'
         });
         var script;
-        script = 'select * from ebay.finding.items';
+        //The table below doesn't exist. The test checks for due errors hence.
+        script = 'select * from first';
         var inFlight = 0, success = 0, error = 0;
         engine.execute(script, function(req) {
             req.on(Engine.Events.STATEMENT_IN_FLIGHT, function() {
@@ -124,37 +128,56 @@ module.exports = {
     },
 
     'select-ok': function(test) {
-        var engine = new Engine({
-            tables : __dirname + '/tables',
-            config: __dirname + '/config/dev.json'
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, req.headers, {
+                'Content-Type' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
         });
-        var script;
-        script = 'select * from ebay.finding.items where keywords = "ipad"';
-        var inFlight, success, error, request, response;
-        engine.execute(script, function(req) {
-            req.on(Engine.Events.STATEMENT_IN_FLIGHT, function() {
-                inFlight = true;
+        server.listen(3000, function() {
+            var engine = new Engine({
+                tables : __dirname + '/tables',
+                config: __dirname + '/config/dev.json'
             });
-            req.on(Engine.Events.STATEMENT_SUCCESS, function() {
-                success = true;
-            });
-            req.on(Engine.Events.STATEMENT_REQUEST, function() {
-                request = true;
-            });
-            req.on(Engine.Events.STATEMENT_RESPONSE, function() {
-                response = true;
-            });
-            req.on(Engine.Events.STATEMENT_ERROR, function() {
-                error = true;
-            });
-            req.on('end', function() {
-                test.ok(inFlight);
-                test.ok(request);
-                test.ok(response);
-                test.ok(success, 'Failed');
-                test.done();
+            var script = fs.readFileSync(__dirname + '/mock/eng-emit2.ql', 'UTF-8');
+            var inFlight, success, error, request, response;
+            engine.execute(script, function(req) {
+                req.on(Engine.Events.STATEMENT_IN_FLIGHT, function() {
+                    inFlight = true;
+                });
+                req.on(Engine.Events.STATEMENT_SUCCESS, function() {
+                    success = true;
+                });
+                req.on(Engine.Events.STATEMENT_REQUEST, function() {
+                    request = true;
+                });
+                req.on(Engine.Events.STATEMENT_RESPONSE, function() {
+                    response = true;
+                });
+                req.on(Engine.Events.STATEMENT_ERROR, function() {
+                    error = true;
+                });
+                req.on('end', function() {
+                    test.ok(inFlight);
+                    test.ok(request);
+                    test.ok(response);
+                    test.ok(success, 'Failed');
+                    test.done();
+                    server.close();
+                })
             })
-        })
+
+        });
+
     },
 
     'define': function(test) {

@@ -18,7 +18,10 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
-    EventEmitter = require('events').EventEmitter;
+    EventEmitter = require('events').EventEmitter,
+    http = require('http'),
+    fs = require('fs'),
+    util = require('util');
 
 module.exports = {
 
@@ -134,7 +137,8 @@ module.exports = {
             config: __dirname + '/config/dev.json'
         });
         var script;
-        script = 'select * from ebay.finding.items';
+        //The table below doesn't exist. The test checks for due errors hence.
+        script = 'select * from first';
         var emitter = new EventEmitter();
         var inFlight = 0, success = 0, error = 0;
         emitter.on(Engine.Events.STATEMENT_IN_FLIGHT, function() {
@@ -165,12 +169,27 @@ module.exports = {
     },
 
     'select-ok': function(test) {
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, req.headers, {
+                'Content-Type' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
         var engine = new Engine({
             tables : __dirname + '/tables',
             config: __dirname + '/config/dev.json'
         });
-        var script;
-        script = 'select * from ebay.finding.items where keywords = "ipad"';
+        var script = fs.readFileSync(__dirname + '/mock/eng-emit2.ql', 'UTF-8');
         var emitter = new EventEmitter();
         var inFlight, success, error, request, response;
         emitter.on(Engine.Events.STATEMENT_IN_FLIGHT, function() {
@@ -201,10 +220,12 @@ module.exports = {
                         test.ok(response);
                         test.ok(success, 'Failed');
                         test.done();
+                        server.close();
                     }
                 }
             }
         );
+        });
     },
 
     'define': function(test) {
