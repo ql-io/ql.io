@@ -18,7 +18,10 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
-    EventEmitter = require('events').EventEmitter;
+    EventEmitter = require('events').EventEmitter,
+    util = require('util'),
+    http = require('http'),
+    fs = require('fs');
 
 var engine = new Engine({
     config: __dirname + '/config/dev.json'
@@ -26,15 +29,23 @@ var engine = new Engine({
 
 module.exports = {
     'select-header-fill': function(test) {
-        var script = "create table header.replace\n\
-            on select get from 'http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID={globalid}&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT={format}&REST-PAYLOAD&keywords={^keywords}&paginationInput.entriesPerPage={limit}&paginationInput.pageNumber={pageNumber}&outputSelector%280%29=SellerInfo&sortOrder={sortOrder}'\n\
-                 with aliases format = 'RESPONSE-DATA-FORMAT', json = 'JSON', xml = 'XML'\n\
-                 using headers 'Foo' = '{foo}'\n\
-                 using defaults format = 'JSON', globalid = 'EBAY-US', sortorder ='BestMatch',\n\
-                       apikey =  '{config.ebay.apikey}', limit = 10,\n\
-                       pageNumber = 1\n\
-                 resultset 'findItemsByKeywordsResponse.searchResult.item'\n\
-            select * from header.replace where keywords = 'ferrari' and foo = 'BAR' limit 1";
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, req.headers, {
+                'Content-Type' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+        var script = fs.readFileSync(__dirname + '/mock/select-header-fill.ql', 'UTF-8');
         var emitter = new EventEmitter();
         var headers;
         emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
@@ -60,21 +71,31 @@ module.exports = {
                     test.ok(value);
                     test.equals(value, 'BAR');
                     test.done();
+                    server.close();
                 }
             }
+        });
         });
     },
 
     'select-header-leave': function(test) {
-        var script = "create table header.replace\n\
-            on select get from 'http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID={globalid}&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT={format}&REST-PAYLOAD&keywords={^keywords}&paginationInput.entriesPerPage={limit}&paginationInput.pageNumber={pageNumber}&outputSelector%280%29=SellerInfo&sortOrder={sortOrder}'\n\
-                 with aliases format = 'RESPONSE-DATA-FORMAT', json = 'JSON', xml = 'XML'\n\
-                 using headers 'Foo' = '{foo}'\n\
-                 using defaults format = 'JSON', globalid = 'EBAY-US', sortorder ='BestMatch',\n\
-                       apikey =  '{config.ebay.apikey}', limit = 10,\n\
-                       pageNumber = 1\n\
-                 resultset 'findItemsByKeywordsResponse.searchResult.item'\n\
-            select * from header.replace where keywords = 'ferrari' limit 1";
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, req.headers, {
+                'Content-Type' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+        var script = fs.readFileSync(__dirname + '/mock/select-header-leave.ql', 'UTF-8');
         var emitter = new EventEmitter();
         var headers;
         emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
@@ -99,21 +120,31 @@ module.exports = {
                     });
                     test.equal(value, '');
                     test.done();
+                    server.close();
                 }
             }
+        });
         });
     },
 
     'select-header-fill-from-defaults': function(test) {
-        var script = "create table header.replace\n\
-            on select get from 'http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID={globalid}&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT={format}&REST-PAYLOAD&keywords={^keywords}&paginationInput.entriesPerPage={limit}&paginationInput.pageNumber={pageNumber}&outputSelector%280%29=SellerInfo&sortOrder={sortOrder}'\n\
-                 with aliases format = 'RESPONSE-DATA-FORMAT', json = 'JSON', xml = 'XML'\n\
-                 using headers 'Foo' = '{foo}'\n\
-                 using defaults format = 'JSON', globalid = 'EBAY-US', sortorder ='BestMatch',\n\
-                       apikey =  '{config.ebay.apikey}', limit = 10,\n\
-                       pageNumber = 1, foo = 'foo-default'\n\
-                 resultset 'findItemsByKeywordsResponse.searchResult.item'\n\
-            select * from header.replace where keywords = 'ferrari' limit 1";
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, req.headers, {
+                'Content-Type' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+        var script = fs.readFileSync(__dirname + '/mock/select-header-default.ql', 'UTF-8');
         var emitter = new EventEmitter();
         var headers;
         emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
@@ -139,21 +170,31 @@ module.exports = {
                     test.ok(value);
                     test.equals(value, 'foo-default');
                     test.done();
+                    server.close();
                 }
             }
+        });
         });
     },
 
     'select-header-fill-from-headers': function(test) {
-        var script = "create table header.replace\n\
-            on select get from 'http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID={globalid}&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT={format}&REST-PAYLOAD&keywords={^keywords}&paginationInput.entriesPerPage={limit}&paginationInput.pageNumber={pageNumber}&outputSelector%280%29=SellerInfo&sortOrder={sortOrder}'\n\
-                 with aliases format = 'RESPONSE-DATA-FORMAT', json = 'JSON', xml = 'XML'\n\
-                 using headers 'Foo' = '{foo}'\n\
-                 using defaults format = 'JSON', globalid = 'EBAY-US', sortorder ='BestMatch',\n\
-                       apikey =  '{config.ebay.apikey}', limit = 10,\n\
-                       pageNumber = 1, foo = 'foo-default'\n\
-                 resultset 'findItemsByKeywordsResponse.searchResult.item'\n\
-            select * from header.replace where keywords = 'ferrari' limit 1";
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, req.headers, {
+                'Content-Type' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+        var script = fs.readFileSync(__dirname + '/mock/select-header-from-header.ql', 'UTF-8');
         var emitter = new EventEmitter();
         var headers;
         emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
@@ -184,21 +225,31 @@ module.exports = {
                     test.ok(value);
                     test.equals(value, 'foo-header');
                     test.done();
+                    server.close();
                 }
             }
+        });
         });
     },
 
     'select-header-fill-from-params': function(test) {
-        var script = "create table header.replace\n\
-            on select get from 'http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID={globalid}&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT={format}&REST-PAYLOAD&keywords={^keywords}&paginationInput.entriesPerPage={limit}&paginationInput.pageNumber={pageNumber}&outputSelector%280%29=SellerInfo&sortOrder={sortOrder}'\n\
-                 with aliases format = 'RESPONSE-DATA-FORMAT', json = 'JSON', xml = 'XML'\n\
-                 using headers 'Foo' = '{foo}'\n\
-                 using defaults format = 'JSON', globalid = 'EBAY-US', sortorder ='BestMatch',\n\
-                       apikey =  '{config.ebay.apikey}', limit = 10,\n\
-                       pageNumber = 1, foo = 'foo-default'\n\
-                 resultset 'findItemsByKeywordsResponse.searchResult.item'\n\
-            select * from header.replace where keywords = 'ferrari' limit 1";
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, req.headers, {
+                'Content-Type' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+        var script = fs.readFileSync(__dirname + '/mock/select-header-params.ql', 'UTF-8');
         var emitter = new EventEmitter();
         var headers;
         emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
@@ -229,8 +280,10 @@ module.exports = {
                     test.ok(value);
                     test.equals(value, 'foo-param');
                     test.done();
+                    server.close();
                 }
             }
+        });
         });
     }
 }
