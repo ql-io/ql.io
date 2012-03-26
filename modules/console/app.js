@@ -250,10 +250,14 @@ var Console = module.exports = function(config, cb) {
                 collectHttpHeaders(req, holder);
                 holder.connection = {
                     remoteAddress: req.connection.remoteAddress
-                }
+                };
                 // Start the top level URL transaction
-                var urlEvent = engine.wrapEvent(null, 'URL', req.originalUrl, function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
+                var urlEvent = engine.wrapEvent({
+                    tyType: 'URL',
+                    message: req.originalUrl,
+                    cb: function(err, results) {
+                        return handleResponseCB(req, res, execState, err, results);
+                    }
                 });
                 // Emit incoming headers
                 engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
@@ -298,10 +302,14 @@ var Console = module.exports = function(config, cb) {
         }
 
         // Start the top level URL transaction
-        var urlEvent = engine.wrapEvent(null, 'URL', req.originalUrl, function(err, results) {
-            return isJson || err ?
-                handleResponseCB(req, res, execState, err, results) :
-                routePage(res,execState,results.body);
+        var urlEvent = engine.wrapEvent({
+            tyTypx: 'URL',
+            message: req.originalUrl,
+            cb: function(err, results) {
+                return isJson || err ?
+                    handleResponseCB(req, res, execState, err, results) :
+                    routePage(res,execState,results.body);
+            }
         });
         // Emit incoming headers
         engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
@@ -365,10 +373,14 @@ var Console = module.exports = function(config, cb) {
         }
 
         // Start the top level URL transaction
-        var urlEvent = engine.wrapEvent(null, 'URL', req.originalUrl, function(err, results) {
-            return isJson || err ?
-                handleResponseCB(req, res, execState, err, results) :
-                routePage(res,execState,results.body);
+        var urlEvent = engine.wrapEvent({
+            tyTypx: 'URL',
+            message: req.originalUrl,
+            cb: function(err, results) {
+                return isJson || err ?
+                    handleResponseCB(req, res, execState, err, results) :
+                    routePage(res,execState,results.body);
+            }
         });
         // Emit incoming headers
         engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
@@ -409,10 +421,14 @@ var Console = module.exports = function(config, cb) {
         }
 
         // Start the top level URL transaction
-        var urlEvent = engine.wrapEvent(null, 'URL', req.originalUrl, function(err, results) {
-            return isJson || err ?
-                handleResponseCB(req, res, execState, err, results) :
-                routePage(res,execState,results.body);
+        var urlEvent = engine.wrapEvent({
+            tyTypx: 'URL',
+            message: req.originalUrl,
+            cb: function(err, results) {
+                return isJson || err ?
+                    handleResponseCB(req, res, execState, err, results) :
+                    routePage(res,execState,results.body);
+            }
         });
         // Emit incoming headers
         engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
@@ -487,10 +503,14 @@ var Console = module.exports = function(config, cb) {
         }
 
         // Start the top level URL transaction
-        var urlEvent = engine.wrapEvent(null, 'URL', req.originalUrl, function(err, results) {
-            return isJson || err ?
-                handleResponseCB(req, res, execState, err, results) :
-                routePage(res,execState,results.body);
+        var urlEvent = engine.wrapEvent({
+            tyTypx: 'URL',
+            message: req.originalUrl,
+            cb: function(err, results) {
+                return isJson || err ?
+                    handleResponseCB(req, res, execState, err, results) :
+                    routePage(res,execState,results.body);
+            }
         });
         // Emit incoming headers
         engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
@@ -535,8 +555,12 @@ var Console = module.exports = function(config, cb) {
             query = sanitize(query).str;
             collectHttpQueryParams(req, holder, true);
             collectHttpHeaders(req, holder);
-            var urlEvent = engine.wrapEvent(null, 'URL', null, function (err, results) {
-                return handleResponseCB(req, res, execState, err, results);
+            var urlEvent = engine.wrapEvent({
+                tyTypx: 'URL',
+                message: req.originalUrl,
+                cb: function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                }
             });
             var execState = [];
             engine.execute(query,
@@ -779,10 +803,13 @@ var Console = module.exports = function(config, cb) {
             var contentType = results.headers['content-type'];
             var h = {
                 'Connection': 'keep-alive',
-                'Transfer-Encoding' : 'chunked',
-                'content-type' : cb ? 'application/javascript' : contentType,
-                'Request-Id' : results.headers['request-id']
+                'Transfer-Encoding' : 'chunked'
             };
+            _.each(results.headers, function(value, name) {
+                h[name] = value;
+            });
+            h['content-type'] = cb ? 'application/javascript' : contentType;
+
             if(execState.length > 0) {
                 h['Link'] = headers.format('Link', {
                     href : 'data:application/json,' + encodeURIComponent(JSON.stringify(execState)),

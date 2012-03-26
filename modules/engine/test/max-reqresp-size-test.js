@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,35 +18,66 @@
 
 var _ = require('underscore'),
     Engine = require('../lib/engine'),
-    logger = require('winston');
+    logger = require('winston'),
+    http = require('http'),
+    util = require('util'),
+    spawn = require('child_process').spawn;
 
 logger.remove(logger.transports.Console);
 logger.add(logger.transports.Console, {level: 'error'});
 
 var engine = new Engine({
     tables : __dirname + '/tables',
-    config: __dirname + '/config/dev.json'
+    config: __dirname + '/config/dev.json',
+    connection: 'close'
 });
 
 module.exports = {
     'response-from-server': function(test) {
-//        var script = "create table maxtable \
-//                    on select get from 'http://svcs.ebay.com:80/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords&SERVICE-VERSION=1.8.0&GLOBAL-ID={globalid}&SECURITY-APPNAME={apikey}&RESPONSE-DATA-FORMAT={format}&REST-PAYLOAD&keywords={^keywords}'\
-//                     with aliases format = 'RESPONSE-DATA-FORMAT', json = 'JSON', xml = 'XML'\
-//                     using defaults format = 'JSON', globalid = 'EBAY-US', sortorder ='BestMatch',\
-//                           apikey = '{config.ebay.apikey}', limit = 10000, pageNumber = 1\
-//                     resultset 'findItemsByKeywordsResponse.searchResult.item';\n\
-//        select * from maxtable where keywords = 'ipad'";
-//        engine.exec(script, function(err, list) {
-//            logger.log('engine.config.maxResponseLength = ' + engine.config.maxResponseLength);
-//            if (!err) {
-//                test.fail('did not get expected error');
-//                test.done();
-//            } else {
-//                test.equals(err.status, 502, '502 status code expected');
-//                test.equals(err.message, 'Response length exceeds limit', 'Error explanation expected');
-                test.done();
-//            }
-//        });
-   }
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock' + req.url;
+            res.writeHead(200, {
+                'Content-Type' : file.indexOf('.xml.gz') >= 0 ? 'application/xml' : 'application/json',
+                'Transfer-Encoding' : 'chunked'
+            });
+
+            // use gzip to compress the mock data file; uncompressed file is around 10MB; compressed file is around 90KB
+            var gunzip = spawn('gunzip', ['-c', file]);
+
+            gunzip.stderr.on('data', function (err) {
+                console.log('gunzip process error '+ err); // just in case
+            });
+
+            util.pump(gunzip.stdout, res, function(e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+
+            req.on('close', function(e) {
+                // server is going to drop the connection by doing socket.destroy(),
+                // so we need to terminate the spawned process, otherwise the test will hang
+                gunzip.kill();
+            });
+
+        });
+        server.listen(3000, function() {
+            var q = 'create table response.from.server.table on select get from "http://localhost:3000/max-server-response.xml.gz"' +
+                ' using patch "test/tables/ebay.finding.items.js" ' +
+                ' resultset "findItemsByKeywordsResponse.searchResult.item"; ' +
+                'select * from response.from.server.table';
+            engine.exec(q, function(err, list) {
+                if (!err) {
+                    test.fail('did not get expected error');
+                    test.done();
+                } else {
+                    test.equals(err.status, 502, '502 status code expected');
+                    test.equals(err.message, 'Response length exceeds limit', 'Error explanation expected');
+                    test.done();
+                }
+                server.close();
+            });
+        });
+    }
 }

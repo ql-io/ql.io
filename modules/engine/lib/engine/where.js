@@ -55,7 +55,7 @@ exports.exec = function(opts, where, cb, selectExecTx) {
             if(cond.rhs.fromClause) {
                 tasks.push(function(cond, name) {
                     return function(callback) {
-                        select.exec(opts, cond.rhs, function(e, r) {
+                        select.exec(opts, cond.rhs, selectExecTx.event, function(e, r) {
                             if(e) {
                                 callback(e);
                             }
@@ -64,7 +64,7 @@ exports.exec = function(opts, where, cb, selectExecTx) {
                                 ret[name] = r.body;
                                 callback(null, ret);
                             }
-                        }, selectExecTx.event);
+                        });
                     };
                 }(cond, name));
             }
