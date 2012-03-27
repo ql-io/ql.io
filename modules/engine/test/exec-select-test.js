@@ -165,13 +165,15 @@ module.exports = {
             script: 'select itemId from ebay.finding.items where keywords = "mini cooper convertible" limit 2',
             cb: function(err, list) {
                 var count = 0;
-                var listener = function() {
+                var counter = function() {
                     count++;
                 }
                 var emitter = new EventEmitter();
-                emitter.addListener(Engine.Events.STATEMENT_REQUEST, listener);
+                emitter.addListener(Engine.Events.STATEMENT_REQUEST, counter);
 
-                // We need to test that two HTTP requests are made for the following statement below.
+                // The table in the statement below takes multiple IDs in the requests, and should
+                // result in a single HTTP request. The counter fun handling
+                // Engine.Events.STATEMENT_REQUEST event counts the requests made.
                 var q = "select ViewItemURLForNaturalSearch from ebay.shopping.item where itemId in ('" + list.body[0] + "', '" + list.body[1] + "') and includeSelector = 'ShippingCosts'";
                 var listener = new Listener(engine);
                 engine.exec({
@@ -187,7 +189,7 @@ module.exports = {
                             test.equals(list.headers['content-type'], 'application/json', 'HTML expected');
                             test.ok(_.isArray(list.body), 'expected an array');
                             test.equals(2, list.body.length, 'expected 2 items');
-                            test.equals(1, count, 'Expected two HTTP requests');
+                            test.equals(1, count, 'Expected one HTTP request');
                             test.done();
                         }
                     }
@@ -201,13 +203,14 @@ module.exports = {
             script: 'select itemId from ebay.finding.items where keywords = "mini cooper convertible" limit 2',
             cb: function(err, list) {
                 var count = 0;
-                var listener = function() {
+                var counter = function() {
                     count++;
                 }
                 var emitter = new EventEmitter();
-                emitter.addListener(Engine.Events.STATEMENT_REQUEST, listener);
+                emitter.addListener(Engine.Events.STATEMENT_REQUEST, counter);
 
-                // We need to test that two HTTP requests are made for the following statement below.
+                // The table below takes one ID at a time. Hence the select in this script will
+                // cause two HTTP requests. The counter above counts the requests.
                 var q = "create table myitemdetails \
                          on select get from 'http://open.api.ebay.com/shopping?callname=GetMultipleItems&responseencoding={format}&appid={^apikey}&version=715&IncludeSelector={includeSelector}&ItemID={itemId}'\
                          with aliases json = 'JSON', xml = 'XML'\
@@ -243,13 +246,15 @@ module.exports = {
             script: 'select itemId from ebay.finding.items where keywords = "mini cooper convertible" limit 4',
             cb: function(err, list) {
                 var count = 0;
-                var listener = function() {
+                var counter = function() {
                     count++;
                 }
                 var emitter = new EventEmitter();
-                emitter.addListener(Engine.Events.STATEMENT_REQUEST, listener);
+                emitter.addListener(Engine.Events.STATEMENT_REQUEST, counter);
 
-                // We need to test that two HTTP requests are made for the following statement below.
+                // The table below takes two inputs at a time. But the select above gives four IDs.
+                // Hence the select in the script  below will cause two HTTP requests - each with
+                // two IDs.
                 var q = "create table myitemdetails \
                          on select get from 'http://open.api.ebay.com/shopping?callname=GetMultipleItems&responseencoding={format}&appid={^apikey}&version=715&IncludeSelector={includeSelector}&ItemID={^2|itemId}'\
                          with aliases json = 'JSON', xml = 'XML'\
