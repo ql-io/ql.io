@@ -1,3 +1,7 @@
+## Mar 28, 2012
+
+* Fix issue 404
+
 ## Mar 25, 2012
 
 * Add `using headers` clause on return statements. Here is an example.

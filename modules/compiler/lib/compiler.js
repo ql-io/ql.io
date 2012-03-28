@@ -173,7 +173,12 @@ function introspectObject(obj, symbols, dependsOn, id) {
     if(_.isString(obj)) {
         introspectString(obj, refname, index, dependency, symbols, dependsOn, id);
     }
-    else {
+    else if(_.isArray(obj)) {
+        _.each(obj, function(v) {
+            introspectObject(v, refname, index, dependency, symbols, dependsOn, id);
+        });
+    }
+    else if(_.isObject(obj)) {
         _.each(obj, function(v, n) {
             if(_.isString(v)) {
                 introspectString(v, refname, index, dependency, symbols, dependsOn, id);
