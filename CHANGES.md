@@ -2,6 +2,8 @@
 
 * Upgrade cluster2, and also pass ecvPath to cluster2
 * Fix issue 404
+* Cache config param for cache provider changed from cache.name to cache.impl
+* If cache provider not found with the given token then try to find it relative to "node_modules" of process.cwd().
 
 ## Mar 25, 2012
 
@@ -25,7 +27,7 @@
 
 * Factor out cluster function into [cluster2](https://github.com/ql-io/cluster2). This change
   also moves ECV checks to cluster2.
-* Caching support based on new `expires <seconds>` keyword ***create table*** (example below) or `compute key` monkey patch.
+* Caching support based on new `expires <seconds>` keyword ***create table*** (example below). `compute key` monkey patch to generate custom keys.
 
 **create table**
 
