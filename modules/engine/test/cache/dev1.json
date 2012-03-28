@@ -1,0 +1,7 @@
+{
+    "cache": {
+        "impl": "mockcache-from-nm.js",
+        "options": ""
+    }
+}
+

@@ -1,6 +1,6 @@
 {
     "cache": {
-        "name": "../../test/cache/mockcache.js",
+        "impl": "../../test/cache/mockcache.js",
         "options": ""
     }
 }
