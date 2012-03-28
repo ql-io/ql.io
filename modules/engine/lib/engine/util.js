@@ -118,15 +118,15 @@ var getCache = exports.getCache = function (config, cache, errorCb) {
     if (cache) {
         return cache;
     }
-    if(config.cache && config.cache.name){
+    if(config.cache && config.cache.impl){
         var cacheConfig = config.cache.options;
         try {
             var cache;
             if(cacheConfig == undefined){
-                cache = new (cacheRequire(config.cache.name))();
+                cache = new (cacheRequire(config.cache.impl))();
             }
             else {
-                cache = new (cacheRequire(config.cache.name))(cacheConfig);
+                cache = new (cacheRequire(config.cache.impl))(cacheConfig);
             }
             if(_.isFunction(cache.start)){
                 cache.start();
