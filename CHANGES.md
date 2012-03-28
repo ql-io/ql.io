@@ -1,5 +1,6 @@
 ## Mar 28, 2012
 
+* Upgrade cluster2, and also pass ecvPath to cluster2
 * Fix issue 404
 
 ## Mar 25, 2012

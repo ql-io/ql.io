@@ -64,6 +64,7 @@ exports.exec = function(cb, opts) {
         disableConsole: program.disableConsole,
         disableQ: program.disableQ,
         noWorkers: program.noWorkers,
+        ecvPath: program.ecvPath,
         ecv: {
             monitor: '/tables',
             validator: function(status, headers, data) {
