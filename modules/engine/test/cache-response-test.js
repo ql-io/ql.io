@@ -453,7 +453,58 @@ module.exports = {
                 }
             });
         });
+    },
+    'external cache json from nm':function (test) {
+        var counter = 1;
+
+        var curDir = process.cwd();
+        process.chdir(__dirname + '/cache');
+
+        var server = http.createServer(function (req, res) {
+            res.writeHead(200, {
+                'Content-Type':'application/json'
+            });
+            res.end(JSON.stringify({'counter':counter}));
+            counter++;
+        });
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+                tables:__dirname + '/cache',
+                config:__dirname + '/cache/dev1.json'
+            });
+            var script = "select * from auto.compute.key";
+
+            engine.exec(script, function (err, result) {
+                if (err) {
+                    console.log(err.stack || util.inspect(err, false, 10));
+                    test.fail('got error');
+                    test.done();
+                    server.close();
+                    process.chdir(curDir);
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                    test.deepEqual(result.body, {counter:1});
+                    engine.exec(script, function (err, result) {
+                        if (err) {
+                            console.log(err.stack || util.inspect(err, false, 10));
+                            test.fail('got error');
+                            test.done();
+                        }
+                        else {
+                            test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                            test.deepEqual(result.body, {counter:1});
+                            test.done();
+                        }
+                        server.close();
+                        process.chdir(curDir);
+                    });
+                }
+            });
+        });
     }
+
 
 }
 

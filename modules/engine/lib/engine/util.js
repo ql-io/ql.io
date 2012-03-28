@@ -118,15 +118,15 @@ var getCache = exports.getCache = function (config, cache, errorCb) {
     if (cache) {
         return cache;
     }
-    if(config.cache && config.cache.name){
+    if(config.cache && config.cache.impl){
         var cacheConfig = config.cache.options;
         try {
             var cache;
             if(cacheConfig == undefined){
-                cache = new (require(config.cache.name))();
+                cache = new (cacheRequire(config.cache.impl))();
             }
             else {
-                cache = new (require(config.cache.name))(cacheConfig);
+                cache = new (cacheRequire(config.cache.impl))(cacheConfig);
             }
             if(_.isFunction(cache.start)){
                 cache.start();
@@ -139,4 +139,20 @@ var getCache = exports.getCache = function (config, cache, errorCb) {
                 error:e});
         }
     }
+}
+
+function cacheRequire(name){
+    var module;
+    try{
+        module = require(name);
+    }
+    catch(e){
+        try {
+            module = require(process.cwd() + '/node_modules/' + name)
+        }
+        catch(ex){
+            throw e;
+        }
+    }
+    return module;
 }
