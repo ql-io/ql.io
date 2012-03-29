@@ -266,6 +266,25 @@ module.exports = {
         test.done();
     },
 
+    'multivalued-optional': function (test) {
+        var str = 'https://www.example.org/path1/path2?p1={0|v1}&p2={0|v2}&p3={0|v3}';
+        var template = uriTemplate.parse(str);
+        try {
+            var uri = template.format({
+                v1: [],
+                v2: [],
+                v3: '1,2,3,4'
+            });
+            test.equals(uri, 'https://www.example.org/path1/path2?p1=&p2=&p3=1%2C2%2C3%2C4');
+            test.done();
+        }
+        catch(e) {
+            console.log(e.stack || e);
+            test.ok(false, 'Not expected to fail');
+            test.done();
+        }
+    },
+
     'encode': function(test) {
         var str = 'http://www.foo.com?p1={p1}&p2={p2}&p3={5|p3}';
         var template = uriTemplate.parse(str);
