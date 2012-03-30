@@ -1,3 +1,7 @@
+## Mar 30, 2012
+
+* Release version 0.5.
+
 ## Mar 29, 2012
 
 * Fix regression in uri-template formatter (https://github.com/ql-io/ql.io/issues/409).
