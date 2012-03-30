@@ -579,7 +579,7 @@ var Console = module.exports = function(config, cb) {
     // 404 Handling
     app.use(function(req, res, next) {
         compress(req, res);
-        var msg = 'Cannot GET ' + sanitize(req.url).xss();
+        var msg = 'Cannot ' + req.method + ' ' + sanitize(req.url).xss();
         var accept = (req.headers || {}).accept || '';
         if (accept.search('json') > 0) {
             res.writeHead(404, {
