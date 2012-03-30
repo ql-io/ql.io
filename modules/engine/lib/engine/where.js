@@ -26,12 +26,11 @@ var jsonfill = require('./jsonfill.js'),
 // Preps the where clause, once done hands off to cb
 //
 exports.exec = function(opts, where, cb, selectExecTx) {
-    var context = opts.context, key;
+    var context = opts.context;
 
     //
     // Analyze where conditions and fetch any dependent data
-    var name, ret;
-    var tasks = [];
+    var name, tasks = [];
     _.each(where, function(cond) {
         if(cond.operator === '=') {
             name = cond.lhs.name;
@@ -41,8 +40,8 @@ exports.exec = function(opts, where, cb, selectExecTx) {
             // what currying is, don't touch this code unless you read Crockford's book.
             tasks.push(function(cond, name) {
                 return function(callback) {
-                    ret = {};
-                    key = (cond.rhs.value !== undefined) ? cond.rhs.value : cond.rhs;
+                    var ret = {};
+                    var key = (cond.rhs.value !== undefined) ? cond.rhs.value : cond.rhs;
                     ret[name] = jsonfill.lookup(key, context);
                     callback(null, ret);
                 };
@@ -71,7 +70,7 @@ exports.exec = function(opts, where, cb, selectExecTx) {
             else if(_.isArray(cond.rhs.value)) {
                 tasks.push(function(cond, name) {
                     return function(callback) {
-                        ret = {};
+                        var ret = {};
                         ret[name] = [];
 
                         // Determine whether the number of values is within the limit and prune the values array

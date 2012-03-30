@@ -17,7 +17,7 @@
         "ql.io-compiler": "",
         "ql.io-mutable-uri": "",
         "ql.io-uri-template": "",
-        "JSONPath": "0.8.5",
+        "JSONPath": "0.9.0",
         "uri": "0.1.0",
         "headers": "0.9.6",
         "mustache": "0.4.0",

@@ -22,7 +22,7 @@ var jsonfill = require('./jsonfill.js'),
 exports.run = run;
 
 // Filter JSON objects
-function run(resultSet, statement, results, cb) {
+function run(resultSet, statement, results, context, cb) {
     var obj, alias, cols, part, col;
 
     // Find the row-equivalent from the representation
@@ -64,7 +64,8 @@ function run(resultSet, statement, results, cb) {
         else {
             cols = statement.columns;
         }
-        part = jsonfill.project(cols, obj);
+        obj.__proto__ = context;
+        part = jsonfill.project(cols, obj, context);
         return cb(part);
     }
 }

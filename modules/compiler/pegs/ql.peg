@@ -323,7 +323,14 @@ assign = a:output? s:statementOrObject insig ';'? insig {
   return s;
 }
 
-statementOrObject = statement / value
+statementOrObject = statement / value / callUdf
+
+callUdf = u:udf {
+    u.type = 'define';
+    u.udf = u.name;
+    delete u.operator;
+    return u;
+}
 
 statement = (selectStatement / showRoutesStatement /showStatement / describeRouteStatement / describeStatement / insertStatement / deleteStatement / createStatement)
 
@@ -690,10 +697,10 @@ rhs = r:(aliasedRef/quotedWord/quotedDigits/digits) {
   return r;
 }
 
-aliasedRef = chars:((selector ('.' selector)*)) {
+aliasedRef = p:JSONPath {
   return {
     type: 'alias',
-    value: append(chars)
+    value: p
   };
 }
 
@@ -708,24 +715,26 @@ fields = arr:(field (insig comma insig field)*) {
   return res;
 }
 
-field = aliasField / nonAliasField
+field = f:(aliasField / nonAliasField) {
+  return f;
+}
 
-aliasField = (s:fieldName insig 'as' insig a:identifier) {
+aliasField = (s:JSONPath insig 'as' insig a:identifier) {
   if(symbols[s]) {
     s = "{" + s + "}";
   }
   return {name: s, alias: a};
 }
 
-nonAliasField = s:fieldName {
-  return {name: s};
+nonAliasField = p:JSONPath {
+    return {name: p};
 }
 
 fieldName = chars:((selector ('.' selector)*)) {
   return append(chars);
 }
 
-selector = word '[' (digits / quotedWordVal) ']' / word
+selector = word ('[' (digits / quotedWordVal / '*' / JSONPath) ']')* / word
 
 comma = ','
 
@@ -793,7 +802,7 @@ return = re:ret insig o:retval insig r:route? insig ';'? {
   return ret;
 }
 
-retval = statement / retref / value
+retval = statement / callUdf / retref / value
 
 retref = o:word {
   if(symbols[o] === undefined) {
@@ -896,4 +905,63 @@ sp = ([\x09]/[\x20])*{
 
 crlf = c:[\x0d\x0a] {
   return c;
+}
+
+//
+// JSONPath
+//
+JSONPath = i:Identifier e:ExtIdentifier? {
+    return i + e;
+}
+
+ExtIdentifier = c:( Descendent / Indexed )* {
+    return c.join('');
+}
+
+Indexed = '[' p:(PositiveNumber / Property / Expr) ']' {
+    return '[' + p + ']';
+}
+
+Property = StringLiteral
+
+Expr = q:'?'? '(' e:ExprBlock ')' {
+    return q + '(' + e + ')'
+}
+
+// This is a pickle - must ideally allow any
+// expression that can be eval'ed
+ExprBlock = s:StringLiteral {
+    return s.substr(1, s.length - 2);
+}
+
+StringLiteral = parts:(('"' DoubleString '"') / ("'" SingleString "'")) {
+    return '"' + parts[1] + '"';
+}
+
+Identifier = c:([a-zA-Z$:][a-zA-Z_0-9:]*)  {
+    var ret = c[0];
+    for(i = 1; i < c.length; i++) {
+        ret = ret + c[i].join('');
+    }
+    return ret;
+}
+
+Descendent = s:Selector i:Identifier {
+    return s + i;
+}
+
+Selector = d:('..' / '.')
+
+PositiveNumber = d:[0-9]+ {
+  return parseInt(d.join(''));
+}
+
+// Apostrophe is not allowed
+SingleString = c:([\u0020-\u0026]/[\u0028-\u005B]/[\u005D-\uFFFF]/[\\"])* {
+    return c.join('');
+}
+
+// Quotation mark is not allowed
+DoubleString = c:([\u0020-\u0021]/[\u0023-\u005B]/[\u005D-\uFFFF]/[\\'])* {
+    return c.join('');
 }
