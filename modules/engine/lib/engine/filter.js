@@ -45,7 +45,7 @@ function _iterate(resource, statement, context, source, keep) {
         else if(cond.operator === '=') {
             expected = expected.concat(jsonfill.fill(cond.rhs.value, context));
         }
-        else {
+        else if(cond.operator !== 'udf') {
             assert.ok(cond.operator === '=', 'Local filtering supported for = only');
         }
         return expected;
