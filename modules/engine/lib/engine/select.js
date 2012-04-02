@@ -98,7 +98,15 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                             }
                             else if(selected.from === 'joiner') {
                                 if(other && other[0]) {
-                                    val = other[0][selected.name || selected.index];
+                                    if(other[0][selected.name]) {
+                                        val = other[0][selected.name];
+                                    }
+                                    else if(_.isArray(other[0])) {
+                                        val = other[0][selected.index];
+                                    }
+                                    else {
+                                        val = other[0];
+                                    }
                                 }
                             }
                             if(selected.name) {
