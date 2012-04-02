@@ -26,11 +26,7 @@ module.exports = {
         test.deepEqual(c[0].whereCriteria[0], {
                     "operator": "udf",
                     "name": "f1",
-                    "args": {
-                       "value": [
-                          "a1.keys..name"
-                       ]
-                    }
+                    "args": [{"type": "column", "name": "a1.keys..name"}]
                  });
         test.done();
     }

@@ -176,10 +176,14 @@ module.exports = {
         test.ok(statement[0].whereCriteria[0].rhs.value, [1,2,'3']);
         test.ok(statement[0].whereCriteria[1].operator, 'udf');
         test.ok(statement[0].whereCriteria[1].name, 'foo');
-        test.ok(statement[0].whereCriteria[1].args.value, ['bar','1','2']);
+        test.ok(statement[0].whereCriteria[1].args, [{"name": "bar", "type" : "literal"},
+            {"name": "1", "type" : "literal"},
+            {"name": "2", "type" : "literal"}]);
         test.ok(statement[0].whereCriteria[2].operator, 'udf');
         test.ok(statement[0].whereCriteria[2].name, 'bar');
-        test.ok(statement[0].whereCriteria[2].args.value, [1,'baz',2]);
+        test.ok(statement[0].whereCriteria[1].args, [{"name": 1, "type" : "literal"},
+            {"name": "baz", "type" : "literal"},
+            {"name": 2, "type" : "literal"}]);
         test.ok(statement[0].whereCriteria[2].operator, 'udf');
         test.ok(statement[0].whereCriteria[2].name, 'baz');
         test.ok(statement[0].whereCriteria[2].args, '');
@@ -316,9 +320,7 @@ module.exports = {
                     {
                         "operator": "udf",
                         "name": "contains",
-                        "args": {
-                                "value": ["mini cooper"]
-                            }
+                        "args": [{ "type" : "literal", "value": "mini cooper"}]
                     },
                     {
                         "operator": "udf",
@@ -362,19 +364,12 @@ module.exports = {
                     {
                         "operator": "udf",
                         "name": "p1",
-                        "args": {
-                            "value": ["v1"]
-                        }
+                        "args": [{"value": "v1", "type": "literal"}]
                     },
                     {
                         "operator": "udf",
                         "name": "p2",
-                        "args": {
-                            "value": [
-                                "2",
-                                "3"
-                            ]
-                        }
+                        "args": [{"value": "2", "type": "literal"}, {"value": "3", "type": "literal"}],
                     },
                     {
                         "operator": "udf",

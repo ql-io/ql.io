@@ -7,7 +7,7 @@
 * columns as column udf args
 * --column udfs in joins--
 * --literal args for col udfs--
-* literal args for where udfs
+* --literal args for where udfs--
 
 # Runtime
 
@@ -22,7 +22,11 @@ Goal is to support
           {"name": "Brand-C", "details": [{"name": "G3","count": 32}, {"name": "G5","count": 18}]}];
     return select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and f1(a1.keys..name);
 
+* Filter select *
+* Filter select fields
+* Filter select fields with alias
 * Evaluate args
+* Short-circuit where clause UDFs when there are no UDFs in the where clause
 
 * Change where udf for the new syntax - backwards compat?
 * Support columns udf

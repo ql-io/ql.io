@@ -660,24 +660,6 @@ inCond = lhs:identifier insig 'in' insig '(' insig rhs:(selectStatement / csv) i
   return {operator : 'in', lhs : {name: lhs}, rhs: rhs};
 }
 
-udf = name:identifier insig '(' insig p:udfParams? insig ')' {
-  return {
-    operator: 'udf',
-    name: name,
-    args: p
-  }
-}
-
-udfParams = c:udfParam insig carr:(comma insig udfParam)* {
-  var res = [c.value || c];
-  collect(carr,',', res, 'value');
-  return {
-    value: res
-  }
-}
-
-udfParam = aliasedRef/quotedWord/quotedDigits/digits
-
 csv =  insig c:csvMember insig carr:(commaCsvMember*) {
   var res = [c.value || c];
   collect(carr,',', res, 'value');
@@ -742,9 +724,9 @@ aliasField = n:nonAliasField insig 'as' insig a:identifier {
   return n;
 }
 
-nonAliasField = colUdf / column
+nonAliasField = udf / column
 
-colUdf = name:identifier insig '(' insig p:colUdfParams? insig ')' {
+udf = name:identifier insig '(' insig p:udfParams? insig ')' {
   return {
     operator: 'udf',
     name: name,
@@ -752,13 +734,13 @@ colUdf = name:identifier insig '(' insig p:colUdfParams? insig ')' {
   }
 }
 
-colUdfParams = c:colUdfParam insig carr:(comma insig colUdfParam)* {
+udfParams = c:udfParam insig carr:(comma insig udfParam)* {
   var res = [c];
   collect(carr,',', res);
   return res;
 }
 
-colUdfParam = column/literalParam
+udfParam = column/literalParam
 
 literalParam = j:json {
   return {
@@ -921,7 +903,7 @@ array = '[' insig elements? insig ']'
 
 elements = (value insig comma insig elements) / value
 
-string = dquote ([\u0020-\u0021]/[\u0023-\u005B]/[\u005D-\uFFFF]/['\\'])* dquote
+string = StringLiteral
 
 number = c:((int frac exp) / (int frac) / (int exp) / (int)) {
   return append(c);
@@ -948,6 +930,8 @@ null = 'null'
 comma = ','
 
 dquote = [\u0022]
+
+squote = [\u0027]
 
 insig = sp crlf* sp { return ''}
 
