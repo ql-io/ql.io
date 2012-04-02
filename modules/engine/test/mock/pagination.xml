@@ -1,0 +1,108 @@
+<findItemsByKeywordsResponse xmlns="http://www.ebay.com/marketplace/search/v1/services">
+    <searchResult count="10">
+        <item>
+            <itemId>360428106114</itemId>
+            <title>Affliction Men's Denim COOPER FLEUR FLAP Jeans NEW - 10BS411 - Copenhagen Wash</title>
+            <shippingInfo>
+                <shippingType>Free</shippingType>
+            </shippingInfo>
+            <sellingStatus>
+                <currentPrice currencyId="USD">159.0</currentPrice>
+            </sellingStatus>
+        </item>
+        <item>
+            <itemId>260990887024</itemId>
+            <title>10000K BLUE 50w CANBUS EFX Xenon HID Conversion Fog Light Kit H11 FOGLIGHT</title>
+            <shippingInfo>
+                <shippingType>Calculated</shippingType>
+            </shippingInfo>
+            <sellingStatus>
+                <currentPrice currencyId="USD">129.99</currentPrice>
+            </sellingStatus>
+        </item>
+        <item>
+            <itemId>150787274449</itemId>
+            <title>4 NEW 235 60 17 INCH COOPER CS4 TIRES 60R17 R17 2356017</title>
+            <shippingInfo>
+                <shippingType>Free</shippingType>
+            </shippingInfo>
+            <sellingStatus>
+                <currentPrice currencyId="USD">545.0</currentPrice>
+            </sellingStatus>
+        </item>
+        <item>
+            <itemId>360428106114</itemId>
+            <title>Affliction Men's Denim COOPER FLEUR FLAP Jeans NEW - 10BS411 - Copenhagen Wash</title>
+            <shippingInfo>
+                <shippingType>Free</shippingType>
+            </shippingInfo>
+            <sellingStatus>
+                <currentPrice currencyId="USD">159.0</currentPrice>
+            </sellingStatus>
+        </item>
+        <item>
+            <itemId>150787274456</itemId>
+            <title>4 NEW 205 60 16 INCH COOPER CS4 TIRES 60R16 R16 2056016</title>
+            <shippingInfo>
+              <shippingType>Free</shippingType>
+            </shippingInfo>
+            <sellingStatus>
+                <currentPrice currencyId="USD">428.0</currentPrice>
+            </sellingStatus>
+        </item>
+        <item>
+            <itemId>360428106114</itemId>
+            <title>Affliction Men's Denim COOPER FLEUR FLAP Jeans NEW - 10BS411 - Copenhagen Wash</title>
+            <shippingInfo>
+             <shippingType>Free</shippingType>
+            </shippingInfo>
+            <sellingStatus>
+                <currentPrice currencyId="USD">159.0</currentPrice>
+            </sellingStatus>
+        </item>
+        <item>
+            <itemId>180852048900</itemId>
+            <title>4 NEW 235 60 16 INCH COOPER CS4 TIRES 60R16 R16 2356016</title>
+            <shippingInfo>
+                <shippingType>Free</shippingType>
+            </shippingInfo>
+            <sellingStatus>
+                <currentPrice currencyId="USD">488.0</currentPrice>
+            </sellingStatus>
+        </item>
+        <item>
+            <itemId>200735286762</itemId>
+            <title>4 NEW 225 70 16 INCH COOPER CS4 TIRES 70R16 R16 2257016</title>
+            <shippingInfo>
+                <shippingType>Free</shippingType>
+            </shippingInfo>
+            <sellingStatus>
+                <currentPrice currencyId="USD">478.0</currentPrice>
+            </sellingStatus>
+        </item>
+        <item>
+            <itemId>360428106114</itemId>
+            <title>Affliction Men's Denim COOPER FLEUR FLAP Jeans NEW - 10BS411 - Copenhagen Wash</title>
+            <shippingInfo>
+                <shippingType>Free</shippingType>
+            </shippingInfo>
+            <sellingStatus>
+                <currentPrice currencyId="USD">159.0</currentPrice>
+            </sellingStatus>
+        </item>
+        <item>
+            <itemId>180852048895</itemId>
+            <title>4 NEW 215 60 16 INCH COOPER CS4 TIRES 60R16 R16 2156016</title>
+            <shippingInfo>
+               <shippingType>Free</shippingType>
+            </shippingInfo>
+            <sellingStatus>
+                <currentPrice currencyId="USD">443.0</currentPrice>
+            </sellingStatus>
+        </item>
+    </searchResult>
+    <paginationOutput>
+        <pageNumber>11</pageNumber>
+        <entriesPerPage>10</entriesPerPage>
+    </paginationOutput>
+</findItemsByKeywordsResponse>
