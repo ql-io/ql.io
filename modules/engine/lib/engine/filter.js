@@ -68,6 +68,10 @@ function _iterate(resource, statement, context, source, keep) {
 
         for(i = 0; i < statement.whereCriteria.length; i++) {
             var cond = statement.whereCriteria[i];
+            if(cond.operator && cond.operator === 'udf') {
+                // Don't process UDFs yet
+                continue;
+            }
             var expected = expecteds[i];
             var path = cond.lhs.name;
             if(path.indexOf(source.alias + '.') === 0) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 eBay Software Foundation
+ * Copyright 2012 eBay Software Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,7 @@
 
 'use strict'
 
-var _ = require('underscore');
-
-exports.concat = function() {
+exports.require = function() {
     var args = Array.prototype.slice.call(arguments);
-    while(args.length === 1 && _.isArray(args[0])) {
-        args = args[0];
-    }
-    var arr = [];
-    for(var i in args) {
-        arr = arr.concat(args[i]);
-    }
-    return arr;
-};
+    return module.require.apply(null, args);
+}
