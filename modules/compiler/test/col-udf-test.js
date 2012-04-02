@@ -20,7 +20,7 @@ var compiler = require('../lib/compiler');
 
 module.exports = {
     'udf-args': function(test) {
-        var q = 'select id, name(fname, lname) from people;';
+        var q = 'select id, name(fname, lname) from people';
         var c = compiler.compile(q);
         var columns = [
             { type: 'column', name: 'id' },
@@ -35,8 +35,51 @@ module.exports = {
         test.done();
     },
 
+    'udf-args-literal': function(test) {
+        var q = 'select id, name(1, 2.0, "hello", "hello world", {"p" : "v"}) from people';
+        var c = compiler.compile(q);
+        test.deepEqual(c[0].columns[1].args, [
+            {
+                "type": "literal",
+                "value": 1
+            },
+            {
+                "type": "literal",
+                "value": 2.0
+            },
+            {
+                "type": "literal",
+                "value": "hello"
+            },
+            {
+                "type": "literal",
+                "value": "hello world"
+            },
+            {
+                "type": "literal",
+                "value": {'p' : 'v'}
+            }
+        ]);
+        test.done();
+    },
+
     'udf-args-mixed': function(test) {
         var q = 'select id, name(1, fname, lname) from people;';
+        var c = compiler.compile(q);
+        test.deepEqual(c[0].columns[1].args, [
+                       {
+                          "type": "literal",
+                          "value": 1
+                       },
+                       {
+                          "type": "column",
+                          "name": "fname"
+                       },
+                       {
+                          "type": "column",
+                          "name": "lname"
+                       }
+                    ])
         test.done();
     },
 

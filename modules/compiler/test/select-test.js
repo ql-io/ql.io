@@ -28,7 +28,7 @@ module.exports = {
                 fromClause: [
                     {'name': 'foo' }
                 ],
-                columns: {name: '*'},
+                columns: {name: '*', type: 'column'},
                 whereCriteria: undefined,
                 id: 0,
                 line: 1
@@ -49,10 +49,10 @@ module.exports = {
                     {'name': 'ebay.finding.items' }
                 ],
                 columns: [
-                    {name: 'title[0]'},
-                    {name: 'itemId[0]'},
-                    {name: 'primaryCategory[0].categoryName[0]'},
-                    {name: 'sellingStatus[0].currentPrice[0]'}
+                    {name: 'title[0]', type: "column"},
+                    {name: 'itemId[0]', type: "column"},
+                    {name: 'primaryCategory[0].categoryName[0]', type: "column"},
+                    {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
                 ],
                 whereCriteria: undefined,
                 id: 0,
@@ -75,13 +75,13 @@ module.exports = {
                     {name: 'ebay.finding.items' }
                 ],
                 columns: [
-                    {name: 'title[0]'},
-                    {name: 'itemId[0]'},
-                    {name: 'primaryCategory[0].categoryName[0]'},
-                    {name: 'sellingStatus[0].currentPrice[0]'}
+                    {name: 'title[0]', type: "column"},
+                    {name: 'itemId[0]', type: "column"},
+                    {name: 'primaryCategory[0].categoryName[0]', type: "column"},
+                    {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
                 ],
                 whereCriteria: [
-                    { operator: '=', lhs: {name: 'keywords'}, rhs: {
+                    { operator: '=', lhs: {name: 'keywords', type: "column"}, rhs: {
                         value: 'cooper'
                     } }
                 ],
@@ -104,13 +104,13 @@ module.exports = {
                     {name: 'ebay.finding.items', alias: 'e' }
                 ],
                 columns: [
-                    {name: 'e.title[0]'},
-                    {name: 'e.itemId[0]'},
-                    {name: 'e.primaryCategory[0].categoryName[0]'},
-                    {name: 'e.sellingStatus[0].currentPrice[0]'}
+                    {name: 'e.title[0]', type: "column"},
+                    {name: 'e.itemId[0]', type: "column"},
+                    {name: 'e.primaryCategory[0].categoryName[0]', type: "column"},
+                    {name: 'e.sellingStatus[0].currentPrice[0]', type: "column"}
                 ],
                 whereCriteria: [
-                    { operator: '=', lhs: {name: 'keywords'}, rhs: {
+                    { operator: '=', lhs: {type: "column", name: 'keywords'}, rhs: {
                         value: 'cooper'
                     } }
                 ],
@@ -132,7 +132,7 @@ module.exports = {
                     {name: 'ebay.item'}
                 ],
                 columns: [
-                    {name: 'ViewItemURLForNaturalSearch'}
+                    {name: 'ViewItemURLForNaturalSearch', type: "column"}
                 ],
                 whereCriteria: [
                     { operator: 'in', lhs: {name: 'itemId'}, "rhs":{
@@ -195,87 +195,52 @@ module.exports = {
                 "type": "select",
                 "line": 1,
                 "columns": [
-                    {name: "e.Title"},
-                    {name: "e.ItemID"},
-                    {name: "e.Location"}
+                    { type: 'column', name: 'e.Title' },
+                    { type: 'column', name: 'e.ItemID' },
+                    { type: 'column', name: 'e.Location' }
+                ],
+                selected: [
+                    { from: 'main', index: 0 },
+                    { from: 'main', index: 1 },
+                    { from: 'joiner', index: 0 }
                 ],
                 extras: [ 2 ],
-                "selected": [
-                    {
-                        "from": "main",
-                        "index": 0
-                    },
-                    {
-                        "from": "main",
-                        "index": 1
-                    },
-                    {
-                        "from": "joiner",
-                        "index": 0
-                    }
-                ],
-                "whereCriteria": [
-                    {
-                        "operator": "in",
-                        "lhs": {name: "e.itemId"},
-                        "rhs": {
-                            "type": "select",
-                            "line": 1,
-                            "fromClause": [
-                                {
-                                    "name": "ebay.finding.items"
-                                }
+                whereCriteria: [
+                    { operator: 'in',
+                        lhs: { name: 'e.itemId' },
+                        rhs: { type: 'select',
+                            line: 1,
+                            fromClause: [
+                                { name: 'ebay.finding.items' }
                             ],
-                            "columns": [
-                                {name: "itemId"}
+                            columns: [
+                                { type: 'column', name: 'itemId' }
                             ],
-                            "whereCriteria": [
-                                {
-                                    "operator": "=",
-                                    "lhs": {name: "keywords"},
-                                    "rhs": {
-                                        "value": "mini"
-                                    }
-                                }
-                            ]
-                        }
-                    }
+                            whereCriteria: [
+                                { operator: '=',
+                                    lhs: { type: 'column', name: 'keywords' },
+                                    rhs: { value: 'mini' } }
+                            ] } }
                 ],
-                "fromClause": [
-                    {
-                        "name": "ebay.item",
-                        "alias": "e"
-                    }
+                fromClause: [
+                    { name: 'ebay.item', alias: 'e' }
                 ],
-                "joiner": {
-                    "type": "select",
-                    "line": 1,
-                    "columns": [
-                        {name: "g.geometry.location"},
-                        {name: "g.address"}
+                joiner: { type: 'select',
+                    line: 1,
+                    columns: [
+                        { type: 'column', name: 'g.geometry.location' },
+                        { type: 'column', name: 'g.address' }
                     ],
-
-                    "extras": [1],
-                    "whereCriteria": [
-                        {
-                            "operator": "=",
-                            "lhs": {name: "g.address"},
-                            "rhs": {
-                                "type": "alias",
-                                "value": "e.Location",
-                                "joiningColumn": 2
-                            }
-                        }
+                    extras: [ 1 ],
+                    whereCriteria: [
+                        { operator: '=',
+                            lhs: { type: 'column', name: 'g.address' },
+                            rhs: { type: 'alias', value: 'e.Location', joiningColumn: 2 } }
                     ],
-                    "fromClause": [
-                        {
-                            "name": "google.geocode",
-                            "alias": "g"
-                        }
-                    ]
-                },
-                "id": 0
-            }
+                    fromClause: [
+                        { name: 'google.geocode', alias: 'g' }
+                    ] },
+                id: 0 }
         ];
         test.deepEqual(statement, e);
         test.done();
@@ -293,10 +258,10 @@ module.exports = {
                     {'name': 'ebay.finding.items' }
                 ],
                 columns: [
-                    {name: 'title[0]'},
-                    {name: 'itemId[0]'},
-                    {name: 'primaryCategory[0].categoryName[0]'},
-                    {name: 'sellingStatus[0].currentPrice[0]'}
+                    {name: 'title[0]', type: "column"},
+                    {name: 'itemId[0]', type: "column"},
+                    {name: 'primaryCategory[0].categoryName[0]', type: "column"},
+                    {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
                 ],
                 whereCriteria: undefined,
                 limit: 4,
@@ -319,10 +284,10 @@ module.exports = {
                     {'name': 'ebay.finding.items' }
                 ],
                 columns: [
-                    {name: 'title[0]'},
-                    {name: 'itemId[0]'},
-                    {name: 'primaryCategory[0].categoryName[0]'},
-                    {name: 'sellingStatus[0].currentPrice[0]'}
+                    {name: 'title[0]', type: "column"},
+                    {name: 'itemId[0]', type: "column"},
+                    {name: 'primaryCategory[0].categoryName[0]', type: "column"},
+                    {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
                 ],
                 whereCriteria: undefined,
                 limit: 4,
@@ -346,7 +311,7 @@ module.exports = {
                         "name": "ebay.finditems"
                     }
                 ],
-                "columns": {name: "*"},
+                "columns": {name: "*", type: 'column'},
                 "whereCriteria": [
                     {
                         "operator": "udf",
@@ -392,7 +357,7 @@ module.exports = {
                         "name": "patch.udf"
                     }
                 ],
-                "columns": {name: "*"},
+                "columns": {name: "*", type: 'column'},
                 "whereCriteria": [
                     {
                         "operator": "udf",
@@ -436,10 +401,10 @@ module.exports = {
                     {'name': 'ebay.finding.items' }
                 ],
                 columns: [
-                    {name: 'title[0]'},
-                    {name: 'itemId[0]'},
-                    {name: 'primaryCategory[0].categoryName[0]'},
-                    {name: 'sellingStatus[0].currentPrice[0]'}
+                    {name: 'title[0]', type: "column"},
+                    {name: 'itemId[0]', type: "column"},
+                    {name: 'primaryCategory[0].categoryName[0]', type: "column"},
+                    {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
                 ],
                 whereCriteria: undefined,
                 assign: 'results',
@@ -477,10 +442,10 @@ module.exports = {
                     {'name': 'ebay.finding.items' }
                 ],
                 columns: [
-                    {name: 'title[0]'},
-                    {name: 'itemId[0]'},
-                    {name: 'primaryCategory[0].categoryName[0]'},
-                    {name: 'sellingStatus[0].currentPrice[0]'}
+                    {name: 'title[0]', type: "column"},
+                    {name: 'itemId[0]', type: "column"},
+                    {name: 'primaryCategory[0].categoryName[0]', type: "column"},
+                    {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
                 ],
                 whereCriteria: undefined,
                 id: 0
@@ -514,7 +479,7 @@ module.exports = {
                 fromClause: [
                     { name: 'foo' }
                 ],
-                columns: {name: '*'},
+                columns: {name: '*', type: 'column'},
                 whereCriteria: undefined,
                 id: 0,
                 dependsOn: [],
@@ -804,7 +769,7 @@ module.exports = {
         var statement = compiler.compile(q);
         test.equals(statement[0].type, 'select');
         test.deepEqual(statement[0].columns, [
-            {name: "products.ProductID[0].Value"}
+            {name: "products.ProductID[0].Value", type: "column"}
         ]);
         test.deepEqual(statement[0].selected, [
             {
@@ -820,14 +785,14 @@ module.exports = {
         test.deepEqual(statement[0].whereCriteria, [
             {
                 "operator": "=",
-                "lhs": {name: "products.QueryKeywords"},
+                "lhs": {name: "products.QueryKeywords", type: "column"},
                 "rhs": {
                     "value": "iPhone"
                 }
             },
             {
                 "operator": "=",
-                "lhs": {name: "products.siteid"},
+                "lhs": {name: "products.siteid", type: "column"},
                 "rhs": {
                     "value": 0
                 }
@@ -840,14 +805,14 @@ module.exports = {
         test.ok(statement[0].joiner);
         test.equals(statement[0].joiner.type, 'select');
         test.deepEqual(statement[0].joiner.columns, [
-            {name: "details.StockPhotoURL"},
-            {name: "details.ProductID"}
+            {type: "column", name: "details.StockPhotoURL"},
+            {type: "column", name: "details.ProductID"}
         ]);
         test.deepEqual(statement[0].joiner.extras[0], 1);
         test.deepEqual(statement[0].joiner.whereCriteria, [
             {
                 "operator": "=",
-                "lhs": {name: "details.ProductID"},
+                "lhs": {name: "details.ProductID", type: "column"},
                 "rhs": {
                     "type": "alias",
                     "value": "products.ProductID[0].Value",
@@ -856,14 +821,14 @@ module.exports = {
             },
             {
                 "operator": "=",
-                "lhs": {name: "details.siteid"},
+                "lhs": {name: "details.siteid", type: "column"},
                 "rhs": {
                     "value": "0"
                 }
             },
             {
                 "operator": "=",
-                "lhs": {name: "details.ProductType"},
+                "lhs": {name: "details.ProductType", type: "column"},
                 "rhs": {
                     "value": "Reference"
                 }
@@ -885,7 +850,7 @@ module.exports = {
                     {'name': 'someXml' }
                 ],
                 columns: [
-                    {name: 'a:b.c:d'}
+                    {name: 'a:b.c:d', type: "column"}
                 ],
                 whereCriteria: undefined,
                 id: 0,

@@ -117,7 +117,10 @@
     //  Split relevant columns into main and joiner
     for(i = 0; i < statement.columns.length; i++) {
         column = statement.columns[i];
-        if(column.name.indexOf(main.fromClause[0].alias + '.') === 0) {
+        if(column.operator === 'udf') {
+
+        }
+        else if(column.name.indexOf(main.fromClause[0].alias + '.') === 0) {
             // Keep it in main
             if(indexOf(main.columns, column.name) < 0) {
                 main.columns.push(column);
@@ -152,7 +155,10 @@
     if(statement.whereCriteria) {
         for(i = 0; i < statement.whereCriteria.length; i++) {
             cond = statement.whereCriteria[i];
-            if(cond.rhs.type && cond.rhs.type === 'alias') {
+            if(cond.operator === 'udf') {
+                main.whereCriteria.push(cond);
+            }
+            else if(cond.rhs.type && cond.rhs.type === 'alias') {
                 // This is the join condition
                 var index = cond.rhs.value.indexOf(main.fromClause[0].alias + '.');
                 if(index === 0) {
@@ -160,7 +166,8 @@
                     if(indexOf(main.columns, cond.rhs.value) < 0) {
                         var index = cond.rhs.value.indexOf(main.fromClause[0].alias + '.');
                         main.columns.push({
-                            name: cond.rhs.value
+                            name: cond.rhs.value,
+                            type: 'column'
                         })
                         if(statement.usingColumnAliases) {
                             main.columns[main.columns.length - 1].alias = cond.rhs.alias ||
@@ -171,7 +178,8 @@
                     if(indexOf(join.columns, cond.lhs.name) < 0) {
                         var index = cond.rhs.value.indexOf(join.fromClause[0].alias + '.');
                         join.columns.push({
-                            name: cond.lhs.name
+                            name: cond.lhs.name,
+                            type: 'column'
                         });
                         if(statement.usingColumnAliases) {
                             join.columns[join.columns.length - 1].alias = cond.lhs.alias ||
@@ -185,7 +193,8 @@
                     if(indexOf(join.columns, cond.rhs.value) < 0) {
                         var index = cond.rhs.value.indexOf(join.fromClause[0].alias + '.');
                         join.columns.push({
-                            name: cond.rhs.value
+                            name: cond.rhs.value,
+                            type: 'column'
                         })
                         if(statement.usingColumnAliases) {
                             join.columns[join.columns.length - 1].alias = cond.rhs.alias ||
@@ -196,7 +205,8 @@
                     if(indexOf(main.columns, cond.lhs.name) < 0) {
                         var index = cond.lhs.name.indexOf(main.fromClause[0].alias + '.');
                         main.columns.push({
-                            name: cond.lhs.name
+                            name: cond.lhs.name,
+                            type: 'column'
                         });
                         if(statement.usingColumnAliases) {
                             main.columns[main.columns.length - 1].alias = cond.lhs.alias ||
@@ -257,27 +267,31 @@
 
     // Verify that all columns have prefixes
     for(var i = 0; i < main.columns.length; i++) {
-        var prefixed = false;
-         for(var j = 0; j < main.fromClause.length; j++) {
-            if(main.columns[i].name.indexOf(main.fromClause[j].alias + '.') === 0) {
-                prefixed = true;
-                break;
+        if(!main.columns[i].operator) {
+            var prefixed = false;
+             for(var j = 0; j < main.fromClause.length; j++) {
+                if(main.columns[i].name.indexOf(main.fromClause[j].alias + '.') === 0) {
+                    prefixed = true;
+                    break;
+                }
             }
-        }
-        if(!prefixed) {
-            throw new this.SyntaxError("Line " + main.line + ": Column " + main.columns[i].name + " not prefixed or prefix not found");
+            if(!prefixed) {
+                throw new this.SyntaxError("Line " + main.line + ": Column " + main.columns[i].name + " not prefixed or prefix not found");
+            }
         }
     }
     for(var i = 0; i < join.columns.length; i++) {
-        var prefixed = false;
-         for(var j = 0; j < join.fromClause.length; j++) {
-            if(join.columns[i].name.indexOf(join.fromClause[j].alias + '.') === 0) {
-                prefixed = true;
-                break;
+        if(!join.columns[i].operator) {
+            var prefixed = false;
+             for(var j = 0; j < join.fromClause.length; j++) {
+                if(join.columns[i].name.indexOf(join.fromClause[j].alias + '.') === 0) {
+                    prefixed = true;
+                    break;
+                }
             }
-        }
-        if(!prefixed) {
-            throw new this.SyntaxError("Line " + main.line + ": Column " + join.columns[i].name + " not prefixed or prefix not found");
+            if(!prefixed) {
+                throw new this.SyntaxError("Line " + main.line + ": Column " + join.columns[i].name + " not prefixed or prefix not found");
+            }
         }
     }
 
@@ -291,7 +305,7 @@
 
 ///////////////////////////////////////////////////////////
 
-start = crlf* larr:linecrlf* insig r:return? insig crlf* insig carr:comment* insig crlf*{
+Start = crlf* larr:LineCrlf* insig r:return? insig crlf* insig carr:comment* insig crlf*{
   ret = [];
   ret = ret.concat(larr);
   if(r) {
@@ -302,7 +316,7 @@ start = crlf* larr:linecrlf* insig r:return? insig crlf* insig carr:comment* ins
 }
 
 
-linecrlf = l:line crlf* {
+LineCrlf = l:line crlf* {
   return l;
 }
 
@@ -706,7 +720,8 @@ aliasedRef = p:JSONPath {
 
 all = '*' {
   return {
-    name: '*'
+    name: '*',
+    type: 'column'
   }
 }
 fields = arr:(field (insig comma insig field)*) {
@@ -715,19 +730,55 @@ fields = arr:(field (insig comma insig field)*) {
   return res;
 }
 
-field = f:(aliasField / nonAliasField) {
+field = f:(aliasField / nonAliasField ) {
   return f;
 }
 
-aliasField = (s:JSONPath insig 'as' insig a:identifier) {
-  if(symbols[s]) {
-    s = "{" + s + "}";
+aliasField = n:nonAliasField insig 'as' insig a:identifier {
+  if(symbols[n]) {
+    n = "{" + n + "}";
   }
-  return {name: s, alias: a};
+  n.alias = a;
+  return n;
 }
 
-nonAliasField = p:JSONPath {
-    return {name: p};
+nonAliasField = colUdf / column
+
+colUdf = name:identifier insig '(' insig p:colUdfParams? insig ')' {
+  return {
+    operator: 'udf',
+    name: name,
+    args: p
+  }
+}
+
+colUdfParams = c:colUdfParam insig carr:(comma insig colUdfParam)* {
+  var res = [c];
+  collect(carr,',', res);
+  return res;
+}
+
+colUdfParam = column/literalParam
+
+literalParam = j:json {
+  return {
+    type: 'literal',
+    value: j
+  }
+}
+paramDigits = d:digits {
+    return {
+      type: 'literal',
+      value: d
+    }
+}
+
+// TODO: use column for columnsClause
+column = p:JSONPath {
+  return {
+    type: 'column',
+    name: p
+  }
 }
 
 fieldName = chars:((selector ('.' selector)*)) {
@@ -822,7 +873,8 @@ route = 'via' insig 'route' insig p:quotedWord insig 'using' insig 'method' insi
 }
 
 // JSON
-value = v:(object / stringval / numberval / arrayval / trueval / falseval / nullval) {
+json = object / stringval / numberval / arrayval / trueval / falseval / nullval
+value = v:json {
   return {
     object: v,
     type: 'define',

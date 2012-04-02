@@ -36,6 +36,10 @@ module.exports = (function(){
         "authenticateUsing": parse_authenticateUsing,
         "callUdf": parse_callUdf,
         "cnvp": parse_cnvp,
+        "colUdf": parse_colUdf,
+        "colUdfParam": parse_colUdfParam,
+        "colUdfParams": parse_colUdfParams,
+        "column": parse_column,
         "columnsClause": parse_columnsClause,
         "comma": parse_comma,
         "commaCsvMember": parse_commaCsvMember,
@@ -74,9 +78,11 @@ module.exports = (function(){
         "insertStatement": parse_insertStatement,
         "insig": parse_insig,
         "int": parse_int,
+        "json": parse_json,
         "limit": parse_limit,
         "line": parse_line,
         "linecrlf": parse_linecrlf,
+        "literalParam": parse_literalParam,
         "members": parse_members,
         "nonAliasField": parse_nonAliasField,
         "nonAliasSource": parse_nonAliasSource,
@@ -91,6 +97,7 @@ module.exports = (function(){
         "operator": parse_operator,
         "output": parse_output,
         "pair": parse_pair,
+        "paramDigits": parse_paramDigits,
         "patch": parse_patch,
         "postto": parse_postto,
         "putto": parse_putto,
@@ -4895,7 +4902,8 @@ module.exports = (function(){
         var result2 = result1 !== null
           ? (function() {
             return {
-              name: '*'
+              name: '*',
+              type: 'column'
             }
           })()
           : null;
@@ -5070,7 +5078,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_JSONPath();
+        var result3 = parse_nonAliasField();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -5110,11 +5118,12 @@ module.exports = (function(){
           pos = savedPos1;
         }
         var result2 = result1 !== null
-          ? (function(s, a) {
-            if(symbols[s]) {
-              s = "{" + s + "}";
+          ? (function(n, a) {
+            if(symbols[n]) {
+              n = "{" + n + "}";
             }
-            return {name: s, alias: a};
+            n.alias = a;
+            return n;
           })(result1[0], result1[4])
           : null;
         if (result2 !== null) {
@@ -5142,11 +5151,336 @@ module.exports = (function(){
         }
 
 
+        var result2 = parse_colUdf();
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result1 = parse_column();
+          if (result1 !== null) {
+            var result0 = result1;
+          } else {
+            var result0 = null;;
+          };
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_colUdf() {
+        var cacheKey = 'colUdf@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        var savedPos1 = pos;
+        var result3 = parse_identifier();
+        if (result3 !== null) {
+          var result4 = parse_insig();
+          if (result4 !== null) {
+            if (input.substr(pos, 1) === "(") {
+              var result5 = "(";
+              pos += 1;
+            } else {
+              var result5 = null;
+              if (reportMatchFailures) {
+                matchFailed("\"(\"");
+              }
+            }
+            if (result5 !== null) {
+              var result6 = parse_insig();
+              if (result6 !== null) {
+                var result10 = parse_colUdfParams();
+                var result7 = result10 !== null ? result10 : '';
+                if (result7 !== null) {
+                  var result8 = parse_insig();
+                  if (result8 !== null) {
+                    if (input.substr(pos, 1) === ")") {
+                      var result9 = ")";
+                      pos += 1;
+                    } else {
+                      var result9 = null;
+                      if (reportMatchFailures) {
+                        matchFailed("\")\"");
+                      }
+                    }
+                    if (result9 !== null) {
+                      var result1 = [result3, result4, result5, result6, result7, result8, result9];
+                    } else {
+                      var result1 = null;
+                      pos = savedPos1;
+                    }
+                  } else {
+                    var result1 = null;
+                    pos = savedPos1;
+                  }
+                } else {
+                  var result1 = null;
+                  pos = savedPos1;
+                }
+              } else {
+                var result1 = null;
+                pos = savedPos1;
+              }
+            } else {
+              var result1 = null;
+              pos = savedPos1;
+            }
+          } else {
+            var result1 = null;
+            pos = savedPos1;
+          }
+        } else {
+          var result1 = null;
+          pos = savedPos1;
+        }
+        var result2 = result1 !== null
+          ? (function(name, p) {
+            return {
+              operator: 'udf',
+              name: name,
+              args: p
+            }
+          })(result1[0], result1[4])
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_colUdfParams() {
+        var cacheKey = 'colUdfParams@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        var savedPos1 = pos;
+        var result3 = parse_colUdfParam();
+        if (result3 !== null) {
+          var result4 = parse_insig();
+          if (result4 !== null) {
+            var result5 = [];
+            var savedPos2 = pos;
+            var result7 = parse_comma();
+            if (result7 !== null) {
+              var result8 = parse_insig();
+              if (result8 !== null) {
+                var result9 = parse_colUdfParam();
+                if (result9 !== null) {
+                  var result6 = [result7, result8, result9];
+                } else {
+                  var result6 = null;
+                  pos = savedPos2;
+                }
+              } else {
+                var result6 = null;
+                pos = savedPos2;
+              }
+            } else {
+              var result6 = null;
+              pos = savedPos2;
+            }
+            while (result6 !== null) {
+              result5.push(result6);
+              var savedPos2 = pos;
+              var result7 = parse_comma();
+              if (result7 !== null) {
+                var result8 = parse_insig();
+                if (result8 !== null) {
+                  var result9 = parse_colUdfParam();
+                  if (result9 !== null) {
+                    var result6 = [result7, result8, result9];
+                  } else {
+                    var result6 = null;
+                    pos = savedPos2;
+                  }
+                } else {
+                  var result6 = null;
+                  pos = savedPos2;
+                }
+              } else {
+                var result6 = null;
+                pos = savedPos2;
+              }
+            }
+            if (result5 !== null) {
+              var result1 = [result3, result4, result5];
+            } else {
+              var result1 = null;
+              pos = savedPos1;
+            }
+          } else {
+            var result1 = null;
+            pos = savedPos1;
+          }
+        } else {
+          var result1 = null;
+          pos = savedPos1;
+        }
+        var result2 = result1 !== null
+          ? (function(c, carr) {
+            var res = [c];
+            collect(carr,',', res);
+            return res;
+          })(result1[0], result1[2])
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_colUdfParam() {
+        var cacheKey = 'colUdfParam@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var result2 = parse_column();
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result1 = parse_literalParam();
+          if (result1 !== null) {
+            var result0 = result1;
+          } else {
+            var result0 = null;;
+          };
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_literalParam() {
+        var cacheKey = 'literalParam@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        var result1 = parse_json();
+        var result2 = result1 !== null
+          ? (function(j) {
+            return {
+              type: 'literal',
+              value: j
+            }
+          })(result1)
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_paramDigits() {
+        var cacheKey = 'paramDigits@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        var result1 = parse_digits();
+        var result2 = result1 !== null
+          ? (function(d) {
+              return {
+                type: 'literal',
+                value: d
+              }
+          })(result1)
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_column() {
+        var cacheKey = 'column@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
         var savedPos0 = pos;
         var result1 = parse_JSONPath();
         var result2 = result1 !== null
           ? (function(p) {
-              return {name: p};
+            return {
+              type: 'column',
+              name: p
+            }
           })(result1)
           : null;
         if (result2 !== null) {
@@ -6537,6 +6871,61 @@ module.exports = (function(){
         return result0;
       }
 
+      function parse_json() {
+        var cacheKey = 'json@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var result7 = parse_object();
+        if (result7 !== null) {
+          var result0 = result7;
+        } else {
+          var result6 = parse_stringval();
+          if (result6 !== null) {
+            var result0 = result6;
+          } else {
+            var result5 = parse_numberval();
+            if (result5 !== null) {
+              var result0 = result5;
+            } else {
+              var result4 = parse_arrayval();
+              if (result4 !== null) {
+                var result0 = result4;
+              } else {
+                var result3 = parse_trueval();
+                if (result3 !== null) {
+                  var result0 = result3;
+                } else {
+                  var result2 = parse_falseval();
+                  if (result2 !== null) {
+                    var result0 = result2;
+                  } else {
+                    var result1 = parse_nullval();
+                    if (result1 !== null) {
+                      var result0 = result1;
+                    } else {
+                      var result0 = null;;
+                    };
+                  };
+                };
+              };
+            };
+          };
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
       function parse_value() {
         var cacheKey = 'value@' + pos;
         var cachedResult = cache[cacheKey];
@@ -6547,42 +6936,7 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result9 = parse_object();
-        if (result9 !== null) {
-          var result1 = result9;
-        } else {
-          var result8 = parse_stringval();
-          if (result8 !== null) {
-            var result1 = result8;
-          } else {
-            var result7 = parse_numberval();
-            if (result7 !== null) {
-              var result1 = result7;
-            } else {
-              var result6 = parse_arrayval();
-              if (result6 !== null) {
-                var result1 = result6;
-              } else {
-                var result5 = parse_trueval();
-                if (result5 !== null) {
-                  var result1 = result5;
-                } else {
-                  var result4 = parse_falseval();
-                  if (result4 !== null) {
-                    var result1 = result4;
-                  } else {
-                    var result3 = parse_nullval();
-                    if (result3 !== null) {
-                      var result1 = result3;
-                    } else {
-                      var result1 = null;;
-                    };
-                  };
-                };
-              };
-            };
-          };
-        }
+        var result1 = parse_json();
         var result2 = result1 !== null
           ? (function(v) {
             return {
@@ -9228,7 +9582,13 @@ module.exports = (function(){
 
           column = statement.columns[i];
 
-          if(column.name.indexOf(main.fromClause[0].alias + '.') === 0) {
+          if(column.operator === 'udf') {
+
+
+
+          }
+
+          else if(column.name.indexOf(main.fromClause[0].alias + '.') === 0) {
 
               // Keep it in main
 
@@ -9298,7 +9658,13 @@ module.exports = (function(){
 
               cond = statement.whereCriteria[i];
 
-              if(cond.rhs.type && cond.rhs.type === 'alias') {
+              if(cond.operator === 'udf') {
+
+                  main.whereCriteria.push(cond);
+
+              }
+
+              else if(cond.rhs.type && cond.rhs.type === 'alias') {
 
                   // This is the join condition
 
@@ -9314,7 +9680,9 @@ module.exports = (function(){
 
                           main.columns.push({
 
-                              name: cond.rhs.value
+                              name: cond.rhs.value,
+
+                              type: 'column'
 
                           })
 
@@ -9336,7 +9704,9 @@ module.exports = (function(){
 
                           join.columns.push({
 
-                              name: cond.lhs.name
+                              name: cond.lhs.name,
+
+                              type: 'column'
 
                           });
 
@@ -9364,7 +9734,9 @@ module.exports = (function(){
 
                           join.columns.push({
 
-                              name: cond.rhs.value
+                              name: cond.rhs.value,
+
+                              type: 'column'
 
                           })
 
@@ -9386,7 +9758,9 @@ module.exports = (function(){
 
                           main.columns.push({
 
-                              name: cond.lhs.name
+                              name: cond.lhs.name,
+
+                              type: 'column'
 
                           });
 
@@ -9508,23 +9882,27 @@ module.exports = (function(){
 
       for(var i = 0; i < main.columns.length; i++) {
 
-          var prefixed = false;
+          if(!main.columns[i].operator) {
 
-           for(var j = 0; j < main.fromClause.length; j++) {
+              var prefixed = false;
 
-              if(main.columns[i].name.indexOf(main.fromClause[j].alias + '.') === 0) {
+               for(var j = 0; j < main.fromClause.length; j++) {
 
-                  prefixed = true;
+                  if(main.columns[i].name.indexOf(main.fromClause[j].alias + '.') === 0) {
 
-                  break;
+                      prefixed = true;
+
+                      break;
+
+                  }
 
               }
 
-          }
+              if(!prefixed) {
 
-          if(!prefixed) {
+                  throw new this.SyntaxError("Line " + main.line + ": Column " + main.columns[i].name + " not prefixed or prefix not found");
 
-              throw new this.SyntaxError("Line " + main.line + ": Column " + main.columns[i].name + " not prefixed or prefix not found");
+              }
 
           }
 
@@ -9532,23 +9910,27 @@ module.exports = (function(){
 
       for(var i = 0; i < join.columns.length; i++) {
 
-          var prefixed = false;
+          if(!join.columns[i].operator) {
 
-           for(var j = 0; j < join.fromClause.length; j++) {
+              var prefixed = false;
 
-              if(join.columns[i].name.indexOf(join.fromClause[j].alias + '.') === 0) {
+               for(var j = 0; j < join.fromClause.length; j++) {
 
-                  prefixed = true;
+                  if(join.columns[i].name.indexOf(join.fromClause[j].alias + '.') === 0) {
 
-                  break;
+                      prefixed = true;
+
+                      break;
+
+                  }
 
               }
 
-          }
+              if(!prefixed) {
 
-          if(!prefixed) {
+                  throw new this.SyntaxError("Line " + main.line + ": Column " + join.columns[i].name + " not prefixed or prefix not found");
 
-              throw new this.SyntaxError("Line " + main.line + ": Column " + join.columns[i].name + " not prefixed or prefix not found");
+              }
 
           }
 
