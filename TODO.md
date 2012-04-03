@@ -11,16 +11,22 @@
 
 # Runtime
 
+## require udfs
+
+* --This is the first step--
+* Modules must be relative to the process.cwd() for now.
+
 ## Where Clause UDF
 
 Goal is to support
 
+    udfs = require('./udfs/example.js');
     a1 = [{"name": "Brand-A", "keys" : [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]},
           {"name": "Brand-B", "keys" : [{ "name": "G1"},{"name": "G2"}]},
           {"name": "Brand-C", "keys" : [{ "name": "G4"},{"name": "G2"}]}];
     a2 = [{"name": "Brand-A", "details": [{"name": "G3","count": 32},{"name": "G5","count": 18}]},
           {"name": "Brand-C", "details": [{"name": "G3","count": 32}, {"name": "G5","count": 18}]}];
-    return select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and f1(a1.keys..name);
+    return select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.applyDiscount("{a1.keys...name}");
 
 * Filter select *
 * Filter select fields
@@ -31,6 +37,8 @@ Goal is to support
 * Change where udf for the new syntax - backwards compat?
 * Support columns udf
 * Support columns extras in columns udf args
+
+* where clause UDFs on deletes
 
 # Tests
 

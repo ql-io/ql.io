@@ -20,6 +20,7 @@ var filter = require('./filter.js'),
     _util = require('./util.js'),
     where = require('./where.js'),
     project = require('./project.js'),
+    udf = require('./udf.js'),
     strTemplate = require('./peg/str-template.js'),
     _ = require('underscore'),
     async = require('async'),
@@ -38,7 +39,70 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         txType: 'QlIoSelect',
         txName: null,
         message: {line: statement.line},
-        cb: cb});
+        cb: function (err, results) {
+            if(err) {
+                return cb(err);
+            }
+            //
+            // Iterative apply each UDF from the where clause.
+            //
+            // TODO: Short-circuit this when there are no UDFs
+            if(statement.columns.name === '*') {
+                var mods = results.body;
+                // Iteratively apply UDF on mods
+                _.each(statement.whereCriteria, function (where) {
+                    if(where.operator === 'udf') {
+                        var fn = udf.resolve(opts, where);
+                        if(fn) {
+                            fn(results.body, 0, results.body, function (err, mod) {
+                                if(err) {
+                                    opts.logEmitter.emitError('User defined function ' + where.name  + ' returned error ', err);
+                                }
+                                mods = mod;
+                            });
+                        }
+                        else {
+                            opts.logEmitter.emitError('User defined function ' + where.name  + ' not defined');
+                        }
+                    }
+                    else {
+                        mods = results.body;
+                    }
+                });
+                results.body = mods;
+                return cb(null, results);
+            }
+            else {
+                var rows = results.body;
+                // Iteratively apply UDF on mods;
+                _.each(statement.whereCriteria, function (where) {
+                    var mods = [];
+                    if(where.operator === 'udf') {
+                        var fn = udf.resolve(opts, where);
+                        if(fn) {
+                            _.each(rows, function (row, index) {
+                                fn(rows, index, row, function (err, mod) {
+                                    if(err) {
+                                        opts.logEmitter.emitError('User defined function ' + where.name  + ' returned error ', err);
+                                    }
+                                    mods.push(mod);
+                                });
+                            })
+                        }
+                        else {
+                            opts.logEmitter.emitError('User defined function ' + where.name  + ' not defined');
+                        }
+                    }
+                    else {
+                        mods = rows;
+                    }
+                    rows = mods;
+                });
+                results.body = rows;
+                return cb(null, results);
+            }
+        }
+    });
 
     execInternal(opts, statement, function(err, results) {
         if(err) {
@@ -128,6 +192,8 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             });
         }
         else {
+
+
             return selectEvent.cb(err, results);
         }
     }, selectEvent.event);
@@ -172,7 +238,7 @@ function execInternal(opts, statement, cb, parentEvent) {
     // Analyze where conditions and fetch any dependent data
     var name, params, value, r, p, max, resource, apiTx;
     where.exec(opts, statement.whereCriteria, function(err, results) {
-        var i, j;
+        var i;
         // Now fetch each resource from left to right
         _.each(statement.fromClause, function(from) {
             // Reorder results - results is an array of objects, but we just want an object
@@ -271,9 +337,6 @@ function execInternal(opts, statement, cb, parentEvent) {
             }
         });
     }, parentEvent);
-
-
-    // Run tasks asynchronously and join on the callback. On completion, the results array will
 }
 
 var clone = function(obj) {
