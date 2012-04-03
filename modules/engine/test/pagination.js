@@ -21,12 +21,8 @@ var _ = require('underscore'),
     util = require('util'),
     MutableURI = require('ql.io-mutable-uri'),
     EventEmitter = require('events').EventEmitter,
-    logger = require('winston'),
     http = require('http'),
     fs = require('fs');
-
-logger.remove(logger.transports.Console);
-logger.add(logger.transports.Console, {level: 'error'});
 
 var engine = new Engine({
     tables : __dirname + '/tables',
