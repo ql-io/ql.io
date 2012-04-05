@@ -20,6 +20,7 @@ var filter = require('./filter.js'),
     _util = require('./util.js'),
     where = require('./where.js'),
     project = require('./project.js'),
+    strTemplate = require('./peg/str-template.js'),
     _ = require('underscore'),
     async = require('async'),
     assert = require('assert');
@@ -80,12 +81,14 @@ exports.exec = function(opts, statement, parentEvent, cb) {
 
             // Execute joins
             async.parallel(funcs, function(err, more) {
-                // If there is nothing to loop throough, leave the body undefined.
+                // If there is nothing to loop through, leave the body undefined.
                 var body = results.body ? [] : undefined;
                 _.each(results.body, function(row, index) {
                     // If no matching result is found in more, skip this row
                     var other = more[index];
                     if((_.isArray(other) && other.length > 0) || (_.isObject(other) && _.keys(other) > 0)) {
+                        // Results would be an array when one field is selected.
+                        if(!_.isObject(row) && !_.isArray(row)) row = [row];
                         // When columns are selected by name, use an object. If not, an array.
                         var sel = statement.selected.length > 0 && statement.selected[0].name ? {} : [];
                         _.each(statement.selected, function(selected) {
@@ -95,7 +98,15 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                             }
                             else if(selected.from === 'joiner') {
                                 if(other && other[0]) {
-                                    val = other[0][selected.name || selected.index];
+                                    if(other[0][selected.name]) {
+                                        val = other[0][selected.name];
+                                    }
+                                    else if(_.isArray(other[0])) {
+                                        val = other[0][selected.index];
+                                    }
+                                    else {
+                                        val = other[0];
+                                    }
                                 }
                             }
                             if(selected.name) {
@@ -134,11 +145,32 @@ function execInternal(opts, statement, cb, parentEvent) {
         txName: null,
         message: {line: statement.line},
         cb: cb});
+    //
+    // Pre-fill columns
+
+    var prefill = function(column) {
+        // Trim the name, but keep the column alias.
+        try {
+            var template = strTemplate.parse(column.name);
+            column.name = template.format(opts.context, true);
+        }
+        catch(e) {
+            // Ignore
+        }
+        return column;
+    };
+    if(_.isArray(statement.columns)) {
+        _.each(statement.columns, function(column, i) {
+            statement.columns[i] = prefill(column);
+        });
+    }
+    else {
+        statement.columns = prefill(statement.columns);
+    }
 
     //
     // Analyze where conditions and fetch any dependent data
     var name, params, value, r, p, max, resource, apiTx;
-
     where.exec(opts, statement.whereCriteria, function(err, results) {
         var i, j;
         // Now fetch each resource from left to right
@@ -177,7 +209,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                 var filtered = filter.filter(resource, statement, context, from);
 
                 // Project
-                project.run('', statement, filtered, function (projected) {
+                project.run('', statement, filtered, opts.context, function (projected) {
                     if(statement.assign) {
                         context[statement.assign] = projected;
                         emitter.emit(statement.assign, projected);

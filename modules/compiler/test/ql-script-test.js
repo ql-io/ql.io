@@ -48,7 +48,7 @@ module.exports = {
                 fromClause: [
                     { name: 'ebay.getmyebaybuying' }
                 ],
-                columns: {name: '*'},
+                columns: {name: '*', type: 'column'},
                 whereCriteria: undefined,
                 assign: 'GetMyeBayBuyingResponse',
                 id: 0,
@@ -59,7 +59,7 @@ module.exports = {
                 fromClause: [
                     { name: 'ebay.getmyebayselling' }
                 ],
-                columns: {name: '*'},
+                columns: {name: '*', type: 'column'},
                 whereCriteria: undefined,
                 assign: 'GetMyeBaySellingResponse',
                 id: 1,
@@ -70,7 +70,7 @@ module.exports = {
                 fromClause: [
                     { name: '{GetMyeBayBuyingResponse}' }
                 ],
-                columns: [ {name: 'WatchList.ItemArray.Item'}],
+                columns: [ {name: 'WatchList.ItemArray.Item', type: 'column'}],
                 whereCriteria: undefined,
                 assign: 'watchList',
                 id: 2,
@@ -81,7 +81,7 @@ module.exports = {
                 fromClause: [
                     { name: '{GetMyeBayBuyingResponse}' }
                 ],
-                columns: [{name: 'BidList.ItemArray.Item' }],
+                columns: [{name: 'BidList.ItemArray.Item', type: 'column'}],
                 whereCriteria: undefined,
                 assign: 'bidList',
                 id: 3,
@@ -92,7 +92,7 @@ module.exports = {
                 fromClause: [
                     { name: '{GetMyeBayBuyingResponse}' }
                 ],
-                columns: [{name: 'BestOfferList.ItemArray.Item'}],
+                columns: [{name: 'BestOfferList.ItemArray.Item', type: 'column'}],
                 whereCriteria: undefined,
                 assign: 'bestOfferList',
                 id: 4,
@@ -103,7 +103,7 @@ module.exports = {
                 fromClause: [
                     { name: '{GetMyeBaySellingResponse}' }
                 ],
-                columns: [{name: 'ActiveList.ItemArray.Item' }],
+                columns: [{name: 'ActiveList.ItemArray.Item', type: 'column'}],
                 whereCriteria: undefined,
                 assign: 'activeList',
                 id: 5,
@@ -142,7 +142,7 @@ return {};';
                 fromClause: [
                     { name: 'foo' }
                 ],
-                columns: {name: '*'},
+                columns: {name: '*', type: 'column'},
                 whereCriteria: undefined,
                 assign: 'a',
                 id: 0,
@@ -154,10 +154,10 @@ return {};';
                     { name: 'ebay.finding.items' }
                 ],
                 columns:
-                    [ {name: 'title[0]'},
-                      {name: 'itemId[0]'},
-                       {name: 'primaryCategory[0].categoryName[0]'},
-                        {name: 'sellingStatus[0].currentPrice[0]' }],
+                    [ {name: 'title[0]', type: 'column'},
+                      {name: 'itemId[0]', type: 'column'},
+                      {name: 'primaryCategory[0].categoryName[0]', type: 'column'},
+                      {name: 'sellingStatus[0].currentPrice[0]', type: 'column'}],
                 whereCriteria: undefined,
                 assign: 'results',
                 id: 1,
@@ -195,7 +195,7 @@ return {};';
                 fromClause: [
                     { name: 'ebay.getmyebaybuying' }
                 ],
-                columns: {name: '*'},
+                columns: {name: '*', type: 'column'},
                 whereCriteria: undefined,
                 assign: 'GetMyeBayBuyingResponse',
                 id: 0,
@@ -206,7 +206,7 @@ return {};';
                 fromClause: [
                     { name: '{GetMyeBayBuyingResponse}' }
                 ],
-                columns: [ {name: 'GetMyeBayBuyingResponse.WatchList.ItemArray.Item' }],
+                columns: [ {name: 'GetMyeBayBuyingResponse.WatchList.ItemArray.Item', type: 'column'}],
                 whereCriteria: undefined,
                 assign: 'watchList',
                 id: 1,
@@ -217,7 +217,7 @@ return {};';
                 fromClause: [
                     { name: '{GetMyeBayBuyingResponse}' }
                 ],
-                columns: [ {name: 'GetMyeBayBuyingResponse.BidList.ItemArray.Item' }],
+                columns: [ {name: 'GetMyeBayBuyingResponse.BidList.ItemArray.Item', type: 'column'}],
                 whereCriteria: undefined,
                 assign: 'bidList',
                 id: 2,
@@ -228,7 +228,7 @@ return {};';
                 fromClause: [
                     { name: '{GetMyeBayBuyingResponse}' }
                 ],
-                columns: [ {name: 'GetMyeBayBuyingResponse.BestOfferList.ItemArray.Item'}],
+                columns: [ {name: 'GetMyeBayBuyingResponse.BestOfferList.ItemArray.Item', type: 'column'}],
                 whereCriteria: undefined,
                 assign: 'bestOfferList',
                 id: 3,
@@ -239,7 +239,7 @@ return {};';
                 fromClause: [
                     { name: '{watchList}' }
                 ],
-                columns: {name: '*'},
+                columns: {name: '*', type: 'column'},
                 whereCriteria: undefined,
                 assign: 'watches',
                 id: 4,

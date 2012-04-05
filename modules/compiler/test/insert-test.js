@@ -27,8 +27,8 @@ exports['insert'] = function(test) {
             "name": "suppliers"
         },
         "columns": [
-            {name: "supplier_id"},
-            {name: "supplier_name"}
+            {name: "supplier_id",type: 'column'},
+            {name: "supplier_name",type: 'column'}
         ],
         "values": [
             "24553",
@@ -65,9 +65,9 @@ exports['insert-assign'] = function(test) {
                 "name": "foo"
             },
             "columns": [
-                {name: "a"},
-                {name: "b"},
-                {name: "c"}
+                {name: "a",type: 'column'},
+                {name: "b",type: 'column'},
+                {name: "c",type: 'column'}
             ],
             "values": [
                 "a",

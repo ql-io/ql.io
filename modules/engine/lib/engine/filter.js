@@ -45,7 +45,7 @@ function _iterate(resource, statement, context, source, keep) {
         else if(cond.operator === '=') {
             expected = expected.concat(jsonfill.fill(cond.rhs.value, context));
         }
-        else {
+        else if(cond.operator !== 'udf') {
             assert.ok(cond.operator === '=', 'Local filtering supported for = only');
         }
         return expected;
@@ -68,6 +68,10 @@ function _iterate(resource, statement, context, source, keep) {
 
         for(i = 0; i < statement.whereCriteria.length; i++) {
             var cond = statement.whereCriteria[i];
+            if(cond.operator && cond.operator === 'udf') {
+                // Don't process UDFs yet
+                continue;
+            }
             var expected = expecteds[i];
             var path = cond.lhs.name;
             if(path.indexOf(source.alias + '.') === 0) {
@@ -78,11 +82,44 @@ function _iterate(resource, statement, context, source, keep) {
             for(var k = 0; k < matched.length; k++) {
                 var match = false;
                 var row = filtered[matched[k]];
-                var result = jsonPath.eval(row, path, {flatten: true});
+                var result = jsonPath.eval(row, path, {flatten: true, sandbox: context});
                 // If the result matches any expected[], keep it.
                 for(j = 0; j < expected.length; j++) {
-                    if(!match && result && _.isArray(result) && result.length == 1 && result[0] == expected[j]) {
-                        match = true;
+                    if(!match && result) {
+                        if(_.isArray(result)) {
+                            for(var v in result) {
+                                if(_.isArray(expected[j])) {
+                                    for(var vv in expected[j]) {
+                                        if(result[v] === expected[j][vv]) {
+                                            match = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else {
+                                    if(result[v] === expected[j]) {
+                                        match = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(_.isArray(expected[j])) {
+                                for(var vv in expected[j]) {
+                                    if(result[v] === expected[j][vv]) {
+                                        match = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            else {
+                                if(result === expected[j]) {
+                                    match = true;
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
                 if(match) {
