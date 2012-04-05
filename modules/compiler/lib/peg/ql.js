@@ -2609,6 +2609,32 @@ module.exports = (function(){
             if(c && c.length > 0 && c[0].alias) {
               s.usingColumnAliases = true
             }
+
+            // Extras from where clause - there are non-literal args of UDFs in the where clause
+            if(s.whereCriteria && typeOf(s.columns) === 'array') {
+                for(var i = 0; i < s.whereCriteria.length; i++) {
+                    var where = s.whereCriteria[i];
+                    if(where.operator === 'udf') {
+                        for(var j = 0; j < where.args.length; j++) {
+                            if(where.args[j].type === 'column') {
+                                // If this column is not already selected, included it now.
+                                var found = false;
+                                for(var c = 0; c < s.columns.length; c++) {
+                                    if(s.columns[c].name === where.args[j].name) {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if(!found) {
+                                    s.extras = s.extras || [];
+                                    s.extras.push(s.columns.length);
+                                    s.columns.push(where.args[j]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             s = splitJoins(s);
             delete s.id;
             return s;

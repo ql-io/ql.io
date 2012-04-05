@@ -19,15 +19,118 @@
 var compiler = require('../lib/compiler');
 
 module.exports = {
-    'udf-with-join': function(test) {
-        var q = 'select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and f1(a1.keys..name)';
+    'star-udf-no-args': function(test) {
+        var q = 'select * from a1 where f1()';
         var c = compiler.compile(q);
-        test.deepEqual(c[0].columns[0], {name: 'a1.name', type: 'column'});
-        test.deepEqual(c[0].whereCriteria[0], {
-                    "operator": "udf",
-                    "name": "f1",
-                    "args": [{"type": "column", "name": "a1.keys..name"}]
-                 });
+        test.equal(c[0].columns.name, '*');
+        test.equal(c[0].columns.type, 'column');
+        test.equal(c[0].whereCriteria[0].operator, 'udf');
+        test.equal(c[0].whereCriteria[0].name, 'f1');
+        test.equal(c[0].whereCriteria[0].args.length, 0);
+        test.done();
+    },
+
+    'star-star-column-args': function(test) {
+        var q = 'select * from a1 where f1(name)';
+        var c = compiler.compile(q);
+        test.equal(c[0].columns.name, '*');
+        test.equal(c[0].columns.type, 'column');
+        test.equal(c[0].whereCriteria[0].operator, 'udf');
+        test.equal(c[0].whereCriteria[0].name, 'f1');
+        test.equal(c[0].whereCriteria[0].args.length, 1);
+        test.done();
+    },
+
+    'star-literal-args': function(test) {
+        var q = 'select * from a1 where f1("name", "value")';
+        var c = compiler.compile(q);
+        test.equal(c[0].columns.name, '*');
+        test.equal(c[0].columns.type, 'column');
+        test.equal(c[0].whereCriteria[0].operator, 'udf');
+        test.equal(c[0].whereCriteria[0].name, 'f1');
+        test.equal(c[0].whereCriteria[0].args.length, 2);
+        test.equal(c[0].whereCriteria[0].args[0].value, 'name');
+        test.equal(c[0].whereCriteria[0].args[0].type, 'literal');
+        test.equal(c[0].whereCriteria[0].args[1].value, 'value');
+        test.equal(c[0].whereCriteria[0].args[0].type, 'literal');
+        test.done();
+    },
+
+    'column-has-column-args': function(test) {
+        var q = 'select name, value from a1 where f1(name)';
+        var c = compiler.compile(q);
+        test.deepEqual(c[0].columns[0].name, 'name');
+        test.deepEqual(c[0].columns[0].type, 'column');
+        test.deepEqual(c[0].columns[1].name, 'value');
+        test.deepEqual(c[0].columns[0].type, 'column');
+        test.equal(c[0].whereCriteria[0].operator, 'udf');
+        test.equal(c[0].whereCriteria[0].name, 'f1');
+        test.equal(c[0].whereCriteria[0].args[0].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[0].name, 'name');
+        test.done();
+    },
+
+    'column-has-some-columns-args': function(test) {
+        var q = 'select name, value from a where f1(name, value, zip)';
+        var c = compiler.compile(q);
+        test.equal(c[0].columns.length, 3);
+        test.equal(c[0].columns[0].name, 'name');
+        test.equal(c[0].columns[0].type, 'column');
+        test.equal(c[0].columns[1].name, 'value');
+        test.equal(c[0].columns[1].type, 'column');
+        test.equal(c[0].columns[2].name, 'zip');
+        test.equal(c[0].columns[2].type, 'column');
+        test.equal(c[0].extras.length, 1);
+        test.equal(c[0].extras[0], 2);
+
+        test.equal(c[0].whereCriteria[0].operator, 'udf');
+        test.equal(c[0].whereCriteria[0].name, 'f1');
+        test.equal(c[0].whereCriteria[0].args.length, 3);
+        test.equal(c[0].whereCriteria[0].args[0].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[0].name, 'name');
+        test.equal(c[0].whereCriteria[0].args[1].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[1].name, 'value');
+        test.equal(c[0].whereCriteria[0].args[2].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[2].name, 'zip');
+        test.done();
+    },
+
+    'udf-with-join-column-args': function(test) {
+        var q = 'select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and f1(a1.name)';
+        var c = compiler.compile(q);
+        test.equal(c[0].columns.length, 1);
+        test.equal(c[0].columns[0].type, 'column');
+        test.equal(c[0].columns[0].name, 'a1.name');
+        test.equal(c[0].selected[0].from, 'joiner');
+        test.equal(c[0].selected[0].index, 0);
+        test.equal(c[0].selected[1].from, 'main');
+        test.equal(c[0].selected[1].index, 0);
+        test.equal(c[0].extras.length, 0);
+        test.equal(c[0].whereCriteria.length, 1);
+        test.equal(c[0].whereCriteria[0].operator, 'udf');
+        test.equal(c[0].whereCriteria[0].name, 'f1');
+        test.equal(c[0].whereCriteria[0].args.length, 1);
+        test.equal(c[0].whereCriteria[0].args[0].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[0].name, 'a1.name');
+        test.done();
+    },
+
+    'udf-with-join-literal-args': function(test) {
+        var q = 'select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and f1("{a1.$..name}")';
+        var c = compiler.compile(q);
+        test.equal(c[0].columns.length, 1);
+        test.equal(c[0].columns[0].type, 'column');
+        test.equal(c[0].columns[0].name, 'a1.name');
+        test.equal(c[0].selected[0].from, 'joiner');
+        test.equal(c[0].selected[0].index, 0);
+        test.equal(c[0].extras.length, 1);
+        test.equal(c[0].extras[0], 0);
+        test.equal(c[0].whereCriteria.length, 1);
+        test.equal(c[0].whereCriteria[0].operator, 'udf');
+        test.equal(c[0].whereCriteria[0].name, 'f1');
+        test.equal(c[0].whereCriteria[0].args.length, 1);
+        test.equal(c[0].whereCriteria[0].args[0].type, 'literal');
+        test.equal(c[0].whereCriteria[0].args[0].value, '{a1.$..name}');
         test.done();
     }
 };
