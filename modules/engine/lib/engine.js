@@ -513,7 +513,7 @@ function execOne(opts, statement, cb, parentEvent) {
  * @ignore
  */
 function _execOne(opts, statement, cb, parentEvent) {
-    var lhs, obj;
+    var rhs, obj;
     switch(statement.type) {
         case 'create' :
             create.exec(opts, statement, cb, parentEvent);
@@ -527,7 +527,16 @@ function _execOne(opts, statement, cb, parentEvent) {
                     opts.request.connection,
                     {config: opts.config});
 
-            obj = jsonfill.fill(statement.object, params);
+            if(statement.hasOwnProperty('object')) {
+                obj = jsonfill.fill(statement.object, params);
+            }
+            else if(statement.udf) {
+                var args = [];
+                _.each(statement.args.value, function(arg) {
+                    args.push(jsonfill.lookup(arg, opts.context));
+                });
+                obj = require('./udfs/standard.js')[statement.udf].apply(null, args);
+            }
 
             opts.context[statement.assign] = obj;
             opts.emitter.emit(statement.assign, obj)
@@ -588,26 +597,36 @@ function _execOne(opts, statement, cb, parentEvent) {
                 delet.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
             }
             else {
-                lhs = statement.rhs.ref ? opts.context[statement.rhs.ref] : statement.rhs.object;
-                if(_.isNull(lhs)) {
-                    cb('Unresolved reference in return');
+                var params = _util.prepareParams(opts.context,
+                    opts.request.body,
+                    opts.request.routeParams,
+                    opts.request.params,
+                    opts.request.headers,
+                    opts.request.connection,
+                    {config: opts.config});
+                if(statement.rhs.ref) {
+                    obj = opts.context[statement.rhs.ref];
+                    if(_.isNull(obj)) {
+                        cb('Unresolved reference in return');
+                    }
                 }
-                else {
-                    var params = _util.prepareParams(opts.context,
-                            opts.request.body,
-                            opts.request.routeParams,
-                            opts.request.params,
-                            opts.request.headers,
-                            opts.request.connection,
-                            {config: opts.config});
+                if(statement.rhs.hasOwnProperty('object')) {
+                    obj = jsonfill.fill(statement.rhs.object, params);
+                }
+                else if(statement.rhs.udf) {
+                    var args = [];
+                    _.each(statement.rhs.args.value, function (arg) {
+                        args.push(jsonfill.lookup(arg, opts.context));
+                    });
+                    obj = require('./udfs/standard.js')[statement.rhs.udf].apply(null, args);
+                }
 
-                    respHeaders['content-type'] = 'application/json';
-                    var ret = {
-                        body: jsonfill.fill(lhs, params),
-                        headers: respHeaders
-                    };
-                    cb(undefined, ret);
-                }
+                respHeaders['content-type'] = 'application/json';
+                var ret = {
+                    body: obj,
+                    headers: respHeaders
+                };
+                cb(undefined, ret);
             }
     }
 }

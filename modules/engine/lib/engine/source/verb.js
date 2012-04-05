@@ -122,7 +122,8 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             if(c.operator === 'udf') {
                 var funcs = self.udf();
                 if(funcs[c.name]) {
-                    holder[c.name] = funcs[c.name].apply(self, c.args.value);
+                    var args = _.pluck(c.args, 'value');
+                    holder[c.name] = funcs[c.name].apply(self, args);
                 }
                 else {
                     throw {

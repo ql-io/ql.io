@@ -28,7 +28,7 @@ exports['delete'] = function (test) {
         },
         "whereCriteria": [{
             "operator": "=",
-            "lhs": {name: "bar"},
+            "lhs": {name: "bar", type: 'column'},
             "rhs": {
                 "value": "a"
             }
