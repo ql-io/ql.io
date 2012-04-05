@@ -115,6 +115,38 @@ module.exports = {
         test.done();
     },
 
+    'udf-with-join-col-args-both': function(test) {
+        var q = 'select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and f1(a1.name, a2.some)';
+        var c = compiler.compile(q);
+        test.equal(c[0].columns.length, 1);
+        test.equal(c[0].columns[0].type, 'column');
+        test.equal(c[0].columns[0].name, 'a1.name');
+        test.equal(c[0].selected[0].from, 'joiner');
+        test.equal(c[0].selected[0].index, 0);
+        test.equal(c[0].selected[1].from, 'main');
+        test.equal(c[0].selected[1].index, 0);
+        test.equal(c[0].extras.length, 0);
+        test.equal(c[0].whereCriteria.length, 1);
+        test.equal(c[0].whereCriteria[0].operator, 'udf');
+        test.equal(c[0].whereCriteria[0].name, 'f1');
+        test.equal(c[0].whereCriteria[0].args.length, 2);
+        test.equal(c[0].whereCriteria[0].args[0].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[0].name, 'a1.name');
+        test.equal(c[0].whereCriteria[0].args[1].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[1].name, 'a2.some');
+        test.deepEqual(c[0].joiner.columns, [
+            {
+                "type": "column",
+               "name": "a2.name"
+            },
+            {
+               "type": "column",
+                   "name": "a2.some"
+            }
+        ]);
+        test.done();
+    },
+
     'udf-with-join-literal-args': function(test) {
         var q = 'select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and f1("{a1.$..name}")';
         var c = compiler.compile(q);
