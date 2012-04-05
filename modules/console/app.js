@@ -211,15 +211,15 @@ var Console = module.exports = function(config, cb) {
                         remoteAddress: req.connection.remoteAddress
                     }
                 };
-
                 // get all query params
                 collectHttpQueryParams(req, holder, false);
 
+                //console.log(holder)
                 // find a route (i.e. associated cooked script)
+                var bestmatch = _.max(verbRouteVariants, function (verbRouteVariant){ return _.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)).length})
                 var route = _(verbRouteVariants).chain()
                     .filter(function (verbRouteVariant) {
-                        return _.isEqual(_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)),
-                            _.keys(verbRouteVariant.query))
+                        return _.isEqual(verbRouteVariant , bestmatch)
                     })
                     .reduce(function (match, route) {
                         return match == null ?
