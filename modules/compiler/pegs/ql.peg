@@ -569,21 +569,31 @@ selectStatement = s:select insig c:columnsClause insig 'from' insig fc:fromClaus
               for(var j = 0; j < where.args.length; j++) {
                   if(where.args[j].type === 'column') {
                       // If this column is not already selected, included it now.
-                      var found = -1;
                       for(var c = 0; c < s.columns.length; c++) {
                           if(s.columns[c].name === where.args[j].name) {
-                              found = c;
+                              if(s.columns[c].alias) {
+                                  where.args[j].alias = s.columns[c].alias
+                                  delete where.args[j].index;
+                              }
+                              else {
+                                   where.args[j].index = c;
+                              }
                               break;
                           }
                       }
-                      if(found > -1) {
-                          where.args[j].index = found; // Index into selected columns
-                      }
-                      else {
+                      if(!where.args[j].hasOwnProperty('alias') && !where.args[j].hasOwnProperty('index')) {
                           s.extras = s.extras || [];
                           s.extras.push(s.columns.length);
-                          s.columns.push({name: where.args[j].name, type: 'column'});
-                          where.args[j].index = s.columns.length; // Index into selected columns
+                          var extra = {name: where.args[j].name, type: 'column'};
+                          // Index or name into selected columns
+                          if(s.columns[0].alias) {
+                              extra.alias = where.args[j].name;
+                              where.args[j].alias = extra.alias;
+                          }
+                          else {
+                              where.args[j].index = s.columns.length;
+                          }
+                          s.columns.push(extra);
                       }
                   }
               }
