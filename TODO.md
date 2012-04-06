@@ -1,3 +1,4 @@
+
 # Compiler
 
 * ql.peg cleanup for JSONPath - remove unused
@@ -47,3 +48,5 @@ Goal is to support
 * Expressions in JSONPath
 
 
+
+On the site: paste a create table with patch - does not show error!
