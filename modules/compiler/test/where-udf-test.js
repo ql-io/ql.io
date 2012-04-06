@@ -105,7 +105,8 @@ module.exports = {
         test.equal(c[0].selected[0].index, 0);
         test.equal(c[0].selected[1].from, 'main');
         test.equal(c[0].selected[1].index, 0);
-        test.equal(c[0].extras.length, 0);
+        test.equal(c[0].extras.length, 1);
+        test.equal(c[0].extras[0], 1);
         test.equal(c[0].whereCriteria.length, 1);
         test.equal(c[0].whereCriteria[0].operator, 'udf');
         test.equal(c[0].whereCriteria[0].name, 'f1');
@@ -125,7 +126,9 @@ module.exports = {
         test.equal(c[0].selected[0].index, 0);
         test.equal(c[0].selected[1].from, 'main');
         test.equal(c[0].selected[1].index, 0);
-        test.equal(c[0].extras.length, 0);
+        test.equal(c[0].extras.length, 2);
+        test.equal(c[0].extras[0], 1);
+        test.equal(c[0].extras[1], 2);
         test.equal(c[0].whereCriteria.length, 1);
         test.equal(c[0].whereCriteria[0].operator, 'udf');
         test.equal(c[0].whereCriteria[0].name, 'f1');
@@ -141,7 +144,7 @@ module.exports = {
             },
             {
                "type": "column",
-                   "name": "a2.some"
+               "name": "a2.some"
             }
         ]);
         test.done();
@@ -163,6 +166,97 @@ module.exports = {
         test.equal(c[0].whereCriteria[0].args.length, 1);
         test.equal(c[0].whereCriteria[0].args[0].type, 'literal');
         test.equal(c[0].whereCriteria[0].args[0].value, '{a1.$..name}');
+        test.done();
+    },
+
+    'udf-with-join-col': function(test) {
+        var q = 'select a2.name, a2.details, a1.keys from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.matchKeys(a1.name)';
+        var c = compiler.compile(q);
+        test.equal(c[0].columns.length, 2);
+        test.equal(c[0].columns[0].type, 'column');
+        test.equal(c[0].columns[0].name, 'a1.keys');
+        test.equal(c[0].columns[1].type, 'column');
+        test.equal(c[0].columns[1].name, 'a1.name');
+        test.equal(c[0].selected[0].from, 'joiner');
+        test.equal(c[0].selected[0].index, 0);
+        test.equal(c[0].selected[1].from, 'joiner');
+        test.equal(c[0].selected[1].index, 1);
+        test.equal(c[0].selected[2].from, 'main');
+        test.equal(c[0].selected[2].index, 0);
+        test.equal(c[0].selected[3].from, 'main');
+        test.equal(c[0].selected[3].index, 1);
+        test.equal(c[0].extras.length, 1);
+        test.equal(c[0].extras[0], 3);
+
+        test.equal(c[0].whereCriteria.length, 1);
+        test.equal(c[0].whereCriteria[0].operator, 'udf');
+        test.equal(c[0].whereCriteria[0].name, 'udfs.matchKeys');
+        test.equal(c[0].whereCriteria[0].args.length, 1);
+        test.equal(c[0].whereCriteria[0].args[0].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[0].name, 'a1.name');
+        test.equal(c[0].whereCriteria[0].args[0].index, 3);
+        test.done();
+    },
+
+    'udf-with-join-from-first-with-alias': function(test) {
+        var q = 'select a2.name as name, a2.details as details from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.matchKeys(a1.name, a1.keys)';
+        var c = compiler.compile(q);
+        test.equal(c[0].whereCriteria[0].operator, 'udf');
+        test.equal(c[0].whereCriteria[0].name, 'udfs.matchKeys');
+        test.equal(c[0].whereCriteria[0].args.length, 2);
+        test.equal(c[0].whereCriteria[0].args[0].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[0].name, 'a1.name');
+        test.equal(c[0].whereCriteria[0].args[0].index, 2);
+        test.equal(c[0].whereCriteria[0].args[0].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[1].name, 'a1.keys');
+        test.equal(c[0].whereCriteria[0].args[1].index, 3);
+        test.equal(c[0].selected[2].from, 'main');
+        test.equal(c[0].selected[2].index, 0);
+        test.equal(c[0].selected[3].from, 'main');
+        test.equal(c[0].selected[3].index, 1);
+        test.equal(c[0].columns[0].name, 'a1.name');
+        test.equal(c[0].columns[1].name, 'a1.keys');
+        test.done();
+    },
+
+    'udf-with-join-from-second-with-alias': function(test) {
+        var q = 'select a2.name as name, a2.details as details from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.matchKeys(a2.name, a2.details)';
+        var c = compiler.compile(q);
+        test.equal(c[0].whereCriteria[0].operator, 'udf');
+        test.equal(c[0].whereCriteria[0].name, 'udfs.matchKeys');
+        test.equal(c[0].whereCriteria[0].args.length, 2);
+        test.equal(c[0].whereCriteria[0].args[0].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[0].name, 'a2.name');
+        test.equal(c[0].whereCriteria[0].args[0].index, 0);
+        test.equal(c[0].whereCriteria[0].args[0].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[1].name, 'a2.details');
+        test.equal(c[0].whereCriteria[0].args[1].index, 1);
+        test.equal(c[0].selected[0].from, 'joiner');
+        test.equal(c[0].selected[1].from, 'joiner');
+        test.equal(c[0].selected[0].name, 'name');
+        test.equal(c[0].selected[1].name, 'details');
+        test.done();
+    },
+
+    'udf-with-join-from-both-with-alias': function(test) {
+        var q = 'select a2.name as name, a2.details as details from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.matchKeys(a1.name, a1.keys, a2.name, a2.details)';
+        var c = compiler.compile(q);
+        test.equal(c[0].whereCriteria[0].operator, 'udf');
+        test.equal(c[0].whereCriteria[0].name, 'udfs.matchKeys');
+        test.equal(c[0].whereCriteria[0].args.length, 4);
+        test.equal(c[0].whereCriteria[0].args[0].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[0].name, 'a1.name');
+        test.equal(c[0].whereCriteria[0].args[0].index, 2);
+        test.equal(c[0].whereCriteria[0].args[0].type, 'column');
+        test.equal(c[0].whereCriteria[0].args[1].name, 'a1.keys');
+        test.equal(c[0].whereCriteria[0].args[1].index, 3);
+        test.equal(c[0].columns[0].name, 'a1.name');
+        test.equal(c[0].columns[1].name, 'a1.keys');
+
+        test.equal(c[0].selected[0].from, 'joiner');
+        test.equal(c[0].selected[1].from, 'joiner');
+        test.equal(c[0].selected[0].name, 'name');
+        test.equal(c[0].selected[1].name, 'details');
         test.done();
     }
 };

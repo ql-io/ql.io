@@ -2618,17 +2618,21 @@ module.exports = (function(){
                         for(var j = 0; j < where.args.length; j++) {
                             if(where.args[j].type === 'column') {
                                 // If this column is not already selected, included it now.
-                                var found = false;
+                                var found = -1;
                                 for(var c = 0; c < s.columns.length; c++) {
                                     if(s.columns[c].name === where.args[j].name) {
-                                        found = true;
+                                        found = c;
                                         break;
                                     }
                                 }
-                                if(!found) {
+                                if(found > -1) {
+                                    where.args[j].index = found; // Index into selected columns
+                                }
+                                else {
                                     s.extras = s.extras || [];
                                     s.extras.push(s.columns.length);
-                                    s.columns.push(where.args[j]);
+                                    s.columns.push({name: where.args[j].name, type: 'column'});
+                                    where.args[j].index = s.columns.length; // Index into selected columns
                                 }
                             }
                         }
@@ -9221,7 +9225,7 @@ module.exports = (function(){
 
           selected: [],
 
-          extras: [], // used only during selection
+          extras: statement.extras || [], // used only during selection
 
           whereCriteria: []
 
@@ -9602,6 +9606,108 @@ module.exports = (function(){
               }
 
           }
+
+      }
+
+
+
+      // Redo the UDF args since the indexes of column type args would be different now
+
+      // The index for each column arg should map to the 'selected' array so that we can pick up
+
+      // values of args from the 'selected' array.
+
+      for(var i = 0; i < main.whereCriteria.length; i++) {
+
+            var where = main.whereCriteria[i];
+
+            if(where.operator === 'udf') {
+
+                for(var j = 0; j < where.args.length; j++) {
+
+                    if(where.args[j].type === 'column') {
+
+                        // What is the prefix?
+
+                        var index = where.args[j].name.indexOf('.');
+
+                        if(index < 0) {
+
+                            throw new this.SyntaxError("Line " + main.line + ": Arg " + where.args[j].name + " not prefixed");
+
+                        }
+
+                        var prefix = where.args[j].name.substr(0, index);
+
+                        var name = where.args[j].name.substr(index + 1);
+
+                        if(main.fromClause[0].alias === prefix) {
+
+                            // From main - find matching selected[] element where from = main and name = arg.name.
+
+                            for(var selected = 0; selected < main.selected.length; selected++) {
+
+                                if(main.selected[selected].from === 'main') {
+
+                                    if(main.selected[selected].name && main.selected[selected].name === name) {
+
+                                        where.args[j].index = selected;
+
+                                    }
+
+                                    else if(main.selected[selected].hasOwnProperty('index') &&
+
+                                        main.columns[main.selected[selected].index].name === where.args[j].name) {
+
+                                        where.args[j].index = selected;
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                        else if(main.joiner.fromClause[0].alias === prefix) {
+
+                            // From joiner - find matching selected[] element where from = joiner and name = arg.name.
+
+                            for(var selected = 0; selected < main.selected.length; selected++) {
+
+                                if(main.selected[selected].from === 'joiner') {
+
+                                    if(main.selected[selected].name && main.selected[selected].name === name) {
+
+                                        where.args[j].index = selected;
+
+                                    }
+
+                                    else if(main.selected[selected].hasOwnProperty('index') &&
+
+                                        join.columns[main.selected[selected].index].name === where.args[j].name) {
+
+                                        where.args[j].index = selected;
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                        else {
+
+                             throw new this.SyntaxError("Line " + main.line + ": Alias of arg " + where.args[j].name + " not found");
+
+                        }
+
+                    }
+
+                }
+
+            }
 
       }
 
