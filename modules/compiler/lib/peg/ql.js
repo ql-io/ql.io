@@ -5166,11 +5166,11 @@ module.exports = (function(){
         }
 
 
-        var result2 = parse_column();
+        var result2 = parse_literalParam();
         if (result2 !== null) {
           var result0 = result2;
         } else {
-          var result1 = parse_literalParam();
+          var result1 = parse_column();
           if (result1 !== null) {
             var result0 = result1;
           } else {

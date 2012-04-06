@@ -821,7 +821,7 @@ udfParams = c:udfParam insig carr:(comma insig udfParam)* {
   return res;
 }
 
-udfParam = column/literalParam
+udfParam = literalParam/column
 
 literalParam = j:json {
   return {

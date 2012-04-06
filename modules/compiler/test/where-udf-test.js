@@ -56,6 +56,24 @@ module.exports = {
         test.done();
     },
 
+    'literal-args': function(test) {
+        var q = 'select name, keys from a1 where u.literalArgs("one", 2, 1.2345, false, true, {"name":"value"})';
+        var c = compiler.compile(q);
+        test.equal(c[0].whereCriteria[0].operator, 'udf');
+        test.equal(c[0].whereCriteria[0].name, 'u.literalArgs');
+        test.equal(c[0].whereCriteria[0].args.length, 6);
+        for(var i = 0; i < 6; i++) {
+            test.equal(c[0].whereCriteria[0].args[i].type, 'literal', 'literal expected for arg ' + i);
+        }
+        test.equal(c[0].whereCriteria[0].args[0].value, 'one');
+        test.equal(c[0].whereCriteria[0].args[1].value, 2);
+        test.equal(c[0].whereCriteria[0].args[2].value, 1.2345);
+        test.equal(c[0].whereCriteria[0].args[3].value, false);
+        test.equal(c[0].whereCriteria[0].args[4].value, true);
+        test.equal(c[0].whereCriteria[0].args[5].value.name, 'value');
+        test.done();
+    },
+
     'column-has-column-args': function(test) {
         var q = 'select name, value from a1 where f1(name)';
         var c = compiler.compile(q);
