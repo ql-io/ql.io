@@ -1,4 +1,15 @@
 
+=======
+# Misc
+
+* ,,,,,,,,,,application/xml,application/json,text/csv
+* X-Started-Since
+* Include app's version number if available
+* On the site: paste a create table with patch - does not show error!
+* null and undefined args in udf
+* array of null/undefined in udf args
+* What does UDF in where mean for select *?
+
 # Compiler
 
 * ql.peg cleanup for JSONPath - remove unused
@@ -34,7 +45,7 @@ Goal is to support
 * Filter select fields with alias
 * Evaluate args
 * Short-circuit where clause UDFs when there are no UDFs in the where clause
-
+* Args can be without "{" "}"
 * Change where udf for the new syntax - backwards compat?
 * Support columns udf
 * Support columns extras in columns udf args
@@ -43,10 +54,15 @@ Goal is to support
 
 # Tests
 
+## where udf
+
+* select star to modify body
+* select star to remove body
+* select start multiple times
+
 * Test UDF on rhs
 * Test UDF in return statements
 * Expressions in JSONPath
 
 
 
-On the site: paste a create table with patch - does not show error!

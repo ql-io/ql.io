@@ -43,63 +43,11 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             if(err) {
                 return cb(err);
             }
-            //
-            // Iterative apply each UDF from the where clause.
-            //
-            // TODO: Short-circuit this when there are no UDFs
-            if(statement.columns.name === '*') {
-                var mods = results.body;
-                // Iteratively apply UDF on mods
-                _.each(statement.whereCriteria, function (where) {
-                    if(where.operator === 'udf') {
-                        var fn = udf.resolve(opts, where);
-                        if(fn) {
-                            fn(results.body, 0, results.body, function (err, mod) {
-                                if(err) {
-                                    opts.logEmitter.emitError('User defined function ' + where.name  + ' returned error ', err);
-                                }
-                                mods = mod;
-                            });
-                        }
-                        else {
-                            opts.logEmitter.emitError('User defined function ' + where.name  + ' not defined');
-                        }
-                    }
-                    else {
-                        mods = results.body;
-                    }
-                });
-                results.body = mods;
-                return cb(null, results);
+            if(statement.joiner) {
+                return udf.applyOnWhere(opts, statement, results, cb);
             }
             else {
-                var rows = results.body;
-                // Iteratively apply UDF on mods;
-                _.each(statement.whereCriteria, function (where) {
-                    var mods = [];
-                    if(where.operator === 'udf') {
-                        var fn = udf.resolve(opts, where);
-                        if(fn) {
-                            _.each(rows, function (row, index) {
-                                fn(rows, index, row, function (err, mod) {
-                                    if(err) {
-                                        opts.logEmitter.emitError('User defined function ' + where.name  + ' returned error ', err);
-                                    }
-                                    mods.push(mod);
-                                });
-                            })
-                        }
-                        else {
-                            opts.logEmitter.emitError('User defined function ' + where.name  + ' not defined');
-                        }
-                    }
-                    else {
-                        mods = rows;
-                    }
-                    rows = mods;
-                });
-                results.body = rows;
-                return cb(null, results);
+                return cb(err, results);
             }
         }
     });
@@ -192,9 +140,14 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             });
         }
         else {
-
-
-            return selectEvent.cb(err, results);
+            if(statement.joiner) {
+                // Defer where clause UDF to the join time
+                return selectEvent.cb(err, results);
+            }
+            else {
+                // Run where clause UDFs now
+                return udf.applyOnWhere(opts, statement, results, selectEvent.cb);
+            }
         }
     }, selectEvent.event);
 };

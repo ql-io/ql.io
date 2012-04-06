@@ -232,9 +232,7 @@ module.exports = {
         test.equal(c[0].whereCriteria[0].args[1].name, 'a1.keys');
         test.equal(c[0].whereCriteria[0].args[1].alias, 'a1.keys');
         test.equal(c[0].selected[2].from, 'main');
-//        test.equal(c[0].selected[2].index, 0);
         test.equal(c[0].selected[3].from, 'main');
-//        test.equal(c[0].selected[3].index, 1);
         test.equal(c[0].columns[0].name, 'a1.name');
         test.equal(c[0].columns[1].name, 'a1.keys');
         test.done();
@@ -267,10 +265,8 @@ module.exports = {
         test.equal(c[0].whereCriteria[0].args.length, 4);
         test.equal(c[0].whereCriteria[0].args[0].type, 'column');
         test.equal(c[0].whereCriteria[0].args[0].name, 'a1.name');
-//        test.equal(c[0].whereCriteria[0].args[0].index, 2);
         test.equal(c[0].whereCriteria[0].args[0].type, 'column');
         test.equal(c[0].whereCriteria[0].args[1].name, 'a1.keys');
-//        test.equal(c[0].whereCriteria[0].args[1].index, 3);
         test.equal(c[0].columns[0].name, 'a1.name');
         test.equal(c[0].columns[1].name, 'a1.keys');
 

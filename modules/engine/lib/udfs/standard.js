@@ -16,7 +16,24 @@
 
 'use strict'
 
+//
+// Load a UDF module. Delegates to native require. Looks for
+// the module under engine, process.cwd() and finally the __dirname
+// for the module.
 exports.require = function() {
     var args = Array.prototype.slice.call(arguments);
-    return module.require.apply(null, args);
+    var name = args[0];
+    try {
+        return module.require.apply(null, args);
+    }
+    catch(e) {
+        try {
+            args[0] = process.cwd() + '/' + name;
+            return module.require.apply(null, args);
+        }
+        catch(e) {
+            args[0] = __dirname + '/' + name;
+            return module.require.apply(null, args);
+        }
+    }
 }
