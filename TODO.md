@@ -12,7 +12,7 @@
 
 # Compiler
 
-* ql.peg cleanup for JSONPath - remove unused
+* --ql.peg cleanup for JSONPath --
 * -- udf in where clause --
 * -- udf in columns clause --
 * -- udf in columns clause with alias --
@@ -41,11 +41,10 @@ Goal is to support
     return select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.applyDiscount("{a1.keys...name}");
 
 * Filter select *
-* Filter select fields
-* Filter select fields with alias
-* Evaluate args
-* Short-circuit where clause UDFs when there are no UDFs in the where clause
-* Args can be without "{" "}"
+* --Filter select fields--
+* --Filter select fields with alias--
+* --Evaluate args--
+* --Short-circuit where clause UDFs when there are no UDFs in the where clause--
 * Change where udf for the new syntax - backwards compat?
 * Support columns udf
 * Support columns extras in columns udf args
@@ -62,7 +61,3 @@ Goal is to support
 
 * Test UDF on rhs
 * Test UDF in return statements
-* Expressions in JSONPath
-
-
-
