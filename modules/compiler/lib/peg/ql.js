@@ -9062,651 +9062,397 @@ module.exports = (function(){
 
 
 
-    // Utils to establish the right semantic model
+        // Utils to establish the right semantic model
 
-    function typeOf(value) {
+        function typeOf(value) {
 
-      var s = typeof value;
+            var s = typeof value;
 
-      if(s === 'object') {
+            if(s === 'object') {
 
-        if(value) {
+                if(value) {
 
-          if(typeof value.length === 'number' &&
+                    if(typeof value.length === 'number' &&
 
-            !(value.propertyIsEnumerable('length')) &&
+                       !(value.propertyIsEnumerable('length')) &&
 
-            typeof value.splice === 'function') {
+                       typeof value.splice === 'function') {
 
-            s = 'array';
+                        s = 'array';
 
-          }
+                    }
 
-        }
+                }
 
-        else {
+                else {
 
-          s = 'null';
+                    s = 'null';
 
-        }
+                }
 
-      }
+            }
 
-      return s;
-
-    }
-
-    function append(arr) {
-
-      var str = '';
-
-      if(typeOf(arr) === 'array') {
-
-        for(var i = 0; i < arr.length; i++) {
-
-           if(typeOf(arr[i]) == 'array') {
-
-             str += append(arr[i]);
-
-           }
-
-           else if (typeof arr[i] === 'object') {
-
-             str += JSON.stringify(arr[i].object);
-
-           }
-
-           else {
-
-             str += arr[i];
-
-           }
+            return s;
 
         }
 
-      }
-
-      else {
-
-        str = str + arr;
-
-      }
-
-      return str;
-
-    }
-
-    function merge(arr) {
-
-      var i, ret = {};
-
-      for(i = 0; i < arr.length; i++) {
-
-        for(p in arr[i]) {
-
-          ret[p] = arr[i][p];
-
-        }
-
-      }
-
-      return ret;
-
-    }
 
 
+        function append(arr) {
 
-    function collect(arr, separator, ret, f) {
+            var str = '';
 
-      for(var i = 0; i < arr.length; i++) {
+            if(typeOf(arr) === 'array') {
 
-        if(typeOf(arr[i]) == 'array') {
+                for(var i = 0; i < arr.length; i++) {
 
-          collect(arr[i], separator, ret, f);
+                    if(typeOf(arr[i]) == 'array') {
 
-        }
+                        str += append(arr[i]);
 
-        else if(arr[i] != "" && arr[i] != separator) {
+                    }
 
-          if(f && arr[i][f]) {
+                    else if (typeof arr[i] === 'object') {
 
-            ret.push(arr[i][f]);
+                        str += JSON.stringify(arr[i].object);
 
-          }
+                    }
 
-          else {
+                    else {
 
-            ret.push(arr[i]);
+                        str += arr[i];
 
-          }
+                    }
+
+                }
+
+            }
+
+            else {
+
+                str = str + arr;
+
+            }
+
+            return str;
 
         }
 
-      }
-
-    }
 
 
+        function merge(arr) {
 
-    function indexOf(names, name) {
+            var i, ret = {};
 
-      for(var i = 0; i < names.length; i++) {
+            for(i = 0; i < arr.length; i++) {
 
-        if(names[i].name === name) {
+                for(p in arr[i]) {
 
-          return i;
+                    ret[p] = arr[i][p];
+
+                }
+
+            }
+
+            return ret;
 
         }
 
-      }
 
-      return -1;
 
-    }
+        function collect(arr, separator, ret, f) {
 
+            for(var i = 0; i < arr.length; i++) {
 
+                if(typeOf(arr[i]) == 'array') {
 
-    function splitJoins(statement, cb) {
+                    collect(arr[i], separator, ret, f);
 
-      var main = statement, join, i, cond, column, sel;
+                }
 
-      if(statement.fromClause.length === 1) {
+                else if(arr[i] != "" && arr[i] != separator) {
 
-          return main;
+                    if(f && arr[i][f]) {
 
-      }
+                        ret.push(arr[i][f]);
 
+                    }
 
+                    else {
 
-      if(statement.fromClause.length > 2) {
+                        ret.push(arr[i]);
 
-        throw new this.SyntaxError("Line: " + statement.line + ": Statement must have no more than two tables in the from clause");
+                    }
 
-      }
+                }
 
-      main = {
+            }
 
-          type: 'select',
+        }
 
-          line: statement.line,
 
-          columns: [],
 
-          selected: [],
+        function indexOf(names, name) {
 
-          extras: [], // used only during selection
+            for(var i = 0; i < names.length; i++) {
 
-          whereCriteria: []
+                if(names[i].name === name) {
 
-      };
+                    return i;
 
-      if(statement.extras) main.udfExtras = statement.extras;
+                }
 
-      join = {
+            }
 
-          type: 'select',
+            return -1;
 
-          line: statement.line,
+        }
 
-          columns: [],
 
-          extras: [], // used only during selection
 
-          whereCriteria: []
+        // Split join statements in to main and a joiner. The main statement is the independent
 
-      };
+        // and the joiner depends on the outcome of the main statement. In this process, we split
 
-      main.fromClause = [statement.fromClause[0]];
+        // the columns in the columns clause across the main and joiner, and merge them at runtime
 
-      join.fromClause = [statement.fromClause[1]];
+        // using the 'selected' array below.
 
-      //  Split relevant columns into main and joiner
+        function splitJoins(statement, cb) {
 
-      for(i = 0; i < statement.columns.length; i++) {
+            var main = statement, join, i, cond, column, sel;
 
-          column = statement.columns[i];
 
-          if(column.operator === 'udf') {
 
+            // No need to split since there is no join.
 
+            if(statement.fromClause.length === 1) {
 
-          }
+                return main;
 
-          else if(column.name.indexOf(main.fromClause[0].alias + '.') === 0) {
+            }
 
-              // Keep it in main
 
-              if(indexOf(main.columns, column.name) < 0) {
 
-                  main.columns.push(column);
+            // Can't deal with joins between more than two tables.
 
-                  sel = {from: 'main'};
+            if(statement.fromClause.length > 2) {
 
-                  if(column.alias) {
+                throw new this.SyntaxError("Line: " + statement.line + ": Statement must have no more than two tables in the from clause");
 
-                      sel.name = column.alias;
+            }
 
-                  }
 
-                  else {
 
-                      sel.index = main.columns.length - 1;
+            // Initialize the main statement.
 
-                  }
+            main = {
 
-                  if(column.for) sel.for = column.for;
+                type: 'select',
 
-                  main.selected.push(sel);
+                line: statement.line,
 
-              }
+                columns: [],
 
-          }
+                selected: [], // These are the columns to be picked up at the end
 
-          else {
+                extras: [], // Used only during selection discared laer.
 
-              // Keep it in join
+                whereCriteria: []
 
-              if(indexOf(join.columns, column.name) < 0) {
+            };
 
-                  join.columns.push(column);
 
-                  sel = {from: 'joiner'};
 
-                  if(column.alias) {
+            if(statement.extras) {
 
-                      sel.name = column.alias;
+                // These are extra columns included the columns array - contain UDF args not already
 
-                  }
+                // listed in the columns clause
 
-                  else {
+                main.udfExtras = statement.extras;
 
-                      sel.index = join.columns.length - 1;
+            }
 
-                  }
 
-                  if(column.for) sel.for = column.for;
 
-                  main.selected.push(sel);
+            // Initialize the joiner
 
-              }
+            join = {
 
-          }
+                type: 'select',
 
-      }
+                line: statement.line,
 
-      if(!statement.whereCriteria) {
+                columns: [],
 
-          throw new this.SyntaxError("Line " + statement.line + ": Missing join condition in statement ");
+                extras: [], // used only during selection
 
-      }
+                whereCriteria: []
 
-      if(statement.whereCriteria) {
+            };
 
-          for(i = 0; i < statement.whereCriteria.length; i++) {
 
-              cond = statement.whereCriteria[i];
 
-              if(cond.operator === 'udf') {
+            main.fromClause = [statement.fromClause[0]];
 
-                  main.whereCriteria.push(cond);
+            join.fromClause = [statement.fromClause[1]];
 
-              }
 
-              else if(cond.rhs.type && cond.rhs.type === 'alias') {
 
-                  // This is the join condition
+            //  Split relevant columns into main and joiner
 
-                  var index = cond.rhs.value.indexOf(main.fromClause[0].alias + '.');
+            for(i = 0; i < statement.columns.length; i++) {
 
-                  if(index === 0) {
+                column = statement.columns[i];
 
-                      // Include only once
+                if(column.operator === 'udf') {
 
-                      if(indexOf(main.columns, cond.rhs.value) < 0) {
+                    // Nothing to do
 
-                          var index = cond.rhs.value.indexOf(main.fromClause[0].alias + '.');
+                }
 
-                          main.columns.push({
+                else if(column.name.indexOf(main.fromClause[0].alias + '.') === 0) {
 
-                              name: cond.rhs.value,
+                    // Keep it in main
 
-                              type: 'column'
+                    if(indexOf(main.columns, column.name) < 0) {
 
-                          })
+                        main.columns.push(column);
 
-                          if(statement.usingColumnAliases) {
+                        sel = {from: 'main'};
 
-                              main.columns[main.columns.length - 1].alias = cond.rhs.alias ||
+                        if(column.alias) {
 
-                                            cond.rhs.value.substr(index + main.fromClause[0].alias.length + 1);
-
-                          }
-
-                          main.extras.push(main.columns.length -1);
-
-                      }
-
-                      if(indexOf(join.columns, cond.lhs.name) < 0) {
-
-                          var index = cond.rhs.value.indexOf(join.fromClause[0].alias + '.');
-
-                          join.columns.push({
-
-                              name: cond.lhs.name,
-
-                              type: 'column'
-
-                          });
-
-                          if(statement.usingColumnAliases) {
-
-                              join.columns[join.columns.length - 1].alias = cond.lhs.alias ||
-
-                                                 cond.lhs.name.substr(index + join.fromClause[0].alias.length + 1)
-
-                          }
-
-                          join.extras.push(join.columns.length - 1);
-
-                      }
-
-                  }
-
-                  else {
-
-                      // Include only once
-
-                      if(indexOf(join.columns, cond.rhs.value) < 0) {
-
-                          var index = cond.rhs.value.indexOf(join.fromClause[0].alias + '.');
-
-                          join.columns.push({
-
-                              name: cond.rhs.value,
-
-                              type: 'column'
-
-                          })
-
-                          if(statement.usingColumnAliases) {
-
-                              join.columns[join.columns.length - 1].alias = cond.rhs.alias ||
-
-                                          cond.rhs.value.substr(index + join.fromClause[0].alias.length + 1)
-
-                          }
-
-                          join.extras.push(join.columns.length - 1);
-
-                      }
-
-                      if(indexOf(main.columns, cond.lhs.name) < 0) {
-
-                          var index = cond.lhs.name.indexOf(main.fromClause[0].alias + '.');
-
-                          main.columns.push({
-
-                              name: cond.lhs.name,
-
-                              type: 'column'
-
-                          });
-
-                          if(statement.usingColumnAliases) {
-
-                              main.columns[main.columns.length - 1].alias = cond.lhs.alias ||
-
-                                          cond.lhs.name.substr(index + main.fromClause[0].alias.length + 1)
-
-                          }
-
-
-
-                          main.extras.push(main.columns.length -1);
-
-                      }
-
-                  }
-
-                  join.whereCriteria.push(cond);
-
-              }
-
-              else {
-
-                  if(cond.lhs.name.indexOf(main.fromClause[0].alias + '.') === 0) {
-
-                      main.whereCriteria.push(cond);
-
-                  }
-
-                  else if(cond.lhs.name.indexOf(join.fromClause[0].alias + '.') === 0) {
-
-                      join.whereCriteria.push(cond);
-
-                  }
-
-              }
-
-          }
-
-      }
-
-
-
-      // TODO: Assertions and warnings
-
-      if(join.whereCriteria && join.whereCriteria.length > 0) {
-
-          if(indexOf(main.columns, join.whereCriteria[0].rhs.value) >= 0) {
-
-              join.whereCriteria[0].rhs.joiningColumn = indexOf(main.columns, join.whereCriteria[0].rhs.value);
-
-          }
-
-          else {
-
-              // Flip the condition
-
-              var temp = join.whereCriteria[0].rhs.value;
-
-              join.whereCriteria[0].rhs.value = join.whereCriteria[0].lhs.name;
-
-              join.whereCriteria[0].lhs = {
-
-                  name: temp
-
-              }
-
-              temp = join.whereCriteria[0].rhs.value;
-
-              join.whereCriteria[0].rhs.joiningColumn = indexOf(main.columns, temp);
-
-          }
-
-      }
-
-      main.joiner = join;
-
-
-
-      // Reset the joiningColumn to the alias where columns are aliased
-
-      // The joining column is an index by default.
-
-      var joiningColumn;
-
-      if(main.columns[join.whereCriteria[0].rhs.joiningColumn].alias) {
-
-          for(var i = 0; i < main.columns.length; i++) {
-
-              if(main.columns[i].name === main.joiner.whereCriteria[0].rhs.value) {
-
-                  joiningColumn = main.columns[i].alias;
-
-                  break;
-
-              }
-
-          }
-
-          if(joiningColumn) {
-
-              main.joiner.whereCriteria[0].rhs.joiningColumn = joiningColumn;
-
-          }
-
-          else {
-
-              throw new this.SyntaxError("Line " + main.line + ": Joining column " + joiningColumn + " could not resolved. File a bug.");
-
-          }
-
-      }
-
-
-
-      // Verify that all columns have prefixes
-
-      for(var i = 0; i < main.columns.length; i++) {
-
-          if(!main.columns[i].operator) {
-
-              var prefixed = false;
-
-               for(var j = 0; j < main.fromClause.length; j++) {
-
-                  if(main.columns[i].name.indexOf(main.fromClause[j].alias + '.') === 0) {
-
-                      prefixed = true;
-
-                      break;
-
-                  }
-
-              }
-
-              if(!prefixed) {
-
-                  throw new this.SyntaxError("Line " + main.line + ": Column " + main.columns[i].name + " not prefixed or prefix not found");
-
-              }
-
-          }
-
-      }
-
-      for(var i = 0; i < join.columns.length; i++) {
-
-          if(!join.columns[i].operator) {
-
-              var prefixed = false;
-
-               for(var j = 0; j < join.fromClause.length; j++) {
-
-                  if(join.columns[i].name.indexOf(join.fromClause[j].alias + '.') === 0) {
-
-                      prefixed = true;
-
-                      break;
-
-                  }
-
-              }
-
-              if(!prefixed) {
-
-                  throw new this.SyntaxError("Line " + main.line + ": Column " + join.columns[i].name + " not prefixed or prefix not found");
-
-              }
-
-          }
-
-      }
-
-
-
-      // Redo the UDF args since the indexes of column type args would be different now
-
-      // The index for each column arg should map to the 'selected' array so that we can pick up
-
-      // values of args from the 'selected' array.
-
-      for(var i = 0; i < main.whereCriteria.length; i++) {
-
-            var where = main.whereCriteria[i];
-
-            if(where.operator === 'udf') {
-
-                for(var j = 0; j < where.args.length; j++) {
-
-                    if(where.args[j].type === 'column') {
-
-                        // What is the prefix?
-
-                        var index = where.args[j].name.indexOf('.');
-
-                        if(index < 0) {
-
-                            throw new this.SyntaxError("Line " + main.line + ": Arg " + where.args[j].name + " not prefixed");
+                            sel.name = column.alias;
 
                         }
 
-                        var prefix = where.args[j].name.substr(0, index);
+                        else {
 
-                        var name = where.args[j].name.substr(index + 1);
+                            sel.index = main.columns.length - 1;
 
-                        if(main.fromClause[0].alias === prefix) {
+                        }
 
-                            // From main - find matching selected[] element where from = main and name = arg.name.
+                        if(column.for) sel.for = column.for;
 
-                            for(var selected = 0; selected < main.selected.length; selected++) {
+                        main.selected.push(sel);
 
-                                if(main.selected[selected].from === 'main') {
+                    }
 
-                                    if(main.selected[selected].name && main.selected[selected].name === name) {
+                }
 
-                                        where.args[j].index = selected;
+                else {
 
-                                    }
+                    // Keep it in join
 
-                                    else if(main.selected[selected].hasOwnProperty('index') &&
+                    if(indexOf(join.columns, column.name) < 0) {
 
-                                        main.columns[main.selected[selected].index].name === where.args[j].name) {
+                        join.columns.push(column);
 
-                                        where.args[j].index = selected;
+                        sel = {from: 'joiner'};
 
-                                    }
+                        if(column.alias) {
+
+                            sel.name = column.alias;
+
+                        }
+
+                        else {
+
+                            sel.index = join.columns.length - 1;
+
+                        }
+
+                        if(column.for) sel.for = column.for;
+
+                        main.selected.push(sel);
+
+                    }
+
+                }
+
+            }
+
+
+
+            // We need a where clause for the join
+
+            if(!statement.whereCriteria) {
+
+                throw new this.SyntaxError("Line " + statement.line + ": Missing join condition in statement ");
+
+            }
+
+
+
+            if(statement.whereCriteria) {
+
+                for(i = 0; i < statement.whereCriteria.length; i++) {
+
+                    cond = statement.whereCriteria[i];
+
+                    if(cond.operator === 'udf') {
+
+                        main.whereCriteria.push(cond);
+
+                    }
+
+                    else if(cond.rhs.type && cond.rhs.type === 'alias') {
+
+                        // This is the join condition
+
+                        var index = cond.rhs.value.indexOf(main.fromClause[0].alias + '.');
+
+                        if(index === 0) {
+
+                            // Include only once
+
+                            if(indexOf(main.columns, cond.rhs.value) < 0) {
+
+                                var index = cond.rhs.value.indexOf(main.fromClause[0].alias + '.');
+
+                                main.columns.push({
+
+                                    name: cond.rhs.value,
+
+                                    type: 'column'
+
+                                })
+
+                                if(statement.usingColumnAliases) {
+
+                                    main.columns[main.columns.length - 1].alias = cond.rhs.alias ||
+
+                                              cond.rhs.value.substr(index + main.fromClause[0].alias.length + 1);
 
                                 }
+
+                                main.extras.push(main.columns.length -1);
 
                             }
 
-                        }
+                            if(indexOf(join.columns, cond.lhs.name) < 0) {
 
-                        else if(main.joiner.fromClause[0].alias === prefix) {
+                                var index = cond.rhs.value.indexOf(join.fromClause[0].alias + '.');
 
-                            // From joiner - find matching selected[] element where from = joiner and name = arg.name.
+                                join.columns.push({
 
-                            for(var selected = 0; selected < main.selected.length; selected++) {
+                                    name: cond.lhs.name,
 
-                                if(main.selected[selected].from === 'joiner') {
+                                    type: 'column'
 
-                                    if(main.selected[selected].name && main.selected[selected].name === name) {
+                                });
 
-                                        where.args[j].index = selected;
+                                if(statement.usingColumnAliases) {
 
-                                    }
+                                    join.columns[join.columns.length - 1].alias = cond.lhs.alias ||
 
-                                    else if(main.selected[selected].hasOwnProperty('index') &&
-
-                                        join.columns[main.selected[selected].index].name === where.args[j].name) {
-
-                                        where.args[j].index = selected;
-
-                                    }
+                                                   cond.lhs.name.substr(index + join.fromClause[0].alias.length + 1)
 
                                 }
+
+                                join.extras.push(join.columns.length - 1);
 
                             }
 
@@ -9714,7 +9460,75 @@ module.exports = (function(){
 
                         else {
 
-                             throw new this.SyntaxError("Line " + main.line + ": Alias of arg " + where.args[j].name + " not found");
+                            // Include only once
+
+                            if(indexOf(join.columns, cond.rhs.value) < 0) {
+
+                                var index = cond.rhs.value.indexOf(join.fromClause[0].alias + '.');
+
+                                join.columns.push({
+
+                                    name: cond.rhs.value,
+
+                                    type: 'column'
+
+                                })
+
+                                if(statement.usingColumnAliases) {
+
+                                    join.columns[join.columns.length - 1].alias = cond.rhs.alias ||
+
+                                            cond.rhs.value.substr(index + join.fromClause[0].alias.length + 1)
+
+                                }
+
+                                join.extras.push(join.columns.length - 1);
+
+                            }
+
+                            if(indexOf(main.columns, cond.lhs.name) < 0) {
+
+                                var index = cond.lhs.name.indexOf(main.fromClause[0].alias + '.');
+
+                                main.columns.push({
+
+                                    name: cond.lhs.name,
+
+                                    type: 'column'
+
+                                });
+
+                                if(statement.usingColumnAliases) {
+
+                                    main.columns[main.columns.length - 1].alias = cond.lhs.alias ||
+
+                                            cond.lhs.name.substr(index + main.fromClause[0].alias.length + 1)
+
+                                }
+
+
+
+                                main.extras.push(main.columns.length -1);
+
+                            }
+
+                        }
+
+                        join.whereCriteria.push(cond);
+
+                    }
+
+                    else {
+
+                        if(cond.lhs.name.indexOf(main.fromClause[0].alias + '.') === 0) {
+
+                            main.whereCriteria.push(cond);
+
+                        }
+
+                        else if(cond.lhs.name.indexOf(join.fromClause[0].alias + '.') === 0) {
+
+                            join.whereCriteria.push(cond);
 
                         }
 
@@ -9724,21 +9538,253 @@ module.exports = (function(){
 
             }
 
-      }
+
+
+            if(join.whereCriteria && join.whereCriteria.length > 0) {
+
+                if(indexOf(main.columns, join.whereCriteria[0].rhs.value) >= 0) {
+
+                    join.whereCriteria[0].rhs.joiningColumn = indexOf(main.columns, join.whereCriteria[0].rhs.value);
+
+                }
+
+                else {
+
+                    // Flip the condition
+
+                    var temp = join.whereCriteria[0].rhs.value;
+
+                    join.whereCriteria[0].rhs.value = join.whereCriteria[0].lhs.name;
+
+                    join.whereCriteria[0].lhs = {
+
+                        name: temp
+
+                    }
+
+                    temp = join.whereCriteria[0].rhs.value;
+
+                    join.whereCriteria[0].rhs.joiningColumn = indexOf(main.columns, temp);
+
+                }
+
+            }
+
+            main.joiner = join;
 
 
 
-      return main;
+            // Reset the joiningColumn to the alias where columns are aliased
 
-    }
+            // The joining column is an index by default.
 
-    // Symbol table
+            var joiningColumn;
 
-    var symbols = {};
+            if(main.columns[join.whereCriteria[0].rhs.joiningColumn].alias) {
 
-    var lincr = 0;
+                for(var i = 0; i < main.columns.length; i++) {
 
-    var id = 0;
+                    if(main.columns[i].name === main.joiner.whereCriteria[0].rhs.value) {
+
+                        joiningColumn = main.columns[i].alias;
+
+                        break;
+
+                    }
+
+                }
+
+                if(joiningColumn) {
+
+                    main.joiner.whereCriteria[0].rhs.joiningColumn = joiningColumn;
+
+                }
+
+                else {
+
+                    throw new this.SyntaxError("Line " + main.line + ": Joining column " + joiningColumn + " could not resolved. File a bug.");
+
+                }
+
+            }
+
+
+
+            // Verify that all columns have prefixes
+
+            for(var i = 0; i < main.columns.length; i++) {
+
+                if(!main.columns[i].operator) {
+
+                    var prefixed = false;
+
+                     for(var j = 0; j < main.fromClause.length; j++) {
+
+                        if(main.columns[i].name.indexOf(main.fromClause[j].alias + '.') === 0) {
+
+                            prefixed = true;
+
+                            break;
+
+                        }
+
+                    }
+
+                    if(!prefixed) {
+
+                        throw new this.SyntaxError("Line " + main.line + ": Column " + main.columns[i].name + " not prefixed or prefix not found");
+
+                    }
+
+                }
+
+            }
+
+            for(var i = 0; i < join.columns.length; i++) {
+
+                if(!join.columns[i].operator) {
+
+                    var prefixed = false;
+
+                    for(var j = 0; j < join.fromClause.length; j++) {
+
+                        if(join.columns[i].name.indexOf(join.fromClause[j].alias + '.') === 0) {
+
+                            prefixed = true;
+
+                            break;
+
+                        }
+
+                    }
+
+                    if(!prefixed) {
+
+                        throw new this.SyntaxError("Line " + main.line + ": Column " + join.columns[i].name + " not prefixed or prefix not found");
+
+                    }
+
+                }
+
+            }
+
+
+
+            // Redo the UDF args since the indexes of column type args would be different now
+
+            // The index for each column arg should map to the 'selected' array so that we can pick up
+
+            // values of args from the 'selected' array.
+
+            for(var i = 0; i < main.whereCriteria.length; i++) {
+
+                var where = main.whereCriteria[i];
+
+                if(where.operator === 'udf') {
+
+                    for(var j = 0; j < where.args.length; j++) {
+
+                        if(where.args[j].type === 'column') {
+
+                            // What is the prefix?
+
+                            var index = where.args[j].name.indexOf('.');
+
+                            if(index < 0) {
+
+                                throw new this.SyntaxError("Line " + main.line + ": Arg " + where.args[j].name + " not prefixed");
+
+                            }
+
+                            var prefix = where.args[j].name.substr(0, index);
+
+                            var name = where.args[j].name.substr(index + 1);
+
+                            if(main.fromClause[0].alias === prefix) {
+
+                                // From main - find matching selected[] element where from = main and name = arg.name.
+
+                                for(var selected = 0; selected < main.selected.length; selected++) {
+
+                                    if(main.selected[selected].from === 'main') {
+
+                                        if(main.selected[selected].name && main.selected[selected].name === name) {
+
+                                            where.args[j].index = selected;
+
+                                        }
+
+                                        else if(main.selected[selected].hasOwnProperty('index') &&
+
+                                            main.columns[main.selected[selected].index].name === where.args[j].name) {
+
+                                            where.args[j].index = selected;
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                            else if(main.joiner.fromClause[0].alias === prefix) {
+
+                                // From joiner - find matching selected[] element where from = joiner and name = arg.name.
+
+                                for(var selected = 0; selected < main.selected.length; selected++) {
+
+                                    if(main.selected[selected].from === 'joiner') {
+
+                                        if(main.selected[selected].name && main.selected[selected].name === name) {
+
+                                            where.args[j].index = selected;
+
+                                        }
+
+                                        else if(main.selected[selected].hasOwnProperty('index') &&
+
+                                            join.columns[main.selected[selected].index].name === where.args[j].name) {
+
+                                            where.args[j].index = selected;
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                            else {
+
+                                throw new this.SyntaxError("Line " + main.line + ": Alias of arg " + where.args[j].name + " not found");
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+
+
+            return main;
+
+        }
+
+
+
+        // Symbol table - to check for unreferenced variables
+
+        var symbols = {};
+
+        var lincr = 0;
+
+        var id = 0;
 
 
 
