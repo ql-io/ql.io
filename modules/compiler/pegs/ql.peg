@@ -381,670 +381,669 @@
 
 ///////////////////////////////////////////////////////////
 
-Start = crlf* larr:LineCrlf* insig r:return? insig crlf* insig carr:comment* insig crlf*{
-  ret = [];
-  ret = ret.concat(larr);
-  if(r) {
-    ret.push(r);
-  }
-  ret = ret.concat(carr);
-  return ret;
+//
+// The bigbang
+//
+start = crlf* larr:LineCrlf* insig r:Return? insig crlf* insig carr:Comment* insig crlf*{
+    ret = [];
+    ret = ret.concat(larr);
+    if(r) {
+        ret.push(r);
+    }
+    ret = ret.concat(carr);
+    return ret;
 }
 
-
-LineCrlf = l:line crlf* {
-  return l;
+// A line in a statement
+LineCrlf = l:Line crlf* {
+    return l;
 }
 
-line = sp l:(assign / comment) {
-  var i, from;
-  if(l.type !== 'comment') {
-    l.id = id++;
-  }
-  return l;
+// Statement can be an assignment or a comemnt
+Line = sp l:(Assign / Comment) {
+    if(l.type !== 'comment') {
+        l.id = id++;
+    }
+    return l;
 }
 
-assign = a:output? s:statementOrObject insig ';'? insig {
-  if(a) {
-    s.assign = a.assign;
-    s.line = a.line;
-  }
-  symbols[a.assign] = {};
-  return s;
+// In an assignment, the RHS is optional to support single statement scripts.
+Assign = a:Output? s:StatementOrObject insig ';'? insig {
+    if(a) {
+        s.assign = a.assign;
+        s.line = a.line;
+    }
+
+    // Add LHS to the symbol table
+    symbols[a.assign] = {};
+    return s;
 }
 
-statementOrObject = statement / value / callUdf
+// A statement or object
+StatementOrObject = Statement / Value / CallUdf
 
-callUdf = u:udf {
+CallUdf = u:UDF {
     u.type = 'define';
     u.udf = u.name;
     delete u.operator;
     return u;
 }
 
-statement = (selectStatement / showRoutesStatement /showStatement / describeRouteStatement / describeStatement / insertStatement / deleteStatement / createStatement)
+Statement = SelectStatement / ShowRoutesStatement / ShowStatement / DescribeRouteStatement /
+            DescribeStatement / InsertStatement / DeleteStatement / CreateStatement
 
-output = insig w:word insig '=' insig {
-  return {
-    line: computeErrorPosition().line,
-    assign: w
-  }
+Output = insig w:Word insig '=' insig {
+    return {
+        line: computeErrorPosition().line,
+        assign: w
+    }
 }
 
-comment = '--' sp c:[\u0020-\uffff]* crlf? {
-  return {
-    line: computeErrorPosition().line,
-    type: 'comment',
-    text: c.join('')
-  }
+Comment = '--' sp c:[\u0020-\uffff]* crlf? {
+    return {
+        line: computeErrorPosition().line,
+        type: 'comment',
+        text: c.join('')
+    }
 }
 
-///////////////////////////////////////////////////////////
-// Create
-createStatement = 'create' insig 'table' insig s:nonAliasSource insig a:act* {
-  var s = {
-    type: 'create',
-    name: s.name,
-    line: computeErrorPosition().line
-  };
-  for(i = 0; i < a.length; i++) {
-    s[a[i].type] = a[i];
-    delete a[i].type;
-  }
-  return s;
+// create table statement
+CreateStatement = 'create' insig 'table' insig s:NonAliasSource insig v:Verb* {
+    var s = {
+        type: 'create',
+        name: s.name,
+        line: computeErrorPosition().line
+    };
+    for(i = 0; i < v.length; i++) {
+        s[v[i].type] = v[i];
+        delete v[i].type;
+    }
+    return s;
 }
 
-type = 'select' / 'insert' / 'delete' / 'update'
-uri = quotedWord
+Type = 'select' / 'insert' / 'delete' / 'update'
+URI = QuotedWord
 
-act = 'on' insig t:type insig m:actname insig u:uri insig  insig a:withAliases? h:usingHeaders? d:usingDefaults? p:usingMonkeyPatch? insig b:usingBodyTemplate? insig auth:authenticateUsing? insig r:resultSet? insig exp:expires? {
-  var ret = {
-    type: t,
-    method: m,
-    uri: u.value,
-    defaults: d || {},
-    aliases: a || {},
-    headers: h || {},
-    resultSet: r || '',
-    cache: exp || {}
-  };
-  if(auth && auth.length > 0) {
-    ret.auth = auth;
-  }
-  if(p) ret.patch = p;
-  ret.body = b;
-  return ret;
-}
-
-actname = getfrom / postto / putto / delete / patch
-
-getfrom = 'get' insig 'from' {
-  return 'get'
-}
-postto = 'post' insig 'to' {
-  return 'post'
-}
-putto = 'put' insig 'to' {
-  return 'put'
-}
-delete = 'delete' {
-  return 'delete'
+Verb = 'on' insig t:Type insig m:VerbName insig u:URI insig  a:WithAliases? h:UsingHeaders?
+            d:UsingDefaults? p:UsingMonkeyPatch? insig b:UsingBodyTemplate? insig
+            auth:AuthenticateUsing? insig r:ResultSet? insig exp:Expires? {
+    var ret = {
+        type: t,
+        method: m,
+        uri: u.value,
+        defaults: d || {},
+        aliases: a || {},
+        headers: h || {},
+        resultSet: r || '',
+        cache: exp || {}
+    };
+    if(auth && auth.length > 0) {
+        ret.auth = auth;
+    }
+    if(p) ret.patch = p;
+    ret.body = b;
+    return ret;
 }
 
-patch = 'patch' {
-  return 'patch'
+// A verb maps to an HTTP method. Don't ask for custom methods. Just use POST
+VerbName = GetFrom / PostTo / PutTo / Delete / Patch
+GetFrom = 'get' insig 'from' {
+    return 'get'
+}
+PostTo = 'post' insig 'to' {
+    return 'post'
+}
+PutTo = 'put' insig 'to' {
+    return 'put'
+}
+Delete = 'delete' {
+    return 'delete'
+}
+Patch = 'patch' {
+    return 'patch'
 }
 
-usingDefaults = 'using' insig 'defaults' d:nvps {
-  return merge(d);
+// Clauses on the create table statement
+UsingDefaults = 'using' insig 'defaults' d:NVPs {
+    return merge(d);
 }
-
-usingHeaders = 'using' insig 'headers' d:nvps {
-  return merge(d);
+UsingHeaders = 'using' insig 'headers' d:NVPs {
+    return merge(d);
 }
-
-usingMonkeyPatch = 'using' insig 'patch' insig t:quotedWord {
-  return t.value;
+UsingMonkeyPatch = 'using' insig 'patch' insig t:QuotedWord {
+    return t.value;
 }
-
-usingBodyTemplate = 'using' insig 'bodyTemplate' insig t:quotedWord insig 'type' insig m:quotedWord insig f:foreachMember? insig {
-  var ret = {
-    template: t.value,
-    type: m.value
-  }
-  if(f) {
-    ret.foreach = f;
-  }
-  return ret;
+UsingBodyTemplate = 'using' insig 'bodyTemplate' insig t:QuotedWord insig 'type' insig
+                            m:QuotedWord insig f:ForEachMember? insig {
+    var ret = {
+        template: t.value,
+        type: m.value
+    }
+    if(f) {
+        ret.foreach = f;
+    }
+    return ret;
 }
-
-foreachMember = 'foreach' insig id:quotedWord {
+// This clause is used to split POST requests
+ForEachMember = 'foreach' insig id:QuotedWord {
   return id.value;
 }
-
-
-withAliases = 'with' insig 'aliases' p:nvps {
-  return merge(p);
+WithAliases = 'with' insig 'aliases' p:NVPs {
+    return merge(p);
+}
+AuthenticateUsing = ('authenticate' / 'auth') insig 'using' insig m:QuotedWord {
+    return m.value;
+}
+ResultSet = 'resultset' insig r:QuotedWord {
+    return r.value;
 }
 
-authenticateUsing = ('authenticate' / 'auth') insig 'using' insig m:quotedWord {
-  return m.value;
-}
-
-resultSet = 'resultset' insig r:quotedWord {
-  return r.value;
-}
-
-nvps = n:nvp narr:(cnvp)* {
+// Comma-separated name=value pairs
+NVPs = n:NVP narr:(CNVP)* {
   var ret = [n];
   ret = ret.concat(narr);
   return ret;
 }
-
-cnvp = ',' n:nvp {
-  return n;
+CNVP = ',' n:NVP {
+    return n;
 }
-
-nvp = insig lhs:(lhs/quotedWord) insig '=' insig rhs:rhs insig {
-  var  o = {};
-  lhs = lhs.name || lhs;
-  o[lhs.hasOwnProperty('value') ? lhs.value : lhs] = rhs.hasOwnProperty('value') ? rhs.value : rhs;
-  return o;
+NVP = insig lhs:(Field/QuotedWord) insig '=' insig rhs:RHS insig {
+    var  o = {};
+    lhs = lhs.name || lhs;
+    o[lhs.hasOwnProperty('value') ? lhs.value : lhs] = rhs.hasOwnProperty('value') ? rhs.value : rhs;
+    return o;
 }
-
-expires = insig 'expires' insig d:digits insig {
+Expires = insig 'expires' insig d:Digits insig {
     return {
         expires: d
     }
 }
 
-///////////////////////////////////////////////////////////
-// Select
-
-select = s:'select' {
-  return {
-    type: 'select',
-    line: computeErrorPosition().line
-  }
-}
-selectStatement = s:select insig c:columnsClause insig 'from' insig fc:fromClause insig wc:whereClause* insig l:limit* insig o:offset* {
-  var s = {
-    type: s.type,
-    line: s.line,
-    fromClause: fc,
-    columns: c,
-    whereCriteria: wc[0]
-  };
-  if(l[0]) {
-    s.limit = l[0];
-  }
-  if(o[0]) {
-    s.offset = o[0];
-  }
-  s.id = id;
-  if(c && c.length > 0 && c[0].alias) {
-    s.usingColumnAliases = true
-  }
-
-  // Extras from where clause - there are non-literal args of UDFs in the where clause
-  if(s.whereCriteria && typeOf(s.columns) === 'array') {
-      for(var i = 0; i < s.whereCriteria.length; i++) {
-          var where = s.whereCriteria[i];
-          if(where.operator === 'udf') {
-              for(var j = 0; j < where.args.length; j++) {
-                  if(where.args[j].type === 'column') {
-                      // If this column is not already selected, included it now.
-                      for(var c = 0; c < s.columns.length; c++) {
-                          if(s.columns[c].name === where.args[j].name) {
-                              if(s.columns[c].alias) {
-                                  where.args[j].alias = s.columns[c].alias
-                                  delete where.args[j].index;
-                              }
-                              else {
-                                   where.args[j].index = c;
-                              }
-                              break;
-                          }
-                      }
-                      if(!where.args[j].hasOwnProperty('alias') && !where.args[j].hasOwnProperty('index')) {
-                          s.extras = s.extras || [];
-                          s.extras.push(s.columns.length);
-                          var extra = {name: where.args[j].name, type: 'column'};
-                          // Index or name into selected columns
-                          if(s.columns[0].alias) {
-                              extra.alias = where.args[j].name;
-                              where.args[j].alias = extra.alias;
-                          }
-                          else {
-                              where.args[j].index = s.columns.length;
-                          }
-                          extra.for = 'udf';
-                          s.columns.push(extra);
-                      }
-                  }
-              }
-          }
-      }
-  }
-  s = splitJoins(s);
-  delete s.id;
-  return s;
-}
-
-show = 'show' {
-  return {
-    line: computeErrorPosition().line
-  }
-}
-showRoutesStatement = s:show insig 'routes' {
-  return {
-    type: 'show routes',
-    line: s.line
-  }
-}
-
-showStatement = s:show insig 'tables' {
-  return {
-    type: 'show',
-    line: s.line
-  }
-}
-
-describe = (('describe') / ('desc')) {
-  return {
-    line: computeErrorPosition().line
-  }
-}
-describeRouteStatement = d:describe insig 'route' insig p:quotedWord insig 'using' insig 'method' insig m:('get' / 'post' / 'put' / 'delete' / 'patch') {
-  return {
-    type: 'describe route',
-    line: d.line,
-    path: p,
-    method: m
-  }
-}
-
-describeStatement = d:describe insig s:source {
-  return {
-    type: 'describe',
-    line: d.line,
-    source: s
-  }
-}
-
-///////////////////////////////////////////////////////////
-// insert Statement
-//
-insertStatement = 'insert' insig 'in' 'to' insig s:source insig '(' insig c:columnsClause insig ')' insig 'values' insig '(' v:csv ')' {
-  if(c.length != v.value.length) {
-    throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Number of values does not match number of columns.");
-  }
-  return {
-    type: 'insert',
-    source: s,
-    columns: c,
-    values: v.value,
-    line: computeErrorPosition().line
-  }
-}
-
-///////////////////////////////////////////////////////////
-// delete statement
-deleteStatement = 'delete' insig 'from' insig s:source insig wc:whereClause* {
-  return {
-    type: 'delete',
-    source: s,
-    whereCriteria: wc[0],
-    line: computeErrorPosition().line
-  }
-}
-
-///////////////////////////////////////////////////////////
-// Clauses
-
-columnsClause = arr:(all / fields) {
-  var aliasCount = 0;
-  for(var i = 0; i < arr.length; i++) {
-    if(arr[i].alias) {
-      aliasCount++;
+// Select statement
+SelectStatement = s:Select insig c:ColumnsClause insig 'from' insig fc:FromClause insig
+                  wc:WhereClause* insig l:Limit* insig o:Offset* {
+    var s = {
+        type: s.type,
+        line: s.line,
+        fromClause: fc,
+        columns: c,
+        whereCriteria: wc[0]
+    };
+    if(l[0]) {
+        s.limit = l[0];
     }
-  }
-  if(aliasCount > 0 && aliasCount != arr.length) {
-    throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Not all selected columns are using aliases.");
-  }
-  return arr;
+    if(o[0]) {
+        s.offset = o[0];
+    }
+    s.id = id;
+    if(c && c.length > 0 && c[0].alias) {
+        s.usingColumnAliases = true
+    }
+
+    // Extras from where clause - there are non-literal args of UDFs in the where clause
+    if(s.whereCriteria && typeOf(s.columns) === 'array') {
+        for(var i = 0; i < s.whereCriteria.length; i++) {
+            var where = s.whereCriteria[i];
+            if(where.operator === 'udf') {
+                for(var j = 0; j < where.args.length; j++) {
+                    if(where.args[j].type === 'column') {
+                        // If this column is not already selected, included it now.
+                        for(var c = 0; c < s.columns.length; c++) {
+                            if(s.columns[c].name === where.args[j].name) {
+                                if(s.columns[c].alias) {
+                                    where.args[j].alias = s.columns[c].alias
+                                    delete where.args[j].index;
+                                }
+                                else {
+                                    where.args[j].index = c;
+                                }
+                                break;
+                            }
+                        }
+                        if(!where.args[j].hasOwnProperty('alias') && !where.args[j].hasOwnProperty('index')) {
+                            s.extras = s.extras || [];
+                            s.extras.push(s.columns.length);
+                            var extra = {name: where.args[j].name, type: 'column'};
+                            // Index or name into selected columns
+                            if(s.columns[0].alias) {
+                                extra.alias = where.args[j].name;
+                                where.args[j].alias = extra.alias;
+                            }
+                            else {
+                                where.args[j].index = s.columns.length;
+                            }
+                            extra.for = 'udf';
+                            s.columns.push(extra);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    s = splitJoins(s);
+    delete s.id;
+    return s;
 }
 
-fromClause = s:source+ sarr:(commaSource*) {
-  return s.concat(sarr);
+Select = s:'select' {
+    return {
+        type: 'select',
+        line: computeErrorPosition().line
+    }
 }
 
-source = aliasSource / nonAliasSource
-
-commaSource = insig comma insig s:source {
-  return s;
+// Show statements
+ShowRoutesStatement = s:Show insig 'routes' {
+    return {
+        type: 'show routes',
+        line: s.line
+    }
 }
 
-aliasSource = (s:identifier insig 'as' insig a:identifier) {
-  if(symbols[s]) {
-    s = "{" + s + "}";
-  }
-  return {name: s, alias: a};
+ShowStatement = s:Show insig 'tables' {
+    return {
+        type: 'show',
+        line: s.line
+    }
 }
 
-nonAliasSource = s:identifier {
-  if(symbols[s]) {
-    s = "{" + s + "}";
-  }
-  return {name: s};
+Show = 'show' {
+    return {
+        line: computeErrorPosition().line
+    }
+}
+
+// Describe statements
+Describe = (('describe') / ('desc')) {
+    return {
+        line: computeErrorPosition().line
+    }
+}
+DescribeRouteStatement = d:Describe insig 'route' insig p:QuotedWord insig 'using' insig 'method'
+                         insig m:('get' / 'post' / 'put' / 'delete' / 'patch') {
+    return {
+        type: 'describe route',
+        line: d.line,
+        path: p,
+        method: m
+    }
+}
+
+DescribeStatement = d:Describe insig s:Source {
+    return {
+        type: 'describe',
+        line: d.line,
+        source: s
+    }
+}
+
+// Insert Statement
+InsertStatement = 'insert' insig 'in' 'to' insig s:Source insig '(' insig c:ColumnsClause insig ')'
+                    insig 'values' insig '(' v:CSV ')' {
+    if(c.length != v.value.length) {
+        throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Number of values does not match number of columns.");
+    }
+    return {
+        type: 'insert',
+        source: s,
+        columns: c,
+        values: v.value,
+        line: computeErrorPosition().line
+    }
+}
+
+// Delete statement
+DeleteStatement = 'delete' insig 'from' insig s:Source insig wc:WhereClause* {
+    return {
+        type: 'delete',
+        source: s,
+        whereCriteria: wc[0],
+        line: computeErrorPosition().line
+    }
+}
+
+// Various clauses
+ColumnsClause = arr:(All / Fields) {
+    var aliasCount = 0;
+    for(var i = 0; i < arr.length; i++) {
+        if(arr[i].alias) {
+            aliasCount++;
+        }
+    }
+    if(aliasCount > 0 && aliasCount != arr.length) {
+        throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Not all selected columns are using aliases.");
+    }
+    return arr;
+}
+
+FromClause = s:Source+ sarr:(CommaSource*) {
+    return s.concat(sarr);
+}
+
+Source = AliasSource / NonAliasSource
+
+CommaSource = insig Comma insig s:Source {
+    return s;
+}
+
+AliasSource = (s:Name insig 'as' insig a:Name) {
+    if(symbols[s]) {
+        s = "{" + s + "}";
+    }
+    return {name: s, alias: a};
+}
+
+NonAliasSource = s:Name {
+    if(symbols[s]) {
+        s = "{" + s + "}";
+    }
+    return {name: s};
 }
 
 // Where clause
-whereClause = 'where' insig w:whereCriteria {
-  return w;
+WhereClause = 'where' insig w:WhereCriteria {
+    return w;
 }
 
 // Limit
-limit = 'limit' insig n:digits {
-  return n;
+Limit = 'limit' insig n:Digits {
+    return n;
 }
 
 // Offset
-offset = 'offset' insig n:digits {
-  return n;
+Offset = 'offset' insig n:Digits {
+    return n;
 }
 
-whereCriteria = c:cond carr:(andCond)* {
-  var ret = [c];
-  ret = ret.concat(carr);
-  return ret;
+WhereCriteria = c:Cond carr:(AndCond)* {
+    var ret = [c];
+    ret = ret.concat(carr);
+    return ret;
 }
 
-and = 'and'
+And = 'and'
 
 // Conditions in the where clause
-cond = (eqCond / inCond / udf)
+Cond = (EqCond / InCond / UDF)
 
-andCond = insig and insig c:cond {
-  return c;
+AndCond = insig And insig c:Cond {
+    return c;
 }
 
-eqCond = insig lhs:lhs insig operator insig rhs:rhs insig {
-  return {operator : '=', lhs : lhs, rhs : rhs};
+EqCond = insig lhs:Field insig Operator insig rhs:RHS insig {
+    return {operator : '=', lhs : lhs, rhs : rhs};
 }
 
-inCond = lhs:identifier insig 'in' insig '(' insig rhs:(selectStatement / csv) insig ')' {
-  return {operator : 'in', lhs : {name: lhs}, rhs: rhs};
+InCond = lhs:Name insig 'in' insig '(' insig rhs:(SelectStatement / CSV) insig ')' {
+    return {operator : 'in', lhs : {name: lhs}, rhs: rhs};
 }
 
-csv =  insig c:csvMember insig carr:(commaCsvMember*) {
-  var res = [c.value || c];
-  collect(carr,',', res, 'value');
-  return {
-    value: res
-  }
-}
-
-commaCsvMember = (insig comma insig v:csvMember) {
- return v;
-}
-
-csvMember = quotedWord/quotedDigits/digits/ref
-
-ref = i:identifier {
-  return {
-    value: "{" + i + "}"
-  }
-}
-
-lhs = field
-
-operator = (insig '=' insig/ insig 'in' insig)
-
-rhs = r:(aliasedRef/quotedWord/quotedDigits/digits) {
-  if(!r.hasOwnProperty('value')) {
-    r = {
-      value: r
-    }
-  }
-  return r;
-}
-
-aliasedRef = p:JSONPath {
-  return {
-    type: 'alias',
-    value: p
-  };
-}
-
-all = '*' {
-  return {
-    name: '*',
-    type: 'column'
-  }
-}
-fields = arr:(field (insig comma insig field)*) {
-  var res = [];
-  collect(arr, ",", res);
-  return res;
-}
-
-field = f:(aliasField / nonAliasField ) {
-  return f;
-}
-
-aliasField = n:nonAliasField insig 'as' insig a:identifier {
-  if(symbols[n]) {
-    n = "{" + n + "}";
-  }
-  n.alias = a;
-  return n;
-}
-
-nonAliasField = udf / column
-
-udf = name:identifier insig '(' insig p:udfParams? insig ')' {
-  return {
-    operator: 'udf',
-    name: name,
-    args: p
-  }
-}
-
-udfParams = c:udfParam insig carr:(comma insig udfParam)* {
-  var res = [c];
-  collect(carr,',', res);
-  return res;
-}
-
-udfParam = literalParam/column
-
-literalParam = j:json {
-  return {
-    type: 'literal',
-    value: j
-  }
-}
-paramDigits = d:digits {
+CSV =  insig c:CSVMember insig carr:(CommaCSVMember*) {
+    var res = [c.value || c];
+    collect(carr,',', res, 'value');
     return {
-      type: 'literal',
-      value: d
+        value: res
     }
 }
 
-// TODO: use column for columnsClause
-column = p:JSONPath {
-  return {
-    type: 'column',
-    name: p
-  }
+CommaCSVMember = (insig Comma insig v:CSVMember) {
+    return v;
 }
 
-fieldName = chars:((selector ('.' selector)*)) {
-  return append(chars);
+CSVMember = QuotedWord/QuotedDigits/Digits/Ref
+
+Ref = i:Name {
+    return {
+        value: "{" + i + "}"
+    }
 }
 
-selector = word ('[' (digits / quotedWordVal / '*' / JSONPath) ']')* / word
+Operator = (insig '=' insig/ insig 'in' insig)
 
-comma = ','
-
-identifier = obj:(word ('.' word)*) {
-  return append(obj);
+RHS = r:(AliasedRef/QuotedWord/QuotedDigits/Digits) {
+    if(!r.hasOwnProperty('value')) {
+        r = {
+            value: r
+        }
+    }
+    return r;
 }
 
-word = chars:([a-zA-Z$:][a-zA-Z_0-9:]*)  {
-  var ret = chars[0];
-  for(i = 1; i < chars.length; i++) {
-    ret = ret + chars[i].join('');
-  }
-  return ret;
+AliasedRef = p:JSONPath {
+    return {
+        type: 'alias',
+        value: p
+    };
 }
 
-quotedWordVal = q:quotedWord {
-  return '"' + q.value + '"';
+All = '*' {
+    return {
+        name: '*',
+        type: 'column'
+    }
+}
+Fields = arr:(Field (insig Comma insig Field)*) {
+    var res = [];
+    collect(arr, ",", res);
+    return res;
 }
 
-quotedWord = sQuotedWord / dQuotedWord
+Field = f:(AliasField / NonAliasField ) {
+    return f;
+}
+
+AliasField = n:NonAliasField insig 'as' insig a:Name {
+    if(symbols[n]) {
+        n = "{" + n + "}";
+    }
+    n.alias = a;
+    return n;
+}
+
+NonAliasField = UDF / Column
+
+UDF = name:Name insig '(' insig p:UDFParams? insig ')' {
+    return {
+        operator: 'udf',
+        name: name,
+        args: p
+    }
+}
+
+UDFParams = c:UDFParam insig carr:(Comma insig UDFParam)* {
+    var res = [c];
+    collect(carr,',', res);
+    return res;
+}
+
+UDFParam = LiteralParam/Column
+
+LiteralParam = j:JSON {
+    return {
+        type: 'literal',
+        value: j
+    }
+}
+ParamDigits = d:Digits {
+    return {
+        type: 'literal',
+        value: d
+    }
+}
+
+Column = p:JSONPath {
+    return {
+        type: 'column',
+        name: p
+    }
+}
+
+FieldName = chars:((Selector ('.' Selector)*)) {
+    return append(chars);
+}
+
+Selector = Word ('[' (Digits / QuotedWordVal / '*' / JSONPath) ']')* / Word
+
+Comma = ','
+
+Name = obj:(Word ('.' Word)*) {
+    return append(obj);
+}
+
+Word = chars:([a-zA-Z$:][a-zA-Z_0-9:]*)  {
+    var ret = chars[0];
+    for(i = 1; i < chars.length; i++) {
+        ret = ret + chars[i].join('');
+    }
+    return ret;
+}
+
+QuotedWordVal = q:QuotedWord {
+    return '"' + q.value + '"';
+}
+
+QuotedWord = sQuotedWord / dQuotedWord
 
 sQuotedWord = '\'' c:([^'] / ' ')* '\'' {
-  return {
-    value: c.join('')
-  }
+    return {
+        value: c.join('')
+    }
 }
 
 dQuotedWord = '"' c:([^"] / ' ')* '"' {
-  return {
-    value: c.join('')
-  }
+    return {
+        value: c.join('')
+    }
 }
 
-quotedDigits = sQuotedDigits / dQuotedDigits
+QuotedDigits = sQuotedDigits / dQuotedDigits
 
-sQuotedDigits = '\'' d:digits '\'' {
-  return {
-    value: d
-  }
+sQuotedDigits = '\'' d:Digits '\'' {
+    return {
+        value: d
+    }
 }
-dQuotedDigits = '"' d:digits '"' {
-  return {
-    value: d
-  }
+dQuotedDigits = '"' d:Digits '"' {
+    return {
+        value: d
+    }
 }
 
 ///////////////////////////////////////////////////////////
 
-ret = 'return' {
-  return {
-    line: computeErrorPosition().line
-  }
+Ret = 'return' {
+    return {
+        line: computeErrorPosition().line
+    }
 }
 
-return = re:ret insig o:retval insig r:route? insig ';'? {
-  var ret = {
-    type: 'return',
-    line: re.line,
-    id: id,
-    rhs: o
-  };
-  if(r) {
-    ret.route = r;
-  }
-  return ret;
+Return = re:Ret insig o:RetVal insig r:Route? insig ';'? {
+    var ret = {
+        type: 'return',
+        line: re.line,
+        id: id,
+        rhs: o
+    };
+    if(r) {
+        ret.route = r;
+    }
+    return ret;
 }
 
-retval = statement / callUdf / retref / value
+RetVal = Statement / CallUdf / RetRef / Value
 
-retref = o:word {
-  if(symbols[o] === undefined) {
-    throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Unresolved symbol '" + o + "'");
-  }
-  return {
-    ref: o
-  }
+RetRef = o:Word {
+    if(symbols[o] === undefined) {
+        throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Unresolved symbol '" + o + "'");
+    }
+    return {
+        ref: o
+    }
 }
 
-route = 'via' insig 'route' insig p:quotedWord insig 'using' insig 'method' insig m:('get' / 'post' / 'put' / 'delete' / 'patch') insig h:usingHeaders? {
-  return {
-    path: p,
-    method: m,
-    headers: h || {}
-  }
+Route = 'via' insig 'route' insig p:QuotedWord insig 'using' insig 'method' insig
+            m:('get' / 'post' / 'put' / 'delete' / 'patch') insig h:UsingHeaders? {
+    return {
+        path: p,
+        method: m,
+        headers: h || {}
+    }
 }
 
 // JSON
-json = object / stringval / numberval / arrayval / trueval / falseval / nullval
-value = v:json {
-  return {
-    object: v,
-    type: 'define',
-    line: computeErrorPosition().line
-  }
+JSON = Object / StringVal / NumberVal / ArrayVal / TrueVal / FalseVal / NullVal
+Value = v:JSON {
+    return {
+        object: v,
+        type: 'define',
+        line: computeErrorPosition().line
+    }
 }
 
-stringval = s:string {
-  var s = append(s);
-  return s.substr(1, s.length - 2);
+StringVal = s:String {
+    var s = append(s);
+    return s.substr(1, s.length - 2);
 }
 
-numberval = n:number {
-  return parseFloat(append(n));
+NumberVal = n:Number {
+    return parseFloat(append(n));
 }
 
-arrayval = n:array {
-  return JSON.parse(append(n));
+ArrayVal = n:Array {
+    return JSON.parse(append(n));
 }
 
-trueval = t:true {
-  return JSON.parse(t);
+TrueVal = t:True {
+    return JSON.parse(t);
 }
 
-falseval = f:false {
-  return JSON.parse(f);
+FalseVal = f:False {
+    return JSON.parse(f);
 }
 
-nullval = n:null {
-  return null;
+NullVal = n:Null {
+    return null;
 }
-object = o:struct {
- var str = append(o);
- return JSON.parse(str);
-}
-
-struct = insig '{' insig m:members? insig '}' insig
-
-members = (pair insig comma insig members) / (insig pair insig)
-
-pair = insig string insig ':' insig value insig
-
-array = '[' insig elements? insig ']'
-
-elements = (value insig comma insig elements) / value
-
-string = StringLiteral
-
-number = c:((int frac exp) / (int frac) / (int exp) / (int)) {
-  return append(c);
+Object = o:Struct {
+    var str = append(o);
+    return JSON.parse(str);
 }
 
-int =('+'? digits) / ('-' digits)
+Struct = insig '{' insig m:Members? insig '}' insig
 
-frac = '.' digits?
+Members = (Pair insig Comma insig Members) / (insig Pair insig)
 
-exp = e int?
+Pair = insig String insig ':' insig Value insig
+
+Array = '[' insig Elements? insig ']'
+
+Elements = (Value insig Comma insig Elements) / Value
+
+String = StringLiteral
+
+Number = c:((Int Frac Exp) / (Int Frac) / (Int Exp) / (Int)) {
+    return append(c);
+}
+
+Int =('+'? Digits) / ('-' Digits)
+
+Frac = '.' Digits?
+
+Exp = e Int?
 
 e = ('e') / ('e+') / ('e-') / 'E' / ('E+') / ('E-')
 
-digits = d:[0-9]+ {
-  return parseInt(append(d));
+Digits = d:[0-9]+ {
+    return parseInt(append(d));
 }
 
-true = 'true'
+True = 'true'
 
-false = 'false'
+False = 'false'
 
-null = 'null'
+Null = 'null'
 
-comma = ','
+Comma = ','
 
 dquote = [\u0022]
 

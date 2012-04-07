@@ -1,3 +1,7 @@
+## Apr 07, 2012
+
+* Column UDFs.
+
 ## Apr 02, 2012
 
 * Experimental UDF support 0 see https://gist.github.com/60e73d9be7d7144a4cee for an outline.
