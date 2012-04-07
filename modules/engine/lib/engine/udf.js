@@ -20,9 +20,12 @@ var jsonPath = require('JSONPath'),
     async = require('async'),
     _ = require('underscore');
 
-exports.applyOnWhere = function(opts, statement, results, cb) {
+//
+// This is for simple selects
+exports.applyWhere = function(opts, statement, results, cb, tempNames, tempIndices) {
     //
-    // Iterative apply each UDF from the where clause.
+    // Iterative apply each UDF from the where clause. We process each UDF in sequence, but
+    // all rows in parallel. See the nesting below.
     //
     // TODO: Short-circuit this when there are no UDFs
     if(statement.columns.name === '*') {
@@ -33,7 +36,8 @@ exports.applyOnWhere = function(opts, statement, results, cb) {
             udfCalls.push(function (w) {
                 return function (callback) {
                     if(w.operator === 'udf') {
-                        var fn = resolve(opts, statement.columns, statement.extras, w);
+                        var fn = resolve(opts, statement.columns,
+                            statement.udfExtras || statement.extras, w, tempNames, tempIndices);
                         if(fn) {
                             fn(results.body, 0, results.body, function (err, mod) {
                                 callback(err, mod);
@@ -72,13 +76,13 @@ exports.applyOnWhere = function(opts, statement, results, cb) {
             udfCalls.push(function (w) {
                 return function (callback) {
                     if(w.operator === 'udf') {
-                        var fn = resolve(opts, statement.columns, statement.extras, w);
+                        var fn = resolve(opts, statement.columns,
+                            statement.udfExtras || statement.extras, w, tempNames, tempIndices);
                         if(fn) {
                             var rowFuncs = [];
                             _.each(rows, function (row, index) {
                                 rowFuncs.push(function (r) {
                                     return function (callback) {
-
                                         fn(rows, index, row, function (err, mod) {
                                             return callback(err, mod);
                                         });
@@ -86,16 +90,20 @@ exports.applyOnWhere = function(opts, statement, results, cb) {
                                 }(row))
                             });
                             async.parallel(rowFuncs, function (err, mods) {
-                                return callback(null, mods);
+                                var rows = [];
+                                _.each(mods, function(mod) {
+                                    if(mod) rows.push(mod);
+                                });
+                                return callback(null, rows);
                             });
                         }
                         else {
-//                                    callback({
-//                                        message: 'User defined function ' + w.name  + ' not defined'
-//                                    })
+                            // Once we drop legacy UDFs, we need to throw the error
+//                          callback({
+//                              message: 'User defined function ' + w.name  + ' not defined'
+//                          })
                             opts.logEmitter.emitError('User defined function ' + w.name + ' not defined');
                             // Return for backward compat
-                            // TODO: Explain
                             callback(null, rows);
                         }
                     }
@@ -119,7 +127,7 @@ exports.applyOnWhere = function(opts, statement, results, cb) {
     }
 }
 
-function resolve(opts, columns, extras, udf) {
+function resolve(opts, columns, extras, udf, tempNames, tempIndices) {
     var fn = resolveUdf(opts, udf);
     if(fn) {
         return function(dataset, index, row, cb) {
@@ -146,6 +154,24 @@ function resolve(opts, columns, extras, udf) {
             else {
                 _row = row;
             }
+
+            // Remove tempNames/tempIndices
+            if(tempNames && tempNames.length > 0) {
+                _.each(tempNames, function(name) {
+                    delete _row[name];
+                });
+            }
+            else if(tempIndices && tempIndices.length > 0) {
+                var newRow = [];
+                _.each(_row, function(field, ind) {
+                    if(tempIndices.indexOf(ind) < 0) {
+                        newRow.push(field);
+                    }
+                });
+                _row = newRow;
+            }
+
+            // This is the "this" for the UDF.
             var wrapper = {
                 rows: dataset,
                 row : _row,

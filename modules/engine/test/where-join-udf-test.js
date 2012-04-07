@@ -1,0 +1,138 @@
+/*
+ * Copyright 2012 eBay Software Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var _ = require('underscore'),
+    util = require('util'),
+    Engine = require('../lib/engine');
+
+var engine = new Engine();
+
+module.exports = {
+    'join-base-line': function(test) {
+        var script = 'u = require("./test/udfs/upper.js");\
+                      a1 = [{"name": "Brand-A", "keys" : [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]},\
+                            {"name": "Brand-B", "keys" : [{ "name": "G1"},{"name": "G2"}]},\
+                            {"name": "Brand-C", "keys" : [{ "name": "G4"},{"name": "G2"}]}];\
+                      a2 = [{"name": "Brand-A", "details": [{"name": "G3","count": 32},{"name": "G5","count": 18}]},\
+                            {"name": "Brand-C", "details": [{"name": "G3","count": 32}, {"name": "G5","count": 18}]}];\
+                      return select a2.details from a1 as a1, a2 as a2 where a1.name = a2.name ';
+        engine.execute(script, function(emitter) {
+            emitter.on('end', function(err, results) {
+                if(err) {
+                    console.log(err.stack || err);
+                    test.ok(false);
+                    test.done();
+                }
+                else {
+                    test.deepEqual(results.body[0][0], [{ name: 'G3', count: 32 }, { name: 'G5', count: 18 }]);
+                    test.deepEqual(results.body[1][0], [{ name: 'G3', count: 32 }, { name: 'G5', count: 18 }]);
+                    test.done();
+                }
+            })
+        });
+    },
+    // console.log(util.inspect(results, false, 10));
+    // return select a2.name, a2.details from a1 as a1, a2 as a2 where a1.name = a2.name and u.toUpper(a2.name)';
+    'join-cols-as-args': function(test) {
+        var script = 'u = require("./test/udfs/args.js");\
+                      a1 = [{"name": "Brand-A", "keys" : [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]},\
+                            {"name": "Brand-B", "keys" : [{ "name": "G1"},{"name": "G2"}]},\
+                            {"name": "Brand-C", "keys" : [{ "name": "G4"},{"name": "G2"}]}];\
+                      a2 = [{"name": "Brand-A", "details": [{"name": "G3","count": 32},{"name": "G5","count": 18}]},\
+                            {"name": "Brand-C", "details": [{"name": "G3","count": 32}, {"name": "G5","count": 18}]}];\
+                      return select a2.details from a1 as a1, a2 as a2 where a1.name = a2.name and u.append(a1.name, a2.name)';
+        engine.execute(script, function(emitter) {
+            emitter.on('end', function(err, results) {
+                if(err) {
+                    console.log(err.stack || err);
+                    test.ok(false);
+                    test.done();
+                }
+                else {
+//                    console.log('RESULTS');
+//                    console.log(util.inspect(results, false, 10));
+                    for(var i = 0; i < 2; i++) {
+                        test.equal(results.body[i].length, 3);
+                    }
+                    test.deepEqual(results.body[0][0], [{ name: 'G3', count: 32 }, { name: 'G5', count: 18 }]);
+                    test.deepEqual(results.body[0][1], 'Brand-A');
+                    test.deepEqual(results.body[0][2], 'Brand-A');
+                    test.deepEqual(results.body[1][0], [{ name: 'G3', count: 32 }, { name: 'G5', count: 18 }]);
+                    test.deepEqual(results.body[1][1], 'Brand-C');
+                    test.deepEqual(results.body[1][2], 'Brand-C');
+                    test.done();
+                }
+            })
+        });
+    },
+
+    'join-cols-as-args-plus-one': function(test) {
+        var script = 'u = require("./test/udfs/args.js");\
+                      a1 = [{"name": "Brand-A", "keys" : [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]},\
+                            {"name": "Brand-B", "keys" : [{ "name": "G1"},{"name": "G2"}]},\
+                            {"name": "Brand-C", "keys" : [{ "name": "G4"},{"name": "G2"}]}];\
+                      a2 = [{"name": "Brand-A", "details": [{"name": "G3","count": 32},{"name": "G5","count": 18}]},\
+                            {"name": "Brand-C", "details": [{"name": "G3","count": 32}, {"name": "G5","count": 18}]}];\
+                      return select a2.details from a1 as a1, a2 as a2 where a1.name = a2.name and u.append(a1.name, a2.name, a1.keys)';
+        engine.execute(script, function(emitter) {
+            emitter.on('end', function(err, results) {
+                if(err) {
+                    console.log(err.stack || err);
+                    test.ok(false);
+                    test.done();
+                }
+                else {
+                    for(var i = 0; i < 2; i++) {
+                        test.equal(results.body[i].length, 4);
+                    }
+                    test.deepEqual(results.body[0][0], [{ name: 'G3', count: 32 }, { name: 'G5', count: 18 }]);
+                    test.deepEqual(results.body[0][1], 'Brand-A');
+                    test.deepEqual(results.body[0][2], 'Brand-A');
+                    test.deepEqual(results.body[0][3], [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]);
+                    test.deepEqual(results.body[1][0], [{ name: 'G3', count: 32 }, { name: 'G5', count: 18 }]);
+                    test.deepEqual(results.body[1][1], 'Brand-C');
+                    test.deepEqual(results.body[1][2], 'Brand-C');
+                    test.deepEqual(results.body[1][3], [{ "name": "G4"},{"name": "G2"}]);
+                    test.done();
+                }
+            })
+        });
+    },
+
+    'join-cols-filter-row': function(test) {
+        var script = 'u = require("./test/udfs/args.js");\
+                      a1 = [{"name": "Brand-A", "keys" : [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]},\
+                            {"name": "Brand-B", "keys" : [{ "name": "G1"},{"name": "G2"}]},\
+                            {"name": "Brand-C", "keys" : [{ "name": "G4"},{"name": "G2"}]}];\
+                      a2 = [{"name": "Brand-A", "details": [{"name": "G3","count": 32},{"name": "G5","count": 18}]},\
+                            {"name": "Brand-C", "details": [{"name": "G3","count": 32}, {"name": "G5","count": 18}]}];\
+                      return select a2.name, a2.details from a1 as a1, a2 as a2 where a1.name = a2.name and u.filterRow(a1.keys)';
+        engine.execute(script, function(emitter) {
+            emitter.on('end', function(err, results) {
+
+                if(err) {
+                    console.log(err.stack || err);
+                    test.ok(false);
+                    test.done();
+                }
+                else {
+                    test.equal(results.body.length, 1);
+                    test.done();
+                }
+            })
+        });
+    }
+}

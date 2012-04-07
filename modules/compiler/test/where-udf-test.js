@@ -126,8 +126,8 @@ module.exports = {
         test.equal(c[0].selected[0].index, 0);
         test.equal(c[0].selected[1].from, 'main');
         test.equal(c[0].selected[1].index, 0);
-        test.equal(c[0].extras.length, 1);
-        test.equal(c[0].extras[0], 1);
+        test.equal(c[0].udfExtras.length, 1);
+        test.equal(c[0].udfExtras[0], 1);
         test.equal(c[0].whereCriteria.length, 1);
         test.equal(c[0].whereCriteria[0].operator, 'udf');
         test.equal(c[0].whereCriteria[0].name, 'f1');
@@ -147,9 +147,9 @@ module.exports = {
         test.equal(c[0].selected[0].index, 0);
         test.equal(c[0].selected[1].from, 'main');
         test.equal(c[0].selected[1].index, 0);
-        test.equal(c[0].extras.length, 2);
-        test.equal(c[0].extras[0], 1);
-        test.equal(c[0].extras[1], 2);
+        test.equal(c[0].udfExtras.length, 2);
+        test.equal(c[0].udfExtras[0], 1);
+        test.equal(c[0].udfExtras[1], 2);
         test.equal(c[0].whereCriteria.length, 1);
         test.equal(c[0].whereCriteria[0].operator, 'udf');
         test.equal(c[0].whereCriteria[0].name, 'f1');
@@ -160,12 +160,13 @@ module.exports = {
         test.equal(c[0].whereCriteria[0].args[1].name, 'a2.some');
         test.deepEqual(c[0].joiner.columns, [
             {
-                "type": "column",
+               "type": "column",
                "name": "a2.name"
             },
             {
                "type": "column",
-               "name": "a2.some"
+               "name": "a2.some",
+                "for": "udf"
             }
         ]);
         test.done();
@@ -206,8 +207,8 @@ module.exports = {
         test.equal(c[0].selected[2].index, 0);
         test.equal(c[0].selected[3].from, 'main');
         test.equal(c[0].selected[3].index, 1);
-        test.equal(c[0].extras.length, 1);
-        test.equal(c[0].extras[0], 3);
+        test.equal(c[0].udfExtras.length, 1);
+        test.equal(c[0].udfExtras[0], 3);
 
         test.equal(c[0].whereCriteria.length, 1);
         test.equal(c[0].whereCriteria[0].operator, 'udf');

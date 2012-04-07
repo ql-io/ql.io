@@ -22,3 +22,23 @@ exports.echo = function() {
 exports.thru = function() {
     return this.next(null, this.row);
 }
+
+exports.append = function() {
+    this.row = this.row.concat(Array.prototype.slice.call(arguments));
+    return this.next(null, this.row);
+}
+
+exports.filterRow = function(keys) {
+    var found = false;
+    for(var i = 0; i < this.row[1].length; i++) {
+        for(var j = 0; j < keys.length; j++) {
+            if(keys[j].name === this.row[1][i].name) {
+                found = true;
+                break;
+            }
+        }
+        if(found) break;
+    }
+    // if null, this row will be excluded from results
+    return this.next(null, found ? this.row : null);
+}

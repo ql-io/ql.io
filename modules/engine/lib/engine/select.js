@@ -39,26 +39,20 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         txType: 'QlIoSelect',
         txName: null,
         message: {line: statement.line},
-        cb: function (err, results) {
-            if(err) {
-                return cb(err);
-            }
-            if(statement.joiner) {
-                return udf.applyOnWhere(opts, statement, results, cb);
-            }
-            else {
-                return cb(err, results);
-            }
-        }
+        cb: cb
     });
 
+    //
+    // Run select on the main statement first. If there is a joiner, run the joiner after the
+    // main statement completes, and merge the results.
+    //
     execInternal(opts, statement, function(err, results) {
         if(err) {
             return selectEvent.cb(err, results);
         }
         if(statement.joiner) {
-            // Do the join now - we fill the joining column in into the joiner statement and execute it one for each
-            // row from the main's results.
+            // Do the join now - execute the joiner once for each row from the main's results.
+            // Right now, we can only deal with one joining column. The PEG does the check for this.
             joiningColumn = statement.joiner.whereCriteria[0].rhs.joiningColumn;
 
             // Prepare the joins
@@ -67,7 +61,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 // Clone the joiner since we are going to modify it
                 cloned = clone(statement.joiner);
 
-                // Set the join field
+                // Set the join field on the joiner statement.
                 cloned.whereCriteria[0].rhs.value = (_.isArray(row) || _.isObject(row)) ? row[joiningColumn] : row;
 
                 // Determine whether the number of funcs is within the limit, otherwise break out of the loop
@@ -77,6 +71,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                     return;
                 }
 
+                // Prepare joiners - this an n-ary - once per row on the main
                 funcs.push(function(s) {
                     return function(callback) {
                         execInternal(opts, s, function(e, r) {
@@ -95,16 +90,37 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             async.parallel(funcs, function(err, more) {
                 // If there is nothing to loop through, leave the body undefined.
                 var body = results.body ? [] : undefined;
+                var tempNames = [], tempIndices = [], first = true;
                 _.each(results.body, function(row, index) {
                     // If no matching result is found in more, skip this row
                     var other = more[index];
                     if((_.isArray(other) && other.length > 0) || (_.isObject(other) && _.keys(other) > 0)) {
+
                         // Results would be an array when one field is selected.
                         if(!_.isObject(row) && !_.isArray(row)) row = [row];
+
                         // When columns are selected by name, use an object. If not, an array.
                         var sel = statement.selected.length > 0 && statement.selected[0].name ? {} : [];
+
+                        // In case of joins, the columns selected on the main and the joiner are not
+                        // actually what were specified on the original select. The selected array
+                        // tells us where to find the columns that the user wanted.
+                        //
+                        // UDF is a special case here. UDFs in the where clause can specify
+                        // args from either of the tables in the join, and so, we select them,
+                        // and mark with a 'for' = 'udf' property. We discard these after preparing
+                        // args for UDFs. The tempNames/tempIndices arrays capture these extras.
                         _.each(statement.selected, function(selected) {
                             var val = undefined;
+                            if(first && selected['for'] === 'udf') {
+                                // Mark - for later removal
+                                if(selected.name) {
+                                    tempNames.push(selected.name);
+                                }
+                                else {
+                                    tempIndices.push(sel.length);
+                                }
+                            }
                             if(selected.from === 'main') {
                                 val = row[selected.name || selected.index];
                             }
@@ -128,15 +144,19 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                                 sel.push(val);
                             }
                         });
+                        first = false;
                         body.push(sel);
                     }
                 });
                 results.body = body;
-                if(statement.assign) {
-                    opts.context[statement.assign] = results.body;
-                    opts.emitter.emit(statement.assign, results.body);
-                }
-                return selectEvent.cb(err, results);
+                // Apply UDFs on the where clause.
+                udf.applyWhere(opts, statement, results, function(err, results) {
+                    if(statement.assign) {
+                        opts.context[statement.assign] = results.body;
+                        opts.emitter.emit(statement.assign, results.body);
+                    }
+                    return selectEvent.cb(err, results);
+                }, tempNames, tempIndices);
             });
         }
         else {
@@ -146,7 +166,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             }
             else {
                 // Run where clause UDFs now
-                return udf.applyOnWhere(opts, statement, results, selectEvent.cb);
+                return udf.applyWhere(opts, statement, results, selectEvent.cb);
             }
         }
     }, selectEvent.event);

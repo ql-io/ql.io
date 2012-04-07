@@ -2642,6 +2642,7 @@ module.exports = (function(){
                                     else {
                                         where.args[j].index = s.columns.length;
                                     }
+                                    extra.for = 'udf';
                                     s.columns.push(extra);
                                 }
                             }
@@ -9223,8 +9224,6 @@ module.exports = (function(){
 
       }
 
-
-
       main = {
 
           type: 'select',
@@ -9235,11 +9234,13 @@ module.exports = (function(){
 
           selected: [],
 
-          extras: statement.extras || [], // used only during selection
+          extras: [], // used only during selection
 
           whereCriteria: []
 
       };
+
+      if(statement.extras) main.udfExtras = statement.extras;
 
       join = {
 
@@ -9293,6 +9294,8 @@ module.exports = (function(){
 
                   }
 
+                  if(column.for) sel.for = column.for;
+
                   main.selected.push(sel);
 
               }
@@ -9320,6 +9323,8 @@ module.exports = (function(){
                       sel.index = join.columns.length - 1;
 
                   }
+
+                  if(column.for) sel.for = column.for;
 
                   main.selected.push(sel);
 
