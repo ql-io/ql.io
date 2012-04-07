@@ -28,17 +28,22 @@ exports.append = function() {
     return this.next(null, this.row);
 }
 
+// Check whether a row should be included or not. Also tweak its fields.
 exports.filterRow = function(keys) {
     var found = false;
+    var details = [];
     for(var i = 0; i < this.row[1].length; i++) {
         for(var j = 0; j < keys.length; j++) {
             if(keys[j].name === this.row[1][i].name) {
+                details.push(this.row[1][i]);
                 found = true;
                 break;
             }
         }
-        if(found) break;
+    }
+    if(found) {
+        this.row[1] = details;
     }
     // if null, this row will be excluded from results
     return this.next(null, found ? this.row : null);
-}
+};

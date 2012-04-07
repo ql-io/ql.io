@@ -114,12 +114,11 @@ module.exports = {
                       a1 = [{"name": "Brand-A", "keys" : [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]},\
                             {"name": "Brand-B", "keys" : [{ "name": "G1"},{"name": "G2"}]},\
                             {"name": "Brand-C", "keys" : [{ "name": "G4"},{"name": "G2"}]}];\
-                      a2 = [{"name": "Brand-A", "details": [{"name": "G3","count": 32},{"name": "G5","count": 18}]},\
+                      a2 = [{"name": "Brand-A", "details": [{"name": "G3","count": 32},{"name": "G5","count": 18},{"name": "G1","count": 40}]},\
                             {"name": "Brand-C", "details": [{"name": "G3","count": 32}, {"name": "G5","count": 18}]}];\
                       return select a2.name, a2.details from a1 as a1, a2 as a2 where a1.name = a2.name and u.filterRow(a1.keys)';
         engine.execute(script, function(emitter) {
             emitter.on('end', function(err, results) {
-
                 if(err) {
                     console.log(err.stack || err);
                     test.ok(false);
@@ -127,6 +126,38 @@ module.exports = {
                 }
                 else {
                     test.equal(results.body.length, 1);
+                    test.deepEqual(results.body[0][1], [ { name: 'G3', count: 32 }, { name: 'G1', count: 40 } ]);
+                    test.done();
+                }
+            })
+        });
+    },
+
+
+    'udf-this': function(test) {
+        var script = 'u = require("./test/udfs/this.js");\
+                      a1 = [{"name": "Brand-A", "keys" : [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]},\
+                            {"name": "Brand-B", "keys" : [{ "name": "G1"},{"name": "G2"}]},\
+                            {"name": "Brand-C", "keys" : [{ "name": "G4"},{"name": "G2"}]}];\
+                      a2 = [{"name": "Brand-A", "details": [{"name": "G3","count": 32},{"name": "G5","count": 18},{"name": "G1","count": 40}]},\
+                            {"name": "Brand-C", "details": [{"name": "G3","count": 32}, {"name": "G5","count": 18}]}];\
+                      return select a2.name, a2.details from a1 as a1, a2 as a2 where a1.name = a2.name and u.checkThis()';
+        engine.execute(script, function(emitter) {
+            emitter.on('end', function(err, results) {
+                if(err) {
+                    console.log(err.stack || err);
+                    test.ok(false);
+                    test.done();
+                }
+                else {
+                    test.equal(results.body.length, 2);
+                    for(var i = 0; i < 2; i++) {
+                        test.ok(results.body[i].a1);
+                        test.ok(results.body[i].a2);
+                        test.ok(results.body[i].u);
+                        test.ok(results.body[i].next);
+                        test.ok(results.body[i].row);
+                    }
                     test.done();
                 }
             })

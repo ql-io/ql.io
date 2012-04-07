@@ -136,7 +136,7 @@ function resolve(opts, columns, extras, udf, tempNames, tempIndices) {
             // Remove extras from the row
             var _row;
             if(extras && extras.length > 0) {
-                if(udf.args[0].alias) {
+                if(udf.args[0] && udf.args[0].alias) {
                     _row = row;
                     _.each(extras, function(extra) {
                         delete _row[columns[extra].alias];
@@ -178,6 +178,7 @@ function resolve(opts, columns, extras, udf, tempNames, tempIndices) {
                 index: index,
                 next: cb
             };
+            wrapper.__proto__ = opts.context;
             fn.apply(wrapper, args);
         };
     }
