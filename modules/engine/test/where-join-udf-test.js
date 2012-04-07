@@ -44,8 +44,7 @@ module.exports = {
             })
         });
     },
-    // console.log(util.inspect(results, false, 10));
-    // return select a2.name, a2.details from a1 as a1, a2 as a2 where a1.name = a2.name and u.toUpper(a2.name)';
+
     'join-cols-as-args': function(test) {
         var script = 'u = require("./test/udfs/args.js");\
                       a1 = [{"name": "Brand-A", "keys" : [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]},\
@@ -62,8 +61,6 @@ module.exports = {
                     test.done();
                 }
                 else {
-//                    console.log('RESULTS');
-//                    console.log(util.inspect(results, false, 10));
                     for(var i = 0; i < 2; i++) {
                         test.equal(results.body[i].length, 3);
                     }
