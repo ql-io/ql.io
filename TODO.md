@@ -58,6 +58,6 @@ Goal is to support
 * select star to modify body
 * select star to remove body
 * select start multiple times
-
+* tests for all `this`
 * Test UDF on rhs
 * Test UDF in return statements
