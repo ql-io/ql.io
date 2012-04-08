@@ -1,6 +1,12 @@
+## Apr 07, 2012
+
+* Add UDFs in where clause to post process rows. You can either tweak or remove a row. See
+  https://gist.github.com/2334012 for semantics of UDFs. UDF support for the where clause is
+  still a TODO.
+
 ## Apr 02, 2012
 
-* Experimental UDF support 0 see https://gist.github.com/60e73d9be7d7144a4cee for an outline.
+* Experimental UDF support.
 
 ## Mar 30, 2012
 

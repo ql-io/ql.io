@@ -10,136 +10,135 @@ module.exports = (function(){
      */
     parse: function(input, startRule) {
       var parseFunctions = {
+        "AliasField": parse_AliasField,
+        "AliasSource": parse_AliasSource,
+        "AliasedRef": parse_AliasedRef,
+        "All": parse_All,
+        "And": parse_And,
+        "AndCond": parse_AndCond,
+        "Array": parse_Array,
+        "ArrayVal": parse_ArrayVal,
+        "Assign": parse_Assign,
+        "AuthenticateUsing": parse_AuthenticateUsing,
+        "CNVP": parse_CNVP,
+        "CSV": parse_CSV,
+        "CSVMember": parse_CSVMember,
+        "CallUdf": parse_CallUdf,
+        "Column": parse_Column,
+        "ColumnsClause": parse_ColumnsClause,
+        "Comma": parse_Comma,
+        "CommaCSVMember": parse_CommaCSVMember,
+        "CommaSource": parse_CommaSource,
+        "Comment": parse_Comment,
+        "Cond": parse_Cond,
+        "CreateStatement": parse_CreateStatement,
+        "Delete": parse_Delete,
+        "DeleteStatement": parse_DeleteStatement,
         "Descendent": parse_Descendent,
+        "Describe": parse_Describe,
+        "DescribeRouteStatement": parse_DescribeRouteStatement,
+        "DescribeStatement": parse_DescribeStatement,
+        "Digits": parse_Digits,
         "DoubleString": parse_DoubleString,
+        "Elements": parse_Elements,
+        "EqCond": parse_EqCond,
+        "Exp": parse_Exp,
+        "Expires": parse_Expires,
         "Expr": parse_Expr,
         "ExprBlock": parse_ExprBlock,
         "ExtIdentifier": parse_ExtIdentifier,
+        "False": parse_False,
+        "FalseVal": parse_FalseVal,
+        "Field": parse_Field,
+        "FieldName": parse_FieldName,
+        "Fields": parse_Fields,
+        "ForEachMember": parse_ForEachMember,
+        "Frac": parse_Frac,
+        "FromClause": parse_FromClause,
+        "GetFrom": parse_GetFrom,
         "Identifier": parse_Identifier,
+        "InCond": parse_InCond,
         "Indexed": parse_Indexed,
+        "InsertStatement": parse_InsertStatement,
+        "Int": parse_Int,
+        "JSON": parse_JSON,
         "JSONPath": parse_JSONPath,
+        "Limit": parse_Limit,
+        "Line": parse_Line,
         "LineCrlf": parse_LineCrlf,
+        "LiteralParam": parse_LiteralParam,
+        "Members": parse_Members,
+        "NVP": parse_NVP,
+        "NVPs": parse_NVPs,
+        "Name": parse_Name,
+        "NonAliasField": parse_NonAliasField,
+        "NonAliasSource": parse_NonAliasSource,
+        "Null": parse_Null,
+        "NullVal": parse_NullVal,
+        "Number": parse_Number,
+        "NumberVal": parse_NumberVal,
+        "Object": parse_Object,
+        "Offset": parse_Offset,
+        "Operator": parse_Operator,
+        "Output": parse_Output,
+        "Pair": parse_Pair,
+        "ParamDigits": parse_ParamDigits,
+        "Patch": parse_Patch,
         "PositiveNumber": parse_PositiveNumber,
+        "PostTo": parse_PostTo,
+        "PutTo": parse_PutTo,
+        "QuotedDigits": parse_QuotedDigits,
+        "QuotedWord": parse_QuotedWord,
+        "QuotedWordVal": parse_QuotedWordVal,
+        "RHS": parse_RHS,
+        "Ref": parse_Ref,
+        "ResultSet": parse_ResultSet,
+        "Ret": parse_Ret,
+        "RetRef": parse_RetRef,
+        "RetVal": parse_RetVal,
+        "Return": parse_Return,
+        "Route": parse_Route,
+        "Select": parse_Select,
+        "SelectStatement": parse_SelectStatement,
         "Selector": parse_Selector,
+        "Show": parse_Show,
+        "ShowRoutesStatement": parse_ShowRoutesStatement,
+        "ShowStatement": parse_ShowStatement,
         "SingleString": parse_SingleString,
-        "Start": parse_Start,
+        "Source": parse_Source,
+        "Statement": parse_Statement,
+        "StatementOrObject": parse_StatementOrObject,
         "StringLiteral": parse_StringLiteral,
-        "act": parse_act,
-        "actname": parse_actname,
-        "aliasField": parse_aliasField,
-        "aliasSource": parse_aliasSource,
-        "aliasedRef": parse_aliasedRef,
-        "all": parse_all,
-        "and": parse_and,
-        "andCond": parse_andCond,
-        "array": parse_array,
-        "arrayval": parse_arrayval,
-        "assign": parse_assign,
-        "authenticateUsing": parse_authenticateUsing,
-        "callUdf": parse_callUdf,
-        "cnvp": parse_cnvp,
-        "column": parse_column,
-        "columnsClause": parse_columnsClause,
-        "comma": parse_comma,
-        "commaCsvMember": parse_commaCsvMember,
-        "commaSource": parse_commaSource,
-        "comment": parse_comment,
-        "cond": parse_cond,
-        "createStatement": parse_createStatement,
+        "StringVal": parse_StringVal,
+        "Struct": parse_Struct,
+        "True": parse_True,
+        "TrueVal": parse_TrueVal,
+        "Type": parse_Type,
+        "UDF": parse_UDF,
+        "UDFParam": parse_UDFParam,
+        "UDFParams": parse_UDFParams,
+        "UsingBodyTemplate": parse_UsingBodyTemplate,
+        "UsingDefaults": parse_UsingDefaults,
+        "UsingHeaders": parse_UsingHeaders,
+        "UsingMonkeyPatch": parse_UsingMonkeyPatch,
+        "Value": parse_Value,
+        "Verb": parse_Verb,
+        "VerbName": parse_VerbName,
+        "WhereClause": parse_WhereClause,
+        "WhereCriteria": parse_WhereCriteria,
+        "WithAliases": parse_WithAliases,
+        "Word": parse_Word,
         "crlf": parse_crlf,
-        "csv": parse_csv,
-        "csvMember": parse_csvMember,
         "dQuotedDigits": parse_dQuotedDigits,
         "dQuotedWord": parse_dQuotedWord,
-        "delete": parse_delete,
-        "deleteStatement": parse_deleteStatement,
-        "describe": parse_describe,
-        "describeRouteStatement": parse_describeRouteStatement,
-        "describeStatement": parse_describeStatement,
-        "digits": parse_digits,
         "dquote": parse_dquote,
         "e": parse_e,
-        "elements": parse_elements,
-        "eqCond": parse_eqCond,
-        "exp": parse_exp,
-        "expires": parse_expires,
-        "false": parse_false,
-        "falseval": parse_falseval,
-        "field": parse_field,
-        "fieldName": parse_fieldName,
-        "fields": parse_fields,
-        "foreachMember": parse_foreachMember,
-        "frac": parse_frac,
-        "fromClause": parse_fromClause,
-        "getfrom": parse_getfrom,
-        "identifier": parse_identifier,
-        "inCond": parse_inCond,
-        "insertStatement": parse_insertStatement,
         "insig": parse_insig,
-        "int": parse_int,
-        "json": parse_json,
-        "limit": parse_limit,
-        "line": parse_line,
-        "literalParam": parse_literalParam,
-        "members": parse_members,
-        "nonAliasField": parse_nonAliasField,
-        "nonAliasSource": parse_nonAliasSource,
-        "null": parse_null,
-        "nullval": parse_nullval,
-        "number": parse_number,
-        "numberval": parse_numberval,
-        "nvp": parse_nvp,
-        "nvps": parse_nvps,
-        "object": parse_object,
-        "offset": parse_offset,
-        "operator": parse_operator,
-        "output": parse_output,
-        "pair": parse_pair,
-        "paramDigits": parse_paramDigits,
-        "patch": parse_patch,
-        "postto": parse_postto,
-        "putto": parse_putto,
-        "quotedDigits": parse_quotedDigits,
-        "quotedWord": parse_quotedWord,
-        "quotedWordVal": parse_quotedWordVal,
-        "ref": parse_ref,
-        "resultSet": parse_resultSet,
-        "ret": parse_ret,
-        "retref": parse_retref,
-        "return": parse_return,
-        "retval": parse_retval,
-        "rhs": parse_rhs,
-        "route": parse_route,
         "sQuotedDigits": parse_sQuotedDigits,
         "sQuotedWord": parse_sQuotedWord,
-        "select": parse_select,
-        "selectStatement": parse_selectStatement,
-        "selector": parse_selector,
-        "show": parse_show,
-        "showRoutesStatement": parse_showRoutesStatement,
-        "showStatement": parse_showStatement,
-        "source": parse_source,
         "sp": parse_sp,
         "squote": parse_squote,
-        "statement": parse_statement,
-        "statementOrObject": parse_statementOrObject,
-        "stringval": parse_stringval,
-        "struct": parse_struct,
-        "true": parse_true,
-        "trueval": parse_trueval,
-        "type": parse_type,
-        "udf": parse_udf,
-        "udfParam": parse_udfParam,
-        "udfParams": parse_udfParams,
-        "usingBodyTemplate": parse_usingBodyTemplate,
-        "usingDefaults": parse_usingDefaults,
-        "usingHeaders": parse_usingHeaders,
-        "usingMonkeyPatch": parse_usingMonkeyPatch,
-        "value": parse_value,
-        "whereClause": parse_whereClause,
-        "whereCriteria": parse_whereCriteria,
-        "withAliases": parse_withAliases,
-        "word": parse_word
+        "start": parse_start
       };
 
       if (startRule !== undefined) {
@@ -147,7 +146,7 @@ module.exports = (function(){
           throw new Error("Invalid rule name: " + quote(startRule) + ".");
         }
       } else {
-        startRule = "Start";
+        startRule = "start";
       }
 
       var pos = 0;
@@ -210,8 +209,8 @@ module.exports = (function(){
         rightmostMatchFailuresExpected.push(failure);
       }
 
-      function parse_Start() {
-        var cacheKey = 'Start@' + pos;
+      function parse_start() {
+        var cacheKey = 'start@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -237,7 +236,7 @@ module.exports = (function(){
           if (result4 !== null) {
             var result5 = parse_insig();
             if (result5 !== null) {
-              var result16 = parse_return();
+              var result16 = parse_Return();
               var result6 = result16 !== null ? result16 : '';
               if (result6 !== null) {
                 var result7 = parse_insig();
@@ -252,10 +251,10 @@ module.exports = (function(){
                     var result9 = parse_insig();
                     if (result9 !== null) {
                       var result10 = [];
-                      var result14 = parse_comment();
+                      var result14 = parse_Comment();
                       while (result14 !== null) {
                         result10.push(result14);
-                        var result14 = parse_comment();
+                        var result14 = parse_Comment();
                       }
                       if (result10 !== null) {
                         var result11 = parse_insig();
@@ -310,13 +309,13 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(larr, r, carr) {
-            ret = [];
-            ret = ret.concat(larr);
-            if(r) {
-              ret.push(r);
-            }
-            ret = ret.concat(carr);
-            return ret;
+              ret = [];
+              ret = ret.concat(larr);
+              if(r) {
+                  ret.push(r);
+              }
+              ret = ret.concat(carr);
+              return ret;
           })(result1[1], result1[3], result1[7])
           : null;
         if (result2 !== null) {
@@ -346,7 +345,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_line();
+        var result3 = parse_Line();
         if (result3 !== null) {
           var result4 = [];
           var result5 = parse_crlf();
@@ -366,7 +365,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(l) {
-            return l;
+              return l;
           })(result1[0])
           : null;
         if (result2 !== null) {
@@ -385,8 +384,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_line() {
-        var cacheKey = 'line@' + pos;
+      function parse_Line() {
+        var cacheKey = 'Line@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -398,11 +397,11 @@ module.exports = (function(){
         var savedPos1 = pos;
         var result3 = parse_sp();
         if (result3 !== null) {
-          var result6 = parse_assign();
+          var result6 = parse_Assign();
           if (result6 !== null) {
             var result4 = result6;
           } else {
-            var result5 = parse_comment();
+            var result5 = parse_Comment();
             if (result5 !== null) {
               var result4 = result5;
             } else {
@@ -421,11 +420,10 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(l) {
-            var i, from;
-            if(l.type !== 'comment') {
-              l.id = id++;
-            }
-            return l;
+              if(l.type !== 'comment') {
+                  l.id = id++;
+              }
+              return l;
           })(result1[1])
           : null;
         if (result2 !== null) {
@@ -444,8 +442,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_assign() {
-        var cacheKey = 'assign@' + pos;
+      function parse_Assign() {
+        var cacheKey = 'Assign@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -455,10 +453,10 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result9 = parse_output();
+        var result9 = parse_Output();
         var result3 = result9 !== null ? result9 : '';
         if (result3 !== null) {
-          var result4 = parse_statementOrObject();
+          var result4 = parse_StatementOrObject();
           if (result4 !== null) {
             var result5 = parse_insig();
             if (result5 !== null) {
@@ -498,12 +496,14 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(a, s) {
-            if(a) {
-              s.assign = a.assign;
-              s.line = a.line;
-            }
-            symbols[a.assign] = {};
-            return s;
+              if(a) {
+                  s.assign = a.assign;
+                  s.line = a.line;
+              }
+
+              // Add LHS to the symbol table
+              symbols[a.assign] = {};
+              return s;
           })(result1[0], result1[1])
           : null;
         if (result2 !== null) {
@@ -522,8 +522,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_statementOrObject() {
-        var cacheKey = 'statementOrObject@' + pos;
+      function parse_StatementOrObject() {
+        var cacheKey = 'StatementOrObject@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -531,15 +531,15 @@ module.exports = (function(){
         }
 
 
-        var result3 = parse_statement();
+        var result3 = parse_Statement();
         if (result3 !== null) {
           var result0 = result3;
         } else {
-          var result2 = parse_value();
+          var result2 = parse_Value();
           if (result2 !== null) {
             var result0 = result2;
           } else {
-            var result1 = parse_callUdf();
+            var result1 = parse_CallUdf();
             if (result1 !== null) {
               var result0 = result1;
             } else {
@@ -557,8 +557,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_callUdf() {
-        var cacheKey = 'callUdf@' + pos;
+      function parse_CallUdf() {
+        var cacheKey = 'CallUdf@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -567,7 +567,7 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_udf();
+        var result1 = parse_UDF();
         var result2 = result1 !== null
           ? (function(u) {
               u.type = 'define';
@@ -592,8 +592,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_statement() {
-        var cacheKey = 'statement@' + pos;
+      function parse_Statement() {
+        var cacheKey = 'Statement@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -601,35 +601,35 @@ module.exports = (function(){
         }
 
 
-        var result8 = parse_selectStatement();
+        var result8 = parse_SelectStatement();
         if (result8 !== null) {
           var result0 = result8;
         } else {
-          var result7 = parse_showRoutesStatement();
+          var result7 = parse_ShowRoutesStatement();
           if (result7 !== null) {
             var result0 = result7;
           } else {
-            var result6 = parse_showStatement();
+            var result6 = parse_ShowStatement();
             if (result6 !== null) {
               var result0 = result6;
             } else {
-              var result5 = parse_describeRouteStatement();
+              var result5 = parse_DescribeRouteStatement();
               if (result5 !== null) {
                 var result0 = result5;
               } else {
-                var result4 = parse_describeStatement();
+                var result4 = parse_DescribeStatement();
                 if (result4 !== null) {
                   var result0 = result4;
                 } else {
-                  var result3 = parse_insertStatement();
+                  var result3 = parse_InsertStatement();
                   if (result3 !== null) {
                     var result0 = result3;
                   } else {
-                    var result2 = parse_deleteStatement();
+                    var result2 = parse_DeleteStatement();
                     if (result2 !== null) {
                       var result0 = result2;
                     } else {
-                      var result1 = parse_createStatement();
+                      var result1 = parse_CreateStatement();
                       if (result1 !== null) {
                         var result0 = result1;
                       } else {
@@ -652,8 +652,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_output() {
-        var cacheKey = 'output@' + pos;
+      function parse_Output() {
+        var cacheKey = 'Output@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -665,7 +665,7 @@ module.exports = (function(){
         var savedPos1 = pos;
         var result3 = parse_insig();
         if (result3 !== null) {
-          var result4 = parse_word();
+          var result4 = parse_Word();
           if (result4 !== null) {
             var result5 = parse_insig();
             if (result5 !== null) {
@@ -704,10 +704,10 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(w) {
-            return {
-              line: computeErrorPosition().line,
-              assign: w
-            }
+              return {
+                  line: computeErrorPosition().line,
+                  assign: w
+              }
           })(result1[1])
           : null;
         if (result2 !== null) {
@@ -726,8 +726,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_comment() {
-        var cacheKey = 'comment@' + pos;
+      function parse_Comment() {
+        var cacheKey = 'Comment@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -794,11 +794,11 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(c) {
-            return {
-              line: computeErrorPosition().line,
-              type: 'comment',
-              text: c.join('')
-            }
+              return {
+                  line: computeErrorPosition().line,
+                  type: 'comment',
+                  text: c.join('')
+              }
           })(result1[2])
           : null;
         if (result2 !== null) {
@@ -817,8 +817,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_createStatement() {
-        var cacheKey = 'createStatement@' + pos;
+      function parse_CreateStatement() {
+        var cacheKey = 'CreateStatement@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -852,15 +852,15 @@ module.exports = (function(){
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
-                var result7 = parse_nonAliasSource();
+                var result7 = parse_NonAliasSource();
                 if (result7 !== null) {
                   var result8 = parse_insig();
                   if (result8 !== null) {
                     var result9 = [];
-                    var result10 = parse_act();
+                    var result10 = parse_Verb();
                     while (result10 !== null) {
                       result9.push(result10);
-                      var result10 = parse_act();
+                      var result10 = parse_Verb();
                     }
                     if (result9 !== null) {
                       var result1 = [result3, result4, result5, result6, result7, result8, result9];
@@ -893,17 +893,17 @@ module.exports = (function(){
           pos = savedPos1;
         }
         var result2 = result1 !== null
-          ? (function(s, a) {
-            var s = {
-              type: 'create',
-              name: s.name,
-              line: computeErrorPosition().line
-            };
-            for(i = 0; i < a.length; i++) {
-              s[a[i].type] = a[i];
-              delete a[i].type;
-            }
-            return s;
+          ? (function(s, v) {
+              var s = {
+                  type: 'create',
+                  name: s.name,
+                  line: computeErrorPosition().line
+              };
+              for(i = 0; i < v.length; i++) {
+                  s[v[i].type] = v[i];
+                  delete v[i].type;
+              }
+              return s;
           })(result1[4], result1[6])
           : null;
         if (result2 !== null) {
@@ -922,8 +922,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_type() {
-        var cacheKey = 'type@' + pos;
+      function parse_Type() {
+        var cacheKey = 'Type@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -994,8 +994,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_act() {
-        var cacheKey = 'act@' + pos;
+      function parse_Verb() {
+        var cacheKey = 'Verb@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -1017,57 +1017,51 @@ module.exports = (function(){
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
-            var result5 = parse_type();
+            var result5 = parse_Type();
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
-                var result7 = parse_actname();
+                var result7 = parse_VerbName();
                 if (result7 !== null) {
                   var result8 = parse_insig();
                   if (result8 !== null) {
-                    var result9 = parse_quotedWord();
+                    var result9 = parse_QuotedWord();
                     if (result9 !== null) {
                       var result10 = parse_insig();
                       if (result10 !== null) {
-                        var result11 = parse_insig();
+                        var result30 = parse_WithAliases();
+                        var result11 = result30 !== null ? result30 : '';
                         if (result11 !== null) {
-                          var result31 = parse_withAliases();
-                          var result12 = result31 !== null ? result31 : '';
+                          var result29 = parse_UsingHeaders();
+                          var result12 = result29 !== null ? result29 : '';
                           if (result12 !== null) {
-                            var result30 = parse_usingHeaders();
-                            var result13 = result30 !== null ? result30 : '';
+                            var result28 = parse_UsingDefaults();
+                            var result13 = result28 !== null ? result28 : '';
                             if (result13 !== null) {
-                              var result29 = parse_usingDefaults();
-                              var result14 = result29 !== null ? result29 : '';
+                              var result27 = parse_UsingMonkeyPatch();
+                              var result14 = result27 !== null ? result27 : '';
                               if (result14 !== null) {
-                                var result28 = parse_usingMonkeyPatch();
-                                var result15 = result28 !== null ? result28 : '';
+                                var result15 = parse_insig();
                                 if (result15 !== null) {
-                                  var result16 = parse_insig();
+                                  var result26 = parse_UsingBodyTemplate();
+                                  var result16 = result26 !== null ? result26 : '';
                                   if (result16 !== null) {
-                                    var result27 = parse_usingBodyTemplate();
-                                    var result17 = result27 !== null ? result27 : '';
+                                    var result17 = parse_insig();
                                     if (result17 !== null) {
-                                      var result18 = parse_insig();
+                                      var result25 = parse_AuthenticateUsing();
+                                      var result18 = result25 !== null ? result25 : '';
                                       if (result18 !== null) {
-                                        var result26 = parse_authenticateUsing();
-                                        var result19 = result26 !== null ? result26 : '';
+                                        var result19 = parse_insig();
                                         if (result19 !== null) {
-                                          var result20 = parse_insig();
+                                          var result24 = parse_ResultSet();
+                                          var result20 = result24 !== null ? result24 : '';
                                           if (result20 !== null) {
-                                            var result25 = parse_resultSet();
-                                            var result21 = result25 !== null ? result25 : '';
+                                            var result21 = parse_insig();
                                             if (result21 !== null) {
-                                              var result22 = parse_insig();
+                                              var result23 = parse_Expires();
+                                              var result22 = result23 !== null ? result23 : '';
                                               if (result22 !== null) {
-                                                var result24 = parse_expires();
-                                                var result23 = result24 !== null ? result24 : '';
-                                                if (result23 !== null) {
-                                                  var result1 = [result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16, result17, result18, result19, result20, result21, result22, result23];
-                                                } else {
-                                                  var result1 = null;
-                                                  pos = savedPos1;
-                                                }
+                                                var result1 = [result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16, result17, result18, result19, result20, result21, result22];
                                               } else {
                                                 var result1 = null;
                                                 pos = savedPos1;
@@ -1150,23 +1144,23 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(t, m, u, a, h, d, p, b, auth, r, exp) {
-            var ret = {
-              type: t,
-              method: m,
-              uri: u.value,
-              defaults: d || {},
-              aliases: a || {},
-              headers: h || {},
-              resultSet: r || '',
-              cache: exp || {}
-            };
-            if(auth && auth.length > 0) {
-              ret.auth = auth;
-            }
-            if(p) ret.patch = p;
-            ret.body = b;
-            return ret;
-          })(result1[2], result1[4], result1[6], result1[9], result1[10], result1[11], result1[12], result1[14], result1[16], result1[18], result1[20])
+              var ret = {
+                  type: t,
+                  method: m,
+                  uri: u.value,
+                  defaults: d || {},
+                  aliases: a || {},
+                  headers: h || {},
+                  resultSet: r || '',
+                  cache: exp || {}
+              };
+              if(auth && auth.length > 0) {
+                  ret.auth = auth;
+              }
+              if(p) ret.patch = p;
+              ret.body = b;
+              return ret;
+          })(result1[2], result1[4], result1[6], result1[8], result1[9], result1[10], result1[11], result1[13], result1[15], result1[17], result1[19])
           : null;
         if (result2 !== null) {
           var result0 = result2;
@@ -1184,8 +1178,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_actname() {
-        var cacheKey = 'actname@' + pos;
+      function parse_VerbName() {
+        var cacheKey = 'VerbName@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -1193,23 +1187,23 @@ module.exports = (function(){
         }
 
 
-        var result5 = parse_getfrom();
+        var result5 = parse_GetFrom();
         if (result5 !== null) {
           var result0 = result5;
         } else {
-          var result4 = parse_postto();
+          var result4 = parse_PostTo();
           if (result4 !== null) {
             var result0 = result4;
           } else {
-            var result3 = parse_putto();
+            var result3 = parse_PutTo();
             if (result3 !== null) {
               var result0 = result3;
             } else {
-              var result2 = parse_delete();
+              var result2 = parse_Delete();
               if (result2 !== null) {
                 var result0 = result2;
               } else {
-                var result1 = parse_patch();
+                var result1 = parse_Patch();
                 if (result1 !== null) {
                   var result0 = result1;
                 } else {
@@ -1229,8 +1223,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_getfrom() {
-        var cacheKey = 'getfrom@' + pos;
+      function parse_GetFrom() {
+        var cacheKey = 'GetFrom@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -1277,7 +1271,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function() {
-            return 'get'
+              return 'get'
           })()
           : null;
         if (result2 !== null) {
@@ -1296,8 +1290,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_postto() {
-        var cacheKey = 'postto@' + pos;
+      function parse_PostTo() {
+        var cacheKey = 'PostTo@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -1344,7 +1338,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function() {
-            return 'post'
+              return 'post'
           })()
           : null;
         if (result2 !== null) {
@@ -1363,8 +1357,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_putto() {
-        var cacheKey = 'putto@' + pos;
+      function parse_PutTo() {
+        var cacheKey = 'PutTo@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -1411,7 +1405,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function() {
-            return 'put'
+              return 'put'
           })()
           : null;
         if (result2 !== null) {
@@ -1430,8 +1424,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_delete() {
-        var cacheKey = 'delete@' + pos;
+      function parse_Delete() {
+        var cacheKey = 'Delete@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -1451,7 +1445,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function() {
-            return 'delete'
+              return 'delete'
           })()
           : null;
         if (result2 !== null) {
@@ -1470,8 +1464,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_patch() {
-        var cacheKey = 'patch@' + pos;
+      function parse_Patch() {
+        var cacheKey = 'Patch@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -1491,7 +1485,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function() {
-            return 'patch'
+              return 'patch'
           })()
           : null;
         if (result2 !== null) {
@@ -1510,8 +1504,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_usingDefaults() {
-        var cacheKey = 'usingDefaults@' + pos;
+      function parse_UsingDefaults() {
+        var cacheKey = 'UsingDefaults@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -1543,7 +1537,7 @@ module.exports = (function(){
               }
             }
             if (result5 !== null) {
-              var result6 = parse_nvps();
+              var result6 = parse_NVPs();
               if (result6 !== null) {
                 var result1 = [result3, result4, result5, result6];
               } else {
@@ -1564,7 +1558,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(d) {
-            return merge(d);
+              return merge(d);
           })(result1[3])
           : null;
         if (result2 !== null) {
@@ -1583,8 +1577,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_usingHeaders() {
-        var cacheKey = 'usingHeaders@' + pos;
+      function parse_UsingHeaders() {
+        var cacheKey = 'UsingHeaders@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -1616,7 +1610,7 @@ module.exports = (function(){
               }
             }
             if (result5 !== null) {
-              var result6 = parse_nvps();
+              var result6 = parse_NVPs();
               if (result6 !== null) {
                 var result1 = [result3, result4, result5, result6];
               } else {
@@ -1637,7 +1631,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(d) {
-            return merge(d);
+              return merge(d);
           })(result1[3])
           : null;
         if (result2 !== null) {
@@ -1656,8 +1650,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_usingMonkeyPatch() {
-        var cacheKey = 'usingMonkeyPatch@' + pos;
+      function parse_UsingMonkeyPatch() {
+        var cacheKey = 'UsingMonkeyPatch@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -1691,7 +1685,7 @@ module.exports = (function(){
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
-                var result7 = parse_quotedWord();
+                var result7 = parse_QuotedWord();
                 if (result7 !== null) {
                   var result1 = [result3, result4, result5, result6, result7];
                 } else {
@@ -1716,7 +1710,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(t) {
-            return t.value;
+              return t.value;
           })(result1[4])
           : null;
         if (result2 !== null) {
@@ -1735,8 +1729,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_usingBodyTemplate() {
-        var cacheKey = 'usingBodyTemplate@' + pos;
+      function parse_UsingBodyTemplate() {
+        var cacheKey = 'UsingBodyTemplate@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -1770,7 +1764,7 @@ module.exports = (function(){
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
-                var result7 = parse_quotedWord();
+                var result7 = parse_QuotedWord();
                 if (result7 !== null) {
                   var result8 = parse_insig();
                   if (result8 !== null) {
@@ -1786,11 +1780,11 @@ module.exports = (function(){
                     if (result9 !== null) {
                       var result10 = parse_insig();
                       if (result10 !== null) {
-                        var result11 = parse_quotedWord();
+                        var result11 = parse_QuotedWord();
                         if (result11 !== null) {
                           var result12 = parse_insig();
                           if (result12 !== null) {
-                            var result15 = parse_foreachMember();
+                            var result15 = parse_ForEachMember();
                             var result13 = result15 !== null ? result15 : '';
                             if (result13 !== null) {
                               var result14 = parse_insig();
@@ -1846,14 +1840,14 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(t, m, f) {
-            var ret = {
-              template: t.value,
-              type: m.value
-            }
-            if(f) {
-              ret.foreach = f;
-            }
-            return ret;
+              var ret = {
+                  template: t.value,
+                  type: m.value
+              }
+              if(f) {
+                  ret.foreach = f;
+              }
+              return ret;
           })(result1[4], result1[8], result1[10])
           : null;
         if (result2 !== null) {
@@ -1872,8 +1866,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_foreachMember() {
-        var cacheKey = 'foreachMember@' + pos;
+      function parse_ForEachMember() {
+        var cacheKey = 'ForEachMember@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -1895,7 +1889,7 @@ module.exports = (function(){
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
-            var result5 = parse_quotedWord();
+            var result5 = parse_QuotedWord();
             if (result5 !== null) {
               var result1 = [result3, result4, result5];
             } else {
@@ -1931,8 +1925,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_withAliases() {
-        var cacheKey = 'withAliases@' + pos;
+      function parse_WithAliases() {
+        var cacheKey = 'WithAliases@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -1964,7 +1958,7 @@ module.exports = (function(){
               }
             }
             if (result5 !== null) {
-              var result6 = parse_nvps();
+              var result6 = parse_NVPs();
               if (result6 !== null) {
                 var result1 = [result3, result4, result5, result6];
               } else {
@@ -1985,7 +1979,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(p) {
-            return merge(p);
+              return merge(p);
           })(result1[3])
           : null;
         if (result2 !== null) {
@@ -2004,8 +1998,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_authenticateUsing() {
-        var cacheKey = 'authenticateUsing@' + pos;
+      function parse_AuthenticateUsing() {
+        var cacheKey = 'AuthenticateUsing@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -2057,7 +2051,7 @@ module.exports = (function(){
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
-                var result7 = parse_quotedWord();
+                var result7 = parse_QuotedWord();
                 if (result7 !== null) {
                   var result1 = [result3, result4, result5, result6, result7];
                 } else {
@@ -2082,7 +2076,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(m) {
-            return m.value;
+              return m.value;
           })(result1[4])
           : null;
         if (result2 !== null) {
@@ -2101,8 +2095,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_resultSet() {
-        var cacheKey = 'resultSet@' + pos;
+      function parse_ResultSet() {
+        var cacheKey = 'ResultSet@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -2124,7 +2118,7 @@ module.exports = (function(){
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
-            var result5 = parse_quotedWord();
+            var result5 = parse_QuotedWord();
             if (result5 !== null) {
               var result1 = [result3, result4, result5];
             } else {
@@ -2141,7 +2135,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(r) {
-            return r.value;
+              return r.value;
           })(result1[2])
           : null;
         if (result2 !== null) {
@@ -2160,8 +2154,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_nvps() {
-        var cacheKey = 'nvps@' + pos;
+      function parse_NVPs() {
+        var cacheKey = 'NVPs@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -2171,13 +2165,13 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_nvp();
+        var result3 = parse_NVP();
         if (result3 !== null) {
           var result4 = [];
-          var result5 = parse_cnvp();
+          var result5 = parse_CNVP();
           while (result5 !== null) {
             result4.push(result5);
-            var result5 = parse_cnvp();
+            var result5 = parse_CNVP();
           }
           if (result4 !== null) {
             var result1 = [result3, result4];
@@ -2212,8 +2206,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_cnvp() {
-        var cacheKey = 'cnvp@' + pos;
+      function parse_CNVP() {
+        var cacheKey = 'CNVP@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -2233,7 +2227,7 @@ module.exports = (function(){
           }
         }
         if (result3 !== null) {
-          var result4 = parse_nvp();
+          var result4 = parse_NVP();
           if (result4 !== null) {
             var result1 = [result3, result4];
           } else {
@@ -2246,7 +2240,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(n) {
-            return n;
+              return n;
           })(result1[1])
           : null;
         if (result2 !== null) {
@@ -2265,8 +2259,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_nvp() {
-        var cacheKey = 'nvp@' + pos;
+      function parse_NVP() {
+        var cacheKey = 'NVP@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -2278,11 +2272,11 @@ module.exports = (function(){
         var savedPos1 = pos;
         var result3 = parse_insig();
         if (result3 !== null) {
-          var result11 = parse_field();
+          var result11 = parse_Field();
           if (result11 !== null) {
             var result4 = result11;
           } else {
-            var result10 = parse_quotedWord();
+            var result10 = parse_QuotedWord();
             if (result10 !== null) {
               var result4 = result10;
             } else {
@@ -2304,7 +2298,7 @@ module.exports = (function(){
               if (result6 !== null) {
                 var result7 = parse_insig();
                 if (result7 !== null) {
-                  var result8 = parse_rhs();
+                  var result8 = parse_RHS();
                   if (result8 !== null) {
                     var result9 = parse_insig();
                     if (result9 !== null) {
@@ -2339,10 +2333,10 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(lhs, rhs) {
-            var  o = {};
-            lhs = lhs.name || lhs;
-            o[lhs.hasOwnProperty('value') ? lhs.value : lhs] = rhs.hasOwnProperty('value') ? rhs.value : rhs;
-            return o;
+              var  o = {};
+              lhs = lhs.name || lhs;
+              o[lhs.hasOwnProperty('value') ? lhs.value : lhs] = rhs.hasOwnProperty('value') ? rhs.value : rhs;
+              return o;
           })(result1[1], result1[5])
           : null;
         if (result2 !== null) {
@@ -2361,8 +2355,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_expires() {
-        var cacheKey = 'expires@' + pos;
+      function parse_Expires() {
+        var cacheKey = 'Expires@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -2386,7 +2380,7 @@ module.exports = (function(){
           if (result4 !== null) {
             var result5 = parse_insig();
             if (result5 !== null) {
-              var result6 = parse_digits();
+              var result6 = parse_Digits();
               if (result6 !== null) {
                 var result7 = parse_insig();
                 if (result7 !== null) {
@@ -2434,51 +2428,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_select() {
-        var cacheKey = 'select@' + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
-
-        var savedPos0 = pos;
-        if (input.substr(pos, 6) === "select") {
-          var result1 = "select";
-          pos += 6;
-        } else {
-          var result1 = null;
-          if (reportMatchFailures) {
-            matchFailed("\"select\"");
-          }
-        }
-        var result2 = result1 !== null
-          ? (function(s) {
-            return {
-              type: 'select',
-              line: computeErrorPosition().line
-            }
-          })(result1)
-          : null;
-        if (result2 !== null) {
-          var result0 = result2;
-        } else {
-          var result0 = null;
-          pos = savedPos0;
-        }
-
-
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
-        return result0;
-      }
-
-      function parse_selectStatement() {
-        var cacheKey = 'selectStatement@' + pos;
+      function parse_SelectStatement() {
+        var cacheKey = 'SelectStatement@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -2488,11 +2439,11 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_select();
+        var result3 = parse_Select();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
-            var result5 = parse_columnsClause();
+            var result5 = parse_ColumnsClause();
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
@@ -2508,33 +2459,33 @@ module.exports = (function(){
                 if (result7 !== null) {
                   var result8 = parse_insig();
                   if (result8 !== null) {
-                    var result9 = parse_fromClause();
+                    var result9 = parse_FromClause();
                     if (result9 !== null) {
                       var result10 = parse_insig();
                       if (result10 !== null) {
                         var result11 = [];
-                        var result18 = parse_whereClause();
+                        var result18 = parse_WhereClause();
                         while (result18 !== null) {
                           result11.push(result18);
-                          var result18 = parse_whereClause();
+                          var result18 = parse_WhereClause();
                         }
                         if (result11 !== null) {
                           var result12 = parse_insig();
                           if (result12 !== null) {
                             var result13 = [];
-                            var result17 = parse_limit();
+                            var result17 = parse_Limit();
                             while (result17 !== null) {
                               result13.push(result17);
-                              var result17 = parse_limit();
+                              var result17 = parse_Limit();
                             }
                             if (result13 !== null) {
                               var result14 = parse_insig();
                               if (result14 !== null) {
                                 var result15 = [];
-                                var result16 = parse_offset();
+                                var result16 = parse_Offset();
                                 while (result16 !== null) {
                                   result15.push(result16);
-                                  var result16 = parse_offset();
+                                  var result16 = parse_Offset();
                                 }
                                 if (result15 !== null) {
                                   var result1 = [result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15];
@@ -2592,26 +2543,67 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(s, c, fc, wc, l, o) {
-            var s = {
-              type: s.type,
-              line: s.line,
-              fromClause: fc,
-              columns: c,
-              whereCriteria: wc[0]
-            };
-            if(l[0]) {
-              s.limit = l[0];
-            }
-            if(o[0]) {
-              s.offset = o[0];
-            }
-            s.id = id;
-            if(c && c.length > 0 && c[0].alias) {
-              s.usingColumnAliases = true
-            }
-            s = splitJoins(s);
-            delete s.id;
-            return s;
+              var s = {
+                  type: s.type,
+                  line: s.line,
+                  fromClause: fc,
+                  columns: c,
+                  whereCriteria: wc[0]
+              };
+              if(l[0]) {
+                  s.limit = l[0];
+              }
+              if(o[0]) {
+                  s.offset = o[0];
+              }
+              s.id = id;
+              if(c && c.length > 0 && c[0].alias) {
+                  s.usingColumnAliases = true
+              }
+
+              // Extras from where clause - there are non-literal args of UDFs in the where clause
+              if(s.whereCriteria && typeOf(s.columns) === 'array') {
+                  for(var i = 0; i < s.whereCriteria.length; i++) {
+                      var where = s.whereCriteria[i];
+                      if(where.operator === 'udf') {
+                          for(var j = 0; j < where.args.length; j++) {
+                              if(where.args[j].type === 'column') {
+                                  // If this column is not already selected, included it now.
+                                  for(var c = 0; c < s.columns.length; c++) {
+                                      if(s.columns[c].name === where.args[j].name) {
+                                          if(s.columns[c].alias) {
+                                              where.args[j].alias = s.columns[c].alias
+                                              delete where.args[j].index;
+                                          }
+                                          else {
+                                              where.args[j].index = c;
+                                          }
+                                          break;
+                                      }
+                                  }
+                                  if(!where.args[j].hasOwnProperty('alias') && !where.args[j].hasOwnProperty('index')) {
+                                      s.extras = s.extras || [];
+                                      s.extras.push(s.columns.length);
+                                      var extra = {name: where.args[j].name, type: 'column'};
+                                      // Index or name into selected columns
+                                      if(s.columns[0].alias) {
+                                          extra.alias = where.args[j].name;
+                                          where.args[j].alias = extra.alias;
+                                      }
+                                      else {
+                                          where.args[j].index = s.columns.length;
+                                      }
+                                      extra.for = 'udf';
+                                      s.columns.push(extra);
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+              s = splitJoins(s);
+              delete s.id;
+              return s;
           })(result1[0], result1[2], result1[6], result1[8], result1[10], result1[12])
           : null;
         if (result2 !== null) {
@@ -2630,8 +2622,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_show() {
-        var cacheKey = 'show@' + pos;
+      function parse_Select() {
+        var cacheKey = 'Select@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -2640,21 +2632,22 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        if (input.substr(pos, 4) === "show") {
-          var result1 = "show";
-          pos += 4;
+        if (input.substr(pos, 6) === "select") {
+          var result1 = "select";
+          pos += 6;
         } else {
           var result1 = null;
           if (reportMatchFailures) {
-            matchFailed("\"show\"");
+            matchFailed("\"select\"");
           }
         }
         var result2 = result1 !== null
-          ? (function() {
-            return {
-              line: computeErrorPosition().line
-            }
-          })()
+          ? (function(s) {
+              return {
+                  type: 'select',
+                  line: computeErrorPosition().line
+              }
+          })(result1)
           : null;
         if (result2 !== null) {
           var result0 = result2;
@@ -2672,8 +2665,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_showRoutesStatement() {
-        var cacheKey = 'showRoutesStatement@' + pos;
+      function parse_ShowRoutesStatement() {
+        var cacheKey = 'ShowRoutesStatement@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -2683,7 +2676,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_show();
+        var result3 = parse_Show();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -2712,10 +2705,10 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(s) {
-            return {
-              type: 'show routes',
-              line: s.line
-            }
+              return {
+                  type: 'show routes',
+                  line: s.line
+              }
           })(result1[0])
           : null;
         if (result2 !== null) {
@@ -2734,8 +2727,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_showStatement() {
-        var cacheKey = 'showStatement@' + pos;
+      function parse_ShowStatement() {
+        var cacheKey = 'ShowStatement@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -2745,7 +2738,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_show();
+        var result3 = parse_Show();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -2774,10 +2767,10 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(s) {
-            return {
-              type: 'show',
-              line: s.line
-            }
+              return {
+                  type: 'show',
+                  line: s.line
+              }
           })(result1[0])
           : null;
         if (result2 !== null) {
@@ -2796,8 +2789,50 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_describe() {
-        var cacheKey = 'describe@' + pos;
+      function parse_Show() {
+        var cacheKey = 'Show@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        if (input.substr(pos, 4) === "show") {
+          var result1 = "show";
+          pos += 4;
+        } else {
+          var result1 = null;
+          if (reportMatchFailures) {
+            matchFailed("\"show\"");
+          }
+        }
+        var result2 = result1 !== null
+          ? (function() {
+              return {
+                  line: computeErrorPosition().line
+              }
+          })()
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_Describe() {
+        var cacheKey = 'Describe@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -2835,9 +2870,9 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function() {
-            return {
-              line: computeErrorPosition().line
-            }
+              return {
+                  line: computeErrorPosition().line
+              }
           })()
           : null;
         if (result2 !== null) {
@@ -2856,8 +2891,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_describeRouteStatement() {
-        var cacheKey = 'describeRouteStatement@' + pos;
+      function parse_DescribeRouteStatement() {
+        var cacheKey = 'DescribeRouteStatement@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -2867,7 +2902,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_describe();
+        var result3 = parse_Describe();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -2883,7 +2918,7 @@ module.exports = (function(){
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
-                var result7 = parse_quotedWord();
+                var result7 = parse_QuotedWord();
                 if (result7 !== null) {
                   var result8 = parse_insig();
                   if (result8 !== null) {
@@ -3025,12 +3060,12 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(d, p, m) {
-            return {
-              type: 'describe route',
-              line: d.line,
-              path: p,
-              method: m
-            }
+              return {
+                  type: 'describe route',
+                  line: d.line,
+                  path: p,
+                  method: m
+              }
           })(result1[0], result1[4], result1[10])
           : null;
         if (result2 !== null) {
@@ -3049,8 +3084,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_describeStatement() {
-        var cacheKey = 'describeStatement@' + pos;
+      function parse_DescribeStatement() {
+        var cacheKey = 'DescribeStatement@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3060,11 +3095,11 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_describe();
+        var result3 = parse_Describe();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
-            var result5 = parse_source();
+            var result5 = parse_Source();
             if (result5 !== null) {
               var result1 = [result3, result4, result5];
             } else {
@@ -3081,11 +3116,11 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(d, s) {
-            return {
-              type: 'describe',
-              line: d.line,
-              source: s
-            }
+              return {
+                  type: 'describe',
+                  line: d.line,
+                  source: s
+              }
           })(result1[0], result1[2])
           : null;
         if (result2 !== null) {
@@ -3104,8 +3139,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_insertStatement() {
-        var cacheKey = 'insertStatement@' + pos;
+      function parse_InsertStatement() {
+        var cacheKey = 'InsertStatement@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3149,7 +3184,7 @@ module.exports = (function(){
               if (result6 !== null) {
                 var result7 = parse_insig();
                 if (result7 !== null) {
-                  var result8 = parse_source();
+                  var result8 = parse_Source();
                   if (result8 !== null) {
                     var result9 = parse_insig();
                     if (result9 !== null) {
@@ -3165,7 +3200,7 @@ module.exports = (function(){
                       if (result10 !== null) {
                         var result11 = parse_insig();
                         if (result11 !== null) {
-                          var result12 = parse_columnsClause();
+                          var result12 = parse_ColumnsClause();
                           if (result12 !== null) {
                             var result13 = parse_insig();
                             if (result13 !== null) {
@@ -3203,7 +3238,7 @@ module.exports = (function(){
                                         }
                                       }
                                       if (result18 !== null) {
-                                        var result19 = parse_csv();
+                                        var result19 = parse_CSV();
                                         if (result19 !== null) {
                                           if (input.substr(pos, 1) === ")") {
                                             var result20 = ")";
@@ -3290,16 +3325,16 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(s, c, v) {
-            if(c.length != v.value.length) {
-              throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Number of values does not match number of columns.");
-            }
-            return {
-              type: 'insert',
-              source: s,
-              columns: c,
-              values: v.value,
-              line: computeErrorPosition().line
-            }
+              if(c.length != v.value.length) {
+                  throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Number of values does not match number of columns.");
+              }
+              return {
+                  type: 'insert',
+                  source: s,
+                  columns: c,
+                  values: v.value,
+                  line: computeErrorPosition().line
+              }
           })(result1[5], result1[9], result1[16])
           : null;
         if (result2 !== null) {
@@ -3318,8 +3353,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_deleteStatement() {
-        var cacheKey = 'deleteStatement@' + pos;
+      function parse_DeleteStatement() {
+        var cacheKey = 'DeleteStatement@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3353,15 +3388,15 @@ module.exports = (function(){
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
-                var result7 = parse_source();
+                var result7 = parse_Source();
                 if (result7 !== null) {
                   var result8 = parse_insig();
                   if (result8 !== null) {
                     var result9 = [];
-                    var result10 = parse_whereClause();
+                    var result10 = parse_WhereClause();
                     while (result10 !== null) {
                       result9.push(result10);
-                      var result10 = parse_whereClause();
+                      var result10 = parse_WhereClause();
                     }
                     if (result9 !== null) {
                       var result1 = [result3, result4, result5, result6, result7, result8, result9];
@@ -3395,12 +3430,12 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(s, wc) {
-            return {
-              type: 'delete',
-              source: s,
-              whereCriteria: wc[0],
-              line: computeErrorPosition().line
-            }
+              return {
+                  type: 'delete',
+                  source: s,
+                  whereCriteria: wc[0],
+                  line: computeErrorPosition().line
+              }
           })(result1[4], result1[6])
           : null;
         if (result2 !== null) {
@@ -3419,8 +3454,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_columnsClause() {
-        var cacheKey = 'columnsClause@' + pos;
+      function parse_ColumnsClause() {
+        var cacheKey = 'ColumnsClause@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3429,11 +3464,11 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result4 = parse_all();
+        var result4 = parse_All();
         if (result4 !== null) {
           var result1 = result4;
         } else {
-          var result3 = parse_fields();
+          var result3 = parse_Fields();
           if (result3 !== null) {
             var result1 = result3;
           } else {
@@ -3442,16 +3477,16 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(arr) {
-            var aliasCount = 0;
-            for(var i = 0; i < arr.length; i++) {
-              if(arr[i].alias) {
-                aliasCount++;
+              var aliasCount = 0;
+              for(var i = 0; i < arr.length; i++) {
+                  if(arr[i].alias) {
+                      aliasCount++;
+                  }
               }
-            }
-            if(aliasCount > 0 && aliasCount != arr.length) {
-              throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Not all selected columns are using aliases.");
-            }
-            return arr;
+              if(aliasCount > 0 && aliasCount != arr.length) {
+                  throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Not all selected columns are using aliases.");
+              }
+              return arr;
           })(result1)
           : null;
         if (result2 !== null) {
@@ -3470,8 +3505,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_fromClause() {
-        var cacheKey = 'fromClause@' + pos;
+      function parse_FromClause() {
+        var cacheKey = 'FromClause@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3481,22 +3516,22 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result6 = parse_source();
+        var result6 = parse_Source();
         if (result6 !== null) {
           var result3 = [];
           while (result6 !== null) {
             result3.push(result6);
-            var result6 = parse_source();
+            var result6 = parse_Source();
           }
         } else {
           var result3 = null;
         }
         if (result3 !== null) {
           var result4 = [];
-          var result5 = parse_commaSource();
+          var result5 = parse_CommaSource();
           while (result5 !== null) {
             result4.push(result5);
-            var result5 = parse_commaSource();
+            var result5 = parse_CommaSource();
           }
           if (result4 !== null) {
             var result1 = [result3, result4];
@@ -3510,7 +3545,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(s, sarr) {
-            return s.concat(sarr);
+              return s.concat(sarr);
           })(result1[0], result1[1])
           : null;
         if (result2 !== null) {
@@ -3529,8 +3564,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_source() {
-        var cacheKey = 'source@' + pos;
+      function parse_Source() {
+        var cacheKey = 'Source@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3538,11 +3573,11 @@ module.exports = (function(){
         }
 
 
-        var result2 = parse_aliasSource();
+        var result2 = parse_AliasSource();
         if (result2 !== null) {
           var result0 = result2;
         } else {
-          var result1 = parse_nonAliasSource();
+          var result1 = parse_NonAliasSource();
           if (result1 !== null) {
             var result0 = result1;
           } else {
@@ -3559,8 +3594,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_commaSource() {
-        var cacheKey = 'commaSource@' + pos;
+      function parse_CommaSource() {
+        var cacheKey = 'CommaSource@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3572,11 +3607,11 @@ module.exports = (function(){
         var savedPos1 = pos;
         var result3 = parse_insig();
         if (result3 !== null) {
-          var result4 = parse_comma();
+          var result4 = parse_Comma();
           if (result4 !== null) {
             var result5 = parse_insig();
             if (result5 !== null) {
-              var result6 = parse_source();
+              var result6 = parse_Source();
               if (result6 !== null) {
                 var result1 = [result3, result4, result5, result6];
               } else {
@@ -3597,7 +3632,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(s) {
-            return s;
+              return s;
           })(result1[3])
           : null;
         if (result2 !== null) {
@@ -3616,8 +3651,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_aliasSource() {
-        var cacheKey = 'aliasSource@' + pos;
+      function parse_AliasSource() {
+        var cacheKey = 'AliasSource@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3627,7 +3662,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_identifier();
+        var result3 = parse_Name();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -3643,7 +3678,7 @@ module.exports = (function(){
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
-                var result7 = parse_identifier();
+                var result7 = parse_Name();
                 if (result7 !== null) {
                   var result1 = [result3, result4, result5, result6, result7];
                 } else {
@@ -3668,10 +3703,10 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(s, a) {
-            if(symbols[s]) {
-              s = "{" + s + "}";
-            }
-            return {name: s, alias: a};
+              if(symbols[s]) {
+                  s = "{" + s + "}";
+              }
+              return {name: s, alias: a};
           })(result1[0], result1[4])
           : null;
         if (result2 !== null) {
@@ -3690,8 +3725,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_nonAliasSource() {
-        var cacheKey = 'nonAliasSource@' + pos;
+      function parse_NonAliasSource() {
+        var cacheKey = 'NonAliasSource@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3700,13 +3735,13 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_identifier();
+        var result1 = parse_Name();
         var result2 = result1 !== null
           ? (function(s) {
-            if(symbols[s]) {
-              s = "{" + s + "}";
-            }
-            return {name: s};
+              if(symbols[s]) {
+                  s = "{" + s + "}";
+              }
+              return {name: s};
           })(result1)
           : null;
         if (result2 !== null) {
@@ -3725,8 +3760,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_whereClause() {
-        var cacheKey = 'whereClause@' + pos;
+      function parse_WhereClause() {
+        var cacheKey = 'WhereClause@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3748,7 +3783,7 @@ module.exports = (function(){
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
-            var result5 = parse_whereCriteria();
+            var result5 = parse_WhereCriteria();
             if (result5 !== null) {
               var result1 = [result3, result4, result5];
             } else {
@@ -3765,7 +3800,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(w) {
-            return w;
+              return w;
           })(result1[2])
           : null;
         if (result2 !== null) {
@@ -3784,8 +3819,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_limit() {
-        var cacheKey = 'limit@' + pos;
+      function parse_Limit() {
+        var cacheKey = 'Limit@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3807,7 +3842,7 @@ module.exports = (function(){
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
-            var result5 = parse_digits();
+            var result5 = parse_Digits();
             if (result5 !== null) {
               var result1 = [result3, result4, result5];
             } else {
@@ -3824,7 +3859,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(n) {
-            return n;
+              return n;
           })(result1[2])
           : null;
         if (result2 !== null) {
@@ -3843,8 +3878,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_offset() {
-        var cacheKey = 'offset@' + pos;
+      function parse_Offset() {
+        var cacheKey = 'Offset@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3866,7 +3901,7 @@ module.exports = (function(){
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
-            var result5 = parse_digits();
+            var result5 = parse_Digits();
             if (result5 !== null) {
               var result1 = [result3, result4, result5];
             } else {
@@ -3883,7 +3918,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(n) {
-            return n;
+              return n;
           })(result1[2])
           : null;
         if (result2 !== null) {
@@ -3902,8 +3937,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_whereCriteria() {
-        var cacheKey = 'whereCriteria@' + pos;
+      function parse_WhereCriteria() {
+        var cacheKey = 'WhereCriteria@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3913,13 +3948,13 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_cond();
+        var result3 = parse_Cond();
         if (result3 !== null) {
           var result4 = [];
-          var result5 = parse_andCond();
+          var result5 = parse_AndCond();
           while (result5 !== null) {
             result4.push(result5);
-            var result5 = parse_andCond();
+            var result5 = parse_AndCond();
           }
           if (result4 !== null) {
             var result1 = [result3, result4];
@@ -3933,9 +3968,9 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(c, carr) {
-            var ret = [c];
-            ret = ret.concat(carr);
-            return ret;
+              var ret = [c];
+              ret = ret.concat(carr);
+              return ret;
           })(result1[0], result1[1])
           : null;
         if (result2 !== null) {
@@ -3954,8 +3989,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_and() {
-        var cacheKey = 'and@' + pos;
+      function parse_And() {
+        var cacheKey = 'And@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3982,8 +4017,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_cond() {
-        var cacheKey = 'cond@' + pos;
+      function parse_Cond() {
+        var cacheKey = 'Cond@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -3991,15 +4026,15 @@ module.exports = (function(){
         }
 
 
-        var result3 = parse_eqCond();
+        var result3 = parse_EqCond();
         if (result3 !== null) {
           var result0 = result3;
         } else {
-          var result2 = parse_inCond();
+          var result2 = parse_InCond();
           if (result2 !== null) {
             var result0 = result2;
           } else {
-            var result1 = parse_udf();
+            var result1 = parse_UDF();
             if (result1 !== null) {
               var result0 = result1;
             } else {
@@ -4017,8 +4052,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_andCond() {
-        var cacheKey = 'andCond@' + pos;
+      function parse_AndCond() {
+        var cacheKey = 'AndCond@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4030,11 +4065,11 @@ module.exports = (function(){
         var savedPos1 = pos;
         var result3 = parse_insig();
         if (result3 !== null) {
-          var result4 = parse_and();
+          var result4 = parse_And();
           if (result4 !== null) {
             var result5 = parse_insig();
             if (result5 !== null) {
-              var result6 = parse_cond();
+              var result6 = parse_Cond();
               if (result6 !== null) {
                 var result1 = [result3, result4, result5, result6];
               } else {
@@ -4055,7 +4090,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(c) {
-            return c;
+              return c;
           })(result1[3])
           : null;
         if (result2 !== null) {
@@ -4074,8 +4109,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_eqCond() {
-        var cacheKey = 'eqCond@' + pos;
+      function parse_EqCond() {
+        var cacheKey = 'EqCond@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4087,15 +4122,15 @@ module.exports = (function(){
         var savedPos1 = pos;
         var result3 = parse_insig();
         if (result3 !== null) {
-          var result4 = parse_field();
+          var result4 = parse_Field();
           if (result4 !== null) {
             var result5 = parse_insig();
             if (result5 !== null) {
-              var result6 = parse_operator();
+              var result6 = parse_Operator();
               if (result6 !== null) {
                 var result7 = parse_insig();
                 if (result7 !== null) {
-                  var result8 = parse_rhs();
+                  var result8 = parse_RHS();
                   if (result8 !== null) {
                     var result9 = parse_insig();
                     if (result9 !== null) {
@@ -4130,7 +4165,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(lhs, rhs) {
-            return {operator : '=', lhs : lhs, rhs : rhs};
+              return {operator : '=', lhs : lhs, rhs : rhs};
           })(result1[1], result1[5])
           : null;
         if (result2 !== null) {
@@ -4149,8 +4184,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_inCond() {
-        var cacheKey = 'inCond@' + pos;
+      function parse_InCond() {
+        var cacheKey = 'InCond@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4160,7 +4195,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_identifier();
+        var result3 = parse_Name();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -4188,11 +4223,11 @@ module.exports = (function(){
                 if (result7 !== null) {
                   var result8 = parse_insig();
                   if (result8 !== null) {
-                    var result13 = parse_selectStatement();
+                    var result13 = parse_SelectStatement();
                     if (result13 !== null) {
                       var result9 = result13;
                     } else {
-                      var result12 = parse_csv();
+                      var result12 = parse_CSV();
                       if (result12 !== null) {
                         var result9 = result12;
                       } else {
@@ -4251,7 +4286,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(lhs, rhs) {
-            return {operator : 'in', lhs : {name: lhs}, rhs: rhs};
+              return {operator : 'in', lhs : {name: lhs}, rhs: rhs};
           })(result1[0], result1[6])
           : null;
         if (result2 !== null) {
@@ -4270,8 +4305,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_csv() {
-        var cacheKey = 'csv@' + pos;
+      function parse_CSV() {
+        var cacheKey = 'CSV@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4283,15 +4318,15 @@ module.exports = (function(){
         var savedPos1 = pos;
         var result3 = parse_insig();
         if (result3 !== null) {
-          var result4 = parse_csvMember();
+          var result4 = parse_CSVMember();
           if (result4 !== null) {
             var result5 = parse_insig();
             if (result5 !== null) {
               var result6 = [];
-              var result7 = parse_commaCsvMember();
+              var result7 = parse_CommaCSVMember();
               while (result7 !== null) {
                 result6.push(result7);
-                var result7 = parse_commaCsvMember();
+                var result7 = parse_CommaCSVMember();
               }
               if (result6 !== null) {
                 var result1 = [result3, result4, result5, result6];
@@ -4313,11 +4348,11 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(c, carr) {
-            var res = [c.value || c];
-            collect(carr,',', res, 'value');
-            return {
-              value: res
-            }
+              var res = [c.value || c];
+              collect(carr,',', res, 'value');
+              return {
+                  value: res
+              }
           })(result1[1], result1[3])
           : null;
         if (result2 !== null) {
@@ -4336,8 +4371,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_commaCsvMember() {
-        var cacheKey = 'commaCsvMember@' + pos;
+      function parse_CommaCSVMember() {
+        var cacheKey = 'CommaCSVMember@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4349,11 +4384,11 @@ module.exports = (function(){
         var savedPos1 = pos;
         var result3 = parse_insig();
         if (result3 !== null) {
-          var result4 = parse_comma();
+          var result4 = parse_Comma();
           if (result4 !== null) {
             var result5 = parse_insig();
             if (result5 !== null) {
-              var result6 = parse_csvMember();
+              var result6 = parse_CSVMember();
               if (result6 !== null) {
                 var result1 = [result3, result4, result5, result6];
               } else {
@@ -4374,7 +4409,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(v) {
-           return v;
+              return v;
           })(result1[3])
           : null;
         if (result2 !== null) {
@@ -4393,8 +4428,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_csvMember() {
-        var cacheKey = 'csvMember@' + pos;
+      function parse_CSVMember() {
+        var cacheKey = 'CSVMember@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4402,19 +4437,19 @@ module.exports = (function(){
         }
 
 
-        var result4 = parse_quotedWord();
+        var result4 = parse_QuotedWord();
         if (result4 !== null) {
           var result0 = result4;
         } else {
-          var result3 = parse_quotedDigits();
+          var result3 = parse_QuotedDigits();
           if (result3 !== null) {
             var result0 = result3;
           } else {
-            var result2 = parse_digits();
+            var result2 = parse_Digits();
             if (result2 !== null) {
               var result0 = result2;
             } else {
-              var result1 = parse_ref();
+              var result1 = parse_Ref();
               if (result1 !== null) {
                 var result0 = result1;
               } else {
@@ -4433,8 +4468,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_ref() {
-        var cacheKey = 'ref@' + pos;
+      function parse_Ref() {
+        var cacheKey = 'Ref@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4443,12 +4478,12 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_identifier();
+        var result1 = parse_Name();
         var result2 = result1 !== null
           ? (function(i) {
-            return {
-              value: "{" + i + "}"
-            }
+              return {
+                  value: "{" + i + "}"
+              }
           })(result1)
           : null;
         if (result2 !== null) {
@@ -4467,8 +4502,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_operator() {
-        var cacheKey = 'operator@' + pos;
+      function parse_Operator() {
+        var cacheKey = 'Operator@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4551,8 +4586,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_rhs() {
-        var cacheKey = 'rhs@' + pos;
+      function parse_RHS() {
+        var cacheKey = 'RHS@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4561,19 +4596,19 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result6 = parse_aliasedRef();
+        var result6 = parse_AliasedRef();
         if (result6 !== null) {
           var result1 = result6;
         } else {
-          var result5 = parse_quotedWord();
+          var result5 = parse_QuotedWord();
           if (result5 !== null) {
             var result1 = result5;
           } else {
-            var result4 = parse_quotedDigits();
+            var result4 = parse_QuotedDigits();
             if (result4 !== null) {
               var result1 = result4;
             } else {
-              var result3 = parse_digits();
+              var result3 = parse_Digits();
               if (result3 !== null) {
                 var result1 = result3;
               } else {
@@ -4584,12 +4619,12 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(r) {
-            if(!r.hasOwnProperty('value')) {
-              r = {
-                value: r
+              if(!r.hasOwnProperty('value')) {
+                  r = {
+                      value: r
+                  }
               }
-            }
-            return r;
+              return r;
           })(result1)
           : null;
         if (result2 !== null) {
@@ -4608,8 +4643,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_aliasedRef() {
-        var cacheKey = 'aliasedRef@' + pos;
+      function parse_AliasedRef() {
+        var cacheKey = 'AliasedRef@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4621,10 +4656,10 @@ module.exports = (function(){
         var result1 = parse_JSONPath();
         var result2 = result1 !== null
           ? (function(p) {
-            return {
-              type: 'alias',
-              value: p
-            };
+              return {
+                  type: 'alias',
+                  value: p
+              };
           })(result1)
           : null;
         if (result2 !== null) {
@@ -4643,8 +4678,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_all() {
-        var cacheKey = 'all@' + pos;
+      function parse_All() {
+        var cacheKey = 'All@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4664,10 +4699,10 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function() {
-            return {
-              name: '*',
-              type: 'column'
-            }
+              return {
+                  name: '*',
+                  type: 'column'
+              }
           })()
           : null;
         if (result2 !== null) {
@@ -4686,8 +4721,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_fields() {
-        var cacheKey = 'fields@' + pos;
+      function parse_Fields() {
+        var cacheKey = 'Fields@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4697,17 +4732,17 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_field();
+        var result3 = parse_Field();
         if (result3 !== null) {
           var result4 = [];
           var savedPos2 = pos;
           var result6 = parse_insig();
           if (result6 !== null) {
-            var result7 = parse_comma();
+            var result7 = parse_Comma();
             if (result7 !== null) {
               var result8 = parse_insig();
               if (result8 !== null) {
-                var result9 = parse_field();
+                var result9 = parse_Field();
                 if (result9 !== null) {
                   var result5 = [result6, result7, result8, result9];
                 } else {
@@ -4731,11 +4766,11 @@ module.exports = (function(){
             var savedPos2 = pos;
             var result6 = parse_insig();
             if (result6 !== null) {
-              var result7 = parse_comma();
+              var result7 = parse_Comma();
               if (result7 !== null) {
                 var result8 = parse_insig();
                 if (result8 !== null) {
-                  var result9 = parse_field();
+                  var result9 = parse_Field();
                   if (result9 !== null) {
                     var result5 = [result6, result7, result8, result9];
                   } else {
@@ -4767,9 +4802,9 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(arr) {
-            var res = [];
-            collect(arr, ",", res);
-            return res;
+              var res = [];
+              collect(arr, ",", res);
+              return res;
           })(result1)
           : null;
         if (result2 !== null) {
@@ -4788,8 +4823,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_field() {
-        var cacheKey = 'field@' + pos;
+      function parse_Field() {
+        var cacheKey = 'Field@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4798,11 +4833,11 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result4 = parse_aliasField();
+        var result4 = parse_AliasField();
         if (result4 !== null) {
           var result1 = result4;
         } else {
-          var result3 = parse_nonAliasField();
+          var result3 = parse_NonAliasField();
           if (result3 !== null) {
             var result1 = result3;
           } else {
@@ -4811,7 +4846,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(f) {
-            return f;
+              return f;
           })(result1)
           : null;
         if (result2 !== null) {
@@ -4830,8 +4865,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_aliasField() {
-        var cacheKey = 'aliasField@' + pos;
+      function parse_AliasField() {
+        var cacheKey = 'AliasField@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4841,7 +4876,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_nonAliasField();
+        var result3 = parse_NonAliasField();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -4857,7 +4892,7 @@ module.exports = (function(){
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
-                var result7 = parse_identifier();
+                var result7 = parse_Name();
                 if (result7 !== null) {
                   var result1 = [result3, result4, result5, result6, result7];
                 } else {
@@ -4882,11 +4917,11 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(n, a) {
-            if(symbols[n]) {
-              n = "{" + n + "}";
-            }
-            n.alias = a;
-            return n;
+              if(symbols[n]) {
+                  n = "{" + n + "}";
+              }
+              n.alias = a;
+              return n;
           })(result1[0], result1[4])
           : null;
         if (result2 !== null) {
@@ -4905,8 +4940,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_nonAliasField() {
-        var cacheKey = 'nonAliasField@' + pos;
+      function parse_NonAliasField() {
+        var cacheKey = 'NonAliasField@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4914,11 +4949,11 @@ module.exports = (function(){
         }
 
 
-        var result2 = parse_udf();
+        var result2 = parse_UDF();
         if (result2 !== null) {
           var result0 = result2;
         } else {
-          var result1 = parse_column();
+          var result1 = parse_Column();
           if (result1 !== null) {
             var result0 = result1;
           } else {
@@ -4935,8 +4970,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_udf() {
-        var cacheKey = 'udf@' + pos;
+      function parse_UDF() {
+        var cacheKey = 'UDF@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -4946,7 +4981,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_identifier();
+        var result3 = parse_Name();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
@@ -4962,7 +4997,7 @@ module.exports = (function(){
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
-                var result10 = parse_udfParams();
+                var result10 = parse_UDFParams();
                 var result7 = result10 !== null ? result10 : '';
                 if (result7 !== null) {
                   var result8 = parse_insig();
@@ -5008,11 +5043,11 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(name, p) {
-            return {
-              operator: 'udf',
-              name: name,
-              args: p
-            }
+              return {
+                  operator: 'udf',
+                  name: name,
+                  args: p
+              }
           })(result1[0], result1[4])
           : null;
         if (result2 !== null) {
@@ -5031,8 +5066,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_udfParams() {
-        var cacheKey = 'udfParams@' + pos;
+      function parse_UDFParams() {
+        var cacheKey = 'UDFParams@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -5042,17 +5077,17 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_udfParam();
+        var result3 = parse_UDFParam();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
             var result5 = [];
             var savedPos2 = pos;
-            var result7 = parse_comma();
+            var result7 = parse_Comma();
             if (result7 !== null) {
               var result8 = parse_insig();
               if (result8 !== null) {
-                var result9 = parse_udfParam();
+                var result9 = parse_UDFParam();
                 if (result9 !== null) {
                   var result6 = [result7, result8, result9];
                 } else {
@@ -5070,11 +5105,11 @@ module.exports = (function(){
             while (result6 !== null) {
               result5.push(result6);
               var savedPos2 = pos;
-              var result7 = parse_comma();
+              var result7 = parse_Comma();
               if (result7 !== null) {
                 var result8 = parse_insig();
                 if (result8 !== null) {
-                  var result9 = parse_udfParam();
+                  var result9 = parse_UDFParam();
                   if (result9 !== null) {
                     var result6 = [result7, result8, result9];
                   } else {
@@ -5106,9 +5141,9 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(c, carr) {
-            var res = [c];
-            collect(carr,',', res);
-            return res;
+              var res = [c];
+              collect(carr,',', res);
+              return res;
           })(result1[0], result1[2])
           : null;
         if (result2 !== null) {
@@ -5127,8 +5162,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_udfParam() {
-        var cacheKey = 'udfParam@' + pos;
+      function parse_UDFParam() {
+        var cacheKey = 'UDFParam@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -5136,11 +5171,11 @@ module.exports = (function(){
         }
 
 
-        var result2 = parse_column();
+        var result2 = parse_LiteralParam();
         if (result2 !== null) {
           var result0 = result2;
         } else {
-          var result1 = parse_literalParam();
+          var result1 = parse_Column();
           if (result1 !== null) {
             var result0 = result1;
           } else {
@@ -5157,8 +5192,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_literalParam() {
-        var cacheKey = 'literalParam@' + pos;
+      function parse_LiteralParam() {
+        var cacheKey = 'LiteralParam@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -5167,47 +5202,12 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_json();
+        var result1 = parse_JSON();
         var result2 = result1 !== null
           ? (function(j) {
-            return {
-              type: 'literal',
-              value: j
-            }
-          })(result1)
-          : null;
-        if (result2 !== null) {
-          var result0 = result2;
-        } else {
-          var result0 = null;
-          pos = savedPos0;
-        }
-
-
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
-        return result0;
-      }
-
-      function parse_paramDigits() {
-        var cacheKey = 'paramDigits@' + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
-
-        var savedPos0 = pos;
-        var result1 = parse_digits();
-        var result2 = result1 !== null
-          ? (function(d) {
               return {
-                type: 'literal',
-                value: d
+                  type: 'literal',
+                  value: j
               }
           })(result1)
           : null;
@@ -5227,8 +5227,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_column() {
-        var cacheKey = 'column@' + pos;
+      function parse_ParamDigits() {
+        var cacheKey = 'ParamDigits@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -5237,13 +5237,13 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_JSONPath();
+        var result1 = parse_Digits();
         var result2 = result1 !== null
-          ? (function(p) {
-            return {
-              type: 'column',
-              name: p
-            }
+          ? (function(d) {
+              return {
+                  type: 'literal',
+                  value: d
+              }
           })(result1)
           : null;
         if (result2 !== null) {
@@ -5262,8 +5262,43 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_fieldName() {
-        var cacheKey = 'fieldName@' + pos;
+      function parse_Column() {
+        var cacheKey = 'Column@' + pos;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = cachedResult.nextPos;
+          return cachedResult.result;
+        }
+
+
+        var savedPos0 = pos;
+        var result1 = parse_JSONPath();
+        var result2 = result1 !== null
+          ? (function(p) {
+              return {
+                  type: 'column',
+                  name: p
+              }
+          })(result1)
+          : null;
+        if (result2 !== null) {
+          var result0 = result2;
+        } else {
+          var result0 = null;
+          pos = savedPos0;
+        }
+
+
+
+        cache[cacheKey] = {
+          nextPos: pos,
+          result:  result0
+        };
+        return result0;
+      }
+
+      function parse_FieldName() {
+        var cacheKey = 'FieldName@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -5273,7 +5308,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_selector();
+        var result3 = parse_Selector();
         if (result3 !== null) {
           var result4 = [];
           var savedPos2 = pos;
@@ -5287,7 +5322,7 @@ module.exports = (function(){
             }
           }
           if (result6 !== null) {
-            var result7 = parse_selector();
+            var result7 = parse_Selector();
             if (result7 !== null) {
               var result5 = [result6, result7];
             } else {
@@ -5311,7 +5346,7 @@ module.exports = (function(){
               }
             }
             if (result6 !== null) {
-              var result7 = parse_selector();
+              var result7 = parse_Selector();
               if (result7 !== null) {
                 var result5 = [result6, result7];
               } else {
@@ -5335,7 +5370,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(chars) {
-            return append(chars);
+              return append(chars);
           })(result1)
           : null;
         if (result2 !== null) {
@@ -5354,8 +5389,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_selector() {
-        var cacheKey = 'selector@' + pos;
+      function parse_Selector() {
+        var cacheKey = 'Selector@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -5363,155 +5398,27 @@ module.exports = (function(){
         }
 
 
-        var savedPos0 = pos;
-        var result3 = parse_word();
-        if (result3 !== null) {
-          var result4 = [];
-          var savedPos1 = pos;
-          if (input.substr(pos, 1) === "[") {
-            var result6 = "[";
-            pos += 1;
-          } else {
-            var result6 = null;
-            if (reportMatchFailures) {
-              matchFailed("\"[\"");
-            }
-          }
-          if (result6 !== null) {
-            var result12 = parse_digits();
-            if (result12 !== null) {
-              var result7 = result12;
-            } else {
-              var result11 = parse_quotedWordVal();
-              if (result11 !== null) {
-                var result7 = result11;
-              } else {
-                if (input.substr(pos, 1) === "*") {
-                  var result10 = "*";
-                  pos += 1;
-                } else {
-                  var result10 = null;
-                  if (reportMatchFailures) {
-                    matchFailed("\"*\"");
-                  }
-                }
-                if (result10 !== null) {
-                  var result7 = result10;
-                } else {
-                  var result9 = parse_JSONPath();
-                  if (result9 !== null) {
-                    var result7 = result9;
-                  } else {
-                    var result7 = null;;
-                  };
-                };
-              };
-            }
-            if (result7 !== null) {
-              if (input.substr(pos, 1) === "]") {
-                var result8 = "]";
-                pos += 1;
-              } else {
-                var result8 = null;
-                if (reportMatchFailures) {
-                  matchFailed("\"]\"");
-                }
-              }
-              if (result8 !== null) {
-                var result5 = [result6, result7, result8];
-              } else {
-                var result5 = null;
-                pos = savedPos1;
-              }
-            } else {
-              var result5 = null;
-              pos = savedPos1;
-            }
-          } else {
-            var result5 = null;
-            pos = savedPos1;
-          }
-          while (result5 !== null) {
-            result4.push(result5);
-            var savedPos1 = pos;
-            if (input.substr(pos, 1) === "[") {
-              var result6 = "[";
-              pos += 1;
-            } else {
-              var result6 = null;
-              if (reportMatchFailures) {
-                matchFailed("\"[\"");
-              }
-            }
-            if (result6 !== null) {
-              var result12 = parse_digits();
-              if (result12 !== null) {
-                var result7 = result12;
-              } else {
-                var result11 = parse_quotedWordVal();
-                if (result11 !== null) {
-                  var result7 = result11;
-                } else {
-                  if (input.substr(pos, 1) === "*") {
-                    var result10 = "*";
-                    pos += 1;
-                  } else {
-                    var result10 = null;
-                    if (reportMatchFailures) {
-                      matchFailed("\"*\"");
-                    }
-                  }
-                  if (result10 !== null) {
-                    var result7 = result10;
-                  } else {
-                    var result9 = parse_JSONPath();
-                    if (result9 !== null) {
-                      var result7 = result9;
-                    } else {
-                      var result7 = null;;
-                    };
-                  };
-                };
-              }
-              if (result7 !== null) {
-                if (input.substr(pos, 1) === "]") {
-                  var result8 = "]";
-                  pos += 1;
-                } else {
-                  var result8 = null;
-                  if (reportMatchFailures) {
-                    matchFailed("\"]\"");
-                  }
-                }
-                if (result8 !== null) {
-                  var result5 = [result6, result7, result8];
-                } else {
-                  var result5 = null;
-                  pos = savedPos1;
-                }
-              } else {
-                var result5 = null;
-                pos = savedPos1;
-              }
-            } else {
-              var result5 = null;
-              pos = savedPos1;
-            }
-          }
-          if (result4 !== null) {
-            var result2 = [result3, result4];
-          } else {
-            var result2 = null;
-            pos = savedPos0;
-          }
+        if (input.substr(pos, 2) === "..") {
+          var result2 = "..";
+          pos += 2;
         } else {
           var result2 = null;
-          pos = savedPos0;
+          if (reportMatchFailures) {
+            matchFailed("\"..\"");
+          }
         }
         if (result2 !== null) {
           var result0 = result2;
         } else {
-          var result1 = parse_word();
+          if (input.substr(pos, 1) === ".") {
+            var result1 = ".";
+            pos += 1;
+          } else {
+            var result1 = null;
+            if (reportMatchFailures) {
+              matchFailed("\".\"");
+            }
+          }
           if (result1 !== null) {
             var result0 = result1;
           } else {
@@ -5528,8 +5435,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_comma() {
-        var cacheKey = 'comma@' + pos;
+      function parse_Comma() {
+        var cacheKey = 'Comma@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -5556,8 +5463,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_identifier() {
-        var cacheKey = 'identifier@' + pos;
+      function parse_Name() {
+        var cacheKey = 'Name@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -5567,7 +5474,7 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_word();
+        var result3 = parse_Word();
         if (result3 !== null) {
           var result4 = [];
           var savedPos2 = pos;
@@ -5581,7 +5488,7 @@ module.exports = (function(){
             }
           }
           if (result6 !== null) {
-            var result7 = parse_word();
+            var result7 = parse_Word();
             if (result7 !== null) {
               var result5 = [result6, result7];
             } else {
@@ -5605,7 +5512,7 @@ module.exports = (function(){
               }
             }
             if (result6 !== null) {
-              var result7 = parse_word();
+              var result7 = parse_Word();
               if (result7 !== null) {
                 var result5 = [result6, result7];
               } else {
@@ -5629,7 +5536,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(obj) {
-            return append(obj);
+              return append(obj);
           })(result1)
           : null;
         if (result2 !== null) {
@@ -5648,8 +5555,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_word() {
-        var cacheKey = 'word@' + pos;
+      function parse_Word() {
+        var cacheKey = 'Word@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -5703,11 +5610,11 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(chars) {
-            var ret = chars[0];
-            for(i = 1; i < chars.length; i++) {
-              ret = ret + chars[i].join('');
-            }
-            return ret;
+              var ret = chars[0];
+              for(i = 1; i < chars.length; i++) {
+                  ret = ret + chars[i].join('');
+              }
+              return ret;
           })(result1)
           : null;
         if (result2 !== null) {
@@ -5726,8 +5633,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_quotedWordVal() {
-        var cacheKey = 'quotedWordVal@' + pos;
+      function parse_QuotedWordVal() {
+        var cacheKey = 'QuotedWordVal@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -5736,10 +5643,10 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_quotedWord();
+        var result1 = parse_QuotedWord();
         var result2 = result1 !== null
           ? (function(q) {
-            return '"' + q.value + '"';
+              return '"' + q.value + '"';
           })(result1)
           : null;
         if (result2 !== null) {
@@ -5758,8 +5665,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_quotedWord() {
-        var cacheKey = 'quotedWord@' + pos;
+      function parse_QuotedWord() {
+        var cacheKey = 'QuotedWord@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -5893,9 +5800,9 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(c) {
-            return {
-              value: c.join('')
-            }
+              return {
+                  value: c.join('')
+              }
           })(result1[1])
           : null;
         if (result2 !== null) {
@@ -6019,9 +5926,9 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(c) {
-            return {
-              value: c.join('')
-            }
+              return {
+                  value: c.join('')
+              }
           })(result1[1])
           : null;
         if (result2 !== null) {
@@ -6040,8 +5947,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_quotedDigits() {
-        var cacheKey = 'quotedDigits@' + pos;
+      function parse_QuotedDigits() {
+        var cacheKey = 'QuotedDigits@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6091,7 +5998,7 @@ module.exports = (function(){
           }
         }
         if (result3 !== null) {
-          var result4 = parse_digits();
+          var result4 = parse_Digits();
           if (result4 !== null) {
             if (input.substr(pos, 1) === "'") {
               var result5 = "'";
@@ -6118,9 +6025,9 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(d) {
-            return {
-              value: d
-            }
+              return {
+                  value: d
+              }
           })(result1[1])
           : null;
         if (result2 !== null) {
@@ -6160,7 +6067,7 @@ module.exports = (function(){
           }
         }
         if (result3 !== null) {
-          var result4 = parse_digits();
+          var result4 = parse_Digits();
           if (result4 !== null) {
             if (input.substr(pos, 1) === "\"") {
               var result5 = "\"";
@@ -6187,9 +6094,9 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(d) {
-            return {
-              value: d
-            }
+              return {
+                  value: d
+              }
           })(result1[1])
           : null;
         if (result2 !== null) {
@@ -6208,8 +6115,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_ret() {
-        var cacheKey = 'ret@' + pos;
+      function parse_Ret() {
+        var cacheKey = 'Ret@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6229,9 +6136,9 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function() {
-            return {
-              line: computeErrorPosition().line
-            }
+              return {
+                  line: computeErrorPosition().line
+              }
           })()
           : null;
         if (result2 !== null) {
@@ -6250,8 +6157,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_return() {
-        var cacheKey = 'return@' + pos;
+      function parse_Return() {
+        var cacheKey = 'Return@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6261,15 +6168,15 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos1 = pos;
-        var result3 = parse_ret();
+        var result3 = parse_Ret();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
-            var result5 = parse_retval();
+            var result5 = parse_RetVal();
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
-                var result11 = parse_route();
+                var result11 = parse_Route();
                 var result7 = result11 !== null ? result11 : '';
                 if (result7 !== null) {
                   var result8 = parse_insig();
@@ -6316,16 +6223,16 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(re, o, r) {
-            var ret = {
-              type: 'return',
-              line: re.line,
-              id: id,
-              rhs: o
-            };
-            if(r) {
-              ret.route = r;
-            }
-            return ret;
+              var ret = {
+                  type: 'return',
+                  line: re.line,
+                  id: id,
+                  rhs: o
+              };
+              if(r) {
+                  ret.route = r;
+              }
+              return ret;
           })(result1[0], result1[2], result1[4])
           : null;
         if (result2 !== null) {
@@ -6344,8 +6251,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_retval() {
-        var cacheKey = 'retval@' + pos;
+      function parse_RetVal() {
+        var cacheKey = 'RetVal@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6353,19 +6260,19 @@ module.exports = (function(){
         }
 
 
-        var result4 = parse_statement();
+        var result4 = parse_Statement();
         if (result4 !== null) {
           var result0 = result4;
         } else {
-          var result3 = parse_callUdf();
+          var result3 = parse_CallUdf();
           if (result3 !== null) {
             var result0 = result3;
           } else {
-            var result2 = parse_retref();
+            var result2 = parse_RetRef();
             if (result2 !== null) {
               var result0 = result2;
             } else {
-              var result1 = parse_value();
+              var result1 = parse_Value();
               if (result1 !== null) {
                 var result0 = result1;
               } else {
@@ -6384,8 +6291,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_retref() {
-        var cacheKey = 'retref@' + pos;
+      function parse_RetRef() {
+        var cacheKey = 'RetRef@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6394,15 +6301,15 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_word();
+        var result1 = parse_Word();
         var result2 = result1 !== null
           ? (function(o) {
-            if(symbols[o] === undefined) {
-              throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Unresolved symbol '" + o + "'");
-            }
-            return {
-              ref: o
-            }
+              if(symbols[o] === undefined) {
+                  throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Unresolved symbol '" + o + "'");
+              }
+              return {
+                  ref: o
+              }
           })(result1)
           : null;
         if (result2 !== null) {
@@ -6421,8 +6328,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_route() {
-        var cacheKey = 'route@' + pos;
+      function parse_Route() {
+        var cacheKey = 'Route@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6456,7 +6363,7 @@ module.exports = (function(){
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
-                var result7 = parse_quotedWord();
+                var result7 = parse_QuotedWord();
                 if (result7 !== null) {
                   var result8 = parse_insig();
                   if (result8 !== null) {
@@ -6553,7 +6460,7 @@ module.exports = (function(){
                             if (result13 !== null) {
                               var result14 = parse_insig();
                               if (result14 !== null) {
-                                var result16 = parse_usingHeaders();
+                                var result16 = parse_UsingHeaders();
                                 var result15 = result16 !== null ? result16 : '';
                                 if (result15 !== null) {
                                   var result1 = [result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15];
@@ -6611,11 +6518,11 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(p, m, h) {
-            return {
-              path: p,
-              method: m,
-              headers: h || {}
-            }
+              return {
+                  path: p,
+                  method: m,
+                  headers: h || {}
+              }
           })(result1[4], result1[10], result1[12])
           : null;
         if (result2 !== null) {
@@ -6634,8 +6541,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_json() {
-        var cacheKey = 'json@' + pos;
+      function parse_JSON() {
+        var cacheKey = 'JSON@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6643,31 +6550,31 @@ module.exports = (function(){
         }
 
 
-        var result7 = parse_object();
+        var result7 = parse_Object();
         if (result7 !== null) {
           var result0 = result7;
         } else {
-          var result6 = parse_stringval();
+          var result6 = parse_StringVal();
           if (result6 !== null) {
             var result0 = result6;
           } else {
-            var result5 = parse_numberval();
+            var result5 = parse_NumberVal();
             if (result5 !== null) {
               var result0 = result5;
             } else {
-              var result4 = parse_arrayval();
+              var result4 = parse_ArrayVal();
               if (result4 !== null) {
                 var result0 = result4;
               } else {
-                var result3 = parse_trueval();
+                var result3 = parse_TrueVal();
                 if (result3 !== null) {
                   var result0 = result3;
                 } else {
-                  var result2 = parse_falseval();
+                  var result2 = parse_FalseVal();
                   if (result2 !== null) {
                     var result0 = result2;
                   } else {
-                    var result1 = parse_nullval();
+                    var result1 = parse_NullVal();
                     if (result1 !== null) {
                       var result0 = result1;
                     } else {
@@ -6689,8 +6596,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_value() {
-        var cacheKey = 'value@' + pos;
+      function parse_Value() {
+        var cacheKey = 'Value@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6699,14 +6606,14 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_json();
+        var result1 = parse_JSON();
         var result2 = result1 !== null
           ? (function(v) {
-            return {
-              object: v,
-              type: 'define',
-              line: computeErrorPosition().line
-            }
+              return {
+                  object: v,
+                  type: 'define',
+                  line: computeErrorPosition().line
+              }
           })(result1)
           : null;
         if (result2 !== null) {
@@ -6725,8 +6632,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_stringval() {
-        var cacheKey = 'stringval@' + pos;
+      function parse_StringVal() {
+        var cacheKey = 'StringVal@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6738,8 +6645,8 @@ module.exports = (function(){
         var result1 = parse_StringLiteral();
         var result2 = result1 !== null
           ? (function(s) {
-            var s = append(s);
-            return s.substr(1, s.length - 2);
+              var s = append(s);
+              return s.substr(1, s.length - 2);
           })(result1)
           : null;
         if (result2 !== null) {
@@ -6758,8 +6665,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_numberval() {
-        var cacheKey = 'numberval@' + pos;
+      function parse_NumberVal() {
+        var cacheKey = 'NumberVal@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6768,10 +6675,10 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_number();
+        var result1 = parse_Number();
         var result2 = result1 !== null
           ? (function(n) {
-            return parseFloat(append(n));
+              return parseFloat(append(n));
           })(result1)
           : null;
         if (result2 !== null) {
@@ -6790,8 +6697,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_arrayval() {
-        var cacheKey = 'arrayval@' + pos;
+      function parse_ArrayVal() {
+        var cacheKey = 'ArrayVal@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6800,10 +6707,10 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_array();
+        var result1 = parse_Array();
         var result2 = result1 !== null
           ? (function(n) {
-            return JSON.parse(append(n));
+              return JSON.parse(append(n));
           })(result1)
           : null;
         if (result2 !== null) {
@@ -6822,8 +6729,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_trueval() {
-        var cacheKey = 'trueval@' + pos;
+      function parse_TrueVal() {
+        var cacheKey = 'TrueVal@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6832,10 +6739,10 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_true();
+        var result1 = parse_True();
         var result2 = result1 !== null
           ? (function(t) {
-            return JSON.parse(t);
+              return JSON.parse(t);
           })(result1)
           : null;
         if (result2 !== null) {
@@ -6854,8 +6761,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_falseval() {
-        var cacheKey = 'falseval@' + pos;
+      function parse_FalseVal() {
+        var cacheKey = 'FalseVal@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6864,10 +6771,10 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_false();
+        var result1 = parse_False();
         var result2 = result1 !== null
           ? (function(f) {
-            return JSON.parse(f);
+              return JSON.parse(f);
           })(result1)
           : null;
         if (result2 !== null) {
@@ -6886,8 +6793,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_nullval() {
-        var cacheKey = 'nullval@' + pos;
+      function parse_NullVal() {
+        var cacheKey = 'NullVal@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6896,10 +6803,10 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_null();
+        var result1 = parse_Null();
         var result2 = result1 !== null
           ? (function(n) {
-            return null;
+              return null;
           })(result1)
           : null;
         if (result2 !== null) {
@@ -6918,8 +6825,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_object() {
-        var cacheKey = 'object@' + pos;
+      function parse_Object() {
+        var cacheKey = 'Object@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6928,11 +6835,11 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result1 = parse_struct();
+        var result1 = parse_Struct();
         var result2 = result1 !== null
           ? (function(o) {
-           var str = append(o);
-           return JSON.parse(str);
+              var str = append(o);
+              return JSON.parse(str);
           })(result1)
           : null;
         if (result2 !== null) {
@@ -6951,8 +6858,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_struct() {
-        var cacheKey = 'struct@' + pos;
+      function parse_Struct() {
+        var cacheKey = 'Struct@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -6975,7 +6882,7 @@ module.exports = (function(){
           if (result2 !== null) {
             var result3 = parse_insig();
             if (result3 !== null) {
-              var result8 = parse_members();
+              var result8 = parse_Members();
               var result4 = result8 !== null ? result8 : '';
               if (result4 !== null) {
                 var result5 = parse_insig();
@@ -7031,8 +6938,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_members() {
-        var cacheKey = 'members@' + pos;
+      function parse_Members() {
+        var cacheKey = 'Members@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -7041,15 +6948,15 @@ module.exports = (function(){
 
 
         var savedPos1 = pos;
-        var result6 = parse_pair();
+        var result6 = parse_Pair();
         if (result6 !== null) {
           var result7 = parse_insig();
           if (result7 !== null) {
-            var result8 = parse_comma();
+            var result8 = parse_Comma();
             if (result8 !== null) {
               var result9 = parse_insig();
               if (result9 !== null) {
-                var result10 = parse_members();
+                var result10 = parse_Members();
                 if (result10 !== null) {
                   var result5 = [result6, result7, result8, result9, result10];
                 } else {
@@ -7078,7 +6985,7 @@ module.exports = (function(){
           var savedPos0 = pos;
           var result2 = parse_insig();
           if (result2 !== null) {
-            var result3 = parse_pair();
+            var result3 = parse_Pair();
             if (result3 !== null) {
               var result4 = parse_insig();
               if (result4 !== null) {
@@ -7111,8 +7018,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_pair() {
-        var cacheKey = 'pair@' + pos;
+      function parse_Pair() {
+        var cacheKey = 'Pair@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -7139,7 +7046,7 @@ module.exports = (function(){
               if (result4 !== null) {
                 var result5 = parse_insig();
                 if (result5 !== null) {
-                  var result6 = parse_value();
+                  var result6 = parse_Value();
                   if (result6 !== null) {
                     var result7 = parse_insig();
                     if (result7 !== null) {
@@ -7182,8 +7089,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_array() {
-        var cacheKey = 'array@' + pos;
+      function parse_Array() {
+        var cacheKey = 'Array@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -7204,7 +7111,7 @@ module.exports = (function(){
         if (result1 !== null) {
           var result2 = parse_insig();
           if (result2 !== null) {
-            var result6 = parse_elements();
+            var result6 = parse_Elements();
             var result3 = result6 !== null ? result6 : '';
             if (result3 !== null) {
               var result4 = parse_insig();
@@ -7250,8 +7157,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_elements() {
-        var cacheKey = 'elements@' + pos;
+      function parse_Elements() {
+        var cacheKey = 'Elements@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -7260,15 +7167,15 @@ module.exports = (function(){
 
 
         var savedPos0 = pos;
-        var result3 = parse_value();
+        var result3 = parse_Value();
         if (result3 !== null) {
           var result4 = parse_insig();
           if (result4 !== null) {
-            var result5 = parse_comma();
+            var result5 = parse_Comma();
             if (result5 !== null) {
               var result6 = parse_insig();
               if (result6 !== null) {
-                var result7 = parse_elements();
+                var result7 = parse_Elements();
                 if (result7 !== null) {
                   var result2 = [result3, result4, result5, result6, result7];
                 } else {
@@ -7294,7 +7201,7 @@ module.exports = (function(){
         if (result2 !== null) {
           var result0 = result2;
         } else {
-          var result1 = parse_value();
+          var result1 = parse_Value();
           if (result1 !== null) {
             var result0 = result1;
           } else {
@@ -7311,8 +7218,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_number() {
-        var cacheKey = 'number@' + pos;
+      function parse_Number() {
+        var cacheKey = 'Number@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -7322,11 +7229,11 @@ module.exports = (function(){
 
         var savedPos0 = pos;
         var savedPos3 = pos;
-        var result11 = parse_int();
+        var result11 = parse_Int();
         if (result11 !== null) {
-          var result12 = parse_frac();
+          var result12 = parse_Frac();
           if (result12 !== null) {
-            var result13 = parse_exp();
+            var result13 = parse_Exp();
             if (result13 !== null) {
               var result10 = [result11, result12, result13];
             } else {
@@ -7345,9 +7252,9 @@ module.exports = (function(){
           var result1 = result10;
         } else {
           var savedPos2 = pos;
-          var result8 = parse_int();
+          var result8 = parse_Int();
           if (result8 !== null) {
-            var result9 = parse_frac();
+            var result9 = parse_Frac();
             if (result9 !== null) {
               var result7 = [result8, result9];
             } else {
@@ -7362,9 +7269,9 @@ module.exports = (function(){
             var result1 = result7;
           } else {
             var savedPos1 = pos;
-            var result5 = parse_int();
+            var result5 = parse_Int();
             if (result5 !== null) {
-              var result6 = parse_exp();
+              var result6 = parse_Exp();
               if (result6 !== null) {
                 var result4 = [result5, result6];
               } else {
@@ -7378,7 +7285,7 @@ module.exports = (function(){
             if (result4 !== null) {
               var result1 = result4;
             } else {
-              var result3 = parse_int();
+              var result3 = parse_Int();
               if (result3 !== null) {
                 var result1 = result3;
               } else {
@@ -7389,7 +7296,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(c) {
-            return append(c);
+              return append(c);
           })(result1)
           : null;
         if (result2 !== null) {
@@ -7408,8 +7315,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_int() {
-        var cacheKey = 'int@' + pos;
+      function parse_Int() {
+        var cacheKey = 'Int@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -7429,7 +7336,7 @@ module.exports = (function(){
         }
         var result5 = result7 !== null ? result7 : '';
         if (result5 !== null) {
-          var result6 = parse_digits();
+          var result6 = parse_Digits();
           if (result6 !== null) {
             var result4 = [result5, result6];
           } else {
@@ -7454,7 +7361,7 @@ module.exports = (function(){
             }
           }
           if (result2 !== null) {
-            var result3 = parse_digits();
+            var result3 = parse_Digits();
             if (result3 !== null) {
               var result1 = [result2, result3];
             } else {
@@ -7481,8 +7388,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_frac() {
-        var cacheKey = 'frac@' + pos;
+      function parse_Frac() {
+        var cacheKey = 'Frac@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -7501,7 +7408,7 @@ module.exports = (function(){
           }
         }
         if (result1 !== null) {
-          var result3 = parse_digits();
+          var result3 = parse_Digits();
           var result2 = result3 !== null ? result3 : '';
           if (result2 !== null) {
             var result0 = [result1, result2];
@@ -7523,8 +7430,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_exp() {
-        var cacheKey = 'exp@' + pos;
+      function parse_Exp() {
+        var cacheKey = 'Exp@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -7535,7 +7442,7 @@ module.exports = (function(){
         var savedPos0 = pos;
         var result1 = parse_e();
         if (result1 !== null) {
-          var result3 = parse_int();
+          var result3 = parse_Int();
           var result2 = result3 !== null ? result3 : '';
           if (result2 !== null) {
             var result0 = [result1, result2];
@@ -7655,8 +7562,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_digits() {
-        var cacheKey = 'digits@' + pos;
+      function parse_Digits() {
+        var cacheKey = 'Digits@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -7693,7 +7600,7 @@ module.exports = (function(){
         }
         var result2 = result1 !== null
           ? (function(d) {
-            return parseInt(append(d));
+              return parseInt(append(d));
           })(result1)
           : null;
         if (result2 !== null) {
@@ -7712,8 +7619,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_true() {
-        var cacheKey = 'true@' + pos;
+      function parse_True() {
+        var cacheKey = 'True@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -7740,8 +7647,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_false() {
-        var cacheKey = 'false@' + pos;
+      function parse_False() {
+        var cacheKey = 'False@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -7768,8 +7675,8 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_null() {
-        var cacheKey = 'null@' + pos;
+      function parse_Null() {
+        var cacheKey = 'Null@' + pos;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = cachedResult.nextPos;
@@ -8569,52 +8476,6 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_Selector() {
-        var cacheKey = 'Selector@' + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
-
-        if (input.substr(pos, 2) === "..") {
-          var result2 = "..";
-          pos += 2;
-        } else {
-          var result2 = null;
-          if (reportMatchFailures) {
-            matchFailed("\"..\"");
-          }
-        }
-        if (result2 !== null) {
-          var result0 = result2;
-        } else {
-          if (input.substr(pos, 1) === ".") {
-            var result1 = ".";
-            pos += 1;
-          } else {
-            var result1 = null;
-            if (reportMatchFailures) {
-              matchFailed("\".\"");
-            }
-          }
-          if (result1 !== null) {
-            var result0 = result1;
-          } else {
-            var result0 = null;;
-          };
-        }
-
-
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
-        return result0;
-      }
-
       function parse_PositiveNumber() {
         var cacheKey = 'PositiveNumber@' + pos;
         var cachedResult = cache[cacheKey];
@@ -9021,577 +8882,729 @@ module.exports = (function(){
 
 
 
-    // Utils to establish the right semantic model
+        // Utils to establish the right semantic model
 
-    function typeOf(value) {
+        function typeOf(value) {
 
-      var s = typeof value;
+            var s = typeof value;
 
-      if(s === 'object') {
+            if(s === 'object') {
 
-        if(value) {
+                if(value) {
 
-          if(typeof value.length === 'number' &&
+                    if(typeof value.length === 'number' &&
 
-            !(value.propertyIsEnumerable('length')) &&
+                       !(value.propertyIsEnumerable('length')) &&
 
-            typeof value.splice === 'function') {
+                       typeof value.splice === 'function') {
 
-            s = 'array';
+                        s = 'array';
 
-          }
+                    }
 
-        }
+                }
 
-        else {
+                else {
 
-          s = 'null';
+                    s = 'null';
 
-        }
+                }
 
-      }
+            }
 
-      return s;
-
-    }
-
-    function append(arr) {
-
-      var str = '';
-
-      if(typeOf(arr) === 'array') {
-
-        for(var i = 0; i < arr.length; i++) {
-
-           if(typeOf(arr[i]) == 'array') {
-
-             str += append(arr[i]);
-
-           }
-
-           else if (typeof arr[i] === 'object') {
-
-             str += JSON.stringify(arr[i].object);
-
-           }
-
-           else {
-
-             str += arr[i];
-
-           }
+            return s;
 
         }
 
-      }
-
-      else {
-
-        str = str + arr;
-
-      }
-
-      return str;
-
-    }
-
-    function merge(arr) {
-
-      var i, ret = {};
-
-      for(i = 0; i < arr.length; i++) {
-
-        for(p in arr[i]) {
-
-          ret[p] = arr[i][p];
-
-        }
-
-      }
-
-      return ret;
-
-    }
 
 
+        function append(arr) {
 
-    function collect(arr, separator, ret, f) {
+            var str = '';
 
-      for(var i = 0; i < arr.length; i++) {
+            if(typeOf(arr) === 'array') {
 
-        if(typeOf(arr[i]) == 'array') {
+                for(var i = 0; i < arr.length; i++) {
 
-          collect(arr[i], separator, ret, f);
+                    if(typeOf(arr[i]) == 'array') {
 
-        }
+                        str += append(arr[i]);
 
-        else if(arr[i] != "" && arr[i] != separator) {
+                    }
 
-          if(f && arr[i][f]) {
+                    else if (typeof arr[i] === 'object') {
 
-            ret.push(arr[i][f]);
+                        str += JSON.stringify(arr[i].object);
 
-          }
+                    }
 
-          else {
+                    else {
 
-            ret.push(arr[i]);
+                        str += arr[i];
 
-          }
+                    }
+
+                }
+
+            }
+
+            else {
+
+                str = str + arr;
+
+            }
+
+            return str;
 
         }
 
-      }
-
-    }
 
 
+        function merge(arr) {
 
-    function indexOf(names, name) {
+            var i, ret = {};
 
-      for(var i = 0; i < names.length; i++) {
+            for(i = 0; i < arr.length; i++) {
 
-        if(names[i].name === name) {
+                for(p in arr[i]) {
 
-          return i;
+                    ret[p] = arr[i][p];
+
+                }
+
+            }
+
+            return ret;
 
         }
 
-      }
 
-      return -1;
 
-    }
+        function collect(arr, separator, ret, f) {
 
+            for(var i = 0; i < arr.length; i++) {
 
+                if(typeOf(arr[i]) == 'array') {
 
-    function splitJoins(statement, cb) {
+                    collect(arr[i], separator, ret, f);
 
-      var main = statement, join, i, cond, column, sel;
+                }
 
-      if(statement.fromClause.length === 1) {
+                else if(arr[i] != "" && arr[i] != separator) {
 
-          return main;
+                    if(f && arr[i][f]) {
 
-      }
+                        ret.push(arr[i][f]);
 
+                    }
 
+                    else {
 
-      if(statement.fromClause.length > 2) {
+                        ret.push(arr[i]);
 
-        throw new this.SyntaxError("Line: " + statement.line + ": Statement must have no more than two tables in the from clause");
+                    }
 
-      }
+                }
 
+            }
 
+        }
 
-      main = {
 
-          type: 'select',
 
-          line: statement.line,
+        function indexOf(names, name) {
 
-          columns: [],
+            for(var i = 0; i < names.length; i++) {
 
-          selected: [],
+                if(names[i].name === name) {
 
-          extras: [], // used only during selection
+                    return i;
 
-          whereCriteria: []
+                }
 
-      };
+            }
 
-      join = {
+            return -1;
 
-          type: 'select',
+        }
 
-          line: statement.line,
 
-          columns: [],
 
-          extras: [], // used only during selection
+        // Split join statements in to main and a joiner. The main statement is the independent
 
-          whereCriteria: []
+        // and the joiner depends on the outcome of the main statement. In this process, we split
 
-      };
+        // the columns in the columns clause across the main and joiner, and merge them at runtime
 
-      main.fromClause = [statement.fromClause[0]];
+        // using the 'selected' array below.
 
-      join.fromClause = [statement.fromClause[1]];
+        function splitJoins(statement, cb) {
 
-      //  Split relevant columns into main and joiner
+            var main = statement, join, i, cond, column, sel;
 
-      for(i = 0; i < statement.columns.length; i++) {
 
-          column = statement.columns[i];
 
-          if(column.operator === 'udf') {
+            // No need to split since there is no join.
 
+            if(statement.fromClause.length === 1) {
 
+                return main;
 
-          }
+            }
 
-          else if(column.name.indexOf(main.fromClause[0].alias + '.') === 0) {
 
-              // Keep it in main
 
-              if(indexOf(main.columns, column.name) < 0) {
+            // Can't deal with joins between more than two tables.
 
-                  main.columns.push(column);
+            if(statement.fromClause.length > 2) {
 
-                  sel = {from: 'main'};
+                throw new this.SyntaxError("Line: " + statement.line + ": Statement must have no more than two tables in the from clause");
 
-                  if(column.alias) {
+            }
 
-                      sel.name = column.alias;
 
-                  }
 
-                  else {
+            // Initialize the main statement.
 
-                      sel.index = main.columns.length - 1;
+            main = {
 
-                  }
+                type: 'select',
 
-                  main.selected.push(sel);
+                line: statement.line,
 
-              }
+                columns: [],
 
-          }
+                selected: [], // These are the columns to be picked up at the end
 
-          else {
+                extras: [], // Used only during selection discared laer.
 
-              // Keep it in join
+                whereCriteria: []
 
-              if(indexOf(join.columns, column.name) < 0) {
+            };
 
-                  join.columns.push(column);
 
-                  sel = {from: 'joiner'};
 
-                  if(column.alias) {
+            if(statement.extras) {
 
-                      sel.name = column.alias;
+                // These are extra columns included the columns array - contain UDF args not already
 
-                  }
+                // listed in the columns clause
 
-                  else {
+                main.udfExtras = statement.extras;
 
-                      sel.index = join.columns.length - 1;
+            }
 
-                  }
 
-                  main.selected.push(sel);
 
-              }
+            // Initialize the joiner
 
-          }
+            join = {
 
-      }
+                type: 'select',
 
-      if(!statement.whereCriteria) {
+                line: statement.line,
 
-          throw new this.SyntaxError("Line " + statement.line + ": Missing join condition in statement ");
+                columns: [],
 
-      }
+                extras: [], // used only during selection
 
-      if(statement.whereCriteria) {
+                whereCriteria: []
 
-          for(i = 0; i < statement.whereCriteria.length; i++) {
+            };
 
-              cond = statement.whereCriteria[i];
 
-              if(cond.operator === 'udf') {
 
-                  main.whereCriteria.push(cond);
+            main.fromClause = [statement.fromClause[0]];
 
-              }
+            join.fromClause = [statement.fromClause[1]];
 
-              else if(cond.rhs.type && cond.rhs.type === 'alias') {
 
-                  // This is the join condition
 
-                  var index = cond.rhs.value.indexOf(main.fromClause[0].alias + '.');
+            //  Split relevant columns into main and joiner
 
-                  if(index === 0) {
+            for(i = 0; i < statement.columns.length; i++) {
 
-                      // Include only once
+                column = statement.columns[i];
 
-                      if(indexOf(main.columns, cond.rhs.value) < 0) {
+                if(column.operator === 'udf') {
 
-                          var index = cond.rhs.value.indexOf(main.fromClause[0].alias + '.');
+                    // Nothing to do
 
-                          main.columns.push({
+                }
 
-                              name: cond.rhs.value,
+                else if(column.name.indexOf(main.fromClause[0].alias + '.') === 0) {
 
-                              type: 'column'
+                    // Keep it in main
 
-                          })
+                    if(indexOf(main.columns, column.name) < 0) {
 
-                          if(statement.usingColumnAliases) {
+                        main.columns.push(column);
 
-                              main.columns[main.columns.length - 1].alias = cond.rhs.alias ||
+                        sel = {from: 'main'};
 
-                                            cond.rhs.value.substr(index + main.fromClause[0].alias.length + 1);
+                        if(column.alias) {
 
-                          }
+                            sel.name = column.alias;
 
-                          main.extras.push(main.columns.length -1);
+                        }
 
-                      }
+                        else {
 
-                      if(indexOf(join.columns, cond.lhs.name) < 0) {
+                            sel.index = main.columns.length - 1;
 
-                          var index = cond.rhs.value.indexOf(join.fromClause[0].alias + '.');
+                        }
 
-                          join.columns.push({
+                        if(column.for) sel.for = column.for;
 
-                              name: cond.lhs.name,
+                        main.selected.push(sel);
 
-                              type: 'column'
+                    }
 
-                          });
+                }
 
-                          if(statement.usingColumnAliases) {
+                else {
 
-                              join.columns[join.columns.length - 1].alias = cond.lhs.alias ||
+                    // Keep it in join
 
-                                                 cond.lhs.name.substr(index + join.fromClause[0].alias.length + 1)
+                    if(indexOf(join.columns, column.name) < 0) {
 
-                          }
+                        join.columns.push(column);
 
-                          join.extras.push(join.columns.length - 1);
+                        sel = {from: 'joiner'};
 
-                      }
+                        if(column.alias) {
 
-                  }
+                            sel.name = column.alias;
 
-                  else {
+                        }
 
-                      // Include only once
+                        else {
 
-                      if(indexOf(join.columns, cond.rhs.value) < 0) {
+                            sel.index = join.columns.length - 1;
 
-                          var index = cond.rhs.value.indexOf(join.fromClause[0].alias + '.');
+                        }
 
-                          join.columns.push({
+                        if(column.for) sel.for = column.for;
 
-                              name: cond.rhs.value,
+                        main.selected.push(sel);
 
-                              type: 'column'
+                    }
 
-                          })
+                }
 
-                          if(statement.usingColumnAliases) {
+            }
 
-                              join.columns[join.columns.length - 1].alias = cond.rhs.alias ||
 
-                                          cond.rhs.value.substr(index + join.fromClause[0].alias.length + 1)
 
-                          }
+            // We need a where clause for the join
 
-                          join.extras.push(join.columns.length - 1);
+            if(!statement.whereCriteria) {
 
-                      }
+                throw new this.SyntaxError("Line " + statement.line + ": Missing join condition in statement ");
 
-                      if(indexOf(main.columns, cond.lhs.name) < 0) {
+            }
 
-                          var index = cond.lhs.name.indexOf(main.fromClause[0].alias + '.');
 
-                          main.columns.push({
 
-                              name: cond.lhs.name,
+            if(statement.whereCriteria) {
 
-                              type: 'column'
+                for(i = 0; i < statement.whereCriteria.length; i++) {
 
-                          });
+                    cond = statement.whereCriteria[i];
 
-                          if(statement.usingColumnAliases) {
+                    if(cond.operator === 'udf') {
 
-                              main.columns[main.columns.length - 1].alias = cond.lhs.alias ||
+                        main.whereCriteria.push(cond);
 
-                                          cond.lhs.name.substr(index + main.fromClause[0].alias.length + 1)
+                    }
 
-                          }
+                    else if(cond.rhs.type && cond.rhs.type === 'alias') {
 
+                        // This is the join condition
 
+                        var index = cond.rhs.value.indexOf(main.fromClause[0].alias + '.');
 
-                          main.extras.push(main.columns.length -1);
+                        if(index === 0) {
 
-                      }
+                            // Include only once
 
-                  }
+                            if(indexOf(main.columns, cond.rhs.value) < 0) {
 
-                  join.whereCriteria.push(cond);
+                                var index = cond.rhs.value.indexOf(main.fromClause[0].alias + '.');
 
-              }
+                                main.columns.push({
 
-              else {
+                                    name: cond.rhs.value,
 
-                  if(cond.lhs.name.indexOf(main.fromClause[0].alias + '.') === 0) {
+                                    type: 'column'
 
-                      main.whereCriteria.push(cond);
+                                })
 
-                  }
+                                if(statement.usingColumnAliases) {
 
-                  else if(cond.lhs.name.indexOf(join.fromClause[0].alias + '.') === 0) {
+                                    main.columns[main.columns.length - 1].alias = cond.rhs.alias ||
 
-                      join.whereCriteria.push(cond);
+                                              cond.rhs.value.substr(index + main.fromClause[0].alias.length + 1);
 
-                  }
+                                }
 
-              }
+                                main.extras.push(main.columns.length -1);
 
-          }
+                            }
 
-      }
+                            if(indexOf(join.columns, cond.lhs.name) < 0) {
 
+                                var index = cond.rhs.value.indexOf(join.fromClause[0].alias + '.');
 
+                                join.columns.push({
 
-      // TODO: Assertions and warnings
+                                    name: cond.lhs.name,
 
-      if(join.whereCriteria && join.whereCriteria.length > 0) {
+                                    type: 'column'
 
-          if(indexOf(main.columns, join.whereCriteria[0].rhs.value) >= 0) {
+                                });
 
-              join.whereCriteria[0].rhs.joiningColumn = indexOf(main.columns, join.whereCriteria[0].rhs.value);
+                                if(statement.usingColumnAliases) {
 
-          }
+                                    join.columns[join.columns.length - 1].alias = cond.lhs.alias ||
 
-          else {
+                                                   cond.lhs.name.substr(index + join.fromClause[0].alias.length + 1)
 
-              // Flip the condition
+                                }
 
-              var temp = join.whereCriteria[0].rhs.value;
+                                join.extras.push(join.columns.length - 1);
 
-              join.whereCriteria[0].rhs.value = join.whereCriteria[0].lhs.name;
+                            }
 
-              join.whereCriteria[0].lhs = {
+                        }
 
-                  name: temp
+                        else {
 
-              }
+                            // Include only once
 
-              temp = join.whereCriteria[0].rhs.value;
+                            if(indexOf(join.columns, cond.rhs.value) < 0) {
 
-              join.whereCriteria[0].rhs.joiningColumn = indexOf(main.columns, temp);
+                                var index = cond.rhs.value.indexOf(join.fromClause[0].alias + '.');
 
-          }
+                                join.columns.push({
 
-      }
+                                    name: cond.rhs.value,
 
-      main.joiner = join;
+                                    type: 'column'
 
+                                })
 
+                                if(statement.usingColumnAliases) {
 
-      // Reset the joiningColumn to the alias where columns are aliased
+                                    join.columns[join.columns.length - 1].alias = cond.rhs.alias ||
 
-      // The joining column is an index by default.
+                                            cond.rhs.value.substr(index + join.fromClause[0].alias.length + 1)
 
-      var joiningColumn;
+                                }
 
-      if(main.columns[join.whereCriteria[0].rhs.joiningColumn].alias) {
+                                join.extras.push(join.columns.length - 1);
 
-          for(var i = 0; i < main.columns.length; i++) {
+                            }
 
-              if(main.columns[i].name === main.joiner.whereCriteria[0].rhs.value) {
+                            if(indexOf(main.columns, cond.lhs.name) < 0) {
 
-                  joiningColumn = main.columns[i].alias;
+                                var index = cond.lhs.name.indexOf(main.fromClause[0].alias + '.');
 
-                  break;
+                                main.columns.push({
 
-              }
+                                    name: cond.lhs.name,
 
-          }
+                                    type: 'column'
 
-          if(joiningColumn) {
+                                });
 
-              main.joiner.whereCriteria[0].rhs.joiningColumn = joiningColumn;
+                                if(statement.usingColumnAliases) {
 
-          }
+                                    main.columns[main.columns.length - 1].alias = cond.lhs.alias ||
 
-          else {
+                                            cond.lhs.name.substr(index + main.fromClause[0].alias.length + 1)
 
-              throw new this.SyntaxError("Line " + main.line + ": Joining column " + joiningColumn + " could not resolved. File a bug.");
+                                }
 
-          }
 
-      }
 
+                                main.extras.push(main.columns.length -1);
 
+                            }
 
-      // Verify that all columns have prefixes
+                        }
 
-      for(var i = 0; i < main.columns.length; i++) {
+                        join.whereCriteria.push(cond);
 
-          if(!main.columns[i].operator) {
+                    }
 
-              var prefixed = false;
+                    else {
 
-               for(var j = 0; j < main.fromClause.length; j++) {
+                        if(cond.lhs.name.indexOf(main.fromClause[0].alias + '.') === 0) {
 
-                  if(main.columns[i].name.indexOf(main.fromClause[j].alias + '.') === 0) {
+                            main.whereCriteria.push(cond);
 
-                      prefixed = true;
+                        }
 
-                      break;
+                        else if(cond.lhs.name.indexOf(join.fromClause[0].alias + '.') === 0) {
 
-                  }
+                            join.whereCriteria.push(cond);
 
-              }
+                        }
 
-              if(!prefixed) {
+                    }
 
-                  throw new this.SyntaxError("Line " + main.line + ": Column " + main.columns[i].name + " not prefixed or prefix not found");
+                }
 
-              }
+            }
 
-          }
 
-      }
 
-      for(var i = 0; i < join.columns.length; i++) {
+            if(join.whereCriteria && join.whereCriteria.length > 0) {
 
-          if(!join.columns[i].operator) {
+                if(indexOf(main.columns, join.whereCriteria[0].rhs.value) >= 0) {
 
-              var prefixed = false;
+                    join.whereCriteria[0].rhs.joiningColumn = indexOf(main.columns, join.whereCriteria[0].rhs.value);
 
-               for(var j = 0; j < join.fromClause.length; j++) {
+                }
 
-                  if(join.columns[i].name.indexOf(join.fromClause[j].alias + '.') === 0) {
+                else {
 
-                      prefixed = true;
+                    // Flip the condition
 
-                      break;
+                    var temp = join.whereCriteria[0].rhs.value;
 
-                  }
+                    join.whereCriteria[0].rhs.value = join.whereCriteria[0].lhs.name;
 
-              }
+                    join.whereCriteria[0].lhs = {
 
-              if(!prefixed) {
+                        name: temp
 
-                  throw new this.SyntaxError("Line " + main.line + ": Column " + join.columns[i].name + " not prefixed or prefix not found");
+                    }
 
-              }
+                    temp = join.whereCriteria[0].rhs.value;
 
-          }
+                    join.whereCriteria[0].rhs.joiningColumn = indexOf(main.columns, temp);
 
-      }
+                }
 
+            }
 
+            main.joiner = join;
 
-      return main;
 
-    }
 
-    // Symbol table
+            // Reset the joiningColumn to the alias where columns are aliased
 
-    var symbols = {};
+            // The joining column is an index by default.
 
-    var lincr = 0;
+            var joiningColumn;
 
-    var id = 0;
+            if(main.columns[join.whereCriteria[0].rhs.joiningColumn].alias) {
+
+                for(var i = 0; i < main.columns.length; i++) {
+
+                    if(main.columns[i].name === main.joiner.whereCriteria[0].rhs.value) {
+
+                        joiningColumn = main.columns[i].alias;
+
+                        break;
+
+                    }
+
+                }
+
+                if(joiningColumn) {
+
+                    main.joiner.whereCriteria[0].rhs.joiningColumn = joiningColumn;
+
+                }
+
+                else {
+
+                    throw new this.SyntaxError("Line " + main.line + ": Joining column " + joiningColumn + " could not resolved. File a bug.");
+
+                }
+
+            }
+
+
+
+            // Verify that all columns have prefixes
+
+            for(var i = 0; i < main.columns.length; i++) {
+
+                if(!main.columns[i].operator) {
+
+                    var prefixed = false;
+
+                     for(var j = 0; j < main.fromClause.length; j++) {
+
+                        if(main.columns[i].name.indexOf(main.fromClause[j].alias + '.') === 0) {
+
+                            prefixed = true;
+
+                            break;
+
+                        }
+
+                    }
+
+                    if(!prefixed) {
+
+                        throw new this.SyntaxError("Line " + main.line + ": Column " + main.columns[i].name + " not prefixed or prefix not found");
+
+                    }
+
+                }
+
+            }
+
+            for(var i = 0; i < join.columns.length; i++) {
+
+                if(!join.columns[i].operator) {
+
+                    var prefixed = false;
+
+                    for(var j = 0; j < join.fromClause.length; j++) {
+
+                        if(join.columns[i].name.indexOf(join.fromClause[j].alias + '.') === 0) {
+
+                            prefixed = true;
+
+                            break;
+
+                        }
+
+                    }
+
+                    if(!prefixed) {
+
+                        throw new this.SyntaxError("Line " + main.line + ": Column " + join.columns[i].name + " not prefixed or prefix not found");
+
+                    }
+
+                }
+
+            }
+
+
+
+            // Redo the UDF args since the indexes of column type args would be different now
+
+            // The index for each column arg should map to the 'selected' array so that we can pick up
+
+            // values of args from the 'selected' array.
+
+            for(var i = 0; i < main.whereCriteria.length; i++) {
+
+                var where = main.whereCriteria[i];
+
+                if(where.operator === 'udf') {
+
+                    for(var j = 0; j < where.args.length; j++) {
+
+                        if(where.args[j].type === 'column') {
+
+                            // What is the prefix?
+
+                            var index = where.args[j].name.indexOf('.');
+
+                            if(index < 0) {
+
+                                throw new this.SyntaxError("Line " + main.line + ": Arg " + where.args[j].name + " not prefixed");
+
+                            }
+
+                            var prefix = where.args[j].name.substr(0, index);
+
+                            var name = where.args[j].name.substr(index + 1);
+
+                            if(main.fromClause[0].alias === prefix) {
+
+                                // From main - find matching selected[] element where from = main and name = arg.name.
+
+                                for(var selected = 0; selected < main.selected.length; selected++) {
+
+                                    if(main.selected[selected].from === 'main') {
+
+                                        if(main.selected[selected].name && main.selected[selected].name === name) {
+
+                                            where.args[j].index = selected;
+
+                                        }
+
+                                        else if(main.selected[selected].hasOwnProperty('index') &&
+
+                                            main.columns[main.selected[selected].index].name === where.args[j].name) {
+
+                                            where.args[j].index = selected;
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                            else if(main.joiner.fromClause[0].alias === prefix) {
+
+                                // From joiner - find matching selected[] element where from = joiner and name = arg.name.
+
+                                for(var selected = 0; selected < main.selected.length; selected++) {
+
+                                    if(main.selected[selected].from === 'joiner') {
+
+                                        if(main.selected[selected].name && main.selected[selected].name === name) {
+
+                                            where.args[j].index = selected;
+
+                                        }
+
+                                        else if(main.selected[selected].hasOwnProperty('index') &&
+
+                                            join.columns[main.selected[selected].index].name === where.args[j].name) {
+
+                                            where.args[j].index = selected;
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                            else {
+
+                                throw new this.SyntaxError("Line " + main.line + ": Alias of arg " + where.args[j].name + " not found");
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+
+
+            return main;
+
+        }
+
+
+
+        // Symbol table - to check for unreferenced variables
+
+        var symbols = {};
+
+        var lincr = 0;
+
+        var id = 0;
 
 
 
