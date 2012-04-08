@@ -94,8 +94,9 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 _.each(results.body, function(row, index) {
                     // If no matching result is found in more, skip this row
                     var other = more[index];
-                    if((_.isArray(other) && other.length > 0) || (_.isObject(other) && _.keys(other) > 0)) {
-
+                    var loop = _.isArray(other) ? other.length : _.keys(other);
+//                    if((_.isArray(other) && other.length > 0) || (_.isObject(other) && _.keys(other) > 0)) {
+                    for(var l = 0; l < loop; l++) {
                         // Results would be an array when one field is selected.
                         if(!_.isObject(row) && !_.isArray(row)) row = [row];
 
@@ -125,15 +126,15 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                                 val = row[selected.name || selected.index];
                             }
                             else if(selected.from === 'joiner') {
-                                if(other && other[0]) {
-                                    if(other[0][selected.name]) {
-                                        val = other[0][selected.name];
+                                if(other[l]) {
+                                    if(other[l][selected.name]) {
+                                        val = other[l][selected.name];
                                     }
-                                    else if(_.isArray(other[0])) {
+                                    else if(_.isArray(other[l])) {
                                         val = other[0][selected.index];
                                     }
                                     else {
-                                        val = other[0];
+                                        val = other[l];
                                     }
                                 }
                             }
