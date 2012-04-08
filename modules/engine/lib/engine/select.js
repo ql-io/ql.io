@@ -94,8 +94,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 _.each(results.body, function(row, index) {
                     // If no matching result is found in more, skip this row
                     var other = more[index];
-                    var loop = _.isArray(other) ? other.length : _.keys(other);
-//                    if((_.isArray(other) && other.length > 0) || (_.isObject(other) && _.keys(other) > 0)) {
+                    var loop = _.isArray(other) ? other.length : 1;
                     for(var l = 0; l < loop; l++) {
                         // Results would be an array when one field is selected.
                         if(!_.isObject(row) && !_.isArray(row)) row = [row];
@@ -131,7 +130,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                                         val = other[l][selected.name];
                                     }
                                     else if(_.isArray(other[l])) {
-                                        val = other[0][selected.index];
+                                        val = other[l][selected.index];
                                     }
                                     else {
                                         val = other[l];
