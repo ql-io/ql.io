@@ -72,7 +72,7 @@ module.exports = {
                             test.done();
                         }
                         else {
-                            test.equals(list.headers['content-type'], 'application/json', 'HTML expected');
+                            test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
                             test.ok(_.isArray(list.body), 'expected an array');
                             test.equals(2, list.body.length, 'expected 2 items');
                             test.equals(1, count, 'Expected two HTTP requests');

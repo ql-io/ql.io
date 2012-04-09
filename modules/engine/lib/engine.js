@@ -462,7 +462,7 @@ function sweep(opts, parentEvent) {
             if(state.state === eventTypes.STATEMENT_WAITING) {
                 opts.execState[last.id].state = eventTypes.STATEMENT_IN_FLIGHT;
                 execOne(opts, last, function(err, results) {
-                    opts.execState[last.id].state = eventTypes.STATEMENT_SUCCESS;
+                    opts.execState[last.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
                     return opts.cb(err, results);
                 });
             }
@@ -492,16 +492,17 @@ function execOne(opts, statement, cb, parentEvent) {
                 packet.type = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
                 opts.emitter.emit(packet.type, packet);
             }
-            cb(err, results);
+            return cb(err, results);
         }, parentEvent);
     }
     catch(e) {
+        console.log(e.stack || e);
         if(opts.emitter) {
             packet.elapsed = Date.now() - start;
             packet.type = eventTypes.STATEMENT_ERROR;
             opts.emitter.emit(packet.type, packet);
         }
-        cb(e);
+        return cb(e);
     }
 }
 /**
@@ -532,10 +533,16 @@ function _execOne(opts, statement, cb, parentEvent) {
             }
             else if(statement.udf) {
                 var args = [];
-                _.each(statement.args.value, function(arg) {
+                _.each(_.pluck(statement.args, 'value'), function(arg) {
                     args.push(jsonfill.lookup(arg, opts.context));
                 });
-                obj = require('./udfs/standard.js')[statement.udf].apply(null, args);
+                try {
+                    obj = require('./udfs/standard.js')[statement.udf].apply(null, args);
+                }
+                catch(e) {
+                    console.log(e.stack || e);
+                    return cb(e);
+                }
             }
 
             opts.context[statement.assign] = obj;
@@ -615,7 +622,7 @@ function _execOne(opts, statement, cb, parentEvent) {
                 }
                 else if(statement.rhs.udf) {
                     var args = [];
-                    _.each(statement.rhs.args.value, function (arg) {
+                    _.each(_.pluck(statement.rhs.args, 'value'), function(arg) {
                         args.push(jsonfill.lookup(arg, opts.context));
                     });
                     obj = require('./udfs/standard.js')[statement.rhs.udf].apply(null, args);
