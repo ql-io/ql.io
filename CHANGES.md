@@ -1,5 +1,6 @@
 ## Apr 07, 2012
 
+* Fix the issue posted in https://groups.google.com/forum/?fromgroups#!topic/qlio/JaMC1GVP1sA.
 * Add UDFs in where clause to post process rows. You can either tweak or remove a row. See
   https://gist.github.com/2334012 for semantics of UDFs. UDF support for the where clause is
   still a TODO.
