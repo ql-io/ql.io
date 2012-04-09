@@ -1,3 +1,7 @@
+## Apr 08, 2012
+
+* Support null values in Values
+
 ## Apr 07, 2012
 
 * Add UDFs in where clause to post process rows. You can either tweak or remove a row. See
