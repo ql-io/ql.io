@@ -226,7 +226,6 @@ var Console = module.exports = function(config, cb) {
                             route : _.keys(route.query).length > _.keys(match.query).length ? route : match;
                     }, null)
                     .value();
-
                 if (!route) {
                     res.writeHead(400, 'Bad input', {
                         'content-type' : 'application/json'
@@ -243,7 +242,10 @@ var Console = module.exports = function(config, cb) {
                 });
 
                 _.each(route.query, function(queryParam, paramName) {
-                    holder.routeParams[queryParam] = holder.params[paramName].toString();
+                    if (holder.params[paramName])
+                        holder.routeParams[queryParam] = holder.params[paramName].toString();
+                    else
+                        holder.routeParams[queryParam] = null;
                 });
 
                 // collect headers
@@ -579,7 +581,7 @@ var Console = module.exports = function(config, cb) {
     // 404 Handling
     app.use(function(req, res, next) {
         compress(req, res);
-        var msg = 'Cannot ' + req.method + ' ' + sanitize(req.url).xss();
+        var msg = 'Cannot GET ' + sanitize(req.url).xss();
         var accept = (req.headers || {}).accept || '';
         if (accept.search('json') > 0) {
             res.writeHead(404, {
