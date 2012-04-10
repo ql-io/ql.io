@@ -486,5 +486,37 @@ module.exports = {
             });
         });
         req.end();
+    },
+    'check optional query parameter':function (test) {
+        var c = new Console({
+            tables:__dirname + '/tables',
+            routes:__dirname + '/routes/',
+            config:__dirname + '/config/dev.json',
+            'enable console':false,
+            connection:'close'
+        });
+        c.app.listen(3001, function () {
+            var options = {
+                host:'localhost',
+                port:3001,
+                path:'/ebay/shopping/profile?userid=haha',
+                method:'GET'
+            };
+            var req = http.request(options);
+            req.addListener('response', function (resp) {
+                var data = '';
+                resp.addListener('data', function (chunk) {
+                    data += chunk;
+                });
+                resp.addListener('end', function () {
+                    var route = JSON.parse(data);
+                    test.equals(route.Ack, 'Success');
+                    c.app.close();
+                    test.done();
+                });
+            });
+            req.end();
+
+        });
     }
 }

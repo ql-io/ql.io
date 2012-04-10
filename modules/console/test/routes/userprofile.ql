@@ -1,0 +1,2 @@
+userprofile = select * from ebay.shopping.userprofile where includeSelector = '{includeselector}' and userId = '{userid}'
+return userprofile via route '/ebay/shopping/profile?&userid={userid}' using method get
