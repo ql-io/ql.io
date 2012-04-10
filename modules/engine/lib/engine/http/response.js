@@ -79,7 +79,7 @@ exports.exec = function(timings, reqStart, args, uniqueId, res, start, result, o
             if(respJson) {
                 respJson = args.resource.patchResponse(res.statusCode, res.headers, respJson, args);
                 // Projections
-                project.run(args.resource.resultSet, args.statement, respJson, function (filtered) {
+                project.run(args.resource.resultSet, args.statement, respJson, args.context, function (filtered) {
                     return args.httpReqTx.cb(undefined, {
                         headers: {
                             'content-type': 'application/json'

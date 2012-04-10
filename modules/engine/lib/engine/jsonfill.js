@@ -92,7 +92,7 @@ function lookup(key, bag) {
                     }
                 }
                 else {
-                    obj = projectOne(path, resource);
+                    obj = projectOne(path, resource, bag);
                 }
             }
             else {
@@ -103,37 +103,40 @@ function lookup(key, bag) {
             obj = key;
         }
     }
+    else if(bag.hasOwnProperty(key)) {
+        obj = bag[key];
+    }
     return obj;
 }
 
-function projectOne(name, items) {
+function projectOne(name, items, bag) {
     if(_.isArray(items)) {
         var arr = [];
         _.each(items, function(item) {
-            arr.push(projectOne_(name, item));
+            arr.push(projectOne_(name, item, bag));
         })
         return arr;
     }
     else {
-        return  projectOne_(name, items);
+        return projectOne_(name, items, bag);
     }
 }
-function projectOne_(name, item) {
-    var obj = jsonPath.eval(item, name.trim(), {flatten: true, wrap: false});
+function projectOne_(name, item, bag) {
+    var obj = jsonPath.eval(item, name.trim(), {flatten: true, wrap: false, sandbox: bag});
     // JSONPath returns false when there is no match. This leads to 'false' values. Switch to undefined.
     return obj ? obj : undefined;
 }
 
-function project(columns, items) {
+function project(columns, items, bag) {
     var filtered = [], holder;
     if(_.isArray(items)) {
         _.each(items, function(item) {
-            holder = projectEach(item, columns);
+            holder = projectEach(item, columns, bag);
             filtered.push(holder);
         });
     }
     else {
-        holder = projectEach(items, columns);
+        holder = projectEach(items, columns, bag);
         filtered.push(holder);
     }
     return filtered;
@@ -141,14 +144,14 @@ function project(columns, items) {
 
 
 // Given an item, filter it by column names, and attach the projected properties to the holder.
-function projectEach(item, columns) {
+function projectEach(item, columns, bag) {
     // If columns have aliases, each row in the result set will be an object. If not, an array.
     var holder = columns[0].alias ? {} : [], name, flatten, obj;
     _.each(columns, function(column) {
         // Flatten results as the selector may include '..'
         name = column.name.trim();
         flatten = name.indexOf('..') >= 0;
-        obj = jsonPath.eval(item, name, {flatten: flatten});
+        obj = jsonPath.eval(item, name, {flatten: flatten, sandbox: bag});
         if(obj == false) obj = undefined;
         if(obj && _.isArray(obj) && obj.length == 1) {
             obj = obj[0];

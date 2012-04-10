@@ -462,7 +462,7 @@ function sweep(opts, parentEvent) {
             if(state.state === eventTypes.STATEMENT_WAITING) {
                 opts.execState[last.id].state = eventTypes.STATEMENT_IN_FLIGHT;
                 execOne(opts, last, function(err, results) {
-                    opts.execState[last.id].state = eventTypes.STATEMENT_SUCCESS;
+                    opts.execState[last.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
                     return opts.cb(err, results);
                 });
             }
@@ -492,16 +492,17 @@ function execOne(opts, statement, cb, parentEvent) {
                 packet.type = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
                 opts.emitter.emit(packet.type, packet);
             }
-            cb(err, results);
+            return cb(err, results);
         }, parentEvent);
     }
     catch(e) {
+        console.log(e.stack || e);
         if(opts.emitter) {
             packet.elapsed = Date.now() - start;
             packet.type = eventTypes.STATEMENT_ERROR;
             opts.emitter.emit(packet.type, packet);
         }
-        cb(e);
+        return cb(e);
     }
 }
 /**
@@ -513,7 +514,7 @@ function execOne(opts, statement, cb, parentEvent) {
  * @ignore
  */
 function _execOne(opts, statement, cb, parentEvent) {
-    var lhs, obj;
+    var rhs, obj;
     switch(statement.type) {
         case 'create' :
             create.exec(opts, statement, cb, parentEvent);
@@ -527,7 +528,22 @@ function _execOne(opts, statement, cb, parentEvent) {
                     opts.request.connection,
                     {config: opts.config});
 
-            obj = jsonfill.fill(statement.object, params);
+            if(statement.hasOwnProperty('object')) {
+                obj = jsonfill.fill(statement.object, params);
+            }
+            else if(statement.udf) {
+                var args = [];
+                _.each(_.pluck(statement.args, 'value'), function(arg) {
+                    args.push(jsonfill.lookup(arg, opts.context));
+                });
+                try {
+                    obj = require('./udfs/standard.js')[statement.udf].apply(null, args);
+                }
+                catch(e) {
+                    console.log(e.stack || e);
+                    return cb(e);
+                }
+            }
 
             opts.context[statement.assign] = obj;
             opts.emitter.emit(statement.assign, obj)
@@ -588,26 +604,36 @@ function _execOne(opts, statement, cb, parentEvent) {
                 delet.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
             }
             else {
-                lhs = statement.rhs.ref ? opts.context[statement.rhs.ref] : statement.rhs.object;
-                if(_.isNull(lhs)) {
-                    cb('Unresolved reference in return');
+                var params = _util.prepareParams(opts.context,
+                    opts.request.body,
+                    opts.request.routeParams,
+                    opts.request.params,
+                    opts.request.headers,
+                    opts.request.connection,
+                    {config: opts.config});
+                if(statement.rhs.ref) {
+                    obj = opts.context[statement.rhs.ref];
+                    if(_.isNull(obj)) {
+                        cb('Unresolved reference in return');
+                    }
                 }
-                else {
-                    var params = _util.prepareParams(opts.context,
-                            opts.request.body,
-                            opts.request.routeParams,
-                            opts.request.params,
-                            opts.request.headers,
-                            opts.request.connection,
-                            {config: opts.config});
+                if(statement.rhs.hasOwnProperty('object')) {
+                    obj = jsonfill.fill(statement.rhs.object, params);
+                }
+                else if(statement.rhs.udf) {
+                    var args = [];
+                    _.each(_.pluck(statement.rhs.args, 'value'), function(arg) {
+                        args.push(jsonfill.lookup(arg, opts.context));
+                    });
+                    obj = require('./udfs/standard.js')[statement.rhs.udf].apply(null, args);
+                }
 
-                    respHeaders['content-type'] = 'application/json';
-                    var ret = {
-                        body: jsonfill.fill(lhs, params),
-                        headers: respHeaders
-                    };
-                    cb(undefined, ret);
-                }
+                respHeaders['content-type'] = 'application/json';
+                var ret = {
+                    body: obj,
+                    headers: respHeaders
+                };
+                cb(undefined, ret);
             }
     }
 }

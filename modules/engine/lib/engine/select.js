@@ -20,6 +20,8 @@ var filter = require('./filter.js'),
     _util = require('./util.js'),
     where = require('./where.js'),
     project = require('./project.js'),
+    udf = require('./udf.js'),
+    strTemplate = require('./peg/str-template.js'),
     _ = require('underscore'),
     async = require('async'),
     assert = require('assert');
@@ -37,15 +39,20 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         txType: 'QlIoSelect',
         txName: null,
         message: {line: statement.line},
-        cb: cb});
+        cb: cb
+    });
 
+    //
+    // Run select on the main statement first. If there is a joiner, run the joiner after the
+    // main statement completes, and merge the results.
+    //
     execInternal(opts, statement, function(err, results) {
         if(err) {
             return selectEvent.cb(err, results);
         }
         if(statement.joiner) {
-            // Do the join now - we fill the joining column in into the joiner statement and execute it one for each
-            // row from the main's results.
+            // Do the join now - execute the joiner once for each row from the main's results.
+            // Right now, we can only deal with one joining column. The PEG does the check for this.
             joiningColumn = statement.joiner.whereCriteria[0].rhs.joiningColumn;
 
             // Prepare the joins
@@ -54,7 +61,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 // Clone the joiner since we are going to modify it
                 cloned = clone(statement.joiner);
 
-                // Set the join field
+                // Set the join field on the joiner statement.
                 cloned.whereCriteria[0].rhs.value = (_.isArray(row) || _.isObject(row)) ? row[joiningColumn] : row;
 
                 // Determine whether the number of funcs is within the limit, otherwise break out of the loop
@@ -64,6 +71,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                     return;
                 }
 
+                // Prepare joiners - this an n-ary - once per row on the main
                 funcs.push(function(s) {
                     return function(callback) {
                         execInternal(opts, s, function(e, r) {
@@ -80,22 +88,53 @@ exports.exec = function(opts, statement, parentEvent, cb) {
 
             // Execute joins
             async.parallel(funcs, function(err, more) {
-                // If there is nothing to loop throough, leave the body undefined.
+                // If there is nothing to loop through, leave the body undefined.
                 var body = results.body ? [] : undefined;
+                var tempNames = [], tempIndices = [], first = true;
                 _.each(results.body, function(row, index) {
                     // If no matching result is found in more, skip this row
                     var other = more[index];
-                    if((_.isArray(other) && other.length > 0) || (_.isObject(other) && _.keys(other) > 0)) {
+                    var loop = _.isArray(other) ? other.length : 1;
+                    for(var l = 0; l < loop; l++) {
+                        // Results would be an array when one field is selected.
+                        if(!_.isObject(row) && !_.isArray(row)) row = [row];
+
                         // When columns are selected by name, use an object. If not, an array.
                         var sel = statement.selected.length > 0 && statement.selected[0].name ? {} : [];
+
+                        // In case of joins, the columns selected on the main and the joiner are not
+                        // actually what were specified on the original select. The selected array
+                        // tells us where to find the columns that the user wanted.
+                        //
+                        // UDF is a special case here. UDFs in the where clause can specify
+                        // args from either of the tables in the join, and so, we select them,
+                        // and mark with a 'for' = 'udf' property. We discard these after preparing
+                        // args for UDFs. The tempNames/tempIndices arrays capture these extras.
                         _.each(statement.selected, function(selected) {
                             var val = undefined;
+                            if(first && selected['for'] === 'udf') {
+                                // Mark - for later removal
+                                if(selected.name) {
+                                    tempNames.push(selected.name);
+                                }
+                                else {
+                                    tempIndices.push(sel.length);
+                                }
+                            }
                             if(selected.from === 'main') {
                                 val = row[selected.name || selected.index];
                             }
                             else if(selected.from === 'joiner') {
-                                if(other && other[0]) {
-                                    val = other[0][selected.name || selected.index];
+                                if(other[l]) {
+                                    if(other[l][selected.name]) {
+                                        val = other[l][selected.name];
+                                    }
+                                    else if(_.isArray(other[l])) {
+                                        val = other[l][selected.index];
+                                    }
+                                    else {
+                                        val = other[l];
+                                    }
                                 }
                             }
                             if(selected.name) {
@@ -105,19 +144,30 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                                 sel.push(val);
                             }
                         });
+                        first = false;
                         body.push(sel);
                     }
                 });
                 results.body = body;
-                if(statement.assign) {
-                    opts.context[statement.assign] = results.body;
-                    opts.emitter.emit(statement.assign, results.body);
-                }
-                return selectEvent.cb(err, results);
+                // Apply UDFs on the where clause.
+                udf.applyWhere(opts, statement, results, function(err, results) {
+                    if(statement.assign) {
+                        opts.context[statement.assign] = results.body;
+                        opts.emitter.emit(statement.assign, results.body);
+                    }
+                    return selectEvent.cb(err, results);
+                }, tempNames, tempIndices);
             });
         }
         else {
-            return selectEvent.cb(err, results);
+            if(statement.joiner) {
+                // Defer where clause UDF to the join time
+                return selectEvent.cb(err, results);
+            }
+            else {
+                // Run where clause UDFs now
+                return udf.applyWhere(opts, statement, results, selectEvent.cb);
+            }
         }
     }, selectEvent.event);
 };
@@ -134,13 +184,34 @@ function execInternal(opts, statement, cb, parentEvent) {
         txName: null,
         message: {line: statement.line},
         cb: cb});
+    //
+    // Pre-fill columns
+
+    var prefill = function(column) {
+        // Trim the name, but keep the column alias.
+        try {
+            var template = strTemplate.parse(column.name);
+            column.name = template.format(opts.context, true);
+        }
+        catch(e) {
+            // Ignore
+        }
+        return column;
+    };
+    if(_.isArray(statement.columns)) {
+        _.each(statement.columns, function(column, i) {
+            statement.columns[i] = prefill(column);
+        });
+    }
+    else {
+        statement.columns = prefill(statement.columns);
+    }
 
     //
     // Analyze where conditions and fetch any dependent data
     var name, params, value, r, p, max, resource, apiTx;
-
     where.exec(opts, statement.whereCriteria, function(err, results) {
-        var i, j;
+        var i;
         // Now fetch each resource from left to right
         _.each(statement.fromClause, function(from) {
             // Reorder results - results is an array of objects, but we just want an object
@@ -177,7 +248,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                 var filtered = filter.filter(resource, statement, context, from);
 
                 // Project
-                project.run('', statement, filtered, function (projected) {
+                project.run('', statement, filtered, opts.context, function (projected) {
                     if(statement.assign) {
                         context[statement.assign] = projected;
                         emitter.emit(statement.assign, projected);
@@ -239,9 +310,6 @@ function execInternal(opts, statement, cb, parentEvent) {
             }
         });
     }, parentEvent);
-
-
-    // Run tasks asynchronously and join on the callback. On completion, the results array will
 }
 
 var clone = function(obj) {

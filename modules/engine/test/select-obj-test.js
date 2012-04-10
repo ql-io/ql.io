@@ -100,5 +100,36 @@ module.exports = {
                 test.done();
             }
         }});
+    },
+
+    'select-join-one-field': function(test) {
+        var q = 'a1 = [{ \
+            "name": "Name-A",\
+            "ns": "n1"\
+          },\
+          {\
+            "name": "Name-B",\
+            "ns": "n2" \
+          },\
+          {\
+            "name": "Name-C",\
+            "ns": "n3"\
+          }];\
+        a2 = [{\
+            "name": "Name-A",\
+            "ns": "n1"\
+          },\
+          {\
+            "name": "Name-C",\
+            "ns": "n2"\
+          }];\
+        return select a1.name from a1 as a1, a2 as a2 where a1.name = a2.name;';
+
+        engine.execute(q, function(emitter) {
+            emitter.on('end', function(err, results) {
+                test.deepEqual(results.body, [ [ 'Name-A' ], [ 'Name-C' ] ]);
+                test.done();
+            })
+        });
     }
 };

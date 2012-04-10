@@ -1,3 +1,18 @@
+## Apr 07, 2012
+
+* Fix the issue posted in https://groups.google.com/forum/?fromgroups#!topic/qlio/JaMC1GVP1sA.
+* Add UDFs in where clause to post process rows. You can either tweak or remove a row. See
+  https://gist.github.com/2334012 for semantics of UDFs. UDF support for the where clause is
+  still a TODO.
+
+## Apr 02, 2012
+
+* Experimental UDF support.
+
+## Mar 30, 2012
+
+* Release version 0.5.
+
 ## Mar 29, 2012
 
 * Fix regression in uri-template formatter (https://github.com/ql-io/ql.io/issues/409).
