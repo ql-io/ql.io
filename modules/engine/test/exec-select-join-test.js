@@ -135,6 +135,62 @@ module.exports = {
                     test.done();
                 }
             });
+        });
+    },
+
+    'select-join-n-rows': function(test) {
+        var script = 'a = [{"x":"x", "id":"1"}];\
+                      b = [{"id":"1", "y":"y1"},{"id":"1", "y":"y2"}];\
+                      return select a.id, b.y from a as a, b  as b where b.id=a.id;';
+        var listener = new Listener(engine);
+        engine.execute(script, function (emitter) {
+            emitter.on('end', function (err, list) {
+                listener.assert(test);
+                if(err) {
+                    test.fail('got error: ' + err.stack || err);
+                    test.done();
+                }
+                else {
+                    test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+                    test.deepEqual(list.body.length, 2);
+                    test.deepEqual(list.body, [
+                        ["1", "y1"],
+                        ["1", "y2"]
+                    ]);
+                    test.done();
+                }
+            });
         })
-    }
+    },
+
+    'select-join-n-rows-with-alias': function(test) {
+       var script = 'a = [{"x":"x", "id":"1"}];\
+                     b = [{"id":"1", "y":"y1"},{"id":"1", "y":"y2"}];\
+                     return select a.id as a, b.y as y from a as a, b  as b where b.id=a.id;';
+       var listener = new Listener(engine);
+       engine.execute(script, function (emitter) {
+           emitter.on('end', function (err, list) {
+               listener.assert(test);
+               if(err) {
+                   test.fail('got error: ' + err.stack || err);
+                   test.done();
+               }
+               else {
+                   test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
+                   test.deepEqual(list.body.length, 2);
+                   test.deepEqual(list.body, [
+                       {
+                           "a": "1",
+                           "y": "y1"
+                       },
+                       {
+                           "a": "1",
+                           "y": "y2"
+                       }
+                   ]);
+                   test.done();
+               }
+           });
+       })
+   }
 }
