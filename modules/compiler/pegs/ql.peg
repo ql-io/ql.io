@@ -1002,7 +1002,7 @@ FalseVal = f:False {
 }
 
 NullVal = n:Null {
-    return null;
+    return "__null__";
 }
 Object = o:Struct {
     var str = append(o);

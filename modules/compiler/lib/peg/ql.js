@@ -6610,7 +6610,7 @@ module.exports = (function(){
         var result2 = result1 !== null
           ? (function(v) {
               return {
-                  object: v,
+                  object: v === "__null__" ? null : v,
                   type: 'define',
                   line: computeErrorPosition().line
               }
@@ -6806,7 +6806,7 @@ module.exports = (function(){
         var result1 = parse_Null();
         var result2 = result1 !== null
           ? (function(n) {
-              return null;
+              return "__null__";
           })(result1)
           : null;
         if (result2 !== null) {
