@@ -1,3 +1,7 @@
+## Apr 08, 2012
+
+* Support null values in Values
+
 ## Apr 07, 2012
 
 * Fix the issue posted in https://groups.google.com/forum/?fromgroups#!topic/qlio/JaMC1GVP1sA.
