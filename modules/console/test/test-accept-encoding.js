@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-"use strict"
+'use strict'
 
 var http = require('http'),
     _ = require('underscore'),
@@ -23,11 +23,8 @@ var http = require('http'),
 
 var Console = require('../app.js');
 var c = new Console({
-    tables: __dirname + '/tables',
-    routes: __dirname + '/routes',
-    config: __dirname + '/config/dev.json',
+    routes: __dirname + '/routes/encoding',
     'enable console': false,
-    connection: 'close'
 });
 
 var app = c.app;
@@ -39,7 +36,7 @@ module.exports = {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/all/ipad',
+                path: '/encoding/all',
                 method: 'GET',
                 headers: {
                     host: 'localhost',
@@ -139,7 +136,7 @@ module.exports = {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/all/bmw',
+                path: '/encoding/all',
                 method: 'GET',
                 headers: {
                     host: 'localhost',
@@ -161,7 +158,7 @@ module.exports = {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/all/ipad',
+                path: '/encoding/all',
                 method: 'GET',
                 headers: {
                     host: 'localhost',
@@ -184,7 +181,7 @@ module.exports = {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/all/ipad',
+                path: '/encoding/all',
                 method: 'GET',
                 headers: {
                     host: 'localhost',
@@ -206,7 +203,7 @@ module.exports = {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/all/ipad',
+                path: '/encoding/all',
                 method: 'GET',
                 headers: {
                     host: 'localhost',
@@ -228,7 +225,7 @@ module.exports = {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/all/ipad',
+                path: '/encoding/all',
                 method: 'GET',
                 headers: {
                     host: 'localhost',
@@ -251,7 +248,7 @@ module.exports = {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/all/ipad',
+                path: '/encoding/all',
                 method: 'GET',
                 headers: {
                     host: 'localhost',
@@ -274,7 +271,7 @@ module.exports = {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/all/ipad',
+                path: '/encoding/all',
                 method: 'GET',
                 headers: {
                     host: 'localhost',
@@ -298,7 +295,7 @@ module.exports = {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/all/ipad',
+                path: '/encoding/all',
                 method: 'GET',
                 headers: {
                     host: 'localhost',
@@ -320,7 +317,7 @@ module.exports = {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/all/ipad',
+                path: '/encoding/all',
                 method: 'GET',
                 headers: {
                     host: 'localhost',
@@ -334,6 +331,10 @@ module.exports = {
                 app.close();
                 test.done();
             });
+            req.on('error', function() {
+                app.close();
+                test.done();
+            })
             req.end();
         });
     },
@@ -343,7 +344,7 @@ module.exports = {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/all/ipad',
+                path: '/encoding/all',
                 method: 'GET',
                 headers: {
                     host: 'localhost',
