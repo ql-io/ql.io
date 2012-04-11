@@ -70,7 +70,7 @@ module.exports = {
             });
         })
     },
-    'check delete /del/foo/bar/{selector}?userid={userId}' : function(test) {
+    'check delete /del/foo/bar/{selector}?userid={userId} with missing values' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
             routes : __dirname + '/routes/',
@@ -108,7 +108,6 @@ module.exports = {
                         test.ok(json.user, 'missing user data');
                         test.ok(json.user.Ack, 'missing user Ack');
                         test.equal(json.user.Ack, 'Success');
-                        test.equal(json.bestOffers, 'Fixed Value');
                         c.app.close();
                         testHttpapp.close();
                         test.done();
