@@ -1,3 +1,7 @@
+## Apr 11, 2012
+
+* Fix the case of alias names with joins and UDFs.
+
 ## Apr 08, 2012
 
 * Support null values in Values
