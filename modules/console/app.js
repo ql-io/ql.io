@@ -178,9 +178,9 @@ var Console = module.exports = function(config, cb) {
             {
                 mount : '/scripts/compiler.js',
                 require : [ 'ql.io-compiler',
-                    'headers',
-                    'mustache',
-                    'events'],
+                        'headers',
+                        'mustache',
+                        'events'],
                 filter : require('uglify-js')
             }));
         app.get('/console', function(req, res) {
@@ -211,10 +211,10 @@ var Console = module.exports = function(config, cb) {
                         remoteAddress: req.connection.remoteAddress
                     }
                 };
+
                 // get all query params
                 collectHttpQueryParams(req, holder, false);
 
-                //console.log(holder)
                 // find a route (i.e. associated cooked script)
                 var bestmatch = _.max(verbRouteVariants, function (verbRouteVariant){ return _.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)).length})
                 var route = _(verbRouteVariants).chain()
@@ -482,25 +482,25 @@ var Console = module.exports = function(config, cb) {
                 routeInfo: result,
                 related:
                     _(result.related).chain()
-                        .map(function(route){
-                            var parse = new MutableURI(route);
-                            return {
-                                method: parse.getParam('method'),
-                                path: parse.getParam('path'),
-                                about: route
-                            };
-                        })
-                        .value(),
+                    .map(function(route){
+                        var parse = new MutableURI(route);
+                        return {
+                            method: parse.getParam('method'),
+                            path: parse.getParam('path'),
+                            about: route
+                        };
+                    })
+                    .value(),
                 tables:
                     _(result.tables).chain()
-                        .map(function(table){
-                            var parse = new MutableURI(table);
-                            return {
-                                name: parse.getParam('name'),
-                                about: table
-                            };
-                        })
-                        .value()
+                    .map(function(table){
+                        var parse = new MutableURI(table);
+                        return {
+                            name: parse.getParam('name'),
+                            about: table
+                        };
+                    })
+                    .value()
             });
         }
 
@@ -538,42 +538,42 @@ var Console = module.exports = function(config, cb) {
 
     if(enableQ) {
         app.get('/q', function(req, res) {
-                var holder = {
-                    params: {},
-                    headers: {} ,
-                    connection: {
-                        remoteAddress: req.connection.remoteAddress
-                    }
-                };
-                var query = req.param('s');
-                if (!query) {
-                    res.writeHead(400, 'Bad input', {
-                        'content-type' : 'application/json'
-                    });
-                    res.write(JSON.stringify({'err' : 'Missing query'}));
-                    res.end();
-                    return;
+            var holder = {
+                params: {},
+                headers: {} ,
+                connection: {
+                    remoteAddress: req.connection.remoteAddress
                 }
-                query = sanitize(query).str;
-                collectHttpQueryParams(req, holder, true);
-                collectHttpHeaders(req, holder);
-                var urlEvent = engine.wrapEvent({
-                    tyTypx: 'URL',
-                    message: req.originalUrl,
-                    cb: function(err, results) {
-                        return handleResponseCB(req, res, execState, err, results);
-                    }
+            };
+            var query = req.param('s');
+            if (!query) {
+                res.writeHead(400, 'Bad input', {
+                    'content-type' : 'application/json'
                 });
-                var execState = [];
-                engine.execute(query,
-                    {
-                        request: holder,
-                        parentEvent: urlEvent.event
-                    }, function(emitter) {
-                        setupExecStateEmitter(emitter, execState, req.param('events'));
-                        setupCounters(emitter);
-                        emitter.on('end', urlEvent.cb);
-                    })
+                res.write(JSON.stringify({'err' : 'Missing query'}));
+                res.end();
+                return;
+            }
+            query = sanitize(query).str;
+            collectHttpQueryParams(req, holder, true);
+            collectHttpHeaders(req, holder);
+            var urlEvent = engine.wrapEvent({
+                tyTypx: 'URL',
+                message: req.originalUrl,
+                cb: function(err, results) {
+                    return handleResponseCB(req, res, execState, err, results);
+                }
+            });
+            var execState = [];
+            engine.execute(query,
+                {
+                    request: holder,
+                    parentEvent: urlEvent.event
+                }, function(emitter) {
+                    setupExecStateEmitter(emitter, execState, req.param('events'));
+                    setupCounters(emitter);
+                    emitter.on('end', urlEvent.cb);
+                })
             }
         );
     }
@@ -581,7 +581,7 @@ var Console = module.exports = function(config, cb) {
     // 404 Handling
     app.use(function(req, res, next) {
         compress(req, res);
-        var msg = 'Cannot GET ' + sanitize(req.url).xss();
+        var msg = 'Cannot ' + req.method + ' ' + sanitize(req.url).xss();
         var accept = (req.headers || {}).accept || '';
         if (accept.search('json') > 0) {
             res.writeHead(404, {
