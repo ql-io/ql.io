@@ -242,10 +242,11 @@ var Console = module.exports = function(config, cb) {
                 });
 
                 _.each(route.query, function(queryParam, paramName) {
-                    if (holder.params[paramName])
+                    if (holder.params[paramName]){
                         holder.routeParams[queryParam] = holder.params[paramName].toString();
-                    else
+                    }else{
                         holder.routeParams[queryParam] = null;
+                    }
                 });
 
                 // collect headers
