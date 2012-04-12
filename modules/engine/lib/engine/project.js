@@ -65,7 +65,7 @@ function run(resultSet, statement, results, context, cb) {
             cols = statement.columns;
         }
         obj.__proto__ = context;
-        part = jsonfill.project(cols, obj, context);
+        part = jsonfill.project(cols, obj, context, statement.offset, statement.limit);
         return cb(part);
     }
 }
