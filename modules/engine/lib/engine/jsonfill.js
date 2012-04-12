@@ -127,13 +127,17 @@ function projectOne_(name, item, bag) {
     return obj ? obj : undefined;
 }
 
-function project(columns, items, bag) {
+function project(columns, items, bag, offset, limit) {
     var filtered = [], holder;
     if(_.isArray(items)) {
-        _.each(items, function(item) {
-            holder = projectEach(item, columns, bag);
+        var start = offset ? offset : 0;
+        for(var i = start; i < items.length; i++) {
+            holder = projectEach(items[i], columns, bag);
             filtered.push(holder);
-        });
+            if(limit && filtered.length >= limit) {
+                break;
+            }
+        }
     }
     else {
         holder = projectEach(items, columns, bag);
