@@ -17,14 +17,28 @@
 'use strict';
 
 var eventTypes = require('./event-types.js'),
+    _ = require('underscore'),
     uuid = require('node-uuid'),
     events = require("events"),
     util = require('util');
 
+/**
+ * The point of this emitter is to capture events in a hierarchy so know which part of the script
+ * caused what HTTP request.
+ *
+ * Each event emitted has the following fields:
+ *
+ * - id: An event ID
+ * - parentId: ID of the parent event
+ * - startTime: begin time of the event
+ * - tx: event type (begin, end, info, error, warn)
+ * - type: app level type ------- TODO: we should not need this here.
+ * - uuid: A UUID - also used in request-id headers for tracking requests
+ */
 var LogEmitter = module.exports = function() {
-    var counter = 0;
     events.EventEmitter.call(this);
 
+    var counter = 0;
     this.getEventId = function() {
         if (counter == 65535) {
             counter = 1; // skip 0, it means non-transaction
@@ -32,64 +46,57 @@ var LogEmitter = module.exports = function() {
         return ++counter;
     }
 
-    this.beginEvent= function(parent, type, name) {
-        return  {
-            eventId: this.getEventId(),
-            parentEventId: (parent ? parent.eventId = parent.eventId || 0 : 0),
-            startTime: getUTimeInSecs(),
-            tx: 'begin',
-            type: type || 'QlIo',
-            txType: type || 'QlIo',
-            name: name || (type || 'QLIo'),
-            txName: name || (type || 'QLIo'),
-            uuid: (parent && parent.uuid ? parent.uuid : uuid())
-        };
-    }
-
-    this.endEvent = function(obj) {
-        if (!obj) {
+    this.endEvent = function(event, message) {
+        if (!event) {
             return; // don't waste my time
         }
 
-        var startTime = obj.startTime || getUTimeInSecs();
+        var startTime = event.startTime || getUTimeInSecs();
 
         try {
-            obj.txDuration = getUTimeInSecs() - startTime;
+            event.duration = Date.now() - startTime;
         }
-        catch(Exception) {
-            obj.txDuration = 0;
+        catch(e) {
+            event.txDuration = 0;
         }
 
-        obj.type = obj.txType || 'QlIo';
-        obj.name = obj.txName || obj.type;
+        event.tx = 'end';
 
-        obj.tx = 'end';
+        this.emit(eventTypes.END_EVENT, event, message); //end
     }
 
-    this.wrapEvent = function() {
+    this.beginEvent = function() {
         var parent = arguments[0].parent;
-        var txType = arguments[0].txType;
-        var txName = arguments[0].txName;
-        var message = arguments[0].message;
+        var type = arguments[0].type;
+        var name = arguments[0].name;
+        var message = _.isObject(message) ? JSON.stringify(arguments[0].message) : arguments[0].message;
         var cb = arguments[0].cb;
 
-        var event = this.beginEvent(parent, txType, txName);
+        var event = {
+            eventId: this.getEventId(),
+            parentEventId: (parent ? parent.eventId = parent.eventId || 0 : 0),
+            startTime: Date.now(),
+            tx: 'begin',
+            type: type || 'ql.io',
+            name: name || 'ql.io',
+            uuid: (parent && parent.uuid ? parent.uuid : uuid())
+        };
+
         this.emit(eventTypes.BEGIN_EVENT, event, message);
         var that = this;
         return {
             event: event,
             cb: function(e, r, m) {
-                var message = 'Success';
+                var status = 'Success';
                 if (e) {
                     if(e.emitted === undefined) {
                         event.tx = 'error';
                         that.emit(eventTypes.ERROR, event, e);
                         e.emitted = true;
                     }
-                    message = 'Failure'
+                    status = 'Failure'
                 }
-                that.endEvent(event);
-                that.emit(eventTypes.END_EVENT, event, m || message); //end
+                that.endEvent(event, m || status);
                 return cb(e, r);
             }
         }
