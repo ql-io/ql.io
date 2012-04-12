@@ -1,3 +1,7 @@
+## Apr 12, 2012
+
+* Support local offset and limit
+
 ## Apr 11, 2012
 
 * Cleanup logging (first phase)
