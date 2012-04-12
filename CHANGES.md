@@ -1,5 +1,6 @@
 ## Apr 11, 2012
 
+* Cleanup logging (first phase)
 * Fix the case of alias names with joins and UDFs.
 
 ## Apr 08, 2012

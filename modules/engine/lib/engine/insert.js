@@ -30,18 +30,10 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         request = opts.request, emitter = opts.emitter,
         insertTx, table, values, name, resource;
 
-    insertTx = opts.logEmitter.wrapEvent({
-        parent: parentEvent,
-        txType: 'QlIoInsert',
-        txName: null,
-        message: {line: statement.line},
-        cb: cb});
-
     values = {};
     _.each(statement.values, function(value, i) {
         values[statement.columns[i].name] = jsonfill.lookup(value, context);
     });
-
 
     // Get the dest
     name = statement.source.name;
@@ -51,6 +43,14 @@ exports.exec = function(opts, statement, parentEvent, cb) {
     if(name.indexOf("{") === 0 && name.indexOf("}") === name.length - 1) {
         name = name.substring(1, statement.source.name.length - 1);
     }
+
+    insertTx = opts.logEmitter.beginEvent({
+        parent: parentEvent,
+        type: 'insert',
+        cb: cb});
+    opts.logEmitter.emitEvent(insertTx.event, JSON.stringify({
+        line: statement.line
+    }));
 
     resource = context[name];
     if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property

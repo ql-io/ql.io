@@ -65,9 +65,11 @@ var Console = module.exports = function(config, cb) {
         transports: [
             new (winston.transports.File)({
                 filename: process.cwd() + '/logs/ql.io.log',
-                maxsize: 1024000 * 5
+                maxsize: 1024000 * 5,
+                colorize: true,
+                timestamp: function() { return new Date();}
             })
-        ]
+        ],
     }) : new (winston.Logger)();
 
     logger.setLevels(config['log levels'] || winston.config.cli.levels);
@@ -111,7 +113,7 @@ var Console = module.exports = function(config, cb) {
 
     var bodyParser = connect.bodyParser();
     app.use(bodyParser); // parses the body for application/x-www-form-urlencoded and application/json
-    var respHeaders = require(__dirname + '/lib/middleware/respheaders');
+    var respHeaders = require(__dirname + '/lib/middleware/resp-headers');
     app.use(respHeaders());
     if(config['enable console']) {
         // If you want unminified JS and CSS, jus add property debug: true to js and css vars below.
@@ -201,7 +203,7 @@ var Console = module.exports = function(config, cb) {
     var routes = engine.routes.verbMap;
     _.each(routes, function(verbRoutes, uri) {
         _.each(verbRoutes, function(verbRouteVariants, verb) {
-            engine.emit(Engine.Events.EVENT, {}, new Date() + ' Adding route ' + uri + ' for ' + verb);
+            engine.emit(Engine.Events.EVENT, {}, ' Adding route ' + uri + ' for ' + verb);
             app[verb](uri, function(req, res) {
                 var holder = {
                     params: {},
@@ -252,15 +254,18 @@ var Console = module.exports = function(config, cb) {
                     remoteAddress: req.connection.remoteAddress
                 };
                 // Start the top level URL transaction
-                var urlEvent = engine.wrapEvent({
-                    tyType: 'URL',
-                    message: req.originalUrl,
+                var urlEvent = engine.beginEvent({
+                    type: 'URL',
+                    name: req.url,
                     cb: function(err, results) {
                         return handleResponseCB(req, res, execState, err, results);
                     }
                 });
                 // Emit incoming headers
-                engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
+                engine.emitEvent(urlEvent.event, JSON.stringify({
+                    path: req.url,
+                    headers: req.headers
+                }));
 
                 var execState = [];
                 engine.execute(route.script,
@@ -302,9 +307,9 @@ var Console = module.exports = function(config, cb) {
         }
 
         // Start the top level URL transaction
-        var urlEvent = engine.wrapEvent({
-            tyTypx: 'URL',
-            message: req.originalUrl,
+        var urlEvent = engine.beginEvent({
+            type: 'URL',
+            name: req.url,
             cb: function(err, results) {
                 return isJson || err ?
                     handleResponseCB(req, res, execState, err, results) :
@@ -373,9 +378,9 @@ var Console = module.exports = function(config, cb) {
         }
 
         // Start the top level URL transaction
-        var urlEvent = engine.wrapEvent({
-            tyTypx: 'URL',
-            message: req.originalUrl,
+        var urlEvent = engine.beginEvent({
+            type: 'URL',
+            name: req.url,
             cb: function(err, results) {
                 return isJson || err ?
                     handleResponseCB(req, res, execState, err, results) :
@@ -421,9 +426,9 @@ var Console = module.exports = function(config, cb) {
         }
 
         // Start the top level URL transaction
-        var urlEvent = engine.wrapEvent({
-            tyTypx: 'URL',
-            message: req.originalUrl,
+        var urlEvent = engine.beginEvent({
+            type: 'URL',
+            name: req.url,
             cb: function(err, results) {
                 return isJson || err ?
                     handleResponseCB(req, res, execState, err, results) :
@@ -503,9 +508,9 @@ var Console = module.exports = function(config, cb) {
         }
 
         // Start the top level URL transaction
-        var urlEvent = engine.wrapEvent({
-            tyTypx: 'URL',
-            message: req.originalUrl,
+        var urlEvent = engine.beginEvent({
+            type: 'URL',
+            name: req.url,
             cb: function(err, results) {
                 return isJson || err ?
                     handleResponseCB(req, res, execState, err, results) :
@@ -555,9 +560,9 @@ var Console = module.exports = function(config, cb) {
             query = sanitize(query).str;
             collectHttpQueryParams(req, holder, true);
             collectHttpHeaders(req, holder);
-            var urlEvent = engine.wrapEvent({
-                tyTypx: 'URL',
-                message: req.originalUrl,
+            var urlEvent = engine.beginEvent({
+                type: 'URL',
+                name: req.url,
                 cb: function(err, results) {
                     return handleResponseCB(req, res, execState, err, results);
                 }
@@ -616,6 +621,20 @@ var Console = module.exports = function(config, cb) {
         });
         res.write(msg);
         res.end();
+    });
+
+    // Heartbeat - make sure to clear this on 'close'
+    // TODO: Other details to include
+    var heartbeat = setInterval(function () {
+        engine.emit(Engine.Events.HEART_BEAT, {
+            pid: process.pid,
+            uptime: process.uptime()
+        });
+    }, 60000);
+
+    // Let the Engine cleanup during shutdown
+    app.on('close', function() {
+        clearInterval(heartbeat);
     });
 
     // Also listen to WebSocket requests

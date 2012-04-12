@@ -65,6 +65,7 @@ exports.exec = function(cb, opts) {
         disableQ: program.disableQ,
         noWorkers: program.noWorkers,
         ecvPath: program.ecvPath,
+        'request-id': program.requestId || 'Request-ID',
         ecv: {
             monitor: '/tables',
             validator: function(status, headers, data) {
@@ -104,6 +105,7 @@ function createConsole(program, cb) {
         'xformers': program.xformers,
         'enable console': !disableConsole,
         'enable q': !disableQ,
+        'request-id': program.requestId,
         'log levels': require('winston').config.syslog.levels}, cb);
 }
 

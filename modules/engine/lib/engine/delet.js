@@ -28,21 +28,27 @@ exports.exec = function (opts, statement, parentEvent, cb) {
     assert.ok(cb, 'Argument cb can not be undefined');
     assert.ok(opts.xformers, 'No xformers set');
 
-    var deleteEvent = opts.logEmitter.wrapEvent({
+    var deleteEvent = opts.logEmitter.beginEvent({
         parent: parentEvent,
-        txType: 'QlIoDelete',
+        name: 'delete',
         cb: cb
     });
+    opts.logEmitter.emitEvent(deleteEvent.event, JSON.stringify({
+        line: statement.line
+    }));
 
     var tables = opts.tables, tempResources = opts.tempResources, context = opts.context,
         request = opts.request, emitter = opts.emitter;
-    var deleteExecTx = opts.logEmitter.wrapEvent({
+    var deleteExecTx = opts.logEmitter.beginEvent({
         parent: deleteEvent.event,
-        txType: 'QlIoDeleteExec',
+        name: 'delete',
         cb: function (err, results) {
             return deleteEvent.cb(err, results);
         }
     });
+    opts.logEmitter.emitEvent(deleteEvent.event, JSON.stringify({
+        line: statement.line
+    }));
 
     //
     // Analyze where conditions and fetch any dependent data
@@ -70,12 +76,14 @@ exports.exec = function (opts, statement, parentEvent, cb) {
         }
         resource = context[name];
         if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
-            apiTx = opts.logEmitter.wrapEvent({
+            apiTx = opts.logEmitter.beginEvent({
                     parent: deleteExecTx.event,
-                    txType: 'API',
-                    txName: name,
-                    message: {line: statement.line},
+                    type: 'API',
+                    name: name,
                     cb: deleteExecTx.cb});
+            opts.logEmitter.emitEvent(apiTx.event, JSON.stringify({
+                line: statement.line
+            }));
 
             if(_.isArray(resource)) {
                 resource = filter.reject(resource, statement, context, statement.source);
@@ -102,12 +110,15 @@ exports.exec = function (opts, statement, parentEvent, cb) {
         else {
             // Get the resource
             resource = tempResources[name] || tables[name];
-            apiTx = opts.logEmitter.wrapEvent({
+            apiTx = opts.logEmitter.beginEvent({
                 parent: deleteExecTx.event,
-                txType: 'API',
-                txName: name,
+                type: 'API',
+                name: name,
                 cb: deleteExecTx.cb
             });
+            opts.logEmitter.emitEvent(apiTx.event, JSON.stringify({
+                line: statement.line
+            }));
             if(!resource) {
                 return apiTx.cb('No such table ' + name);
             }
