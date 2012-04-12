@@ -34,13 +34,15 @@ exports.exec = function(opts, statement, parentEvent, cb) {
     assert.ok(opts.xformers, 'No xformers set');
 
     var funcs, cloned, joiningColumn, selectEvent;
-    selectEvent = opts.logEmitter.wrapEvent({
+    selectEvent = opts.logEmitter.beginEvent({
         parent: parentEvent,
-        txType: 'QlIoSelect',
-        txName: null,
+        name: 'select',
         message: {line: statement.line},
         cb: cb
     });
+    opts.logEmitter.emitEvent(selectEvent.event, JSON.stringify({
+        line: statement.line
+    }));
 
     //
     // Run select on the main statement first. If there is a joiner, run the joiner after the
@@ -178,15 +180,16 @@ function execInternal(opts, statement, cb, parentEvent) {
     var tables = opts.tables, tempResources = opts.tempResources, context = opts.context,
          request = opts.request, emitter = opts.emitter;
 
-    var selectExecTx  = opts.logEmitter.wrapEvent({
+    var selectExecTx  = opts.logEmitter.beginEvent({
         parent: parentEvent,
-        txType: 'QlIoSelectExec',
-        txName: null,
-        message: {line: statement.line},
+        name: 'select-exec',
         cb: cb});
+    opts.logEmitter.emitEvent(selectExecTx.event, JSON.stringify({
+        line: statement.line
+    }));
+
     //
     // Pre-fill columns
-
     var prefill = function(column) {
         // Trim the name, but keep the column alias.
         try {
@@ -238,12 +241,14 @@ function execInternal(opts, statement, cb, parentEvent) {
             }
             resource = context[name];
             if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
-                apiTx = opts.logEmitter.wrapEvent({
+                apiTx = opts.logEmitter.beginEvent({
                         parent: selectExecTx.event,
-                        txType: 'API',
-                        txName: name,
-                        message: {line: statement.line},
+                        type: 'API',
+                        name: name,
                         cb: selectExecTx.cb});
+                opts.logEmitter.emitEvent(apiTx.event, JSON.stringify({
+                    line: statement.line
+                }));
 
                 var filtered = filter.filter(resource, statement, context, from);
 
@@ -264,10 +269,10 @@ function execInternal(opts, statement, cb, parentEvent) {
             else {
                 // Get the resource
                 resource = tempResources[from.name] || tables[from.name];
-                apiTx = opts.logEmitter.wrapEvent({
+                apiTx = opts.logEmitter.beginEvent({
                         parent: selectExecTx.event,
-                        txType: 'API',
-                        txName: from.name,
+                        type: 'API',
+                        name: from.name,
                         message: {line: statement.line},
                         cb: selectExecTx.cb});
 

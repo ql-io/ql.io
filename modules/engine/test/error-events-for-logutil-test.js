@@ -26,7 +26,7 @@ module.exports = {
 
         var errorHandler = function(ctx, msg) {
             ctx = ctx || {};
-            test.equals(ctx.type, 'QlIoHttpRequest', 'QlIoHttpRequest expected');
+            test.equals(ctx.type, 'ql.io', 'ql.io expected');
             test.equals(JSON.stringify(msg), '{"headers":{"content-type":"application/json"},"body":{}}');
             errorGot = true;
         }
@@ -69,7 +69,7 @@ module.exports = {
 
         var errorHandler = function(ctx, msg) {
             ctx = ctx || {};
-            test.equals(ctx.type, 'QlIoHttpRequest', 'QlIoHttpRequest expected');
+            test.equals(ctx.type, 'ql.io', 'ql.io expected');
             test.ok(msg.message.indexOf('ECONNREFUSED') != -1, 'Expected ECONNREFUSED in error');
             errorGot = true;
         }

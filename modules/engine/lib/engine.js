@@ -69,27 +69,32 @@ var Engine = module.exports = function(opts) {
     opts.logger = opts.logger || new (winston.Logger)();
     // Attach listeners and loggers before doing anything
     this.setMaxListeners(30);
+    this.on(Engine.Events.BEGIN_EVENT, function(event, message) {
+        opts.logger.info(message);
+        // Log if you want to capture hierarchy
+    });
+    this.on(Engine.Events.END_EVENT, function(event, message) {
+        // Log if you want to capture hierarchy
+    });
+
     this.on(Engine.Events.EVENT, function(event, message) {
-        if(message) {
-            opts.logger.info(new Date() + ' - ' + message);
-        }
+        opts.logger.info(message || event);
     });
     this.on(Engine.Events.SCRIPT_DONE, function(event, message) {
-        opts.logger.info(new Date() + ' - ' + JSON.stringify(event));
+        opts.logger.info(message || event);
+    });
+    this.on(Engine.Events.INFO, function(event, message) {
+        opts.logger.info(message || event);
     });
     this.on(Engine.Events.ERROR, function(event, message, err) {
-        if(message) {
-            opts.logger.error(new Date() + ' - ' + message);
-        }
+        opts.logger.info(message || event);
         if(err) {
             opts.logger.error(err.stack || err);
         }
     });
     this.on(Engine.Events.WARNING, function(event, message) {
-        if(message) {
-            var warn = opts.logger.warn || opts.logger.warning;
-            warn(new Date() + ' - ' + message.stack || message);
-        }
+        var warn = opts.logger.warn || opts.logger.warning;
+        warn(message || event);
     });
 
     // Load stuff
@@ -221,10 +226,9 @@ Engine.prototype.execute = function() {
     assert.ok(script, 'Missing script');
     assert.ok(this.xformers, 'Missing xformers');
 
-    var engineEvent = this.wrapEvent({
+    var engineEvent = this.beginEvent({
         parent: parentEvent,
-        txType: 'QlIoEngine',
-        txName: undefined,
+        name: 'engine',
         message: route ? {'route':  route} : {'script' : script},
         cb: function(err, results) {
             packet = {
@@ -240,7 +244,8 @@ Engine.prototype.execute = function() {
             emitter.emit(eventTypes.SCRIPT_DONE, packet);
             if(results && requestId) {
                 results.headers = results.headers || {};
-                results.headers['request-id'] = requestId;
+                var name = that.settings['request-id'] ? that.settings['request-id'] : 'request-id';
+                results.headers[name] = requestId;
             }
             emitter.emit('end', err, results);
         }
@@ -514,7 +519,7 @@ function execOne(opts, statement, cb, parentEvent) {
  * @ignore
  */
 function _execOne(opts, statement, cb, parentEvent) {
-    var rhs, obj;
+    var obj;
     switch(statement.type) {
         case 'create' :
             create.exec(opts, statement, cb, parentEvent);
