@@ -1,3 +1,7 @@
+## Apr 13, 2012
+
+* Include a payload with begin events
+
 ## Apr 12, 2012
 
 * Support local offset and limit
