@@ -37,12 +37,11 @@ exports.exec = function(opts, statement, parentEvent, cb) {
     selectEvent = opts.logEmitter.beginEvent({
         parent: parentEvent,
         name: 'select',
-        message: {line: statement.line},
+        message: {
+            line: statement.line
+        },
         cb: cb
     });
-    opts.logEmitter.emitEvent(selectEvent.event, JSON.stringify({
-        line: statement.line
-    }));
 
     //
     // Run select on the main statement first. If there is a joiner, run the joiner after the
@@ -183,10 +182,10 @@ function execInternal(opts, statement, cb, parentEvent) {
     var selectExecTx  = opts.logEmitter.beginEvent({
         parent: parentEvent,
         name: 'select-exec',
+        message: {
+            line: statement.line
+        },
         cb: cb});
-    opts.logEmitter.emitEvent(selectExecTx.event, JSON.stringify({
-        line: statement.line
-    }));
 
     //
     // Pre-fill columns
@@ -242,13 +241,13 @@ function execInternal(opts, statement, cb, parentEvent) {
             resource = context[name];
             if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
                 apiTx = opts.logEmitter.beginEvent({
-                        parent: selectExecTx.event,
-                        type: 'API',
-                        name: name,
-                        cb: selectExecTx.cb});
-                opts.logEmitter.emitEvent(apiTx.event, JSON.stringify({
-                    line: statement.line
-                }));
+                    parent: selectExecTx.event,
+                    type: 'API',
+                    name: name,
+                    message: {
+                        line: statement.line
+                    },
+                    cb: selectExecTx.cb});
 
                 var filtered = filter.filter(resource, statement, context, from);
 

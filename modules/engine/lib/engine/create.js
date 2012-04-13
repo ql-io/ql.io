@@ -24,7 +24,8 @@ var brew = require('./brew.js'),
     _ = require('underscore'),
     assert = require('assert');
 
-exports.exec = function(opts, statement, cb, parentEvent) {
+exports.exec = function(opts, statement, parentEvent, cb) {
+    // TODO: Fire events from brew!
     brew.go({
         path: process.cwd() + '/',
         config: opts.config,

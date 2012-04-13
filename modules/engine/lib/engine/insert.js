@@ -47,10 +47,10 @@ exports.exec = function(opts, statement, parentEvent, cb) {
     insertTx = opts.logEmitter.beginEvent({
         parent: parentEvent,
         type: 'insert',
+        message: {
+            line: statement.line
+        },
         cb: cb});
-    opts.logEmitter.emitEvent(insertTx.event, JSON.stringify({
-        line: statement.line
-    }));
 
     resource = context[name];
     if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property

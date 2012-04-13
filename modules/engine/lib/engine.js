@@ -209,9 +209,11 @@ Engine.prototype.execute = function() {
     else {
         assert.ok(false, 'Incorrect arguments');
     }
-    var emitter = new EventEmitter();
+
     opts.script = script;
 
+    // This emitter is used for request-time reporting
+    var emitter = new EventEmitter();
     // Let the app register handlers
     func(emitter);
 
@@ -264,8 +266,7 @@ Engine.prototype.execute = function() {
             type: eventTypes.SCRIPT_COMPILE_ERROR,
             data: err
         });
-        this.emitError(engineEvent.event, err);
-        return engineEvent.cb(err, null);
+        return engineEvent.end(err);
     }
 
     emitter.on(eventTypes.REQUEST_ID_RECEIVED, function (reqId) {
@@ -306,13 +307,11 @@ Engine.prototype.execute = function() {
                         logEmitter: this,
                         emitter: emitter,
                         start: start,
-                        cb: engineEvent.cb,
                         cache: this.cache
-                    }, engineEvent.event);
+                    }, engineEvent);
                 }
                 catch (err) {
-                    that.emitError(engineEvent.event, err);
-                    return engineEvent.cb(err, null);
+                    return engineEvent.end(err);
                 }
             }
         }
@@ -331,16 +330,12 @@ Engine.prototype.execute = function() {
                 logEmitter: this,
                 cache: this.cache
             }, cooked[0], function(err, results) {
-                if(err) {
-                    that.emitError(engineEvent.event, err);
-                }
-                return engineEvent.cb(err, results);
-            }, engineEvent.event);
+                return engineEvent.end(err, results);
+            }, engineEvent);
         }
     }
     catch(err) {
-        this.emitError(engineEvent.event, err);
-        return engineEvent.cb(err, null);
+        return engineEvent.end(err);
     }
 }
 
@@ -431,7 +426,7 @@ function sweep(opts, parentEvent) {
                         if(err) {
                             // Skip the remaining statements and return error
                             skip = true;
-                            return opts.cb(err);
+                            return parentEvent.end(err);
                         }
                         opts.latest = line;
                         opts.latestResult = result;
@@ -442,7 +437,7 @@ function sweep(opts, parentEvent) {
                             --opts.execState[listener].waits;
                         });
 
-                        sweep(opts);
+                        sweep(opts, parentEvent);
                     }, parentEvent);
                 }
                 // TODO: Execute only if there are dependencies
@@ -459,7 +454,7 @@ function sweep(opts, parentEvent) {
 
     state = opts.execState[last.id];
     if(pending === 0 && state.waits > 0 && last.type === 'return') {
-        return opts.cb('Script has unmet dependencies. The return statement depends on one/more other ' +
+        return parentEvent.end('Script has unmet dependencies. The return statement depends on one/more other ' +
                 'statement(s), but those are not in-progress.');
     }
     if(pending == 0 && state.waits == 0) {
@@ -468,14 +463,14 @@ function sweep(opts, parentEvent) {
                 opts.execState[last.id].state = eventTypes.STATEMENT_IN_FLIGHT;
                 execOne(opts, last, function(err, results) {
                     opts.execState[last.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
-                    return opts.cb(err, results);
+                    return parentEvent.end(err, results);
                 });
             }
         }
         // Single statement (sans create/comments) - return the last result
         else {
             opts.done = true;
-            return opts.cb(undefined, opts.latestResult);
+            return parentEvent.end(null, opts.latestResult);
         }
     }
 }
@@ -522,7 +517,7 @@ function _execOne(opts, statement, cb, parentEvent) {
     var obj;
     switch(statement.type) {
         case 'create' :
-            create.exec(opts, statement, cb, parentEvent);
+            create.exec(opts, statement, parentEvent, cb);
             break;
         case 'define' :
             var params = _util.prepareParams(opts.context,

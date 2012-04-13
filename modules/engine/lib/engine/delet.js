@@ -31,24 +31,24 @@ exports.exec = function (opts, statement, parentEvent, cb) {
     var deleteEvent = opts.logEmitter.beginEvent({
         parent: parentEvent,
         name: 'delete',
+        message: {
+            line: statement.line
+        },
         cb: cb
     });
-    opts.logEmitter.emitEvent(deleteEvent.event, JSON.stringify({
-        line: statement.line
-    }));
 
     var tables = opts.tables, tempResources = opts.tempResources, context = opts.context,
         request = opts.request, emitter = opts.emitter;
     var deleteExecTx = opts.logEmitter.beginEvent({
         parent: deleteEvent.event,
         name: 'delete',
+        message: {
+            line: statement.line
+        },
         cb: function (err, results) {
             return deleteEvent.cb(err, results);
         }
     });
-    opts.logEmitter.emitEvent(deleteEvent.event, JSON.stringify({
-        line: statement.line
-    }));
 
     //
     // Analyze where conditions and fetch any dependent data
@@ -77,13 +77,13 @@ exports.exec = function (opts, statement, parentEvent, cb) {
         resource = context[name];
         if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
             apiTx = opts.logEmitter.beginEvent({
-                    parent: deleteExecTx.event,
-                    type: 'API',
-                    name: name,
-                    cb: deleteExecTx.cb});
-            opts.logEmitter.emitEvent(apiTx.event, JSON.stringify({
-                line: statement.line
-            }));
+                parent: deleteExecTx.event,
+                type: 'API',
+                name: name,
+                message: {
+                    line: statement.line
+                },
+                cb: deleteExecTx.cb});
 
             if(_.isArray(resource)) {
                 resource = filter.reject(resource, statement, context, statement.source);
@@ -114,11 +114,11 @@ exports.exec = function (opts, statement, parentEvent, cb) {
                 parent: deleteExecTx.event,
                 type: 'API',
                 name: name,
+                message: {
+                    line: statement.line
+                },
                 cb: deleteExecTx.cb
             });
-            opts.logEmitter.emitEvent(apiTx.event, JSON.stringify({
-                line: statement.line
-            }));
             if(!resource) {
                 return apiTx.cb('No such table ' + name);
             }
