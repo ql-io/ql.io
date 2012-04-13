@@ -104,11 +104,11 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
     });
 
     args.httpReqTx = args.logEmitter.beginEvent({
-            parent: args.parentEvent,
-            name: 'http-request',
-            cb: args.cb
-        });
-    args.logEmitter.emitEvent(args.httpReqTx.event, JSON.stringify(packet));
+        parent: args.parentEvent,
+        name: 'http-request',
+        message: packet,
+        cb: args.cb
+    });
 
     if(args.emitter) {
         packet.id = uniqueId;
@@ -156,11 +156,11 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
                     }
                     options.path = location.heirpart().path();
 
-                    args.logEmitter.emitEvent(args.httpReqTx.event, JSON.stringify({
+                    args.logEmitter.emitEvent(args.httpReqTx.event, {
                         redirects: redirects,
                         status: res.statusCode,
                         location: res.headers.location
-                    }));
+                    });
 
                     // End the current event.
                     args.logEmitter.endEvent(args.httpReqTx.event, 'Redirecting to ' + res.headers.location);
@@ -316,10 +316,10 @@ function sendMessage(args, client, options, retry) {
                             message: key, // TODO
                             cb: args.cb
                         });
-                args.logEmitter.emitEvent(args.httpReqTx.event, JSON.stringify({
+                args.logEmitter.emitEvent(args.httpReqTx.event, {
                     'cache-key': key,
                     'hit': true
-                }));
+                });
                 response.exec(timings, reqStart, args, uuid(), result.data.res, start, result.data.result, options, status);
             }
         });

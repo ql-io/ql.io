@@ -25,55 +25,35 @@ var eventTypes = require('./event-types.js'),
 /**
  * The point of this emitter is to capture events in a hierarchy so know which part of the script
  * caused what HTTP request.
- *
- * Each event emitted has the following fields:
- *
- * - id: An event ID
- * - parentId: ID of the parent event
- * - startTime: begin time of the event
- * - tx: event type (begin, end, info, error, warn)
- * - type: app level type ------- TODO: we should not need this here.
- * - uuid: A UUID - also used in request-id headers for tracking requests
  */
 var LogEmitter = module.exports = function() {
     events.EventEmitter.call(this);
 
-    var counter = 0;
-    this.getEventId = function() {
-        if (counter == 65535) {
-            counter = 1; // skip 0, it means non-transaction
-        }
-        return ++counter;
-    }
-
-    this.endEvent = function(event, message) {
-        if (!event) {
-            return; // don't waste my time
-        }
-
-        var startTime = event.startTime || getUTimeInSecs();
-
-        try {
-            event.duration = Date.now() - startTime;
-        }
-        catch(e) {
-            event.txDuration = 0;
-        }
-
-        event.tx = 'end';
-
-        this.emit(eventTypes.END_EVENT, event, message); //end
-    }
-
+    /**
+     * This begins a new event and returns an event object
+     *
+     * The arg is an object with the following properties:
+     *
+     * - parent: Parent event, if nested.
+     * - type: Type of the event
+     * - name: Name of the event
+     * - message: A message payload
+     * - cb: A function to callback when this event ends
+     *
+     * This function returns an object with event and cb properties. Invoking this cb ends this
+     * event and triggers invocation of the original callback.
+     *
+     * @return {Object}
+     */
     this.beginEvent = function() {
         var parent = arguments[0].parent;
         var type = arguments[0].type;
         var name = arguments[0].name;
-        var message = _.isObject(message) ? JSON.stringify(arguments[0].message) : arguments[0].message;
+        var message = arguments[0].message;
         var cb = arguments[0].cb;
 
         var event = {
-            eventId: this.getEventId(),
+            eventId: getEventId(),
             parentEventId: (parent ? parent.eventId = parent.eventId || 0 : 0),
             startTime: Date.now(),
             tx: 'begin',
@@ -98,8 +78,48 @@ var LogEmitter = module.exports = function() {
                 }
                 that.endEvent(event, m || status);
                 return cb(e, r);
+            },
+            error: function(err) {
+                that.emitError(event, err);
+            },
+            end: function(err, results, m) {
+                that.emit('end', err, results);
+                var status = 'Success';
+                if(err) {
+                    if(err.emitted === undefined) {
+                        event.tx = 'error';
+                        that.emitError(event, err);
+//                        that.emit(eventTypes.ERROR, event, err);
+                        err.emitted = true;
+                    }
+                    status = 'Failure'
+                }
+                that.endEvent(event, m || status);
+                return cb(err, results);
             }
         }
+    }
+
+    /////
+    ///// all these methods should go or become private
+    ////
+    this.endEvent = function(event, message) {
+        if (!event) {
+            return; // don't waste my time
+        }
+
+        var startTime = event.startTime || getUTimeInSecs();
+
+        try {
+            event.duration = Date.now() - startTime;
+        }
+        catch(e) {
+            event.txDuration = 0;
+        }
+
+        event.tx = 'end';
+
+        this.emit(eventTypes.END_EVENT, event, message); //end
     }
 
     this.emitEvent = function(event, msg){
@@ -139,6 +159,14 @@ var LogEmitter = module.exports = function() {
 
     function getUTimeInSecs() {
         return Math.floor(new Date().getTime() / 1000);
+    }
+
+    var counter = 0;
+    function getEventId() {
+        if (counter == 65535) {
+            counter = 1; // skip 0, it means non-transaction
+        }
+        return ++counter;
     }
 }
 
