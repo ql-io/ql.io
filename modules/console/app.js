@@ -257,15 +257,14 @@ var Console = module.exports = function(config, cb) {
                 var urlEvent = engine.beginEvent({
                     type: 'URL',
                     name: req.url,
+                    message: {
+                        path: req.url,
+                        headers: req.headers
+                    },
                     cb: function(err, results) {
                         return handleResponseCB(req, res, execState, err, results);
                     }
                 });
-                // Emit incoming headers
-                engine.emitEvent(urlEvent.event, JSON.stringify({
-                    path: req.url,
-                    headers: req.headers
-                }));
 
                 var execState = [];
                 engine.execute(route.script,
@@ -310,14 +309,17 @@ var Console = module.exports = function(config, cb) {
         var urlEvent = engine.beginEvent({
             type: 'URL',
             name: req.url,
+            message: {
+                path: req.url,
+                headers: req.headers
+            },
             cb: function(err, results) {
                 return isJson || err ?
                     handleResponseCB(req, res, execState, err, results) :
                     routePage(res,execState,results.body);
             }
         });
-        // Emit incoming headers
-        engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
+
         var execState = [];
         engine.execute('show tables',
             {
@@ -381,14 +383,17 @@ var Console = module.exports = function(config, cb) {
         var urlEvent = engine.beginEvent({
             type: 'URL',
             name: req.url,
+            message: {
+                path: req.url,
+                headers: req.headers
+            },
             cb: function(err, results) {
                 return isJson || err ?
                     handleResponseCB(req, res, execState, err, results) :
                     routePage(res,execState,results.body);
             }
         });
-        // Emit incoming headers
-        engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
+
         var execState = [];
         engine.execute('describe' + decodeURIComponent(name),
             {
@@ -429,14 +434,17 @@ var Console = module.exports = function(config, cb) {
         var urlEvent = engine.beginEvent({
             type: 'URL',
             name: req.url,
+            message: {
+                path: req.url,
+                headers: req.headers
+            },
             cb: function(err, results) {
                 return isJson || err ?
                     handleResponseCB(req, res, execState, err, results) :
                     routePage(res,execState,results.body);
             }
         });
-        // Emit incoming headers
-        engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
+
         var execState = [];
         engine.execute('show routes',
             {
@@ -511,14 +519,16 @@ var Console = module.exports = function(config, cb) {
         var urlEvent = engine.beginEvent({
             type: 'URL',
             name: req.url,
+            message: {
+                path: req.url,
+                headers: req.headers
+            },
             cb: function(err, results) {
                 return isJson || err ?
                     handleResponseCB(req, res, execState, err, results) :
                     routePage(res,execState,results.body);
             }
         });
-        // Emit incoming headers
-        engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
 
         var execState = [];
         engine.execute('describe route "' + decodeURIComponent(path) + '" using method ' + method,
@@ -563,6 +573,10 @@ var Console = module.exports = function(config, cb) {
             var urlEvent = engine.beginEvent({
                 type: 'URL',
                 name: req.url,
+                message: {
+                    path: req.url,
+                    headers: req.headers
+                },
                 cb: function(err, results) {
                     return handleResponseCB(req, res, execState, err, results);
                 }
