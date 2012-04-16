@@ -67,16 +67,16 @@ var LogEmitter = module.exports = function() {
         return {
             event: event,
             cb: function(e, r, m) {
-                var status = 'Success';
+                var message = {status : 'Success'};
                 if (e) {
                     if(e.emitted === undefined) {
                         event.tx = 'error';
                         that.emit(eventTypes.ERROR, event, e);
                         e.emitted = true;
                     }
-                    status = 'Failure'
+                    message.status = 'Failure'
                 }
-                that.endEvent(event, m || status);
+                that.endEvent(event, m || message);
                 return cb(e, r);
             },
             error: function(err) {
@@ -84,25 +84,24 @@ var LogEmitter = module.exports = function() {
             },
             end: function(err, results, m) {
                 that.emit('end', err, results);
-                var status = 'Success';
+                var message = {status : 'Success'};
                 if(err) {
                     if(err.emitted === undefined) {
                         event.tx = 'error';
                         that.emitError(event, err);
-//                        that.emit(eventTypes.ERROR, event, err);
                         err.emitted = true;
                     }
-                    status = 'Failure'
+                    message.status = 'Failure'
                 }
-                that.endEvent(event, m || status);
+                that.endEvent(event, m || message);
                 return cb(err, results);
             }
         }
     }
 
-    /////
-    ///// all these methods should go or become private
-    ////
+    /**
+     * Ends the event
+     */
     this.endEvent = function(event, message) {
         if (!event) {
             return; // don't waste my time
@@ -122,11 +121,17 @@ var LogEmitter = module.exports = function() {
         this.emit(eventTypes.END_EVENT, event, message); //end
     }
 
+    /**
+     * Emits an event
+     */
     this.emitEvent = function(event, msg){
         event.tx = 'info';
         this.emit(eventTypes.EVENT, event, msg);
     }
 
+    /**
+     * Emits a warning
+     */
     this.emitWarning = function () {
         var event = {}, msg = 'Warning event raised without message';
         if (arguments.length > 1) {
@@ -140,6 +145,9 @@ var LogEmitter = module.exports = function() {
         this.emit(eventTypes.WARNING, event, msg);
     }
 
+    /**
+     * Emits an error
+     */
     this.emitError = function () {
         var event = {}, msg = 'Error event raised without message', cause;
         if (arguments.length > 1) {
