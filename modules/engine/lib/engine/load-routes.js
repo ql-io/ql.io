@@ -37,6 +37,7 @@ exports.load = function (opts) {
         simpleMap:{},
         verbMap:{}
     };
+    logEmitter.emitEvent('Loading tables from ' + rootdir);
     loadInternal(rootdir, '', logEmitter, routes, tablesInfo);
     return routes;
 

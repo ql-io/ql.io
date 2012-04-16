@@ -91,7 +91,6 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         method: options.method,
         uri: args.uri,
         headers: [],
-        body: args.body,
         start: reqStart,
         type: eventTypes.STATEMENT_REQUEST
     };
@@ -112,6 +111,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
 
     if(args.emitter) {
         packet.id = uniqueId;
+        // Add the body here to avoid logging body to logEmitter
         if(args.body) {
             packet.body = args.body;
         }

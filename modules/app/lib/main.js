@@ -17,6 +17,8 @@
 'use strict';
 
 var cluster2 = require('cluster2'),
+    fs = require('fs'),
+    winston = require('winston'),
     os = require('os'),
     _ = require('underscore'),
     program = require('commander'),
@@ -31,7 +33,22 @@ process.on('uncaughtException', function(error) {
 
 exports.version = require('../package.json').version;
 
-exports.exec = function(cb, opts) {
+exports.exec = function() {
+    var loggerFn, cb, opts
+    if(arguments.length === 1) {
+        cb = arguments[0];
+    }
+    else if(arguments.length === 2) {
+        cb = arguments[0];
+        opts = arguments[1];
+    }
+    else if(arguments.length === 3) {
+        loggerFn = arguments[0];
+        cb = arguments[1];
+        opts = arguments[2];
+    }
+
+    loggerFn = loggerFn || addFileLoggers;
 
     // Process command line args.
     var cwd = process.cwd();
@@ -66,6 +83,7 @@ exports.exec = function(cb, opts) {
         noWorkers: program.noWorkers,
         ecvPath: program.ecvPath,
         'request-id': program.requestId || 'Request-ID',
+        loggerFn: loggerFn,
         ecv: {
             monitor: '/tables',
             validator: function(status, headers, data) {
@@ -73,6 +91,7 @@ exports.exec = function(cb, opts) {
             }
         }
     };
+    options.__proto__ = program;
 
     if(process.argv.indexOf('stop') >= 0) {
         cluster2.stop(options);
@@ -83,7 +102,7 @@ exports.exec = function(cb, opts) {
     else {
         var emitter;
         cluster2.listen(options, function(cb2) {
-            createConsole(program, function(app, e) {
+            createConsole(options, function(app, e) {
                 emitter = e;
                 cb2(app);
             })
@@ -95,10 +114,91 @@ exports.exec = function(cb, opts) {
     }
 }
 
-function createConsole(program, cb) {
+exports.addFileLoggers = addFileLoggers;
+function addFileLoggers(options, emitter) {
+    // Attach listeners for logging
+    // Ensure logs dir.
+    var logdir = false;
+    try {
+        fs.readdirSync(process.cwd() + '/logs');
+        logdir = true;
+    }
+    catch(e) {
+        try {
+            fs.mkdirSync(process.cwd() + '/logs/', parseInt('755', 8));
+            logdir = true;
+        }
+        catch(e) {
+        }
+    }
+    var logger = createLogger(logdir, '/logs/ql.io.log');
+    var accessLogger = createLogger(logdir, '/logs/access.log');
+    var errLogger = createLogger(logdir, '/logs/error.log');
+    var proxyLogger = createLogger(logdir, '/logs/proxy.log');
+
+    logger.setLevels(winston.config.cli.levels);
+    emitter.on('ql.io-begin-event', function (event, message) {
+        if(_.isObject(message)) {
+            message.eventId = event.eventId;
+            message.pid = process.pid;
+        }
+        if(event.type === 'URL') {
+            accessLogger.info(message)
+        }
+        else if(event.name === 'http-request') {
+            proxyLogger.info(message)
+        }
+    });
+    emitter.on('ql.io-end-event', function (event, message) {
+        if(_.isObject(message)) {
+            message.eventId = event.eventId;
+            message.pid = process.pid;
+            message.duration = event.duration;
+        }
+        if(event.type === 'URL') {
+            accessLogger.info(message)
+        }
+        else if(event.name === 'http-request') {
+            proxyLogger.info(message)
+        }
+    });
+
+    emitter.on('ql.io-event', function (event, message) {
+        logger.info(message || event);
+    });
+
+    emitter.on('info', function (event, message) {
+        logger.info(message || event);
+    });
+
+    emitter.on('ql.io-error', function (event, message, err) {
+        errLogger.info(message || event);
+        if(err) {
+            errLogger.error(err.stack || err);
+        }
+    });
+    emitter.on('error', function (event, message) {
+        var warn = errLogger.warn || errLogger.warning;
+        warn(message || event);
+    });
+
+    emitter.on('ql.io-warning', function (event, message) {
+        var warn = errLogger.warn || errLogger.warning;
+        warn(message || event);
+    });
+    emitter.on('warning', function (event, message) {
+        var warn = errLogger.warn || errLogger.warning;
+        warn(message || event);
+    });
+}
+
+function createConsole(options, cb) {
     var disableConsole = Boolean(program.disableConsole);
     var disableQ = Boolean(program.disableQ);
     return new Console({
+        loggerFn: function(emitter) {
+            options.loggerFn.call(null, options, emitter);
+        },
         'tables': program.tables,
         'routes': program.routes,
         'config': program.config,
@@ -109,5 +209,21 @@ function createConsole(program, cb) {
         'log levels': require('winston').config.syslog.levels}, cb);
 }
 
+function createLogger(logdir, name) {
+    var logger = logdir ? new (winston.Logger)({
+        transports: [
+            new (winston.transports.File)({
+                filename: process.cwd() + name,
+                maxsize: 1024000 * 5,
+                colorize: false,
+                json: true,
+                timestamp: function () {
+                    return new Date();
+                }
+            })
+        ]
+    }) : new (winston.Logger)();
+    return logger;
+}
 
 
