@@ -67,16 +67,16 @@ var LogEmitter = module.exports = function() {
         return {
             event: event,
             cb: function(e, r, m) {
-                var status = 'Success';
+                var message = {status : 'Success'};
                 if (e) {
                     if(e.emitted === undefined) {
                         event.tx = 'error';
                         that.emit(eventTypes.ERROR, event, e);
                         e.emitted = true;
                     }
-                    status = 'Failure'
+                    message.status = 'Failure'
                 }
-                that.endEvent(event, m || status);
+                that.endEvent(event, m || message);
                 return cb(e, r);
             },
             error: function(err) {
@@ -84,16 +84,16 @@ var LogEmitter = module.exports = function() {
             },
             end: function(err, results, m) {
                 that.emit('end', err, results);
-                var status = 'Success';
+                var message = {status : 'Success'};
                 if(err) {
                     if(err.emitted === undefined) {
                         event.tx = 'error';
                         that.emitError(event, err);
                         err.emitted = true;
                     }
-                    status = 'Failure'
+                    message.status = 'Failure'
                 }
-                that.endEvent(event, m || status);
+                that.endEvent(event, m || message);
                 return cb(err, results);
             }
         }

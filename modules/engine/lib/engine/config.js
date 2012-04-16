@@ -32,6 +32,7 @@ exports.load = function(opts) {
     }
     try {
         // Load the file
+        logEmitter.emitEvent('Loading config from ' + opts.config);
         text = fs.readFileSync(file, 'UTF-8');
     }
     catch (e) {

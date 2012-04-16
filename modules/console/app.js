@@ -46,48 +46,7 @@ var Console = module.exports = function(config, cb) {
 
     config = config || {};
 
-    // Ensure logs dir.
-    var logdir = false;
-    try {
-        fs.readdirSync(process.cwd() + '/logs');
-        logdir = true;
-    }
-    catch(e) {
-        try {
-            fs.mkdirSync(process.cwd() + '/logs/', parseInt('755', 8));
-            logdir = true;
-        }
-        catch(e) {
-        }
-    }
-
-    var logger = logdir ? new (winston.Logger)({
-        transports: [
-            new (winston.transports.File)({
-                filename: process.cwd() + '/logs/ql.io.log',
-                maxsize: 1024000 * 5,
-                colorize: true,
-                timestamp: function() { return new Date();}
-            })
-        ],
-    }) : new (winston.Logger)();
-
-    logger.setLevels(config['log levels'] || winston.config.cli.levels);
-    config.logger = config.logger || logger;
     var engine = new Engine(config);
-
-    if(config.tables) {
-        logger.info('Loading tables from ' + config.tables);
-    }
-    if(config.routes) {
-        logger.info('Loading routes from ' + config.routes);
-    }
-    if(config.config) {
-        logger.info('Loading config from ' + config.config);
-    }
-    if(config.xformers) {
-        logger.info('Loading xformers from ' + config.xformers);
-    }
 
     var app = this.app = express.createServer();
 
@@ -203,7 +162,7 @@ var Console = module.exports = function(config, cb) {
     var routes = engine.routes.verbMap;
     _.each(routes, function(verbRoutes, uri) {
         _.each(verbRoutes, function(verbRouteVariants, verb) {
-            engine.emit(Engine.Events.EVENT, {}, ' Adding route ' + uri + ' for ' + verb);
+            engine.emit(Engine.Events.EVENT, {}, 'Adding route ' + uri + ' for ' + verb);
             app[verb](uri, function(req, res) {
                 var holder = {
                     params: {},
@@ -258,6 +217,8 @@ var Console = module.exports = function(config, cb) {
                     type: 'URL',
                     name: req.url,
                     message: {
+                        ip: req.connection.remoteAddress,
+                        method: req.method,
                         path: req.url,
                         headers: req.headers
                     },
@@ -310,6 +271,8 @@ var Console = module.exports = function(config, cb) {
             type: 'URL',
             name: req.url,
             message: {
+                ip: req.connection.remoteAddress,
+                method: req.method,
                 path: req.url,
                 headers: req.headers
             },
@@ -384,6 +347,8 @@ var Console = module.exports = function(config, cb) {
             type: 'URL',
             name: req.url,
             message: {
+                ip: req.connection.remoteAddress,
+                method: req.method,
                 path: req.url,
                 headers: req.headers
             },
@@ -435,6 +400,8 @@ var Console = module.exports = function(config, cb) {
             type: 'URL',
             name: req.url,
             message: {
+                ip: req.connection.remoteAddress,
+                method: req.method,
                 path: req.url,
                 headers: req.headers
             },
@@ -520,6 +487,8 @@ var Console = module.exports = function(config, cb) {
             type: 'URL',
             name: req.url,
             message: {
+                ip: req.connection.remoteAddress,
+                method: req.method,
                 path: req.url,
                 headers: req.headers
             },
@@ -574,6 +543,8 @@ var Console = module.exports = function(config, cb) {
                 type: 'URL',
                 name: req.url,
                 message: {
+                    ip: req.connection.remoteAddress,
+                    method: req.method,
                     path: req.url,
                     headers: req.headers
                 },

@@ -64,38 +64,14 @@ var Engine = module.exports = function(opts) {
     // Engine is a LogEmitter.
     LogEmitter.call(this);
 
+    this.setMaxListeners(30);
+
     opts = opts || {};
 
-    opts.logger = opts.logger || new (winston.Logger)();
-    // Attach listeners and loggers before doing anything
-    this.setMaxListeners(30);
-    this.on(Engine.Events.BEGIN_EVENT, function(event, message) {
-        opts.logger.info(message);
-        // Log if you want to capture hierarchy
-    });
-    this.on(Engine.Events.END_EVENT, function(event, message) {
-        // Log if you want to capture hierarchy
-    });
-
-    this.on(Engine.Events.EVENT, function(event, message) {
-        opts.logger.info(message || event);
-    });
-    this.on(Engine.Events.SCRIPT_DONE, function(event, message) {
-        opts.logger.info(message || event);
-    });
-    this.on(Engine.Events.INFO, function(event, message) {
-        opts.logger.info(message || event);
-    });
-    this.on(Engine.Events.ERROR, function(event, message, err) {
-        opts.logger.info(message || event);
-        if(err) {
-            opts.logger.error(err.stack || err);
-        }
-    });
-    this.on(Engine.Events.WARNING, function(event, message) {
-        var warn = opts.logger.warn || opts.logger.warning;
-        warn(message || event);
-    });
+    // Wire up loggers
+    if(opts.loggerFn) {
+        opts.loggerFn.call(null, this);
+    }
 
     // Load stuff
     opts.config = opts.config || {};
@@ -123,6 +99,7 @@ var Engine = module.exports = function(opts) {
     // These are transformers for data formats.
     this.xformers = {};
     if(opts.xformers) {
+        this.emitEvent('Loading xformers from ' + opts.xformers);
         try {
             this.xformers = require(opts.xformers);
             _.each(this.xformers, function(v, k) {
