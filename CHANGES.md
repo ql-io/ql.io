@@ -1,3 +1,9 @@
+## Apr 15, 2012
+
+* Refactor logging to error, access, proxy and default logs. The proxy log file contains outgoing
+  req/resp, access log contains incoming requests, error log contains all errors and warnings,
+  and the rest go to ql.io.log. All these files are rotated.
+
 ## Apr 13, 2012
 
 * Include a payload with begin events
