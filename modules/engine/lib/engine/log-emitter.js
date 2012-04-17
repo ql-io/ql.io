@@ -35,6 +35,7 @@ var LogEmitter = module.exports = function() {
      * The arg is an object with the following properties:
      *
      * - parent: Parent event, if nested.
+     * - clazz: class of the event, such as 'info', 'warn', 'error'
      * - type: Type of the event
      * - name: Name of the event
      * - message: A message payload
@@ -56,7 +57,7 @@ var LogEmitter = module.exports = function() {
             eventId: getEventId(),
             parentEventId: (parent ? parent.eventId = parent.eventId || 0 : 0),
             startTime: Date.now(),
-            tx: 'begin',
+            clazz: 'begin',
             type: type || 'ql.io',
             name: name || 'ql.io',
             uuid: (parent && parent.uuid ? parent.uuid : uuid())
@@ -70,7 +71,7 @@ var LogEmitter = module.exports = function() {
                 var message = {status : 'Success'};
                 if (e) {
                     if(e.emitted === undefined) {
-                        event.tx = 'error';
+                        event.clazz = 'error';
                         that.emit(eventTypes.ERROR, event, e);
                         e.emitted = true;
                     }
@@ -87,7 +88,7 @@ var LogEmitter = module.exports = function() {
                 var message = {status : 'Success'};
                 if(err) {
                     if(err.emitted === undefined) {
-                        event.tx = 'error';
+                        event.clazz = 'error';
                         that.emitError(event, err);
                         err.emitted = true;
                     }
@@ -113,10 +114,10 @@ var LogEmitter = module.exports = function() {
             event.duration = Date.now() - startTime;
         }
         catch(e) {
-            event.txDuration = 0;
+            event.duration = 0;
         }
 
-        event.tx = 'end';
+        event.clazz = 'end';
 
         this.emit(eventTypes.END_EVENT, event, message); //end
     }
@@ -124,8 +125,18 @@ var LogEmitter = module.exports = function() {
     /**
      * Emits an event
      */
-    this.emitEvent = function(event, msg){
-        event.tx = 'info';
+    this.emitEvent = function(){
+        var event, msg;
+        if(arguments.length === 1) {
+            event = {
+                clazz: 'info'
+            };
+            msg = arguments[0];
+        }
+        else if(arguments.length === 2) {
+            event = arguments[0];
+            msg = arguments[1];
+        }
         this.emit(eventTypes.EVENT, event, msg);
     }
 
@@ -141,7 +152,7 @@ var LogEmitter = module.exports = function() {
         else if (arguments.length === 1) {
             msg = arguments[0];
         }
-        event.tx = 'warn';
+        event.clazz = 'warn';
         this.emit(eventTypes.WARNING, event, msg);
     }
 
@@ -161,7 +172,7 @@ var LogEmitter = module.exports = function() {
         else if (arguments.length === 1) {
             msg = arguments[0];
         }
-        event.tx = 'error';
+        event.clazz = 'error';
         this.emit(eventTypes.ERROR, event, msg, cause);
     }
 

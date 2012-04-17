@@ -21,6 +21,7 @@ var winston = require('winston'),
     browserify = require('browserify'),
     headers = require('headers'),
     fs = require('fs'),
+    os = require('os'),
     sanitize = require('validator').sanitize,
     connect = require('connect'),
     expat = require('xml2json'),
@@ -212,10 +213,11 @@ var Console = module.exports = function(config, cb) {
                 holder.connection = {
                     remoteAddress: req.connection.remoteAddress
                 };
-                // Start the top level URL transaction
+                // Start the top level event
                 var urlEvent = engine.beginEvent({
-                    type: 'URL',
-                    name: req.url,
+                    clazz: 'info',
+                    type: 'route',
+                    name: route.routeInfo.method.toUpperCase() + ' ' + route.routeInfo.path,
                     message: {
                         ip: req.connection.remoteAddress,
                         method: req.method,
@@ -266,10 +268,11 @@ var Console = module.exports = function(config, cb) {
             });
         }
 
-        // Start the top level URL transaction
+        // Start the top level event
         var urlEvent = engine.beginEvent({
-            type: 'URL',
-            name: req.url,
+            clazz: 'info',
+            type: 'route',
+            name: req.method.toUpperCase() + ' ' + req.url,
             message: {
                 ip: req.connection.remoteAddress,
                 method: req.method,
@@ -342,10 +345,11 @@ var Console = module.exports = function(config, cb) {
             return;
         }
 
-        // Start the top level URL transaction
+        // Start the top level event
         var urlEvent = engine.beginEvent({
-            type: 'URL',
-            name: req.url,
+            clazz: 'info',
+            type: 'route',
+            name: req.method.toUpperCase() + ' ' + req.url,
             message: {
                 ip: req.connection.remoteAddress,
                 method: req.method,
@@ -395,10 +399,11 @@ var Console = module.exports = function(config, cb) {
             });
         }
 
-        // Start the top level URL transaction
+        // Start the top level event
         var urlEvent = engine.beginEvent({
-            type: 'URL',
-            name: req.url,
+            clazz: 'info',
+            type: 'route',
+            name: req.method.toUpperCase() + ' ' + req.url,
             message: {
                 ip: req.connection.remoteAddress,
                 method: req.method,
@@ -482,10 +487,11 @@ var Console = module.exports = function(config, cb) {
             });
         }
 
-        // Start the top level URL transaction
+        // Start the top level event
         var urlEvent = engine.beginEvent({
-            type: 'URL',
-            name: req.url,
+            clazz: 'info',
+            type: 'route',
+            name: req.method.toUpperCase() + ' ' + req.url,
             message: {
                 ip: req.connection.remoteAddress,
                 method: req.method,
@@ -540,8 +546,9 @@ var Console = module.exports = function(config, cb) {
             collectHttpQueryParams(req, holder, true);
             collectHttpHeaders(req, holder);
             var urlEvent = engine.beginEvent({
-                type: 'URL',
-                name: req.url,
+                clazz: 'info',
+                type: 'route',
+                name: req.method.toUpperCase() + ' ' + req.url,
                 message: {
                     ip: req.connection.remoteAddress,
                     method: req.method,
@@ -613,7 +620,8 @@ var Console = module.exports = function(config, cb) {
     var heartbeat = setInterval(function () {
         engine.emit(Engine.Events.HEART_BEAT, {
             pid: process.pid,
-            uptime: process.uptime()
+            uptime: process.uptime(),
+            freemem: os.freemem()
         });
     }, 60000);
 
