@@ -1,3 +1,7 @@
+## Apr 16, 2012
+
+* Minor cleanup of event names and classes to make the API less specific.
+
 ## Apr 15, 2012
 
 * Refactor logging to error, access, proxy and default logs. The proxy log file contains outgoing
