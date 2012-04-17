@@ -90,14 +90,14 @@ function _iterate(resource, statement, context, source, keep) {
                             for(var v in result) {
                                 if(_.isArray(expected[j])) {
                                     for(var vv in expected[j]) {
-                                        if(result[v] === expected[j][vv]) {
+                                        if(result[v] == expected[j][vv]) {
                                             match = true;
                                             break;
                                         }
                                     }
                                 }
                                 else {
-                                    if(result[v] === expected[j]) {
+                                    if(result[v] == expected[j]) {
                                         match = true;
                                         break;
                                     }
@@ -107,14 +107,14 @@ function _iterate(resource, statement, context, source, keep) {
                         else {
                             if(_.isArray(expected[j])) {
                                 for(var vv in expected[j]) {
-                                    if(result[v] === expected[j][vv]) {
+                                    if(result[v] == expected[j][vv]) {
                                         match = true;
                                         break;
                                     }
                                 }
                             }
                             else {
-                                if(result === expected[j]) {
+                                if(result == expected[j]) {
                                     match = true;
                                     break;
                                 }
