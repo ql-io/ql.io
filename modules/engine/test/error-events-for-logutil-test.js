@@ -98,7 +98,7 @@ module.exports = {
 
         var errorHandler = function(ctx, msg) {
             ctx = ctx || {};
-            test.equals(ctx.type, 'API', 'API expected');
+            test.equals(ctx.type, 'table', 'table expected');
             test.equals(msg.type, 'undefined_method');
             errorGot = true;
         }

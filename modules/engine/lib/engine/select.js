@@ -180,12 +180,12 @@ function execInternal(opts, statement, cb, parentEvent) {
          request = opts.request, emitter = opts.emitter;
 
     var selectExecTx  = opts.logEmitter.beginEvent({
-        parent: parentEvent,
-        name: 'select-exec',
-        message: {
-            line: statement.line
-        },
-        cb: cb});
+            parent: parentEvent,
+            name: 'select-exec',
+            message: {
+                line: statement.line
+            },
+            cb: cb});
 
     //
     // Pre-fill columns
@@ -242,7 +242,7 @@ function execInternal(opts, statement, cb, parentEvent) {
             if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
                 apiTx = opts.logEmitter.beginEvent({
                     parent: selectExecTx.event,
-                    type: 'API',
+                    type: 'table',
                     name: name,
                     message: {
                         line: statement.line
@@ -270,7 +270,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                 resource = tempResources[from.name] || tables[from.name];
                 apiTx = opts.logEmitter.beginEvent({
                         parent: selectExecTx.event,
-                        type: 'API',
+                        type: 'table',
                         name: from.name,
                         message: {line: statement.line},
                         cb: selectExecTx.cb});

@@ -78,7 +78,6 @@ exports.exec = function (opts, statement, parentEvent, cb) {
         if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
             apiTx = opts.logEmitter.beginEvent({
                 parent: deleteExecTx.event,
-                type: 'API',
                 name: name,
                 message: {
                     line: statement.line
@@ -112,7 +111,7 @@ exports.exec = function (opts, statement, parentEvent, cb) {
             resource = tempResources[name] || tables[name];
             apiTx = opts.logEmitter.beginEvent({
                 parent: deleteExecTx.event,
-                type: 'API',
+                type: 'table',
                 name: name,
                 message: {
                     line: statement.line
