@@ -1,3 +1,7 @@
+## Apr 17, 2012
+
+* When joining, use '==' to maintain backwards compat
+
 ## Apr 16, 2012
 
 * Minor cleanup of event names and classes to make the API less specific.
