@@ -217,7 +217,7 @@ var Console = module.exports = function(config, cb) {
                 var urlEvent = engine.beginEvent({
                     clazz: 'info',
                     type: 'route',
-                    name: route.routeInfo.method.toUpperCase() + ' ' + route.routeInfo.path,
+                    name: route.routeInfo.method.toUpperCase() + ' ' + route.routeInfo.path.value,
                     message: {
                         ip: req.connection.remoteAddress,
                         method: req.method,
