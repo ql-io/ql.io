@@ -1,5 +1,7 @@
 ## Apr 19, 2012
 
+* Updated PEG.js to 0.7. I see 50% improvement in speed which matters for string and uri templates
+  as we don't yet cache parser output.
 * Remove duplicates from in clause. 
 * Use hasOwnProperty in place of prop lookup while joining
 
