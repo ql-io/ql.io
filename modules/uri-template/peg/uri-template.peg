@@ -112,6 +112,14 @@ URITemplate  = c:( literal / expression )* {
                                             arr = [];
                                             subset = [];
                                             var start = 0, end = ele.max;
+
+                                            // Remove duplicates
+                                            val = val.sort();
+                                            val = val.filter(function(v,i,o) {
+                                                return (i === 0) ||
+                                                    v !== o[i-1];
+                                            });
+
                                             for(j = 0; j < val.length/ele.max; j++) {
                                                 subset = val.slice(start, end);
                                                 arr.push(_append(str, subset, encode));
