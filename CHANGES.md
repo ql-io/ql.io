@@ -1,3 +1,7 @@
+## Apr 18, 2012
+
+* Deal with non UTF-8 encodings from upstream resources
+
 ## Apr 17, 2012
 
 * When joining, use '==' to maintain backwards compat
