@@ -27,7 +27,8 @@ var assert = require('assert'),
     fs = require('fs'),
     normalize = require('path').normalize,
     request = require('../http/request.js'),
-    _util = require('../util.js');
+    _util = require('../util.js'),
+    Iconv  = require('iconv').Iconv;
 
 var skipHeaders = ['connection', 'host', 'referer', 'content-length',
     'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers',
@@ -77,8 +78,10 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
                 contentType.subtype === 'csv' ? 'ASCII' : 'UTF-8';
         }
         var str = '';
+        var iconv = new Iconv(encoding, 'UTF-8');
         _.each(args.body, function(buf) {
-            str += buf.toString(encoding);
+            buf = (iconv.convert(buf));
+            str += buf.toString('UTF-8');
         });
         return {
             content: str
