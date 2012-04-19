@@ -127,7 +127,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                             }
                             else if(selected.from === 'joiner') {
                                 if(other[l]) {
-                                    if(other[l][selected.name]) {
+                                    if(other[l].hasOwnProperty(selected.name)) {
                                         val = other[l][selected.name];
                                     }
                                     else if(_.isArray(other[l])) {
