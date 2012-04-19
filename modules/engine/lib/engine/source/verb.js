@@ -78,7 +78,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
                 contentType.subtype === 'csv' ? 'ASCII' : 'UTF-8';
         }
         var str = '';
-        var iconv = new Iconv('UTF-8', encoding);
+        var iconv = new Iconv(encoding, 'UTF-8');
         _.each(args.body, function(buf) {
             buf = (iconv.convert(buf));
             str += buf.toString('UTF-8');

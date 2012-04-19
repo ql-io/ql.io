@@ -14,204 +14,189 @@
  * limitations under the License.
  */
 
-var _    = require('underscore'),
+var _  = require('underscore'),
     util = require('util'),
     http = require('http'),
-    url = require('url');
+    url = require('url'),
+    fs = require('fs'),
+    Listener = require('./utils/log-listener.js');
 
 var Engine = require('../lib/engine');
 
-var cooked = {
-    default:{
-        ports: [
-            {
-                port: 3000,
-                status: 200,
-                type: "application",
-                subType: "xml",
-                payload:
-                    '<?xml version="1.0"?>' +
-                        '<findItemsByKeywordsResponse xmlns="http://www.ebay.com/marketplace/search/v1/services">' +
-                        '<searchResult count="10">'+
-                        '<item><itemId>140697152294</itemId>'+
-                        '<title>New Sealed Apple iPad 2 16GB, Wi-Fi + 3G (Unlocked), 9.7in - White (MC982LL/A) </title></item>'+
-                        '<item><itemId>320839939720</itemId>'+
-                        '<title>Apple iPad 32GB, Wi-Fi + 3G (AT&amp;T), 9.7in - Black</title></item>'+
-                        '</searchResult> </findItemsByKeywordsResponse>'
-            }
-        ],
-        script: 'create table finditems on select get from "http://localhost:3000" '+
-            'resultset "findItemsByKeywordsResponse.searchResult.item"; '+
-            'web = select * from finditems where keywords = "ipad";'+
-            'return "{web}"',
-
-        udf: {
-            test : function (test, err, result) {
-                if(err) {
-                    test.ok(false,'got error: ' + err.stack || err);
+module.exports = {
+    'default' : function(test) {
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : 'application/json',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if (e) {
+                    console.log(e.stack || e);
                 }
-                else {
-                    test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
-                    test.ok(_.isArray(result.body), 'expected an array');
-                    test.ok(result.body.length > 0, 'expected some items');
-                    test.ok(!_.isArray(result.body[0]), 'expected object in the array');
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+            var engine = new Engine({ });
+            var script = fs.readFileSync(__dirname + '/mock/encodingDefaultSelect.ql', 'UTF-8');
+            var listener = new Listener(engine);
+            engine.exec(script, function(err, results) {
+                listener.assert(test);
+                if (err) {
+                    console.log(err.stack || err);
+                    test.ok(false, 'Test failed.');
+                    test.done();
+                } else {
+                    results = results.body;
+                    test.ok(results.encodedString.length === 200, "String of length 200 expected");
+                    test.done();
                 }
-            }
-        }
+                server.close();
+            });
+        });
     },
-    utf8:{
-        ports: [
-            {
-                port: 3000,
-                status: 200,
-                type: "application",
-                subType: "xml; charset=utf8",
-                payload:
-                    '<?xml version="1.0"?>' +
-                        '<findItemsByKeywordsResponse xmlns="http://www.ebay.com/marketplace/search/v1/services">' +
-                        '<searchResult count="10">'+
-                        '<item><itemId>140697152294</itemId>'+
-                        '<title>New Sealed Apple iPad 2 16GB, Wi-Fi + 3G (Unlocked), 9.7in - White (MC982LL/A) </title></item>'+
-                        '<item><itemId>320839939720</itemId>'+
-                        '<title>Apple iPad 32GB, Wi-Fi + 3G (AT&amp;T), 9.7in - Black</title></item>'+
-                        '</searchResult> </findItemsByKeywordsResponse>'
-            }
-        ],
-        script: 'create table finditems on select get from "http://localhost:3000" '+
-            'resultset "findItemsByKeywordsResponse.searchResult.item"; '+
-            'web = select * from finditems where keywords = "ipad";'+
-            'return "{web}"',
-
-        udf: {
-            test : function (test, err, result) {
-                if(err) {
-                    test.ok(false,'got error: ' + err.stack || err);
+    'utf-8' : function(test) {
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : 'application/json;charset=utf-8',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if (e) {
+                    console.log(e.stack || e);
                 }
-                else {
-                    test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
-                    test.ok(_.isArray(result.body), 'expected an array');
-                    test.ok(result.body.length > 0, 'expected some items');
-                    test.ok(!_.isArray(result.body[0]), 'expected object in the array');
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+            var engine = new Engine({ });
+            var script = fs.readFileSync(__dirname + '/mock/encodingUTF8Select.ql', 'UTF-8');
+            var listener = new Listener(engine);
+            engine.exec(script, function(err, results) {
+                listener.assert(test);
+                if (err) {
+                    console.log(err.stack || err);
+                    test.ok(false, 'Test failed.');
+                    test.done();
+                } else {
+                    results = results.body;
+                    test.ok(results.encodedString.length === 200, "String of length 200 expected");
+                    test.done();
                 }
-            }
-        }
+                server.close();
+            });
+        });
     },
-    ucs2:{
-        ports: [
-            {
-                port: 3000,
-                status: 200,
-                type: "application",
-                subType: "xml; charset=ucs-2",
-                payload:
-                    '<?xml version="1.0"?>' +
-                        '<findItemsByKeywordsResponse xmlns="http://www.ebay.com/marketplace/search/v1/services">' +
-                        '<searchResult count="10">'+
-                        '<item><itemId>140697152294</itemId>'+
-                        '<title>New Sealed Apple iPad 2 16GB, Wi-Fi + 3G (Unlocked), 9.7in - White (MC982LL/A) </title></item>'+
-                        '<item><itemId>320839939720</itemId>'+
-                        '<title>Apple iPad 32GB, Wi-Fi + 3G (AT&amp;T), 9.7in - Black</title></item>'+
-                        '</searchResult> </findItemsByKeywordsResponse>'
-            }
-        ],
-        script: 'create table finditems on select get from "http://localhost:3000" '+
-            'resultset "findItemsByKeywordsResponse.searchResult.item"; '+
-            'web = select * from finditems where keywords = "ipad";'+
-            'return "{web}"',
-
-        udf: {
-            test : function (test, err, result) {
-                if(err) {
-                    test.ok(false,'got error: ' + err.stack || err);
+    'ucs-2' : function(test) {
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : 'application/json;charset=ucs-2',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if (e) {
+                    console.log(e.stack || e);
                 }
-                else {
-                    test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
-                    test.ok(_.isArray(result.body), 'expected an array');
-                    test.ok(result.body.length > 0, 'expected some items');
-                    test.ok(!_.isArray(result.body[0]), 'expected object in the array');
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+            var engine = new Engine({ });
+            var script = fs.readFileSync(__dirname + '/mock/encodingUCS2Select.ql', 'UTF-8');
+            var listener = new Listener(engine);
+            engine.exec(script, function(err, results) {
+                listener.assert(test);
+                if (err) {
+                    console.log(err.stack || err);
+                    test.ok(false, 'Test failed.');
+                    test.done();
+                } else {
+                    results = results.body;
+                    test.ok(results.encodedString.length === 200, "String of length 200 expected");
+                    test.done();
                 }
-            }
-        }
+                server.close();
+            });
+        });
     },
-    iso_8859_1:{
-        ports: [
-            {
-                port: 3000,
-                status: 200,
-                type: "application",
-                subType: "xml; charset=iso-8859-1",
-                payload:
-                        '<?xml version="1.0"?>' +
-                        '<findItemsByKeywordsResponse xmlns="http://www.ebay.com/marketplace/search/v1/services">' +
-                        '<searchResult count="10">'+
-                        '<item><itemId>140697152294</itemId>'+
-                        '<title>New Sealed Apple iPad 2 16GB, Wi-Fi + 3G (Unlocked), 9.7in - White (MC982LL/A) </title></item>'+
-                        '<item><itemId>320839939720</itemId>'+
-                        '<title>Apple iPad 32GB, Wi-Fi + 3G (AT&amp;T), 9.7in - Black</title></item>'+
-                        '</searchResult> </findItemsByKeywordsResponse>'
-            }
-        ],
-        script: 'create table finditems on select get from "http://localhost:3000" '+
-                'resultset "findItemsByKeywordsResponse.searchResult.item"; '+
-                'web = select * from finditems where keywords = "ipad";'+
-                'return "{web}"',
-
-        udf: {
-            test : function (test, err, result) {
-                if(err) {
-                    test.ok(false,'got error: ' + err.stack || err);
+    'iso-8859-1' : function(test) {
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : 'application/json;charset=iso-8859-1',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if (e) {
+                    console.log(e.stack || e);
                 }
-                else {
-                    test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
-                    test.ok(_.isArray(result.body), 'expected an array');
-                    test.ok(result.body.length > 0, 'expected some items');
-                    test.ok(!_.isArray(result.body[0]), 'expected object in the array');
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+            var engine = new Engine({ });
+            var script = fs.readFileSync(__dirname + '/mock/encodingISO88591Select.ql', 'UTF-8');
+            var listener = new Listener(engine);
+            engine.exec(script, function(err, results) {
+                listener.assert(test);
+                if (err) {
+                    console.log(err.stack || err);
+                    test.ok(false, 'Test failed.');
+                    test.done();
+                } else {
+                    results = results.body;
+                    test.ok(results.encodedString.length === 121, "String of length 121 expected");
+                    test.done();
                 }
-            }
-        }
+                server.close();
+            });
+        });
     },
-    ascii:{
-        ports: [
-            {
-                port: 3000,
-                status: 200,
-                type: "application",
-                subType: "xml; charset=ascii",
-                payload:
-                    '<?xml version="1.0"?>' +
-                        '<findItemsByKeywordsResponse xmlns="http://www.ebay.com/marketplace/search/v1/services">' +
-                        '<searchResult count="10">'+
-                        '<item><itemId>140697152294</itemId>'+
-                        '<title>New Sealed Apple iPad 2 16GB, Wi-Fi + 3G (Unlocked), 9.7in - White (MC982LL/A) </title></item>'+
-                        '<item><itemId>320839939720</itemId>'+
-                        '<title>Apple iPad 32GB, Wi-Fi + 3G (AT&amp;T), 9.7in - Black</title></item>'+
-                        '</searchResult> </findItemsByKeywordsResponse>'
-            }
-        ],
-        script: 'create table finditems on select get from "http://localhost:3000" '+
-            'resultset "findItemsByKeywordsResponse.searchResult.item"; '+
-            'web = select * from finditems where keywords = "ipad";'+
-            'return "{web}"',
-
-        udf: {
-            test : function (test, err, result) {
-                if(err) {
-                    test.ok(false,'got error: ' + err.stack || err);
+    'ascii' : function(test) {
+        var server = http.createServer(function(req, res) {
+            var file = __dirname + '/mock/' + req.url;
+            var stat = fs.statSync(file);
+            res.writeHead(200, {
+                'Content-Type' : 'application/json;charset=ascii',
+                'Content-Length' : stat.size
+            });
+            var readStream = fs.createReadStream(file);
+            util.pump(readStream, res, function(e) {
+                if (e) {
+                    console.log(e.stack || e);
                 }
-                else {
-                    test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
-                    test.ok(_.isArray(result.body), 'expected an array');
-                    test.ok(result.body.length > 0, 'expected some items');
-                    test.ok(!_.isArray(result.body[0]), 'expected object in the array');
+                res.end();
+            });
+        });
+        server.listen(3000, function() {
+            var engine = new Engine({ });
+            var script = fs.readFileSync(__dirname + '/mock/encodingASCIISelect.ql', 'UTF-8');
+            var listener = new Listener(engine);
+            engine.exec(script, function(err, results) {
+                listener.assert(test);
+                if (err) {
+                    console.log(err.stack || err);
+                    test.ok(false, 'Test failed.');
+                    test.done();
+                } else {
+                    results = results.body;
+                    test.ok(results.encodedString.length === 94, "String of length 94 expected");
+                    test.done();
                 }
-            }
-        }
+                server.close();
+            });
+        });
     }
 }
-
-module.exports = require('ql-unit').init({
-    cooked: cooked,
-    engine:new Engine({
-
-    })
-});
