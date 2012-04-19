@@ -1,3 +1,7 @@
+## Apr 19, 2012
+
+* Use hasOwnProperty in place of prop lookup while joining
+
 ## Apr 18, 2012
 
 * Deal with non UTF-8 encodings from upstream resources
