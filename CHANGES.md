@@ -1,5 +1,6 @@
 ## Apr 19, 2012
 
+* Remove duplicates from in clause. 
 * Use hasOwnProperty in place of prop lookup while joining
 
 ## Apr 18, 2012
