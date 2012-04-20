@@ -495,5 +495,34 @@ return {"result" : "{fields}"};\
             test.ok(false);
             test.done();
         }
+    },
+
+    'escaped-quotes': function(test) {
+        var script = 'a = "Hello\\"World"';
+        try {
+            var cooked = compiler.compile(script);
+            test.equals(cooked[0].object, "Hello\"World");
+            test.done()
+        }
+        catch(e) {
+            console.log(e.stack || e);
+            test.ok(false);
+            test.done();
+        }
+    },
+
+    'escaped-apos': function(test) {
+        var script = "a = 'Hello\\'World'";
+        try {
+            var cooked = compiler.compile(script);
+            test.equals(cooked[0].object, 'Hello\'World');
+            test.done()
+        }
+        catch(e) {
+            console.log(e.stack || e);
+            test.ok(false);
+            test.done();
+        }
     }
+
 };
