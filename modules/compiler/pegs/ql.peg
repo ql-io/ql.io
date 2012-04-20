@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2011 eBay Software Foundation
  *
@@ -430,7 +431,7 @@ CallUdf = u:UDF {
 }
 
 Statement = SelectStatement / ShowRoutesStatement / ShowStatement / DescribeRouteStatement /
-            DescribeStatement / InsertStatement / DeleteStatement / CreateStatement
+            DescribeStatement / InsertStatement / InsertOpaqueStatement / DeleteStatement / CreateStatement
 
 Output = insig w:Word insig '=' insig {
     return {
@@ -688,6 +689,15 @@ InsertStatement = 'insert' insig 'in' 'to' insig s:Source insig '(' insig c:Colu
         source: s,
         columns: c,
         values: v.value,
+        line: computeErrorPosition().line
+    }
+}
+
+InsertOpaqueStatement = 'insert' insig 'in' 'to' insig s:Source insig 'values' insig '(' v:StringVal ')' {
+    return {
+        type: 'insert',
+        source: s,
+        values: v,
         line: computeErrorPosition().line
     }
 }
