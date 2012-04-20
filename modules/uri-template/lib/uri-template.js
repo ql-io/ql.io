@@ -61,7 +61,6 @@ module.exports = (function(){
       var reportFailures = 0;
       var rightmostFailuresPos = 0;
       var rightmostFailuresExpected = [];
-      var cache = {};
 
       function padLeft(input, padding, length) {
         var result = input;
@@ -104,13 +103,6 @@ module.exports = (function(){
       }
 
       function parse_URITemplate() {
-        var cacheKey = "URITemplate@" + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
         var result0, result1;
         var pos0;
 
@@ -297,22 +289,10 @@ module.exports = (function(){
         if (result0 === null) {
           pos = pos0;
         }
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
         return result0;
       }
 
       function parse_literal() {
-        var cacheKey = "literal@" + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
         var result0;
 
         if (/^[^^ "'<>`{|}]/.test(input.charAt(pos))) {
@@ -327,22 +307,10 @@ module.exports = (function(){
         if (result0 === null) {
           result0 = parse_expression();
         }
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
         return result0;
       }
 
       function parse_expression() {
-        var cacheKey = "expression@" + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
         var result0, result1, result2, result3;
         var pos0, pos1;
 
@@ -412,22 +380,10 @@ module.exports = (function(){
         if (result0 === null) {
           pos = pos0;
         }
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
         return result0;
       }
 
       function parse_operator() {
-        var cacheKey = "operator@" + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
         var result0;
 
         result0 = parse_required();
@@ -440,22 +396,10 @@ module.exports = (function(){
             }
           }
         }
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
         return result0;
       }
 
       function parse_required() {
-        var cacheKey = "required@" + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
         var result0;
         var pos0;
 
@@ -479,22 +423,10 @@ module.exports = (function(){
         if (result0 === null) {
           pos = pos0;
         }
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
         return result0;
       }
 
       function parse_blockMerge() {
-        var cacheKey = "blockMerge@" + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
         var result0;
         var pos0;
 
@@ -518,22 +450,10 @@ module.exports = (function(){
         if (result0 === null) {
           pos = pos0;
         }
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
         return result0;
       }
 
       function parse_dontencode() {
-        var cacheKey = "dontencode@" + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
         var result0;
         var pos0;
 
@@ -557,22 +477,10 @@ module.exports = (function(){
         if (result0 === null) {
           pos = pos0;
         }
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
         return result0;
       }
 
       function parse_multivalued() {
-        var cacheKey = "multivalued@" + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
         var result0, result1;
         var pos0, pos1;
 
@@ -615,22 +523,10 @@ module.exports = (function(){
         if (result0 === null) {
           pos = pos0;
         }
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
         return result0;
       }
 
       function parse_variable() {
-        var cacheKey = "variable@" + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
         var result0, result1;
         var pos0;
 
@@ -661,22 +557,10 @@ module.exports = (function(){
         if (result0 === null) {
           pos = pos0;
         }
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
         return result0;
       }
 
       function parse_digits() {
-        var cacheKey = "digits@" + pos;
-        var cachedResult = cache[cacheKey];
-        if (cachedResult) {
-          pos = cachedResult.nextPos;
-          return cachedResult.result;
-        }
-
         var result0, result1;
         var pos0;
 
@@ -715,11 +599,6 @@ module.exports = (function(){
         if (result0 === null) {
           pos = pos0;
         }
-
-        cache[cacheKey] = {
-          nextPos: pos,
-          result:  result0
-        };
         return result0;
       }
 
