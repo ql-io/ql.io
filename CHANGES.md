@@ -1,3 +1,7 @@
+## Apr 20, 2012
+
+* Add support for escaped quotes in string values
+
 ## Apr 19, 2012
 
 * Updated PEG.js to 0.7. I see 50% improvement in speed which matters for string and uri templates
