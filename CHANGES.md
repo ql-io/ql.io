@@ -1,3 +1,8 @@
+## Apr 24, 2012
+
+* Fix expression parsing in string template so that a token like `"{obj.prop[?(@.price > 2)]}"` is
+  valid
+
 ## Apr 20, 2012
 
 * Add support for escaped quotes in string values
