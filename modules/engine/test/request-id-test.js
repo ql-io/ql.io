@@ -181,10 +181,10 @@ module.exports = {
         var server = http.createServer(function(req, res) {
             var file = __dirname + '/mock/' + req.url;
             var stat = fs.statSync(file);
-	    res.writeHead(200, req.headers, {
+            res.writeHead(200, req.headers, {
                 'Content-Type' : file.indexOf('.xml') >= 0 ? 'application/xml' : 'application/json',
                 'Content-Length' : stat.size
-	    });
+            });
             var readStream = fs.createReadStream(file);
             util.pump(readStream, res, function(e) {
                 if(e) {
@@ -194,58 +194,56 @@ module.exports = {
             });
         });
         server.listen(3000, function() {
-           var script = fs.readFileSync(__dirname + '/mock/finditems.ql', 'UTF-8');
-	   var emitter = new EventEmitter();
-           var request_headers, response_headers;
-           emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
-              request_headers = v.headers;
-           });
+            var script = fs.readFileSync(__dirname + '/mock/finditems.ql', 'UTF-8');
+            var emitter = new EventEmitter();
+            var requestHeaders, responseHeaders;
+            emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
+                requestHeaders = v.headers;
+            });
 
-           emitter.on(Engine.Events.STATEMENT_RESPONSE, function(v) {
-              response_headers = v.headers;
-           });
- 
-           var engine = new Engine({
-              config: __dirname + '/config/dev.json',
-              'request-id': 'x-ebay-soa-request-id'
+            emitter.on(Engine.Events.STATEMENT_RESPONSE, function(v) {
+                responseHeaders = v.headers;
+            });
+
+            var engine = new Engine({
+                config: __dirname + '/config/dev.json',
+                'request-id': 'x-my-request-id'
             });
             engine.exec({
-               script: script,
-               emitter: emitter,
-               request: {
-                  headers: {
+                script: script,
+                emitter: emitter,
+                request: {
+                    headers: {
                       'request-id' : 'my-own-request-id'
-                   }
+                    }
                 },
 
                cb: function(err, result) {
-                  if (err) {
-                      console.log(err.stack || util.inspect(err, false, 10));
-                      test.ok(false);
-                   }
-                  else {
-                     var reqId = _.detect(request_headers, function(v) {
-                        return v.name === 'x-ebay-soa-request-id'
-                     });
-                     var sentReqId = reqId && reqId.value;
-                     test.ok(~sentReqId.indexOf('my-own-request-id!ql.io!'));
+                    if (err) {
+                        console.log(err.stack || util.inspect(err, false, 10));
+                        test.ok(false);
+                    }
+                    else {
+                        var reqId = _.detect(requestHeaders, function (v) {
+                            return v.name === 'x-my-request-id'
+                        });
+                        var sentReqId = reqId && reqId.value;
+                        test.ok(~sentReqId.indexOf('my-own-request-id!ql.io!'));
 
-                     var responseReqId = _.detect(response_headers, function(v) {
-		         return v.name === 'x-ebay-soa-request-id'
+                        var responseReqId = _.detect(responseHeaders, function (v) {
+                            return v.name === 'x-my-request-id'
+                        });
+                        var receivedReqId = responseReqId && responseReqId.value;
+                        test.ok(~receivedReqId.indexOf('my-own-request-id!ql.io!'));
 
-                     });
-                     var receivedReqId = responseReqId && responseReqId.value;
-                     test.ok(~receivedReqId.indexOf('my-own-request-id!ql.io!'));
-
-                     var requestId = result.headers['request-id'];
-                     test.ok(requestId && ~requestId.indexOf('my-own-request-id!ql.io!'));
-
-                   }
-                   test.done();
-		   server.close();
-               }
-           });
-       });
+                        var requestId = result.headers['x-my-request-id'];
+                        test.ok(requestId && ~requestId.indexOf('my-own-request-id!ql.io!'));
+                    }
+                    test.done();
+		            server.close();
+                }
+            });
+        });
     },
     'request-id-from-join-stmt' : function(test) {
         var server = http.createServer(function(req, res) {
@@ -266,18 +264,18 @@ module.exports = {
         server.listen(3000, function() {
             var script = fs.readFileSync(__dirname + '/mock/req-id-test.ql', 'UTF-8');
             var emitter = new EventEmitter();
-            var request_headers, response_headers;
+            var requestHeaders, responseHeaders;
             emitter.on(Engine.Events.STATEMENT_REQUEST, function(v) {
-                request_headers = v.headers;
+                requestHeaders = v.headers;
             });
 
             emitter.on(Engine.Events.STATEMENT_RESPONSE, function(v) {
-                response_headers = v.headers;
+                responseHeaders = v.headers;
             });
 
             var engine = new Engine({
                 config: __dirname + '/config/dev.json',
-                'request-id': 'x-ebay-soa-request-id'
+                'request-id': 'x-my-request-id'
             });
             engine.exec({
                 script: script,
@@ -294,19 +292,19 @@ module.exports = {
                         test.ok(false);
                     }
                     else {
-                        var reqId = _.detect(request_headers, function(v) {
-                            return v.name === 'x-ebay-soa-request-id'
+                        var reqId = _.detect(requestHeaders, function(v) {
+                            return v.name === 'x-my-request-id'
                         });
                         var sentReqId = reqId && reqId.value;
                         test.ok(~sentReqId.indexOf('my-own-request-id!ql.io!'));
 
-                        var responseReqId = _.detect(response_headers, function(v) {
-                            return v.name === 'x-ebay-soa-request-id'
+                        var responseReqId = _.detect(responseHeaders, function(v) {
+                            return v.name === 'x-my-request-id'
                         });
                         var receivedReqId = responseReqId && responseReqId.value;
                         test.ok(~receivedReqId.indexOf('my-own-request-id!ql.io!'));
 
-                        var requestId = result.headers['request-id'];
+                        var requestId = result.headers['x-my-request-id'];
 
                         test.ok(requestId && ~requestId.indexOf('my-own-request-id!ql.io!'));
                         //Look for the second occurence as the script made two calls.

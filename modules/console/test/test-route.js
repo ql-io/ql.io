@@ -70,7 +70,7 @@ module.exports = {
             });
         })
     },
-    'check delete /del/foo/bar/{selector}?userid={userId}' : function(test) {
+    'check delete /del/foo/bar/{selector}?userid={userId} with missing values' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
             routes : __dirname + '/routes/',
@@ -108,7 +108,53 @@ module.exports = {
                         test.ok(json.user, 'missing user data');
                         test.ok(json.user.Ack, 'missing user Ack');
                         test.equal(json.user.Ack, 'Success');
-                        test.equal(json.bestOffers, 'Fixed Value');
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.end();
+            });
+        })
+    },
+    'check delete /del/foo/bar/{selector}?userid={userId}&address={itemId}' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.post('/ping/pong', function(req, res) {
+                var data = '';
+                req.on('data', function(chunk) {
+                    data += chunk;
+                });
+                req.on('end', function() {
+                    res.send(data);
+                });
+            });
+
+            testHttpapp.listen(80126, function() {
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/del/foo/bar/Details?userid=sallamar&address=260852758792',
+                    method : 'DELETE'
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        var json = JSON.parse(data);
+                        test.ok(json.user, 'missing user data');
+                        test.ok(json.user.Ack, 'missing user Ack');
+                        test.equal(json.user.Ack, 'Success');
                         c.app.close();
                         testHttpapp.close();
                         test.done();
@@ -439,5 +485,37 @@ module.exports = {
             });
         });
         req.end();
+    },
+    'check optional query parameter':function (test) {
+        var c = new Console({
+            tables:__dirname + '/tables',
+            routes:__dirname + '/routes/',
+            config:__dirname + '/config/dev.json',
+            'enable console':false,
+            connection:'close'
+        });
+        c.app.listen(3001, function () {
+            var options = {
+                host:'localhost',
+                port:3001,
+                path:'/ebay/shopping/profile?userid=haha',
+                method:'GET'
+            };
+            var req = http.request(options);
+            req.addListener('response', function (resp) {
+                var data = '';
+                resp.addListener('data', function (chunk) {
+                    data += chunk;
+                });
+                resp.addListener('end', function () {
+                    var route = JSON.parse(data);
+                    test.equals(route.Ack, 'Success');
+                    c.app.close();
+                    test.done();
+                });
+            });
+            req.end();
+
+        });
     }
 }

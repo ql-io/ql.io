@@ -16,7 +16,8 @@
 
 var Engine = require('../lib/engine'),
     http = require('http'),
-    util = require('util');
+    util = require('util'),
+    Listener = require('./utils/log-listener.js');
 
 // Test that multiple post requests can be scattered
 // Usage: using bodyTemplate 'template' type 'foo/bar' foreach 'baz'
@@ -38,8 +39,10 @@ module.exports = {
             var engine = new Engine({
                 tables: __dirname + '/scatter-post'
             });
+            var listener = new Listener(engine);
             engine.execute('select * from scatter.post where id in ("1", "2", "3")', function (emitter) {
                 emitter.on('end', function (err, result) {
+                    listener.assert(test);
                     if(err) {
                         console.log(err.stack || util.inspect(err, false, 10));
                         test.fail('got error');

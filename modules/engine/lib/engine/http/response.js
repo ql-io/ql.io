@@ -39,7 +39,7 @@ exports.exec = function(timings, reqStart, args, uniqueId, res, start, result, o
     if(args.emitter) {
         var packet = {
             line: args.statement.line,
-            uuid: args.httpReqTx.event.uuid,
+            uuid: uniqueId,
             id: uniqueId,
             status: res.statusCode,
             statusText: http.STATUS_CODES[res.statusCode],

@@ -17,89 +17,132 @@
 'use strict';
 
 var eventTypes = require('./event-types.js'),
+    _ = require('underscore'),
     uuid = require('node-uuid'),
     events = require("events"),
     util = require('util');
 
+/**
+ * The point of this emitter is to capture events in a hierarchy so know which part of the script
+ * caused what HTTP request.
+ */
 var LogEmitter = module.exports = function() {
-    var counter = 0;
     events.EventEmitter.call(this);
 
-    this.getEventId = function() {
-        if (counter == 65535) {
-            counter = 1; // skip 0, it means non-transaction
-        }
-        return ++counter;
-    }
-
-    this.beginEvent= function(parent, type, name) {
-        return  {
-            eventId: this.getEventId(),
-            parentEventId: (parent ? parent.eventId = parent.eventId || 0 : 0),
-            startTime: getUTimeInSecs(),
-            tx: 'begin',
-            type: type || 'QlIo',
-            txType: type || 'QlIo',
-            name: name || (type || 'QLIo'),
-            txName: name || (type || 'QLIo'),
-            uuid: (parent && parent.uuid ? parent.uuid : uuid())
-        };
-    }
-
-    this.endEvent = function(obj) {
-        if (!obj) {
-            return; // don't waste my time
-        }
-
-        var startTime = obj.startTime || getUTimeInSecs();
-
-        try {
-            obj.txDuration = getUTimeInSecs() - startTime;
-        }
-        catch(Exception) {
-            obj.txDuration = 0;
-        }
-
-        obj.type = obj.txType || 'QlIo';
-        obj.name = obj.txName || obj.type;
-
-        obj.tx = 'end';
-    }
-
-    this.wrapEvent = function() {
+    /**
+     * This begins a new event and returns an event object
+     *
+     * The arg is an object with the following properties:
+     *
+     * - parent: Parent event, if nested.
+     * - clazz: class of the event, such as 'info', 'warn', 'error'
+     * - type: Type of the event
+     * - name: Name of the event
+     * - message: A message payload
+     * - cb: A function to callback when this event ends
+     *
+     * This function returns an object with event and cb properties. Invoking this cb ends this
+     * event and triggers invocation of the original callback.
+     *
+     * @return {Object}
+     */
+    this.beginEvent = function() {
         var parent = arguments[0].parent;
-        var txType = arguments[0].txType;
-        var txName = arguments[0].txName;
+        var type = arguments[0].type;
+        var name = arguments[0].name;
         var message = arguments[0].message;
         var cb = arguments[0].cb;
 
-        var event = this.beginEvent(parent, txType, txName);
+        var event = {
+            eventId: getEventId(),
+            parentEventId: (parent ? parent.eventId = parent.eventId || 0 : 0),
+            startTime: Date.now(),
+            clazz: 'begin',
+            type: type || 'ql.io',
+            name: name || 'ql.io',
+            uuid: (parent && parent.uuid ? parent.uuid : uuid())
+        };
+
         this.emit(eventTypes.BEGIN_EVENT, event, message);
         var that = this;
         return {
             event: event,
             cb: function(e, r, m) {
-                var message = 'Success';
+                var message = {status : 'Success'};
                 if (e) {
                     if(e.emitted === undefined) {
-                        event.tx = 'error';
+                        event.clazz = 'error';
                         that.emit(eventTypes.ERROR, event, e);
                         e.emitted = true;
                     }
-                    message = 'Failure'
+                    message.status = 'Failure'
                 }
-                that.endEvent(event);
-                that.emit(eventTypes.END_EVENT, event, m || message); //end
+                that.endEvent(event, m || message);
                 return cb(e, r);
+            },
+            error: function(err) {
+                that.emitError(event, err);
+            },
+            end: function(err, results, m) {
+                that.emit('end', err, results);
+                var message = {status : 'Success'};
+                if(err) {
+                    if(err.emitted === undefined) {
+                        event.clazz = 'error';
+                        that.emitError(event, err);
+                        err.emitted = true;
+                    }
+                    message.status = 'Failure'
+                }
+                that.endEvent(event, m || message);
+                return cb(err, results);
             }
         }
     }
 
-    this.emitEvent = function(event, msg){
-        event.tx = 'info';
+    /**
+     * Ends the event
+     */
+    this.endEvent = function(event, message) {
+        if (!event) {
+            return; // don't waste my time
+        }
+
+        var startTime = event.startTime || getUTimeInSecs();
+
+        try {
+            event.duration = Date.now() - startTime;
+        }
+        catch(e) {
+            event.duration = 0;
+        }
+
+        event.clazz = 'end';
+
+        this.emit(eventTypes.END_EVENT, event, message); //end
+    }
+
+    /**
+     * Emits an event
+     */
+    this.emitEvent = function(){
+        var event, msg;
+        if(arguments.length === 1) {
+            event = {
+                clazz: 'info'
+            };
+            msg = arguments[0];
+        }
+        else if(arguments.length === 2) {
+            event = arguments[0];
+            msg = arguments[1];
+        }
         this.emit(eventTypes.EVENT, event, msg);
     }
 
+    /**
+     * Emits a warning
+     */
     this.emitWarning = function () {
         var event = {}, msg = 'Warning event raised without message';
         if (arguments.length > 1) {
@@ -109,10 +152,13 @@ var LogEmitter = module.exports = function() {
         else if (arguments.length === 1) {
             msg = arguments[0];
         }
-        event.tx = 'warn';
+        event.clazz = 'warn';
         this.emit(eventTypes.WARNING, event, msg);
     }
 
+    /**
+     * Emits an error
+     */
     this.emitError = function () {
         var event = {}, msg = 'Error event raised without message', cause;
         if (arguments.length > 1) {
@@ -126,12 +172,20 @@ var LogEmitter = module.exports = function() {
         else if (arguments.length === 1) {
             msg = arguments[0];
         }
-        event.tx = 'error';
+        event.clazz = 'error';
         this.emit(eventTypes.ERROR, event, msg, cause);
     }
 
     function getUTimeInSecs() {
         return Math.floor(new Date().getTime() / 1000);
+    }
+
+    var counter = 0;
+    function getEventId() {
+        if (counter == 65535) {
+            counter = 1; // skip 0, it means non-transaction
+        }
+        return ++counter;
     }
 }
 

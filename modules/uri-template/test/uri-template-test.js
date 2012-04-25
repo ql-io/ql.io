@@ -232,7 +232,22 @@ module.exports = {
             p3: ['v3-1', 'v3-2', 'v3-3']
         });
         test.ok(_.isArray(uri), 'Expected an array');
-        test.equals(uri.length, 2, 'Expected two URIs');
+        test.equals(uri.length, 2, 'Expected two URIs - got ' + uri.length);
+        test.equals(uri[0], 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-1%2Cv3-2');
+        test.equals(uri[1], 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-3');
+        test.done();
+    },
+
+    'multivalued-split-remove-dups': function(test) {
+        var str = 'http://www.subbu.org?p1={p1}&p2={p2}&p3={2|p3}';
+        var template = uriTemplate.parse(str);
+        var uri = template.format({
+            p1: 'v1',
+            p2: 'v2',
+            p3: ['v3-1', 'v3-2', 'v3-3', 'v3-1', 'v3-3', 'v3-2']
+        });
+        test.ok(_.isArray(uri), 'Expected an array');
+        test.equals(uri.length, 2, 'Expected two URIs - got ' + uri.length);
         test.equals(uri[0], 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-1%2Cv3-2');
         test.equals(uri[1], 'http://www.subbu.org?p1=v1&p2=v2&p3=v3-3');
         test.done();

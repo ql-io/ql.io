@@ -38,7 +38,7 @@ var LogListener = module.exports = function(emitter) {
         }
         if(self.debug) {
             var type = event.tx === 'begin' ? '+' : (event.tx === 'end' ? '-' : '*');
-            console.log(' '.repeat(depth) + type + event.txType + ' ' + event.name + ' ' + event.txName + ' ' + util.inspect(message, false, 10));
+            console.log(' '.repeat(depth) + type + event.type + ' ' + event.name + ' ' + util.inspect(message, false, 10));
         }
         if(event.tx === 'begin') {
             depth = depth + 2;

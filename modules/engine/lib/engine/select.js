@@ -34,11 +34,12 @@ exports.exec = function(opts, statement, parentEvent, cb) {
     assert.ok(opts.xformers, 'No xformers set');
 
     var funcs, cloned, joiningColumn, selectEvent;
-    selectEvent = opts.logEmitter.wrapEvent({
+    selectEvent = opts.logEmitter.beginEvent({
         parent: parentEvent,
-        txType: 'QlIoSelect',
-        txName: null,
-        message: {line: statement.line},
+        name: 'select',
+        message: {
+            line: statement.line
+        },
         cb: cb
     });
 
@@ -94,7 +95,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 _.each(results.body, function(row, index) {
                     // If no matching result is found in more, skip this row
                     var other = more[index];
-                    var loop = _.isArray(other) ? other.length : 1;
+                    var loop = other ? (_.isArray(other) ? other.length : 1) : 0;
                     for(var l = 0; l < loop; l++) {
                         // Results would be an array when one field is selected.
                         if(!_.isObject(row) && !_.isArray(row)) row = [row];
@@ -126,7 +127,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                             }
                             else if(selected.from === 'joiner') {
                                 if(other[l]) {
-                                    if(other[l][selected.name]) {
+                                    if(other[l].hasOwnProperty(selected.name)) {
                                         val = other[l][selected.name];
                                     }
                                     else if(_.isArray(other[l])) {
@@ -178,15 +179,16 @@ function execInternal(opts, statement, cb, parentEvent) {
     var tables = opts.tables, tempResources = opts.tempResources, context = opts.context,
          request = opts.request, emitter = opts.emitter;
 
-    var selectExecTx  = opts.logEmitter.wrapEvent({
-        parent: parentEvent,
-        txType: 'QlIoSelectExec',
-        txName: null,
-        message: {line: statement.line},
-        cb: cb});
+    var selectExecTx  = opts.logEmitter.beginEvent({
+            parent: parentEvent,
+            name: 'select-exec',
+            message: {
+                line: statement.line
+            },
+            cb: cb});
+
     //
     // Pre-fill columns
-
     var prefill = function(column) {
         // Trim the name, but keep the column alias.
         try {
@@ -238,12 +240,14 @@ function execInternal(opts, statement, cb, parentEvent) {
             }
             resource = context[name];
             if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
-                apiTx = opts.logEmitter.wrapEvent({
-                        parent: selectExecTx.event,
-                        txType: 'API',
-                        txName: name,
-                        message: {line: statement.line},
-                        cb: selectExecTx.cb});
+                apiTx = opts.logEmitter.beginEvent({
+                    parent: selectExecTx.event,
+                    type: 'table',
+                    name: name,
+                    message: {
+                        line: statement.line
+                    },
+                    cb: selectExecTx.cb});
 
                 var filtered = filter.filter(resource, statement, context, from);
 
@@ -264,10 +268,10 @@ function execInternal(opts, statement, cb, parentEvent) {
             else {
                 // Get the resource
                 resource = tempResources[from.name] || tables[from.name];
-                apiTx = opts.logEmitter.wrapEvent({
+                apiTx = opts.logEmitter.beginEvent({
                         parent: selectExecTx.event,
-                        txType: 'API',
-                        txName: from.name,
+                        type: 'table',
+                        name: from.name,
                         message: {line: statement.line},
                         cb: selectExecTx.cb});
 

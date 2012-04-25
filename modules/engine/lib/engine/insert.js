@@ -25,22 +25,20 @@ exports.exec = function(opts, statement, parentEvent, cb) {
     assert.ok(opts.tables, 'Argument tables can not be undefined');
     assert.ok(statement, 'Argument statement can not be undefined');
     assert.ok(statement, 'Argument cb can not be undefined');
-
     var tables = opts.tables, context = opts.context,
         request = opts.request, emitter = opts.emitter,
         insertTx, table, values, name, resource;
 
-    insertTx = opts.logEmitter.wrapEvent({
-        parent: parentEvent,
-        txType: 'QlIoInsert',
-        txName: null,
-        message: {line: statement.line},
-        cb: cb});
-
     values = {};
-    _.each(statement.values, function(value, i) {
-        values[statement.columns[i].name] = jsonfill.lookup(value, context);
-    });
+    if (statement.columns){
+        _.each(statement.values, function(value, i) {
+            values[statement.columns[i].name] = jsonfill.lookup(value, context);
+        });
+    } else {//opaque
+        request.body = statement.values;
+    }
+    //values = statement
+    //request['body'] = values
 
 
     // Get the dest
@@ -51,6 +49,14 @@ exports.exec = function(opts, statement, parentEvent, cb) {
     if(name.indexOf("{") === 0 && name.indexOf("}") === name.length - 1) {
         name = name.substring(1, statement.source.name.length - 1);
     }
+
+    insertTx = opts.logEmitter.beginEvent({
+        parent: parentEvent,
+        type: 'insert',
+        message: {
+            line: statement.line
+        },
+        cb: cb});
 
     resource = context[name];
     if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
@@ -71,13 +77,13 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             return insertTx.cb('Table ' + statement.source.name + ' does not support insert');
         }
         verb.exec({
-            context: opts.context,
+            //context: opts.context,
             config: opts.config,
             settings: opts.settings,
             resource: verb,
             xformers: opts.xformers,
             serializers: opts.serializers,
-            params: values,
+            //params: values,
             request: request,
             statement: statement,
             emitter: emitter,
