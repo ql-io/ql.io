@@ -71,6 +71,12 @@ var Console = module.exports = function(config, cb) {
         });
     };
 
+    // Add parser for multipart
+    connect.bodyParser.parse['multipart/mixed'] = function(req, options, next) {
+        // TODO: implement
+    }
+
+
     var bodyParser = connect.bodyParser();
     app.use(bodyParser); // parses the body for application/x-www-form-urlencoded and application/json
     var respHeaders = require(__dirname + '/lib/middleware/resp-headers');
