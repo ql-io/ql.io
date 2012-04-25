@@ -480,5 +480,49 @@ return {"result" : "{fields}"};\
             test.equals(cooked[i].object, res[i]);
         }
         test.done();
+    },
+
+    'null-val': function(test) {
+        var script = 'a = null';
+        try {
+            var cooked = compiler.compile(script);
+            test.ok(cooked[0].object === null);
+            test.equals(cooked[0].assign, 'a');
+            test.done()
+        }
+        catch(e) {
+            console.log(e.stack || e);
+            test.ok(false);
+            test.done();
+        }
+    },
+
+    'escaped-quotes': function(test) {
+        var script = 'a = "Hello\\"World"';
+        try {
+            var cooked = compiler.compile(script);
+            test.equals(cooked[0].object, "Hello\"World");
+            test.done()
+        }
+        catch(e) {
+            console.log(e.stack || e);
+            test.ok(false);
+            test.done();
+        }
+    },
+
+    'escaped-apos': function(test) {
+        var script = "a = 'Hello\\'World'";
+        try {
+            var cooked = compiler.compile(script);
+            test.equals(cooked[0].object, 'Hello\'World');
+            test.done()
+        }
+        catch(e) {
+            console.log(e.stack || e);
+            test.ok(false);
+            test.done();
+        }
     }
+
 };

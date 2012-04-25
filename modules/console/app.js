@@ -21,6 +21,7 @@ var winston = require('winston'),
     browserify = require('browserify'),
     headers = require('headers'),
     fs = require('fs'),
+    os = require('os'),
     sanitize = require('validator').sanitize,
     connect = require('connect'),
     expat = require('xml2json'),
@@ -46,46 +47,7 @@ var Console = module.exports = function(config, cb) {
 
     config = config || {};
 
-    // Ensure logs dir.
-    var logdir = false;
-    try {
-        fs.readdirSync(process.cwd() + '/logs');
-        logdir = true;
-    }
-    catch(e) {
-        try {
-            fs.mkdirSync(process.cwd() + '/logs/', parseInt('755', 8));
-            logdir = true;
-        }
-        catch(e) {
-        }
-    }
-
-    var logger = logdir ? new (winston.Logger)({
-        transports: [
-            new (winston.transports.File)({
-                filename: process.cwd() + '/logs/ql.io.log',
-                maxsize: 1024000 * 5
-            })
-        ]
-    }) : new (winston.Logger)();
-
-    logger.setLevels(config['log levels'] || winston.config.cli.levels);
-    config.logger = config.logger || logger;
     var engine = new Engine(config);
-
-    if(config.tables) {
-        logger.info('Loading tables from ' + config.tables);
-    }
-    if(config.routes) {
-        logger.info('Loading routes from ' + config.routes);
-    }
-    if(config.config) {
-        logger.info('Loading config from ' + config.config);
-    }
-    if(config.xformers) {
-        logger.info('Loading xformers from ' + config.xformers);
-    }
 
     var app = this.app = express.createServer();
 
@@ -111,7 +73,7 @@ var Console = module.exports = function(config, cb) {
 
     var bodyParser = connect.bodyParser();
     app.use(bodyParser); // parses the body for application/x-www-form-urlencoded and application/json
-    var respHeaders = require(__dirname + '/lib/middleware/respheaders');
+    var respHeaders = require(__dirname + '/lib/middleware/resp-headers');
     app.use(respHeaders());
     if(config['enable console']) {
         // If you want unminified JS and CSS, jus add property debug: true to js and css vars below.
@@ -201,7 +163,7 @@ var Console = module.exports = function(config, cb) {
     var routes = engine.routes.verbMap;
     _.each(routes, function(verbRoutes, uri) {
         _.each(verbRoutes, function(verbRouteVariants, verb) {
-            engine.emit(Engine.Events.EVENT, {}, new Date() + ' Adding route ' + uri + ' for ' + verb);
+            engine.emit(Engine.Events.EVENT, {}, 'Adding route ' + uri + ' for ' + verb);
             app[verb](uri, function(req, res) {
                 var holder = {
                     params: {},
@@ -211,15 +173,15 @@ var Console = module.exports = function(config, cb) {
                         remoteAddress: req.connection.remoteAddress
                     }
                 };
+
                 // get all query params
                 collectHttpQueryParams(req, holder, false);
 
-                //console.log(holder)
                 // find a route (i.e. associated cooked script)
-                var bestmatch = _.max(verbRouteVariants, function (verbRouteVariant){ return _.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)).length})
                 var route = _(verbRouteVariants).chain()
                     .filter(function (verbRouteVariant) {
-                        return _.isEqual(verbRouteVariant , bestmatch)
+                        return _.isEqual(_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)),
+                            _.keys(verbRouteVariant.query))
                     })
                     .reduce(function (match, route) {
                         return match == null ?
@@ -251,16 +213,21 @@ var Console = module.exports = function(config, cb) {
                 holder.connection = {
                     remoteAddress: req.connection.remoteAddress
                 };
-                // Start the top level URL transaction
-                var urlEvent = engine.wrapEvent({
-                    tyType: 'URL',
-                    message: req.originalUrl,
+                // Start the top level event
+                var urlEvent = engine.beginEvent({
+                    clazz: 'info',
+                    type: 'route',
+                    name: route.routeInfo.method.toUpperCase() + ' ' + route.routeInfo.path.value,
+                    message: {
+                        ip: req.connection.remoteAddress,
+                        method: req.method,
+                        path: req.url,
+                        headers: req.headers
+                    },
                     cb: function(err, results) {
                         return handleResponseCB(req, res, execState, err, results);
                     }
                 });
-                // Emit incoming headers
-                engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
 
                 var execState = [];
                 engine.execute(route.script,
@@ -301,18 +268,24 @@ var Console = module.exports = function(config, cb) {
             });
         }
 
-        // Start the top level URL transaction
-        var urlEvent = engine.wrapEvent({
-            tyTypx: 'URL',
-            message: req.originalUrl,
+        // Start the top level event
+        var urlEvent = engine.beginEvent({
+            clazz: 'info',
+            type: 'route',
+            name: req.method.toUpperCase() + ' ' + req.url,
+            message: {
+                ip: req.connection.remoteAddress,
+                method: req.method,
+                path: req.url,
+                headers: req.headers
+            },
             cb: function(err, results) {
                 return isJson || err ?
                     handleResponseCB(req, res, execState, err, results) :
                     routePage(res,execState,results.body);
             }
         });
-        // Emit incoming headers
-        engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
+
         var execState = [];
         engine.execute('show tables',
             {
@@ -372,18 +345,24 @@ var Console = module.exports = function(config, cb) {
             return;
         }
 
-        // Start the top level URL transaction
-        var urlEvent = engine.wrapEvent({
-            tyTypx: 'URL',
-            message: req.originalUrl,
+        // Start the top level event
+        var urlEvent = engine.beginEvent({
+            clazz: 'info',
+            type: 'route',
+            name: req.method.toUpperCase() + ' ' + req.url,
+            message: {
+                ip: req.connection.remoteAddress,
+                method: req.method,
+                path: req.url,
+                headers: req.headers
+            },
             cb: function(err, results) {
                 return isJson || err ?
                     handleResponseCB(req, res, execState, err, results) :
                     routePage(res,execState,results.body);
             }
         });
-        // Emit incoming headers
-        engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
+
         var execState = [];
         engine.execute('describe' + decodeURIComponent(name),
             {
@@ -420,18 +399,24 @@ var Console = module.exports = function(config, cb) {
             });
         }
 
-        // Start the top level URL transaction
-        var urlEvent = engine.wrapEvent({
-            tyTypx: 'URL',
-            message: req.originalUrl,
+        // Start the top level event
+        var urlEvent = engine.beginEvent({
+            clazz: 'info',
+            type: 'route',
+            name: req.method.toUpperCase() + ' ' + req.url,
+            message: {
+                ip: req.connection.remoteAddress,
+                method: req.method,
+                path: req.url,
+                headers: req.headers
+            },
             cb: function(err, results) {
                 return isJson || err ?
                     handleResponseCB(req, res, execState, err, results) :
                     routePage(res,execState,results.body);
             }
         });
-        // Emit incoming headers
-        engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
+
         var execState = [];
         engine.execute('show routes',
             {
@@ -502,18 +487,23 @@ var Console = module.exports = function(config, cb) {
             });
         }
 
-        // Start the top level URL transaction
-        var urlEvent = engine.wrapEvent({
-            tyTypx: 'URL',
-            message: req.originalUrl,
+        // Start the top level event
+        var urlEvent = engine.beginEvent({
+            clazz: 'info',
+            type: 'route',
+            name: req.method.toUpperCase() + ' ' + req.url,
+            message: {
+                ip: req.connection.remoteAddress,
+                method: req.method,
+                path: req.url,
+                headers: req.headers
+            },
             cb: function(err, results) {
                 return isJson || err ?
                     handleResponseCB(req, res, execState, err, results) :
                     routePage(res,execState,results.body);
             }
         });
-        // Emit incoming headers
-        engine.emitEvent(urlEvent.event, JSON.stringify(req.headers));
 
         var execState = [];
         engine.execute('describe route "' + decodeURIComponent(path) + '" using method ' + method,
@@ -555,9 +545,16 @@ var Console = module.exports = function(config, cb) {
                 query = sanitize(query).str;
                 collectHttpQueryParams(req, holder, true);
                 collectHttpHeaders(req, holder);
-                var urlEvent = engine.wrapEvent({
-                    tyTypx: 'URL',
-                    message: req.originalUrl,
+                var urlEvent = engine.beginEvent({
+                    clazz: 'info',
+                    type: 'route',
+                    name: req.method.toUpperCase() + ' ' + req.url,
+                    message: {
+                        ip: req.connection.remoteAddress,
+                        method: req.method,
+                        path: req.url,
+                        headers: req.headers
+                    },
                     cb: function(err, results) {
                         return handleResponseCB(req, res, execState, err, results);
                     }
@@ -616,6 +613,21 @@ var Console = module.exports = function(config, cb) {
         });
         res.write(msg);
         res.end();
+    });
+
+    // Heartbeat - make sure to clear this on 'close'
+    // TODO: Other details to include
+    var heartbeat = setInterval(function () {
+        engine.emit(Engine.Events.HEART_BEAT, {
+            pid: process.pid,
+            uptime: process.uptime(),
+            freemem: os.freemem()
+        });
+    }, 60000);
+
+    // Let the Engine cleanup during shutdown
+    app.on('close', function() {
+        clearInterval(heartbeat);
     });
 
     // Also listen to WebSocket requests

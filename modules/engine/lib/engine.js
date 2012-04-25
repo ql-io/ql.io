@@ -64,33 +64,14 @@ var Engine = module.exports = function(opts) {
     // Engine is a LogEmitter.
     LogEmitter.call(this);
 
+    this.setMaxListeners(30);
+
     opts = opts || {};
 
-    opts.logger = opts.logger || new (winston.Logger)();
-    // Attach listeners and loggers before doing anything
-    this.setMaxListeners(30);
-    this.on(Engine.Events.EVENT, function(event, message) {
-        if(message) {
-            opts.logger.info(new Date() + ' - ' + message);
-        }
-    });
-    this.on(Engine.Events.SCRIPT_DONE, function(event, message) {
-        opts.logger.info(new Date() + ' - ' + JSON.stringify(event));
-    });
-    this.on(Engine.Events.ERROR, function(event, message, err) {
-        if(message) {
-            opts.logger.error(new Date() + ' - ' + message);
-        }
-        if(err) {
-            opts.logger.error(err.stack || err);
-        }
-    });
-    this.on(Engine.Events.WARNING, function(event, message) {
-        if(message) {
-            var warn = opts.logger.warn || opts.logger.warning;
-            warn(new Date() + ' - ' + message.stack || message);
-        }
-    });
+    // Wire up loggers
+    if(opts.loggerFn) {
+        opts.loggerFn.call(null, this);
+    }
 
     // Load stuff
     opts.config = opts.config || {};
@@ -118,6 +99,7 @@ var Engine = module.exports = function(opts) {
     // These are transformers for data formats.
     this.xformers = {};
     if(opts.xformers) {
+        this.emitEvent('Loading xformers from ' + opts.xformers);
         try {
             this.xformers = require(opts.xformers);
             _.each(this.xformers, function(v, k) {
@@ -204,9 +186,11 @@ Engine.prototype.execute = function() {
     else {
         assert.ok(false, 'Incorrect arguments');
     }
-    var emitter = new EventEmitter();
+
     opts.script = script;
 
+    // This emitter is used for request-time reporting
+    var emitter = new EventEmitter();
     // Let the app register handlers
     func(emitter);
 
@@ -221,10 +205,9 @@ Engine.prototype.execute = function() {
     assert.ok(script, 'Missing script');
     assert.ok(this.xformers, 'Missing xformers');
 
-    var engineEvent = this.wrapEvent({
+    var engineEvent = this.beginEvent({
         parent: parentEvent,
-        txType: 'QlIoEngine',
-        txName: undefined,
+        name: 'engine',
         message: route ? {'route':  route} : {'script' : script},
         cb: function(err, results) {
             packet = {
@@ -240,7 +223,8 @@ Engine.prototype.execute = function() {
             emitter.emit(eventTypes.SCRIPT_DONE, packet);
             if(results && requestId) {
                 results.headers = results.headers || {};
-                results.headers['request-id'] = requestId;
+                var name = that.settings['request-id'] ? that.settings['request-id'] : 'request-id';
+                results.headers[name] = requestId;
             }
             emitter.emit('end', err, results);
         }
@@ -259,8 +243,7 @@ Engine.prototype.execute = function() {
             type: eventTypes.SCRIPT_COMPILE_ERROR,
             data: err
         });
-        this.emitError(engineEvent.event, err);
-        return engineEvent.cb(err, null);
+        return engineEvent.end(err);
     }
 
     emitter.on(eventTypes.REQUEST_ID_RECEIVED, function (reqId) {
@@ -301,13 +284,11 @@ Engine.prototype.execute = function() {
                         logEmitter: this,
                         emitter: emitter,
                         start: start,
-                        cb: engineEvent.cb,
                         cache: this.cache
-                    }, engineEvent.event);
+                    }, engineEvent);
                 }
                 catch (err) {
-                    that.emitError(engineEvent.event, err);
-                    return engineEvent.cb(err, null);
+                    return engineEvent.end(err);
                 }
             }
         }
@@ -326,16 +307,12 @@ Engine.prototype.execute = function() {
                 logEmitter: this,
                 cache: this.cache
             }, cooked[0], function(err, results) {
-                if(err) {
-                    that.emitError(engineEvent.event, err);
-                }
-                return engineEvent.cb(err, results);
-            }, engineEvent.event);
+                return engineEvent.end(err, results);
+            }, engineEvent);
         }
     }
     catch(err) {
-        this.emitError(engineEvent.event, err);
-        return engineEvent.cb(err, null);
+        return engineEvent.end(err);
     }
 }
 
@@ -426,7 +403,7 @@ function sweep(opts, parentEvent) {
                         if(err) {
                             // Skip the remaining statements and return error
                             skip = true;
-                            return opts.cb(err);
+                            return parentEvent.end(err);
                         }
                         opts.latest = line;
                         opts.latestResult = result;
@@ -437,7 +414,7 @@ function sweep(opts, parentEvent) {
                             --opts.execState[listener].waits;
                         });
 
-                        sweep(opts);
+                        sweep(opts, parentEvent);
                     }, parentEvent);
                 }
                 // TODO: Execute only if there are dependencies
@@ -454,7 +431,7 @@ function sweep(opts, parentEvent) {
 
     state = opts.execState[last.id];
     if(pending === 0 && state.waits > 0 && last.type === 'return') {
-        return opts.cb('Script has unmet dependencies. The return statement depends on one/more other ' +
+        return parentEvent.end('Script has unmet dependencies. The return statement depends on one/more other ' +
                 'statement(s), but those are not in-progress.');
     }
     if(pending == 0 && state.waits == 0) {
@@ -463,14 +440,14 @@ function sweep(opts, parentEvent) {
                 opts.execState[last.id].state = eventTypes.STATEMENT_IN_FLIGHT;
                 execOne(opts, last, function(err, results) {
                     opts.execState[last.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
-                    return opts.cb(err, results);
+                    return parentEvent.end(err, results);
                 });
             }
         }
         // Single statement (sans create/comments) - return the last result
         else {
             opts.done = true;
-            return opts.cb(undefined, opts.latestResult);
+            return parentEvent.end(null, opts.latestResult);
         }
     }
 }
@@ -514,10 +491,10 @@ function execOne(opts, statement, cb, parentEvent) {
  * @ignore
  */
 function _execOne(opts, statement, cb, parentEvent) {
-    var rhs, obj;
+    var obj;
     switch(statement.type) {
         case 'create' :
-            create.exec(opts, statement, cb, parentEvent);
+            create.exec(opts, statement, parentEvent, cb);
             break;
         case 'define' :
             var params = _util.prepareParams(opts.context,
