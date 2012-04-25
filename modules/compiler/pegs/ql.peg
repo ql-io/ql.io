@@ -1,4 +1,5 @@
 
+
 /*
  * Copyright 2011 eBay Software Foundation
  *
@@ -686,18 +687,23 @@ DescribeStatement = d:Describe insig s:Source {
     }
 }
 
-ColumnsParen = '(' insig cc:ColumnsClause insig ')' {
-    return cc
+ColumnsParen = '(' insig c:ColumnsClause insig ')' {
+    return c
 }
 
 // Insert Statement
-InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen* insig 'values' insig '(' v:StringVal ')' {
-
+InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? insig 'values' insig '(' insig v:CSV insig ')' {
+    if(c && c.length != v.value.length) {
+        throw new this.SyntaxError("Line " + line + ": Number of values does not match number of columns.");
+    }
+    if (!c && v.value.length > 1){
+        throw new this.SyntaxError("Line " + line + ": Values do not have paired columns.");
+    }
     return {
         type: 'insert',
         source: s,
         columns: c,
-        values: v,
+        values: v.value,
         line: line
     }
 }
