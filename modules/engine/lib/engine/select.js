@@ -95,7 +95,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 _.each(results.body, function(row, index) {
                     // If no matching result is found in more, skip this row
                     var other = more[index];
-                    var loop = _.isArray(other) ? other.length : 1;
+                    var loop = other ? (_.isArray(other) ? other.length : 1) : 0;
                     for(var l = 0; l < loop; l++) {
                         // Results would be an array when one field is selected.
                         if(!_.isObject(row) && !_.isArray(row)) row = [row];

@@ -1,5 +1,3 @@
-
-
 /*
  * Copyright 2011 eBay Software Foundation
  *
@@ -1089,10 +1087,6 @@ ExprBlock = s:StringLiteral {
     return s.substr(1, s.length - 2);
 }
 
-StringLiteral = parts:(('"' DoubleString '"') / ("'" SingleString "'")) {
-    return '"' + parts[1] + '"';
-}
-
 Identifier = c:([a-zA-Z$:][a-zA-Z_0-9:]*)  {
     var ret = c[0];
     for(i = 1; i < c.length; i++) {
@@ -1111,12 +1105,46 @@ PositiveNumber = d:[0-9]+ {
   return parseInt(d.join(''));
 }
 
-// Apostrophe is not allowed
-SingleString = c:([\u0020-\u0026]/[\u0028-\u005B]/[\u005D-\uFFFF]/[\\"])* {
-    return c.join('');
+StringLiteral = parts:(('"' DoubleString '"') / ("'" SingleString "'")) {
+    return '"' + parts[1] + '"';
 }
 
 // Quotation mark is not allowed
-DoubleString = c:([\u0020-\u0021]/[\u0023-\u005B]/[\u005D-\uFFFF]/[\\'])* {
+DoubleString = c:dchar* {
     return c.join('');
 }
+
+// Apostrophe is not allowed
+SingleString = c:achar* {
+    return c.join('');
+}
+
+// In the original JSON grammar: "any-Unicode-character-except-"-or-\-or-control-character"
+dchar = [^"\\\0-\x1F\x7f]
+    / '\\"'  { return '"';  }
+    / "\\\\" { return "\\"; }
+    / "\\/"  { return "/";  }
+    / "\\b"  { return "\b"; }
+    / "\\f"  { return "\f"; }
+    / "\\n"  { return "\n"; }
+    / "\\r"  { return "\r"; }
+    / "\\t"  { return "\t"; }
+    / "\\u" h1:hexDigit h2:hexDigit h3:hexDigit h4:hexDigit {
+    return String.fromCharCode(parseInt("0x" + h1 + h2 + h3 + h4));
+}
+
+achar = [^'\\\0-\x1F\x7f]
+    / "\\'"  { return "\'";  }
+    / "\\\\" { return "\\"; }
+    / "\\/"  { return "/";  }
+    / "\\b"  { return "\b"; }
+    / "\\f"  { return "\f"; }
+    / "\\n"  { return "\n"; }
+    / "\\r"  { return "\r"; }
+    / "\\t"  { return "\t"; }
+    / "\\u" h1:hexDigit h2:hexDigit h3:hexDigit h4:hexDigit {
+    return String.fromCharCode(parseInt("0x" + h1 + h2 + h3 + h4));
+}
+
+hexDigit
+  = [0-9a-fA-F]
