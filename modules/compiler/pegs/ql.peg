@@ -466,7 +466,7 @@ Type = 'select' / 'insert' / 'delete' / 'update'
 URI = QuotedWord
 
 Verb = 'on' insig t:Type insig m:VerbName insig u:URI insig  a:WithAliases? h:UsingHeaders?
-            d:UsingDefaults? p:UsingMonkeyPatch? insig b:UsingBodyTemplate? insig
+            d:UsingDefaults? p:UsingMonkeyPatch? insig b:UsingBodyTemplate? insig wp:WithPart? insig
             auth:AuthenticateUsing? insig r:ResultSet? insig exp:Expires? {
     var ret = {
         type: t,
@@ -476,13 +476,16 @@ Verb = 'on' insig t:Type insig m:VerbName insig u:URI insig  a:WithAliases? h:Us
         aliases: a || {},
         headers: h || {},
         resultSet: r || '',
-        cache: exp || {}
+        cache: exp || {},
     };
     if(auth && auth.length > 0) {
         ret.auth = auth;
     }
     if(p) ret.patch = p;
     ret.body = b;
+    if (wp){
+        ret.parts = wp;
+    }
     return ret;
 }
 
@@ -525,6 +528,11 @@ UsingBodyTemplate = 'using' insig 'bodyTemplate' insig t:QuotedWord insig 'type'
     }
     return ret;
 }
+
+WithPart = 'with' insig 'part' insig p:QuotedWord{
+    return p;
+}
+
 // This clause is used to split POST requests
 ForEachMember = 'foreach' insig id:QuotedWord {
   return id.value;
@@ -678,17 +686,18 @@ DescribeStatement = d:Describe insig s:Source {
     }
 }
 
+ColumnsParen = '(' insig cc:ColumnsClause insig ')' {
+    return cc
+}
+
 // Insert Statement
-InsertStatement = 'insert' insig 'in' 'to' insig s:Source insig '(' insig c:ColumnsClause insig ')'
-                    insig 'values' insig '(' v:CSV ')' {
-    if(c.length != v.value.length) {
-        throw new this.SyntaxError("Line " + line + ": Number of values does not match number of columns.");
-    }
+InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen* insig 'values' insig '(' v:StringVal ')' {
+
     return {
         type: 'insert',
         source: s,
         columns: c,
-        values: v.value,
+        values: v,
         line: line
     }
 }
