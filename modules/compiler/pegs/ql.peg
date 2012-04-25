@@ -1,4 +1,5 @@
 
+
 /*
  * Copyright 2011 eBay Software Foundation
  *
@@ -431,18 +432,18 @@ CallUdf = u:UDF {
 }
 
 Statement = SelectStatement / ShowRoutesStatement / ShowStatement / DescribeRouteStatement /
-            DescribeStatement / InsertStatement / InsertOpaqueStatement / DeleteStatement / CreateStatement
+            DescribeStatement / InsertStatement / DeleteStatement / CreateStatement
 
 Output = insig w:Word insig '=' insig {
     return {
-        line: computeErrorPosition().line,
+        line: line,
         assign: w
     }
 }
 
 Comment = '--' sp c:[\u0020-\uffff]* crlf? {
     return {
-        line: computeErrorPosition().line,
+        line: line,
         type: 'comment',
         text: c.join('')
     }
@@ -453,7 +454,7 @@ CreateStatement = 'create' insig 'table' insig s:NonAliasSource insig v:Verb* {
     var s = {
         type: 'create',
         name: s.name,
-        line: computeErrorPosition().line
+        line: line
     };
     for(i = 0; i < v.length; i++) {
         s[v[i].type] = v[i];
@@ -629,7 +630,7 @@ SelectStatement = s:Select insig c:ColumnsClause insig 'from' insig fc:FromClaus
 Select = s:'select' {
     return {
         type: 'select',
-        line: computeErrorPosition().line
+        line: line
     }
 }
 
@@ -650,14 +651,14 @@ ShowStatement = s:Show insig 'tables' {
 
 Show = 'show' {
     return {
-        line: computeErrorPosition().line
+        line: line
     }
 }
 
 // Describe statements
 Describe = (('describe') / ('desc')) {
     return {
-        line: computeErrorPosition().line
+        line: line
     }
 }
 DescribeRouteStatement = d:Describe insig 'route' insig p:QuotedWord insig 'using' insig 'method'
@@ -678,27 +679,19 @@ DescribeStatement = d:Describe insig s:Source {
     }
 }
 
+ColumnsParen = '(' insig cc:ColumnsClause insig ')' {
+    return cc
+}
+
 // Insert Statement
-InsertStatement = 'insert' insig 'in' 'to' insig s:Source insig '(' insig c:ColumnsClause insig ')'
-                    insig 'values' insig '(' v:CSV ')' {
-    if(c.length != v.value.length) {
-        throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Number of values does not match number of columns.");
-    }
+InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen* insig 'values' insig '(' v:StringVal ')' {
+
     return {
         type: 'insert',
         source: s,
         columns: c,
-        values: v.value,
-        line: computeErrorPosition().line
-    }
-}
-
-InsertOpaqueStatement = 'insert' insig 'in' 'to' insig s:Source insig 'values' insig '(' v:StringVal ')' {
-    return {
-        type: 'insert',
-        source: s,
         values: v,
-        line: computeErrorPosition().line
+        line: line
     }
 }
 
@@ -708,7 +701,7 @@ DeleteStatement = 'delete' insig 'from' insig s:Source insig wc:WhereClause* {
         type: 'delete',
         source: s,
         whereCriteria: wc[0],
-        line: computeErrorPosition().line
+        line: line
     }
 }
 
@@ -721,7 +714,7 @@ ColumnsClause = arr:(All / Fields) {
         }
     }
     if(aliasCount > 0 && aliasCount != arr.length) {
-        throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Not all selected columns are using aliases.");
+        throw new this.SyntaxError("Line " + line + ": Not all selected columns are using aliases.");
     }
     return arr;
 }
@@ -943,7 +936,7 @@ dQuotedDigits = '"' d:Digits '"' {
 
 Ret = 'return' {
     return {
-        line: computeErrorPosition().line
+        line: line
     }
 }
 
@@ -964,7 +957,7 @@ RetVal = Statement / CallUdf / RetRef / Value
 
 RetRef = o:Word {
     if(symbols[o] === undefined) {
-        throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Unresolved symbol '" + o + "'");
+        throw new this.SyntaxError("Line " + line + ": Unresolved symbol '" + o + "'");
     }
     return {
         ref: o
@@ -984,9 +977,9 @@ Route = 'via' insig 'route' insig p:QuotedWord insig 'using' insig 'method' insi
 JSON = Object / StringVal / NumberVal / ArrayVal / TrueVal / FalseVal / NullVal
 Value = v:JSON {
     return {
-        object: v,
+        object: v === "__null__" ? null : v,
         type: 'define',
-        line: computeErrorPosition().line
+        line: line
     }
 }
 
@@ -1012,7 +1005,7 @@ FalseVal = f:False {
 }
 
 NullVal = n:Null {
-    return null;
+    return "__null__";
 }
 Object = o:Struct {
     var str = append(o);

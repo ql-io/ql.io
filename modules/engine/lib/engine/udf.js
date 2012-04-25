@@ -139,7 +139,9 @@ function resolve(opts, columns, extras, udf, tempNames, tempIndices) {
                 if(udf.args[0] && udf.args[0].alias) {
                     _row = row;
                     _.each(extras, function(extra) {
-                        delete _row[columns[extra].alias];
+                        if(_row[columns[extra]] && _row[columns[extra].alias]) {
+                            delete _row[columns[extra].alias];
+                        }
                     });
                 }
                 else {

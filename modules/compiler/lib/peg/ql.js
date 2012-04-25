@@ -76,7 +76,6 @@ module.exports = (function(){
                 "DescribeRouteStatement": parse_DescribeRouteStatement,
                 "DescribeStatement": parse_DescribeStatement,
                 "InsertStatement": parse_InsertStatement,
-                "InsertOpaqueStatement": parse_InsertOpaqueStatement,
                 "DeleteStatement": parse_DeleteStatement,
                 "ColumnsClause": parse_ColumnsClause,
                 "FromClause": parse_FromClause,
@@ -179,9 +178,9 @@ module.exports = (function(){
                 startRule = "start";
             }
 
-            var pos = 0;
+            var pos = { offset: 0, line: 1, column: 1, seenCR: false };
             var reportFailures = 0;
-            var rightmostFailuresPos = 0;
+            var rightmostFailuresPos = { offset: 0, line: 1, column: 1, seenCR: false };
             var rightmostFailuresExpected = [];
 
             function padLeft(input, padding, length) {
@@ -211,13 +210,43 @@ module.exports = (function(){
                 return '\\' + escapeChar + padLeft(charCode.toString(16).toUpperCase(), '0', length);
             }
 
+            function clone(object) {
+                var result = {};
+                for (var key in object) {
+                    result[key] = object[key];
+                }
+                return result;
+            }
+
+            function advance(pos, n) {
+                var endOffset = pos.offset + n;
+
+                for (var offset = pos.offset; offset < endOffset; offset++) {
+                    var ch = input.charAt(offset);
+                    if (ch === "\n") {
+                        if (!pos.seenCR) { pos.line++; }
+                        pos.column = 1;
+                        pos.seenCR = false;
+                    } else if (ch === "\r" || ch === "\u2028" || ch === "\u2029") {
+                        pos.line++;
+                        pos.column = 1;
+                        pos.seenCR = true;
+                    } else {
+                        pos.column++;
+                        pos.seenCR = false;
+                    }
+                }
+
+                pos.offset += n;
+            }
+
             function matchFailed(failure) {
-                if (pos < rightmostFailuresPos) {
+                if (pos.offset < rightmostFailuresPos.offset) {
                     return;
                 }
 
-                if (pos > rightmostFailuresPos) {
-                    rightmostFailuresPos = pos;
+                if (pos.offset > rightmostFailuresPos.offset) {
+                    rightmostFailuresPos = clone(pos);
                     rightmostFailuresExpected = [];
                 }
 
@@ -228,8 +257,8 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = [];
                 result1 = parse_crlf();
                 while (result1 !== null) {
@@ -279,46 +308,46 @@ module.exports = (function(){
                                                         result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9];
                                                     } else {
                                                         result0 = null;
-                                                        pos = pos1;
+                                                        pos = clone(pos1);
                                                     }
                                                 } else {
                                                     result0 = null;
-                                                    pos = pos1;
+                                                    pos = clone(pos1);
                                                 }
                                             } else {
                                                 result0 = null;
-                                                pos = pos1;
+                                                pos = clone(pos1);
                                             }
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, larr, r, carr) {
+                    result0 = (function(offset, line, column, larr, r, carr) {
                         ret = [];
                         ret = ret.concat(larr);
                         if(r) {
@@ -326,10 +355,10 @@ module.exports = (function(){
                         }
                         ret = ret.concat(carr);
                         return ret;
-                    })(pos0, result0[1], result0[3], result0[7]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[1], result0[3], result0[7]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -338,8 +367,8 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Line();
                 if (result0 !== null) {
                     result1 = [];
@@ -352,19 +381,19 @@ module.exports = (function(){
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, l) {
+                    result0 = (function(offset, line, column, l) {
                         return l;
-                    })(pos0, result0[0]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -373,8 +402,8 @@ module.exports = (function(){
                 var result0, result1;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_sp();
                 if (result0 !== null) {
                     result1 = parse_Assign();
@@ -385,22 +414,22 @@ module.exports = (function(){
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, l) {
+                    result0 = (function(offset, line, column, l) {
                         if(l.type !== 'comment') {
                             l.id = id++;
                         }
                         return l;
-                    })(pos0, result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -409,8 +438,8 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Output();
                 result0 = result0 !== null ? result0 : "";
                 if (result0 !== null) {
@@ -418,9 +447,9 @@ module.exports = (function(){
                     if (result1 !== null) {
                         result2 = parse_insig();
                         if (result2 !== null) {
-                            if (input.charCodeAt(pos) === 59) {
+                            if (input.charCodeAt(pos.offset) === 59) {
                                 result3 = ";";
-                                pos++;
+                                advance(pos, 1);
                             } else {
                                 result3 = null;
                                 if (reportFailures === 0) {
@@ -434,26 +463,26 @@ module.exports = (function(){
                                     result0 = [result0, result1, result2, result3, result4];
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, a, s) {
+                    result0 = (function(offset, line, column, a, s) {
                         if(a) {
                             s.assign = a.assign;
                             s.line = a.line;
@@ -462,10 +491,10 @@ module.exports = (function(){
                         // Add LHS to the symbol table
                         symbols[a.assign] = {};
                         return s;
-                    })(pos0, result0[0], result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -487,18 +516,18 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_UDF();
                 if (result0 !== null) {
-                    result0 = (function(offset, u) {
+                    result0 = (function(offset, line, column, u) {
                         u.type = 'define';
                         u.udf = u.name;
                         delete u.operator;
                         return u;
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -518,12 +547,9 @@ module.exports = (function(){
                                 if (result0 === null) {
                                     result0 = parse_InsertStatement();
                                     if (result0 === null) {
-                                        result0 = parse_InsertOpaqueStatement();
+                                        result0 = parse_DeleteStatement();
                                         if (result0 === null) {
-                                            result0 = parse_DeleteStatement();
-                                            if (result0 === null) {
-                                                result0 = parse_CreateStatement();
-                                            }
+                                            result0 = parse_CreateStatement();
                                         }
                                     }
                                 }
@@ -538,17 +564,17 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_insig();
                 if (result0 !== null) {
                     result1 = parse_Word();
                     if (result1 !== null) {
                         result2 = parse_insig();
                         if (result2 !== null) {
-                            if (input.charCodeAt(pos) === 61) {
+                            if (input.charCodeAt(pos.offset) === 61) {
                                 result3 = "=";
-                                pos++;
+                                advance(pos, 1);
                             } else {
                                 result3 = null;
                                 if (reportFailures === 0) {
@@ -561,34 +587,34 @@ module.exports = (function(){
                                     result0 = [result0, result1, result2, result3, result4];
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, w) {
+                    result0 = (function(offset, line, column, w) {
                         return {
-                            line: computeErrorPosition().line,
+                            line: line,
                             assign: w
                         }
-                    })(pos0, result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -597,11 +623,11 @@ module.exports = (function(){
                 var result0, result1, result2, result3;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 2) === "--") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 2) === "--") {
                     result0 = "--";
-                    pos += 2;
+                    advance(pos, 2);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -612,9 +638,9 @@ module.exports = (function(){
                     result1 = parse_sp();
                     if (result1 !== null) {
                         result2 = [];
-                        if (/^[ -\uFFFF]/.test(input.charAt(pos))) {
-                            result3 = input.charAt(pos);
-                            pos++;
+                        if (/^[ -\uFFFF]/.test(input.charAt(pos.offset))) {
+                            result3 = input.charAt(pos.offset);
+                            advance(pos, 1);
                         } else {
                             result3 = null;
                             if (reportFailures === 0) {
@@ -623,9 +649,9 @@ module.exports = (function(){
                         }
                         while (result3 !== null) {
                             result2.push(result3);
-                            if (/^[ -\uFFFF]/.test(input.charAt(pos))) {
-                                result3 = input.charAt(pos);
-                                pos++;
+                            if (/^[ -\uFFFF]/.test(input.charAt(pos.offset))) {
+                                result3 = input.charAt(pos.offset);
+                                advance(pos, 1);
                             } else {
                                 result3 = null;
                                 if (reportFailures === 0) {
@@ -640,31 +666,31 @@ module.exports = (function(){
                                 result0 = [result0, result1, result2, result3];
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, c) {
+                    result0 = (function(offset, line, column, c) {
                         return {
-                            line: computeErrorPosition().line,
+                            line: line,
                             type: 'comment',
                             text: c.join('')
                         }
-                    })(pos0, result0[2]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[2]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -673,11 +699,11 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6, result7;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 6) === "create") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 6) === "create") {
                     result0 = "create";
-                    pos += 6;
+                    advance(pos, 6);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -687,9 +713,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 5) === "table") {
+                        if (input.substr(pos.offset, 5) === "table") {
                             result2 = "table";
-                            pos += 5;
+                            advance(pos, 5);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -713,48 +739,48 @@ module.exports = (function(){
                                             result0 = [result0, result1, result2, result3, result4, result5, result6];
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, s, v) {
+                    result0 = (function(offset, line, column, s, v) {
                         var s = {
                             type: 'create',
                             name: s.name,
-                            line: computeErrorPosition().line
+                            line: line
                         };
                         for(i = 0; i < v.length; i++) {
                             s[v[i].type] = v[i];
                             delete v[i].type;
                         }
                         return s;
-                    })(pos0, result0[4], result0[6]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -762,9 +788,9 @@ module.exports = (function(){
             function parse_Type() {
                 var result0;
 
-                if (input.substr(pos, 6) === "select") {
+                if (input.substr(pos.offset, 6) === "select") {
                     result0 = "select";
-                    pos += 6;
+                    advance(pos, 6);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -772,9 +798,9 @@ module.exports = (function(){
                     }
                 }
                 if (result0 === null) {
-                    if (input.substr(pos, 6) === "insert") {
+                    if (input.substr(pos.offset, 6) === "insert") {
                         result0 = "insert";
-                        pos += 6;
+                        advance(pos, 6);
                     } else {
                         result0 = null;
                         if (reportFailures === 0) {
@@ -782,9 +808,9 @@ module.exports = (function(){
                         }
                     }
                     if (result0 === null) {
-                        if (input.substr(pos, 6) === "delete") {
+                        if (input.substr(pos.offset, 6) === "delete") {
                             result0 = "delete";
-                            pos += 6;
+                            advance(pos, 6);
                         } else {
                             result0 = null;
                             if (reportFailures === 0) {
@@ -792,9 +818,9 @@ module.exports = (function(){
                             }
                         }
                         if (result0 === null) {
-                            if (input.substr(pos, 6) === "update") {
+                            if (input.substr(pos.offset, 6) === "update") {
                                 result0 = "update";
-                                pos += 6;
+                                advance(pos, 6);
                             } else {
                                 result0 = null;
                                 if (reportFailures === 0) {
@@ -811,11 +837,11 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16, result17, result18, result19;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 2) === "on") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 2) === "on") {
                     result0 = "on";
-                    pos += 2;
+                    advance(pos, 2);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -872,86 +898,86 @@ module.exports = (function(){
                                                                                                 result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16, result17, result18, result19];
                                                                                             } else {
                                                                                                 result0 = null;
-                                                                                                pos = pos1;
+                                                                                                pos = clone(pos1);
                                                                                             }
                                                                                         } else {
                                                                                             result0 = null;
-                                                                                            pos = pos1;
+                                                                                            pos = clone(pos1);
                                                                                         }
                                                                                     } else {
                                                                                         result0 = null;
-                                                                                        pos = pos1;
+                                                                                        pos = clone(pos1);
                                                                                     }
                                                                                 } else {
                                                                                     result0 = null;
-                                                                                    pos = pos1;
+                                                                                    pos = clone(pos1);
                                                                                 }
                                                                             } else {
                                                                                 result0 = null;
-                                                                                pos = pos1;
+                                                                                pos = clone(pos1);
                                                                             }
                                                                         } else {
                                                                             result0 = null;
-                                                                            pos = pos1;
+                                                                            pos = clone(pos1);
                                                                         }
                                                                     } else {
                                                                         result0 = null;
-                                                                        pos = pos1;
+                                                                        pos = clone(pos1);
                                                                     }
                                                                 } else {
                                                                     result0 = null;
-                                                                    pos = pos1;
+                                                                    pos = clone(pos1);
                                                                 }
                                                             } else {
                                                                 result0 = null;
-                                                                pos = pos1;
+                                                                pos = clone(pos1);
                                                             }
                                                         } else {
                                                             result0 = null;
-                                                            pos = pos1;
+                                                            pos = clone(pos1);
                                                         }
                                                     } else {
                                                         result0 = null;
-                                                        pos = pos1;
+                                                        pos = clone(pos1);
                                                     }
                                                 } else {
                                                     result0 = null;
-                                                    pos = pos1;
+                                                    pos = clone(pos1);
                                                 }
                                             } else {
                                                 result0 = null;
-                                                pos = pos1;
+                                                pos = clone(pos1);
                                             }
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, t, m, u, a, h, d, p, b, auth, r, exp) {
+                    result0 = (function(offset, line, column, t, m, u, a, h, d, p, b, auth, r, exp) {
                         var ret = {
                             type: t,
                             method: m,
@@ -968,10 +994,10 @@ module.exports = (function(){
                         if(p) ret.patch = p;
                         ret.body = b;
                         return ret;
-                    })(pos0, result0[2], result0[4], result0[6], result0[8], result0[9], result0[10], result0[11], result0[13], result0[15], result0[17], result0[19]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[2], result0[4], result0[6], result0[8], result0[9], result0[10], result0[11], result0[13], result0[15], result0[17], result0[19]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -999,11 +1025,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 3) === "get") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 3) === "get") {
                     result0 = "get";
-                    pos += 3;
+                    advance(pos, 3);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1013,9 +1039,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 4) === "from") {
+                        if (input.substr(pos.offset, 4) === "from") {
                             result2 = "from";
-                            pos += 4;
+                            advance(pos, 4);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -1026,23 +1052,23 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset) {
+                    result0 = (function(offset, line, column) {
                         return 'get'
-                    })(pos0);
+                    })(pos0.offset, pos0.line, pos0.column);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1051,11 +1077,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 4) === "post") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 4) === "post") {
                     result0 = "post";
-                    pos += 4;
+                    advance(pos, 4);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1065,9 +1091,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 2) === "to") {
+                        if (input.substr(pos.offset, 2) === "to") {
                             result2 = "to";
-                            pos += 2;
+                            advance(pos, 2);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -1078,23 +1104,23 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset) {
+                    result0 = (function(offset, line, column) {
                         return 'post'
-                    })(pos0);
+                    })(pos0.offset, pos0.line, pos0.column);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1103,11 +1129,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 3) === "put") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 3) === "put") {
                     result0 = "put";
-                    pos += 3;
+                    advance(pos, 3);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1117,9 +1143,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 2) === "to") {
+                        if (input.substr(pos.offset, 2) === "to") {
                             result2 = "to";
-                            pos += 2;
+                            advance(pos, 2);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -1130,23 +1156,23 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset) {
+                    result0 = (function(offset, line, column) {
                         return 'put'
-                    })(pos0);
+                    })(pos0.offset, pos0.line, pos0.column);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1155,10 +1181,10 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
-                if (input.substr(pos, 6) === "delete") {
+                pos0 = clone(pos);
+                if (input.substr(pos.offset, 6) === "delete") {
                     result0 = "delete";
-                    pos += 6;
+                    advance(pos, 6);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1166,12 +1192,12 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset) {
+                    result0 = (function(offset, line, column) {
                         return 'delete'
-                    })(pos0);
+                    })(pos0.offset, pos0.line, pos0.column);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1180,10 +1206,10 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
-                if (input.substr(pos, 5) === "patch") {
+                pos0 = clone(pos);
+                if (input.substr(pos.offset, 5) === "patch") {
                     result0 = "patch";
-                    pos += 5;
+                    advance(pos, 5);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1191,12 +1217,12 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset) {
+                    result0 = (function(offset, line, column) {
                         return 'patch'
-                    })(pos0);
+                    })(pos0.offset, pos0.line, pos0.column);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1205,11 +1231,11 @@ module.exports = (function(){
                 var result0, result1, result2, result3;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 5) === "using") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 5) === "using") {
                     result0 = "using";
-                    pos += 5;
+                    advance(pos, 5);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1219,9 +1245,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 8) === "defaults") {
+                        if (input.substr(pos.offset, 8) === "defaults") {
                             result2 = "defaults";
-                            pos += 8;
+                            advance(pos, 8);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -1234,27 +1260,27 @@ module.exports = (function(){
                                 result0 = [result0, result1, result2, result3];
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, d) {
+                    result0 = (function(offset, line, column, d) {
                         return merge(d);
-                    })(pos0, result0[3]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[3]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1263,11 +1289,11 @@ module.exports = (function(){
                 var result0, result1, result2, result3;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 5) === "using") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 5) === "using") {
                     result0 = "using";
-                    pos += 5;
+                    advance(pos, 5);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1277,9 +1303,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 7) === "headers") {
+                        if (input.substr(pos.offset, 7) === "headers") {
                             result2 = "headers";
-                            pos += 7;
+                            advance(pos, 7);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -1292,27 +1318,27 @@ module.exports = (function(){
                                 result0 = [result0, result1, result2, result3];
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, d) {
+                    result0 = (function(offset, line, column, d) {
                         return merge(d);
-                    })(pos0, result0[3]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[3]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1321,11 +1347,11 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 5) === "using") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 5) === "using") {
                     result0 = "using";
-                    pos += 5;
+                    advance(pos, 5);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1335,9 +1361,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 5) === "patch") {
+                        if (input.substr(pos.offset, 5) === "patch") {
                             result2 = "patch";
-                            pos += 5;
+                            advance(pos, 5);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -1352,31 +1378,31 @@ module.exports = (function(){
                                     result0 = [result0, result1, result2, result3, result4];
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, t) {
+                    result0 = (function(offset, line, column, t) {
                         return t.value;
-                    })(pos0, result0[4]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[4]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1385,11 +1411,11 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 5) === "using") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 5) === "using") {
                     result0 = "using";
-                    pos += 5;
+                    advance(pos, 5);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1399,9 +1425,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 12) === "bodyTemplate") {
+                        if (input.substr(pos.offset, 12) === "bodyTemplate") {
                             result2 = "bodyTemplate";
-                            pos += 12;
+                            advance(pos, 12);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -1415,9 +1441,9 @@ module.exports = (function(){
                                 if (result4 !== null) {
                                     result5 = parse_insig();
                                     if (result5 !== null) {
-                                        if (input.substr(pos, 4) === "type") {
+                                        if (input.substr(pos.offset, 4) === "type") {
                                             result6 = "type";
-                                            pos += 4;
+                                            advance(pos, 4);
                                         } else {
                                             result6 = null;
                                             if (reportFailures === 0) {
@@ -1439,54 +1465,54 @@ module.exports = (function(){
                                                                 result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11];
                                                             } else {
                                                                 result0 = null;
-                                                                pos = pos1;
+                                                                pos = clone(pos1);
                                                             }
                                                         } else {
                                                             result0 = null;
-                                                            pos = pos1;
+                                                            pos = clone(pos1);
                                                         }
                                                     } else {
                                                         result0 = null;
-                                                        pos = pos1;
+                                                        pos = clone(pos1);
                                                     }
                                                 } else {
                                                     result0 = null;
-                                                    pos = pos1;
+                                                    pos = clone(pos1);
                                                 }
                                             } else {
                                                 result0 = null;
-                                                pos = pos1;
+                                                pos = clone(pos1);
                                             }
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, t, m, f) {
+                    result0 = (function(offset, line, column, t, m, f) {
                         var ret = {
                             template: t.value,
                             type: m.value
@@ -1495,10 +1521,10 @@ module.exports = (function(){
                             ret.foreach = f;
                         }
                         return ret;
-                    })(pos0, result0[4], result0[8], result0[10]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[4], result0[8], result0[10]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1507,11 +1533,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 7) === "foreach") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 7) === "foreach") {
                     result0 = "foreach";
-                    pos += 7;
+                    advance(pos, 7);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1526,23 +1552,23 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, id) {
+                    result0 = (function(offset, line, column, id) {
                         return id.value;
-                    })(pos0, result0[2]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[2]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1551,11 +1577,11 @@ module.exports = (function(){
                 var result0, result1, result2, result3;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 4) === "with") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 4) === "with") {
                     result0 = "with";
-                    pos += 4;
+                    advance(pos, 4);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1565,9 +1591,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 7) === "aliases") {
+                        if (input.substr(pos.offset, 7) === "aliases") {
                             result2 = "aliases";
-                            pos += 7;
+                            advance(pos, 7);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -1580,27 +1606,27 @@ module.exports = (function(){
                                 result0 = [result0, result1, result2, result3];
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, p) {
+                    result0 = (function(offset, line, column, p) {
                         return merge(p);
-                    })(pos0, result0[3]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[3]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1609,11 +1635,11 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 12) === "authenticate") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 12) === "authenticate") {
                     result0 = "authenticate";
-                    pos += 12;
+                    advance(pos, 12);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1621,9 +1647,9 @@ module.exports = (function(){
                     }
                 }
                 if (result0 === null) {
-                    if (input.substr(pos, 4) === "auth") {
+                    if (input.substr(pos.offset, 4) === "auth") {
                         result0 = "auth";
-                        pos += 4;
+                        advance(pos, 4);
                     } else {
                         result0 = null;
                         if (reportFailures === 0) {
@@ -1634,9 +1660,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 5) === "using") {
+                        if (input.substr(pos.offset, 5) === "using") {
                             result2 = "using";
-                            pos += 5;
+                            advance(pos, 5);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -1651,31 +1677,31 @@ module.exports = (function(){
                                     result0 = [result0, result1, result2, result3, result4];
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, m) {
+                    result0 = (function(offset, line, column, m) {
                         return m.value;
-                    })(pos0, result0[4]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[4]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1684,11 +1710,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 9) === "resultset") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 9) === "resultset") {
                     result0 = "resultset";
-                    pos += 9;
+                    advance(pos, 9);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1703,23 +1729,23 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, r) {
+                    result0 = (function(offset, line, column, r) {
                         return r.value;
-                    })(pos0, result0[2]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[2]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1728,8 +1754,8 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_NVP();
                 if (result0 !== null) {
                     result1 = [];
@@ -1742,21 +1768,21 @@ module.exports = (function(){
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, n, narr) {
+                    result0 = (function(offset, line, column, n, narr) {
                         var ret = [n];
                         ret = ret.concat(narr);
                         return ret;
-                    })(pos0, result0[0], result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1765,11 +1791,11 @@ module.exports = (function(){
                 var result0, result1;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.charCodeAt(pos) === 44) {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.charCodeAt(pos.offset) === 44) {
                     result0 = ",";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -1782,19 +1808,19 @@ module.exports = (function(){
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, n) {
+                    result0 = (function(offset, line, column, n) {
                         return n;
-                    })(pos0, result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1803,8 +1829,8 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_insig();
                 if (result0 !== null) {
                     result1 = parse_Field();
@@ -1814,9 +1840,9 @@ module.exports = (function(){
                     if (result1 !== null) {
                         result2 = parse_insig();
                         if (result2 !== null) {
-                            if (input.charCodeAt(pos) === 61) {
+                            if (input.charCodeAt(pos.offset) === 61) {
                                 result3 = "=";
-                                pos++;
+                                advance(pos, 1);
                             } else {
                                 result3 = null;
                                 if (reportFailures === 0) {
@@ -1833,42 +1859,42 @@ module.exports = (function(){
                                             result0 = [result0, result1, result2, result3, result4, result5, result6];
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, lhs, rhs) {
+                    result0 = (function(offset, line, column, lhs, rhs) {
                         var  o = {};
                         lhs = lhs.name || lhs;
                         o[lhs.hasOwnProperty('value') ? lhs.value : lhs] = rhs.hasOwnProperty('value') ? rhs.value : rhs;
                         return o;
-                    })(pos0, result0[1], result0[5]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[1], result0[5]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1877,13 +1903,13 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_insig();
                 if (result0 !== null) {
-                    if (input.substr(pos, 7) === "expires") {
+                    if (input.substr(pos.offset, 7) === "expires") {
                         result1 = "expires";
-                        pos += 7;
+                        advance(pos, 7);
                     } else {
                         result1 = null;
                         if (reportFailures === 0) {
@@ -1900,33 +1926,33 @@ module.exports = (function(){
                                     result0 = [result0, result1, result2, result3, result4];
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, d) {
+                    result0 = (function(offset, line, column, d) {
                         return {
                             expires: d
                         }
-                    })(pos0, result0[3]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[3]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -1935,8 +1961,8 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Select();
                 if (result0 !== null) {
                     result1 = parse_insig();
@@ -1945,9 +1971,9 @@ module.exports = (function(){
                         if (result2 !== null) {
                             result3 = parse_insig();
                             if (result3 !== null) {
-                                if (input.substr(pos, 4) === "from") {
+                                if (input.substr(pos.offset, 4) === "from") {
                                     result4 = "from";
-                                    pos += 4;
+                                    advance(pos, 4);
                                 } else {
                                     result4 = null;
                                     if (reportFailures === 0) {
@@ -1989,58 +2015,58 @@ module.exports = (function(){
                                                                     result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12];
                                                                 } else {
                                                                     result0 = null;
-                                                                    pos = pos1;
+                                                                    pos = clone(pos1);
                                                                 }
                                                             } else {
                                                                 result0 = null;
-                                                                pos = pos1;
+                                                                pos = clone(pos1);
                                                             }
                                                         } else {
                                                             result0 = null;
-                                                            pos = pos1;
+                                                            pos = clone(pos1);
                                                         }
                                                     } else {
                                                         result0 = null;
-                                                        pos = pos1;
+                                                        pos = clone(pos1);
                                                     }
                                                 } else {
                                                     result0 = null;
-                                                    pos = pos1;
+                                                    pos = clone(pos1);
                                                 }
                                             } else {
                                                 result0 = null;
-                                                pos = pos1;
+                                                pos = clone(pos1);
                                             }
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, s, c, fc, wc, l, o) {
+                    result0 = (function(offset, line, column, s, c, fc, wc, l, o) {
                         var s = {
                             type: s.type,
                             line: s.line,
@@ -2102,10 +2128,10 @@ module.exports = (function(){
                         s = splitJoins(s);
                         delete s.id;
                         return s;
-                    })(pos0, result0[0], result0[2], result0[6], result0[8], result0[10], result0[12]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[2], result0[6], result0[8], result0[10], result0[12]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -2114,10 +2140,10 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
-                if (input.substr(pos, 6) === "select") {
+                pos0 = clone(pos);
+                if (input.substr(pos.offset, 6) === "select") {
                     result0 = "select";
-                    pos += 6;
+                    advance(pos, 6);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -2125,15 +2151,15 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, s) {
+                    result0 = (function(offset, line, column, s) {
                         return {
                             type: 'select',
-                            line: computeErrorPosition().line
+                            line: line
                         }
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -2142,15 +2168,15 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Show();
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 6) === "routes") {
+                        if (input.substr(pos.offset, 6) === "routes") {
                             result2 = "routes";
-                            pos += 6;
+                            advance(pos, 6);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -2161,26 +2187,26 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, s) {
+                    result0 = (function(offset, line, column, s) {
                         return {
                             type: 'show routes',
                             line: s.line
                         }
-                    })(pos0, result0[0]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -2189,15 +2215,15 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Show();
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 6) === "tables") {
+                        if (input.substr(pos.offset, 6) === "tables") {
                             result2 = "tables";
-                            pos += 6;
+                            advance(pos, 6);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -2208,26 +2234,26 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, s) {
+                    result0 = (function(offset, line, column, s) {
                         return {
                             type: 'show',
                             line: s.line
                         }
-                    })(pos0, result0[0]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -2236,10 +2262,10 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
-                if (input.substr(pos, 4) === "show") {
+                pos0 = clone(pos);
+                if (input.substr(pos.offset, 4) === "show") {
                     result0 = "show";
-                    pos += 4;
+                    advance(pos, 4);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -2247,14 +2273,14 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset) {
+                    result0 = (function(offset, line, column) {
                         return {
-                            line: computeErrorPosition().line
+                            line: line
                         }
-                    })(pos0);
+                    })(pos0.offset, pos0.line, pos0.column);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -2263,10 +2289,10 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
-                if (input.substr(pos, 8) === "describe") {
+                pos0 = clone(pos);
+                if (input.substr(pos.offset, 8) === "describe") {
                     result0 = "describe";
-                    pos += 8;
+                    advance(pos, 8);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -2274,9 +2300,9 @@ module.exports = (function(){
                     }
                 }
                 if (result0 === null) {
-                    if (input.substr(pos, 4) === "desc") {
+                    if (input.substr(pos.offset, 4) === "desc") {
                         result0 = "desc";
-                        pos += 4;
+                        advance(pos, 4);
                     } else {
                         result0 = null;
                         if (reportFailures === 0) {
@@ -2285,14 +2311,14 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset) {
+                    result0 = (function(offset, line, column) {
                         return {
-                            line: computeErrorPosition().line
+                            line: line
                         }
-                    })(pos0);
+                    })(pos0.offset, pos0.line, pos0.column);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -2301,15 +2327,15 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Describe();
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 5) === "route") {
+                        if (input.substr(pos.offset, 5) === "route") {
                             result2 = "route";
-                            pos += 5;
+                            advance(pos, 5);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -2323,9 +2349,9 @@ module.exports = (function(){
                                 if (result4 !== null) {
                                     result5 = parse_insig();
                                     if (result5 !== null) {
-                                        if (input.substr(pos, 5) === "using") {
+                                        if (input.substr(pos.offset, 5) === "using") {
                                             result6 = "using";
-                                            pos += 5;
+                                            advance(pos, 5);
                                         } else {
                                             result6 = null;
                                             if (reportFailures === 0) {
@@ -2335,9 +2361,9 @@ module.exports = (function(){
                                         if (result6 !== null) {
                                             result7 = parse_insig();
                                             if (result7 !== null) {
-                                                if (input.substr(pos, 6) === "method") {
+                                                if (input.substr(pos.offset, 6) === "method") {
                                                     result8 = "method";
-                                                    pos += 6;
+                                                    advance(pos, 6);
                                                 } else {
                                                     result8 = null;
                                                     if (reportFailures === 0) {
@@ -2347,9 +2373,9 @@ module.exports = (function(){
                                                 if (result8 !== null) {
                                                     result9 = parse_insig();
                                                     if (result9 !== null) {
-                                                        if (input.substr(pos, 3) === "get") {
+                                                        if (input.substr(pos.offset, 3) === "get") {
                                                             result10 = "get";
-                                                            pos += 3;
+                                                            advance(pos, 3);
                                                         } else {
                                                             result10 = null;
                                                             if (reportFailures === 0) {
@@ -2357,9 +2383,9 @@ module.exports = (function(){
                                                             }
                                                         }
                                                         if (result10 === null) {
-                                                            if (input.substr(pos, 4) === "post") {
+                                                            if (input.substr(pos.offset, 4) === "post") {
                                                                 result10 = "post";
-                                                                pos += 4;
+                                                                advance(pos, 4);
                                                             } else {
                                                                 result10 = null;
                                                                 if (reportFailures === 0) {
@@ -2367,9 +2393,9 @@ module.exports = (function(){
                                                                 }
                                                             }
                                                             if (result10 === null) {
-                                                                if (input.substr(pos, 3) === "put") {
+                                                                if (input.substr(pos.offset, 3) === "put") {
                                                                     result10 = "put";
-                                                                    pos += 3;
+                                                                    advance(pos, 3);
                                                                 } else {
                                                                     result10 = null;
                                                                     if (reportFailures === 0) {
@@ -2377,9 +2403,9 @@ module.exports = (function(){
                                                                     }
                                                                 }
                                                                 if (result10 === null) {
-                                                                    if (input.substr(pos, 6) === "delete") {
+                                                                    if (input.substr(pos.offset, 6) === "delete") {
                                                                         result10 = "delete";
-                                                                        pos += 6;
+                                                                        advance(pos, 6);
                                                                     } else {
                                                                         result10 = null;
                                                                         if (reportFailures === 0) {
@@ -2387,9 +2413,9 @@ module.exports = (function(){
                                                                         }
                                                                     }
                                                                     if (result10 === null) {
-                                                                        if (input.substr(pos, 5) === "patch") {
+                                                                        if (input.substr(pos.offset, 5) === "patch") {
                                                                             result10 = "patch";
-                                                                            pos += 5;
+                                                                            advance(pos, 5);
                                                                         } else {
                                                                             result10 = null;
                                                                             if (reportFailures === 0) {
@@ -2404,60 +2430,60 @@ module.exports = (function(){
                                                             result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10];
                                                         } else {
                                                             result0 = null;
-                                                            pos = pos1;
+                                                            pos = clone(pos1);
                                                         }
                                                     } else {
                                                         result0 = null;
-                                                        pos = pos1;
+                                                        pos = clone(pos1);
                                                     }
                                                 } else {
                                                     result0 = null;
-                                                    pos = pos1;
+                                                    pos = clone(pos1);
                                                 }
                                             } else {
                                                 result0 = null;
-                                                pos = pos1;
+                                                pos = clone(pos1);
                                             }
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, d, p, m) {
+                    result0 = (function(offset, line, column, d, p, m) {
                         return {
                             type: 'describe route',
                             line: d.line,
                             path: p,
                             method: m
                         }
-                    })(pos0, result0[0], result0[4], result0[10]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[4], result0[10]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -2466,8 +2492,8 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Describe();
                 if (result0 !== null) {
                     result1 = parse_insig();
@@ -2477,40 +2503,40 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, d, s) {
+                    result0 = (function(offset, line, column, d, s) {
                         return {
                             type: 'describe',
                             line: d.line,
                             source: s
                         }
-                    })(pos0, result0[0], result0[2]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[2]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
 
             function parse_InsertStatement() {
-                var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16, result17;
+                var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 6) === "insert") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 6) === "insert") {
                     result0 = "insert";
-                    pos += 6;
+                    advance(pos, 6);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -2520,9 +2546,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 2) === "in") {
+                        if (input.substr(pos.offset, 2) === "in") {
                             result2 = "in";
-                            pos += 2;
+                            advance(pos, 2);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -2530,316 +2556,104 @@ module.exports = (function(){
                             }
                         }
                         if (result2 !== null) {
-                            if (input.substr(pos, 2) === "to") {
-                                result3 = "to";
-                                pos += 2;
-                            } else {
-                                result3 = null;
-                                if (reportFailures === 0) {
-                                    matchFailed("\"to\"");
-                                }
-                            }
+                            result3 = parse_insig();
                             if (result3 !== null) {
-                                result4 = parse_insig();
+                                result4 = parse_Source();
                                 if (result4 !== null) {
-                                    result5 = parse_Source();
+                                    result5 = parse_insig();
                                     if (result5 !== null) {
-                                        result6 = parse_insig();
-                                        if (result6 !== null) {
-                                            if (input.charCodeAt(pos) === 40) {
-                                                result7 = "(";
-                                                pos++;
-                                            } else {
-                                                result7 = null;
-                                                if (reportFailures === 0) {
-                                                    matchFailed("\"(\"");
-                                                }
+                                        if (input.substr(pos.offset, 6) === "values") {
+                                            result6 = "values";
+                                            advance(pos, 6);
+                                        } else {
+                                            result6 = null;
+                                            if (reportFailures === 0) {
+                                                matchFailed("\"values\"");
                                             }
+                                        }
+                                        if (result6 !== null) {
+                                            result7 = parse_insig();
                                             if (result7 !== null) {
-                                                result8 = parse_insig();
+                                                if (input.charCodeAt(pos.offset) === 40) {
+                                                    result8 = "(";
+                                                    advance(pos, 1);
+                                                } else {
+                                                    result8 = null;
+                                                    if (reportFailures === 0) {
+                                                        matchFailed("\"(\"");
+                                                    }
+                                                }
                                                 if (result8 !== null) {
-                                                    result9 = parse_ColumnsClause();
+                                                    result9 = parse_StringVal();
                                                     if (result9 !== null) {
-                                                        result10 = parse_insig();
+                                                        if (input.charCodeAt(pos.offset) === 41) {
+                                                            result10 = ")";
+                                                            advance(pos, 1);
+                                                        } else {
+                                                            result10 = null;
+                                                            if (reportFailures === 0) {
+                                                                matchFailed("\")\"");
+                                                            }
+                                                        }
                                                         if (result10 !== null) {
-                                                            if (input.charCodeAt(pos) === 41) {
-                                                                result11 = ")";
-                                                                pos++;
-                                                            } else {
-                                                                result11 = null;
-                                                                if (reportFailures === 0) {
-                                                                    matchFailed("\")\"");
-                                                                }
-                                                            }
-                                                            if (result11 !== null) {
-                                                                result12 = parse_insig();
-                                                                if (result12 !== null) {
-                                                                    if (input.substr(pos, 6) === "values") {
-                                                                        result13 = "values";
-                                                                        pos += 6;
-                                                                    } else {
-                                                                        result13 = null;
-                                                                        if (reportFailures === 0) {
-                                                                            matchFailed("\"values\"");
-                                                                        }
-                                                                    }
-                                                                    if (result13 !== null) {
-                                                                        result14 = parse_insig();
-                                                                        if (result14 !== null) {
-                                                                            if (input.charCodeAt(pos) === 40) {
-                                                                                result15 = "(";
-                                                                                pos++;
-                                                                            } else {
-                                                                                result15 = null;
-                                                                                if (reportFailures === 0) {
-                                                                                    matchFailed("\"(\"");
-                                                                                }
-                                                                            }
-                                                                            if (result15 !== null) {
-                                                                                result16 = parse_CSV();
-                                                                                if (result16 !== null) {
-                                                                                    if (input.charCodeAt(pos) === 41) {
-                                                                                        result17 = ")";
-                                                                                        pos++;
-                                                                                    } else {
-                                                                                        result17 = null;
-                                                                                        if (reportFailures === 0) {
-                                                                                            matchFailed("\")\"");
-                                                                                        }
-                                                                                    }
-                                                                                    if (result17 !== null) {
-                                                                                        result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16, result17];
-                                                                                    } else {
-                                                                                        result0 = null;
-                                                                                        pos = pos1;
-                                                                                    }
-                                                                                } else {
-                                                                                    result0 = null;
-                                                                                    pos = pos1;
-                                                                                }
-                                                                            } else {
-                                                                                result0 = null;
-                                                                                pos = pos1;
-                                                                            }
-                                                                        } else {
-                                                                            result0 = null;
-                                                                            pos = pos1;
-                                                                        }
-                                                                    } else {
-                                                                        result0 = null;
-                                                                        pos = pos1;
-                                                                    }
-                                                                } else {
-                                                                    result0 = null;
-                                                                    pos = pos1;
-                                                                }
-                                                            } else {
-                                                                result0 = null;
-                                                                pos = pos1;
-                                                            }
+                                                            result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10];
                                                         } else {
                                                             result0 = null;
-                                                            pos = pos1;
+                                                            pos = clone(pos1);
                                                         }
                                                     } else {
                                                         result0 = null;
-                                                        pos = pos1;
+                                                        pos = clone(pos1);
                                                     }
                                                 } else {
                                                     result0 = null;
-                                                    pos = pos1;
+                                                    pos = clone(pos1);
                                                 }
                                             } else {
                                                 result0 = null;
-                                                pos = pos1;
+                                                pos = clone(pos1);
                                             }
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, s, c, v) {
-                        if(c.length != v.value.length) {
-                            throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Number of values does not match number of columns.");
-                        }
-                        return {
-                            type: 'insert',
-                            source: s,
-                            columns: c,
-                            values: v.value,
-                            line: computeErrorPosition().line
-                        }
-                    })(pos0, result0[5], result0[9], result0[16]);
-                }
-                if (result0 === null) {
-                    pos = pos0;
-                }
-                return result0;
-            }
+                    result0 = (function(offset, line, column, s, v) {
 
-            function parse_InsertOpaqueStatement() {
-                var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11;
-                var pos0, pos1;
-
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 6) === "insert") {
-                    result0 = "insert";
-                    pos += 6;
-                } else {
-                    result0 = null;
-                    if (reportFailures === 0) {
-                        matchFailed("\"insert\"");
-                    }
-                }
-                if (result0 !== null) {
-                    result1 = parse_insig();
-                    if (result1 !== null) {
-                        if (input.substr(pos, 2) === "in") {
-                            result2 = "in";
-                            pos += 2;
-                        } else {
-                            result2 = null;
-                            if (reportFailures === 0) {
-                                matchFailed("\"in\"");
-                            }
-                        }
-                        if (result2 !== null) {
-                            if (input.substr(pos, 2) === "to") {
-                                result3 = "to";
-                                pos += 2;
-                            } else {
-                                result3 = null;
-                                if (reportFailures === 0) {
-                                    matchFailed("\"to\"");
-                                }
-                            }
-                            if (result3 !== null) {
-                                result4 = parse_insig();
-                                if (result4 !== null) {
-                                    result5 = parse_Source();
-                                    if (result5 !== null) {
-                                        result6 = parse_insig();
-                                        if (result6 !== null) {
-                                            if (input.substr(pos, 6) === "values") {
-                                                result7 = "values";
-                                                pos += 6;
-                                            } else {
-                                                result7 = null;
-                                                if (reportFailures === 0) {
-                                                    matchFailed("\"values\"");
-                                                }
-                                            }
-                                            if (result7 !== null) {
-                                                result8 = parse_insig();
-                                                if (result8 !== null) {
-                                                    if (input.charCodeAt(pos) === 40) {
-                                                        result9 = "(";
-                                                        pos++;
-                                                    } else {
-                                                        result9 = null;
-                                                        if (reportFailures === 0) {
-                                                            matchFailed("\"(\"");
-                                                        }
-                                                    }
-                                                    if (result9 !== null) {
-                                                        result10 = parse_StringVal();
-                                                        if (result10 !== null) {
-                                                            if (input.charCodeAt(pos) === 41) {
-                                                                result11 = ")";
-                                                                pos++;
-                                                            } else {
-                                                                result11 = null;
-                                                                if (reportFailures === 0) {
-                                                                    matchFailed("\")\"");
-                                                                }
-                                                            }
-                                                            if (result11 !== null) {
-                                                                result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11];
-                                                            } else {
-                                                                result0 = null;
-                                                                pos = pos1;
-                                                            }
-                                                        } else {
-                                                            result0 = null;
-                                                            pos = pos1;
-                                                        }
-                                                    } else {
-                                                        result0 = null;
-                                                        pos = pos1;
-                                                    }
-                                                } else {
-                                                    result0 = null;
-                                                    pos = pos1;
-                                                }
-                                            } else {
-                                                result0 = null;
-                                                pos = pos1;
-                                            }
-                                        } else {
-                                            result0 = null;
-                                            pos = pos1;
-                                        }
-                                    } else {
-                                        result0 = null;
-                                        pos = pos1;
-                                    }
-                                } else {
-                                    result0 = null;
-                                    pos = pos1;
-                                }
-                            } else {
-                                result0 = null;
-                                pos = pos1;
-                            }
-                        } else {
-                            result0 = null;
-                            pos = pos1;
-                        }
-                    } else {
-                        result0 = null;
-                        pos = pos1;
-                    }
-                } else {
-                    result0 = null;
-                    pos = pos1;
-                }
-                if (result0 !== null) {
-                    result0 = (function(offset, s, v) {
                         return {
                             type: 'insert',
                             source: s,
                             values: v,
-                            line: computeErrorPosition().line
+                            line: line
                         }
-                    })(pos0, result0[5], result0[10]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[4], result0[9]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -2848,11 +2662,11 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6, result7;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 6) === "delete") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 6) === "delete") {
                     result0 = "delete";
-                    pos += 6;
+                    advance(pos, 6);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -2862,9 +2676,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 4) === "from") {
+                        if (input.substr(pos.offset, 4) === "from") {
                             result2 = "from";
-                            pos += 4;
+                            advance(pos, 4);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -2888,44 +2702,44 @@ module.exports = (function(){
                                             result0 = [result0, result1, result2, result3, result4, result5, result6];
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, s, wc) {
+                    result0 = (function(offset, line, column, s, wc) {
                         return {
                             type: 'delete',
                             source: s,
                             whereCriteria: wc[0],
-                            line: computeErrorPosition().line
+                            line: line
                         }
-                    })(pos0, result0[4], result0[6]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -2934,13 +2748,13 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_All();
                 if (result0 === null) {
                     result0 = parse_Fields();
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, arr) {
+                    result0 = (function(offset, line, column, arr) {
                         var aliasCount = 0;
                         for(var i = 0; i < arr.length; i++) {
                             if(arr[i].alias) {
@@ -2948,13 +2762,13 @@ module.exports = (function(){
                             }
                         }
                         if(aliasCount > 0 && aliasCount != arr.length) {
-                            throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Not all selected columns are using aliases.");
+                            throw new this.SyntaxError("Line " + line + ": Not all selected columns are using aliases.");
                         }
                         return arr;
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -2963,8 +2777,8 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result1 = parse_Source();
                 if (result1 !== null) {
                     result0 = [];
@@ -2986,19 +2800,19 @@ module.exports = (function(){
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, s, sarr) {
+                    result0 = (function(offset, line, column, s, sarr) {
                         return s.concat(sarr);
-                    })(pos0, result0[0], result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3017,8 +2831,8 @@ module.exports = (function(){
                 var result0, result1, result2, result3;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_insig();
                 if (result0 !== null) {
                     result1 = parse_Comma();
@@ -3030,27 +2844,27 @@ module.exports = (function(){
                                 result0 = [result0, result1, result2, result3];
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, s) {
+                    result0 = (function(offset, line, column, s) {
                         return s;
-                    })(pos0, result0[3]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[3]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3059,15 +2873,15 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Name();
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 2) === "as") {
+                        if (input.substr(pos.offset, 2) === "as") {
                             result2 = "as";
-                            pos += 2;
+                            advance(pos, 2);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -3082,34 +2896,34 @@ module.exports = (function(){
                                     result0 = [result0, result1, result2, result3, result4];
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, s, a) {
+                    result0 = (function(offset, line, column, s, a) {
                         if(symbols[s]) {
                             s = "{" + s + "}";
                         }
                         return {name: s, alias: a};
-                    })(pos0, result0[0], result0[4]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[4]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3118,18 +2932,18 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_Name();
                 if (result0 !== null) {
-                    result0 = (function(offset, s) {
+                    result0 = (function(offset, line, column, s) {
                         if(symbols[s]) {
                             s = "{" + s + "}";
                         }
                         return {name: s};
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3138,11 +2952,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 5) === "where") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 5) === "where") {
                     result0 = "where";
-                    pos += 5;
+                    advance(pos, 5);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -3157,23 +2971,23 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, w) {
+                    result0 = (function(offset, line, column, w) {
                         return w;
-                    })(pos0, result0[2]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[2]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3182,11 +2996,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 5) === "limit") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 5) === "limit") {
                     result0 = "limit";
-                    pos += 5;
+                    advance(pos, 5);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -3201,23 +3015,23 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, n) {
+                    result0 = (function(offset, line, column, n) {
                         return n;
-                    })(pos0, result0[2]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[2]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3226,11 +3040,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 6) === "offset") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 6) === "offset") {
                     result0 = "offset";
-                    pos += 6;
+                    advance(pos, 6);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -3245,23 +3059,23 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, n) {
+                    result0 = (function(offset, line, column, n) {
                         return n;
-                    })(pos0, result0[2]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[2]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3270,8 +3084,8 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Cond();
                 if (result0 !== null) {
                     result1 = [];
@@ -3284,21 +3098,21 @@ module.exports = (function(){
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, c, carr) {
+                    result0 = (function(offset, line, column, c, carr) {
                         var ret = [c];
                         ret = ret.concat(carr);
                         return ret;
-                    })(pos0, result0[0], result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3306,9 +3120,9 @@ module.exports = (function(){
             function parse_And() {
                 var result0;
 
-                if (input.substr(pos, 3) === "and") {
+                if (input.substr(pos.offset, 3) === "and") {
                     result0 = "and";
-                    pos += 3;
+                    advance(pos, 3);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -3335,8 +3149,8 @@ module.exports = (function(){
                 var result0, result1, result2, result3;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_insig();
                 if (result0 !== null) {
                     result1 = parse_And();
@@ -3348,27 +3162,27 @@ module.exports = (function(){
                                 result0 = [result0, result1, result2, result3];
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, c) {
+                    result0 = (function(offset, line, column, c) {
                         return c;
-                    })(pos0, result0[3]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[3]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3377,8 +3191,8 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_insig();
                 if (result0 !== null) {
                     result1 = parse_Field();
@@ -3396,39 +3210,39 @@ module.exports = (function(){
                                             result0 = [result0, result1, result2, result3, result4, result5, result6];
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, lhs, rhs) {
+                    result0 = (function(offset, line, column, lhs, rhs) {
                         return {operator : '=', lhs : lhs, rhs : rhs};
-                    })(pos0, result0[1], result0[5]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[1], result0[5]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3437,15 +3251,15 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6, result7, result8;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Name();
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 2) === "in") {
+                        if (input.substr(pos.offset, 2) === "in") {
                             result2 = "in";
-                            pos += 2;
+                            advance(pos, 2);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -3455,9 +3269,9 @@ module.exports = (function(){
                         if (result2 !== null) {
                             result3 = parse_insig();
                             if (result3 !== null) {
-                                if (input.charCodeAt(pos) === 40) {
+                                if (input.charCodeAt(pos.offset) === 40) {
                                     result4 = "(";
-                                    pos++;
+                                    advance(pos, 1);
                                 } else {
                                     result4 = null;
                                     if (reportFailures === 0) {
@@ -3474,9 +3288,9 @@ module.exports = (function(){
                                         if (result6 !== null) {
                                             result7 = parse_insig();
                                             if (result7 !== null) {
-                                                if (input.charCodeAt(pos) === 41) {
+                                                if (input.charCodeAt(pos.offset) === 41) {
                                                     result8 = ")";
-                                                    pos++;
+                                                    advance(pos, 1);
                                                 } else {
                                                     result8 = null;
                                                     if (reportFailures === 0) {
@@ -3487,47 +3301,47 @@ module.exports = (function(){
                                                     result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8];
                                                 } else {
                                                     result0 = null;
-                                                    pos = pos1;
+                                                    pos = clone(pos1);
                                                 }
                                             } else {
                                                 result0 = null;
-                                                pos = pos1;
+                                                pos = clone(pos1);
                                             }
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, lhs, rhs) {
+                    result0 = (function(offset, line, column, lhs, rhs) {
                         return {operator : 'in', lhs : {name: lhs}, rhs: rhs};
-                    })(pos0, result0[0], result0[6]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[6]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3536,8 +3350,8 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_insig();
                 if (result0 !== null) {
                     result1 = parse_CSVMember();
@@ -3554,31 +3368,31 @@ module.exports = (function(){
                                 result0 = [result0, result1, result2, result3];
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, c, carr) {
+                    result0 = (function(offset, line, column, c, carr) {
                         var res = [c.value || c];
                         collect(carr,',', res, 'value');
                         return {
                             value: res
                         }
-                    })(pos0, result0[1], result0[3]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[1], result0[3]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3587,8 +3401,8 @@ module.exports = (function(){
                 var result0, result1, result2, result3;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_insig();
                 if (result0 !== null) {
                     result1 = parse_Comma();
@@ -3600,27 +3414,27 @@ module.exports = (function(){
                                 result0 = [result0, result1, result2, result3];
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, v) {
+                    result0 = (function(offset, line, column, v) {
                         return v;
-                    })(pos0, result0[3]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[3]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3645,17 +3459,17 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_Name();
                 if (result0 !== null) {
-                    result0 = (function(offset, i) {
+                    result0 = (function(offset, line, column, i) {
                         return {
                             value: "{" + i + "}"
                         }
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3664,12 +3478,12 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_insig();
                 if (result0 !== null) {
-                    if (input.charCodeAt(pos) === 61) {
+                    if (input.charCodeAt(pos.offset) === 61) {
                         result1 = "=";
-                        pos++;
+                        advance(pos, 1);
                     } else {
                         result1 = null;
                         if (reportFailures === 0) {
@@ -3682,23 +3496,23 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos0;
+                            pos = clone(pos0);
                         }
                     } else {
                         result0 = null;
-                        pos = pos0;
+                        pos = clone(pos0);
                     }
                 } else {
                     result0 = null;
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 if (result0 === null) {
-                    pos0 = pos;
+                    pos0 = clone(pos);
                     result0 = parse_insig();
                     if (result0 !== null) {
-                        if (input.substr(pos, 2) === "in") {
+                        if (input.substr(pos.offset, 2) === "in") {
                             result1 = "in";
-                            pos += 2;
+                            advance(pos, 2);
                         } else {
                             result1 = null;
                             if (reportFailures === 0) {
@@ -3711,15 +3525,15 @@ module.exports = (function(){
                                 result0 = [result0, result1, result2];
                             } else {
                                 result0 = null;
-                                pos = pos0;
+                                pos = clone(pos0);
                             }
                         } else {
                             result0 = null;
-                            pos = pos0;
+                            pos = clone(pos0);
                         }
                     } else {
                         result0 = null;
-                        pos = pos0;
+                        pos = clone(pos0);
                     }
                 }
                 return result0;
@@ -3729,7 +3543,7 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_AliasedRef();
                 if (result0 === null) {
                     result0 = parse_QuotedWord();
@@ -3741,17 +3555,17 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, r) {
+                    result0 = (function(offset, line, column, r) {
                         if(!r.hasOwnProperty('value')) {
                             r = {
                                 value: r
                             }
                         }
                         return r;
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3760,18 +3574,18 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_JSONPath();
                 if (result0 !== null) {
-                    result0 = (function(offset, p) {
+                    result0 = (function(offset, line, column, p) {
                         return {
                             type: 'alias',
                             value: p
                         };
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3780,10 +3594,10 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
-                if (input.charCodeAt(pos) === 42) {
+                pos0 = clone(pos);
+                if (input.charCodeAt(pos.offset) === 42) {
                     result0 = "*";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -3791,15 +3605,15 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset) {
+                    result0 = (function(offset, line, column) {
                         return {
                             name: '*',
                             type: 'column'
                         }
-                    })(pos0);
+                    })(pos0.offset, pos0.line, pos0.column);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3808,12 +3622,12 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5;
                 var pos0, pos1, pos2;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Field();
                 if (result0 !== null) {
                     result1 = [];
-                    pos2 = pos;
+                    pos2 = clone(pos);
                     result2 = parse_insig();
                     if (result2 !== null) {
                         result3 = parse_Comma();
@@ -3825,23 +3639,23 @@ module.exports = (function(){
                                     result2 = [result2, result3, result4, result5];
                                 } else {
                                     result2 = null;
-                                    pos = pos2;
+                                    pos = clone(pos2);
                                 }
                             } else {
                                 result2 = null;
-                                pos = pos2;
+                                pos = clone(pos2);
                             }
                         } else {
                             result2 = null;
-                            pos = pos2;
+                            pos = clone(pos2);
                         }
                     } else {
                         result2 = null;
-                        pos = pos2;
+                        pos = clone(pos2);
                     }
                     while (result2 !== null) {
                         result1.push(result2);
-                        pos2 = pos;
+                        pos2 = clone(pos);
                         result2 = parse_insig();
                         if (result2 !== null) {
                             result3 = parse_Comma();
@@ -3853,40 +3667,40 @@ module.exports = (function(){
                                         result2 = [result2, result3, result4, result5];
                                     } else {
                                         result2 = null;
-                                        pos = pos2;
+                                        pos = clone(pos2);
                                     }
                                 } else {
                                     result2 = null;
-                                    pos = pos2;
+                                    pos = clone(pos2);
                                 }
                             } else {
                                 result2 = null;
-                                pos = pos2;
+                                pos = clone(pos2);
                             }
                         } else {
                             result2 = null;
-                            pos = pos2;
+                            pos = clone(pos2);
                         }
                     }
                     if (result1 !== null) {
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, arr) {
+                    result0 = (function(offset, line, column, arr) {
                         var res = [];
                         collect(arr, ",", res);
                         return res;
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3895,18 +3709,18 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_AliasField();
                 if (result0 === null) {
                     result0 = parse_NonAliasField();
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, f) {
+                    result0 = (function(offset, line, column, f) {
                         return f;
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3915,15 +3729,15 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_NonAliasField();
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 2) === "as") {
+                        if (input.substr(pos.offset, 2) === "as") {
                             result2 = "as";
-                            pos += 2;
+                            advance(pos, 2);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -3938,35 +3752,35 @@ module.exports = (function(){
                                     result0 = [result0, result1, result2, result3, result4];
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, n, a) {
+                    result0 = (function(offset, line, column, n, a) {
                         if(symbols[n]) {
                             n = "{" + n + "}";
                         }
                         n.alias = a;
                         return n;
-                    })(pos0, result0[0], result0[4]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[4]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -3985,15 +3799,15 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Name();
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.charCodeAt(pos) === 40) {
+                        if (input.charCodeAt(pos.offset) === 40) {
                             result2 = "(";
-                            pos++;
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -4008,9 +3822,9 @@ module.exports = (function(){
                                 if (result4 !== null) {
                                     result5 = parse_insig();
                                     if (result5 !== null) {
-                                        if (input.charCodeAt(pos) === 41) {
+                                        if (input.charCodeAt(pos.offset) === 41) {
                                             result6 = ")";
-                                            pos++;
+                                            advance(pos, 1);
                                         } else {
                                             result6 = null;
                                             if (reportFailures === 0) {
@@ -4021,43 +3835,43 @@ module.exports = (function(){
                                             result0 = [result0, result1, result2, result3, result4, result5, result6];
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, name, p) {
+                    result0 = (function(offset, line, column, name, p) {
                         return {
                             operator: 'udf',
                             name: name,
                             args: p
                         }
-                    })(pos0, result0[0], result0[4]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[4]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4066,14 +3880,14 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5;
                 var pos0, pos1, pos2;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_UDFParam();
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
                         result2 = [];
-                        pos2 = pos;
+                        pos2 = clone(pos);
                         result3 = parse_Comma();
                         if (result3 !== null) {
                             result4 = parse_insig();
@@ -4083,19 +3897,19 @@ module.exports = (function(){
                                     result3 = [result3, result4, result5];
                                 } else {
                                     result3 = null;
-                                    pos = pos2;
+                                    pos = clone(pos2);
                                 }
                             } else {
                                 result3 = null;
-                                pos = pos2;
+                                pos = clone(pos2);
                             }
                         } else {
                             result3 = null;
-                            pos = pos2;
+                            pos = clone(pos2);
                         }
                         while (result3 !== null) {
                             result2.push(result3);
-                            pos2 = pos;
+                            pos2 = clone(pos);
                             result3 = parse_Comma();
                             if (result3 !== null) {
                                 result4 = parse_insig();
@@ -4105,40 +3919,40 @@ module.exports = (function(){
                                         result3 = [result3, result4, result5];
                                     } else {
                                         result3 = null;
-                                        pos = pos2;
+                                        pos = clone(pos2);
                                     }
                                 } else {
                                     result3 = null;
-                                    pos = pos2;
+                                    pos = clone(pos2);
                                 }
                             } else {
                                 result3 = null;
-                                pos = pos2;
+                                pos = clone(pos2);
                             }
                         }
                         if (result2 !== null) {
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, c, carr) {
+                    result0 = (function(offset, line, column, c, carr) {
                         var res = [c];
                         collect(carr,',', res);
                         return res;
-                    })(pos0, result0[0], result0[2]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[2]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4157,18 +3971,18 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_JSON();
                 if (result0 !== null) {
-                    result0 = (function(offset, j) {
+                    result0 = (function(offset, line, column, j) {
                         return {
                             type: 'literal',
                             value: j
                         }
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4177,18 +3991,18 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_Digits();
                 if (result0 !== null) {
-                    result0 = (function(offset, d) {
+                    result0 = (function(offset, line, column, d) {
                         return {
                             type: 'literal',
                             value: d
                         }
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4197,18 +4011,18 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_JSONPath();
                 if (result0 !== null) {
-                    result0 = (function(offset, p) {
+                    result0 = (function(offset, line, column, p) {
                         return {
                             type: 'column',
                             name: p
                         }
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4217,15 +4031,15 @@ module.exports = (function(){
                 var result0, result1, result2, result3;
                 var pos0, pos1, pos2;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Selector();
                 if (result0 !== null) {
                     result1 = [];
-                    pos2 = pos;
-                    if (input.charCodeAt(pos) === 46) {
+                    pos2 = clone(pos);
+                    if (input.charCodeAt(pos.offset) === 46) {
                         result2 = ".";
-                        pos++;
+                        advance(pos, 1);
                     } else {
                         result2 = null;
                         if (reportFailures === 0) {
@@ -4238,18 +4052,18 @@ module.exports = (function(){
                             result2 = [result2, result3];
                         } else {
                             result2 = null;
-                            pos = pos2;
+                            pos = clone(pos2);
                         }
                     } else {
                         result2 = null;
-                        pos = pos2;
+                        pos = clone(pos2);
                     }
                     while (result2 !== null) {
                         result1.push(result2);
-                        pos2 = pos;
-                        if (input.charCodeAt(pos) === 46) {
+                        pos2 = clone(pos);
+                        if (input.charCodeAt(pos.offset) === 46) {
                             result2 = ".";
-                            pos++;
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -4262,30 +4076,30 @@ module.exports = (function(){
                                 result2 = [result2, result3];
                             } else {
                                 result2 = null;
-                                pos = pos2;
+                                pos = clone(pos2);
                             }
                         } else {
                             result2 = null;
-                            pos = pos2;
+                            pos = clone(pos2);
                         }
                     }
                     if (result1 !== null) {
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, chars) {
+                    result0 = (function(offset, line, column, chars) {
                         return append(chars);
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4294,14 +4108,14 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4;
                 var pos0, pos1;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_Word();
                 if (result0 !== null) {
                     result1 = [];
-                    pos1 = pos;
-                    if (input.charCodeAt(pos) === 91) {
+                    pos1 = clone(pos);
+                    if (input.charCodeAt(pos.offset) === 91) {
                         result2 = "[";
-                        pos++;
+                        advance(pos, 1);
                     } else {
                         result2 = null;
                         if (reportFailures === 0) {
@@ -4313,9 +4127,9 @@ module.exports = (function(){
                         if (result3 === null) {
                             result3 = parse_QuotedWordVal();
                             if (result3 === null) {
-                                if (input.charCodeAt(pos) === 42) {
+                                if (input.charCodeAt(pos.offset) === 42) {
                                     result3 = "*";
-                                    pos++;
+                                    advance(pos, 1);
                                 } else {
                                     result3 = null;
                                     if (reportFailures === 0) {
@@ -4328,9 +4142,9 @@ module.exports = (function(){
                             }
                         }
                         if (result3 !== null) {
-                            if (input.charCodeAt(pos) === 93) {
+                            if (input.charCodeAt(pos.offset) === 93) {
                                 result4 = "]";
-                                pos++;
+                                advance(pos, 1);
                             } else {
                                 result4 = null;
                                 if (reportFailures === 0) {
@@ -4341,22 +4155,22 @@ module.exports = (function(){
                                 result2 = [result2, result3, result4];
                             } else {
                                 result2 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result2 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result2 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                     while (result2 !== null) {
                         result1.push(result2);
-                        pos1 = pos;
-                        if (input.charCodeAt(pos) === 91) {
+                        pos1 = clone(pos);
+                        if (input.charCodeAt(pos.offset) === 91) {
                             result2 = "[";
-                            pos++;
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -4368,9 +4182,9 @@ module.exports = (function(){
                             if (result3 === null) {
                                 result3 = parse_QuotedWordVal();
                                 if (result3 === null) {
-                                    if (input.charCodeAt(pos) === 42) {
+                                    if (input.charCodeAt(pos.offset) === 42) {
                                         result3 = "*";
-                                        pos++;
+                                        advance(pos, 1);
                                     } else {
                                         result3 = null;
                                         if (reportFailures === 0) {
@@ -4383,9 +4197,9 @@ module.exports = (function(){
                                 }
                             }
                             if (result3 !== null) {
-                                if (input.charCodeAt(pos) === 93) {
+                                if (input.charCodeAt(pos.offset) === 93) {
                                     result4 = "]";
-                                    pos++;
+                                    advance(pos, 1);
                                 } else {
                                     result4 = null;
                                     if (reportFailures === 0) {
@@ -4396,26 +4210,26 @@ module.exports = (function(){
                                     result2 = [result2, result3, result4];
                                 } else {
                                     result2 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result2 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result2 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     }
                     if (result1 !== null) {
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos0;
+                        pos = clone(pos0);
                     }
                 } else {
                     result0 = null;
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 if (result0 === null) {
                     result0 = parse_Word();
@@ -4426,9 +4240,9 @@ module.exports = (function(){
             function parse_Comma() {
                 var result0;
 
-                if (input.charCodeAt(pos) === 44) {
+                if (input.charCodeAt(pos.offset) === 44) {
                     result0 = ",";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -4442,15 +4256,15 @@ module.exports = (function(){
                 var result0, result1, result2, result3;
                 var pos0, pos1, pos2;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Word();
                 if (result0 !== null) {
                     result1 = [];
-                    pos2 = pos;
-                    if (input.charCodeAt(pos) === 46) {
+                    pos2 = clone(pos);
+                    if (input.charCodeAt(pos.offset) === 46) {
                         result2 = ".";
-                        pos++;
+                        advance(pos, 1);
                     } else {
                         result2 = null;
                         if (reportFailures === 0) {
@@ -4463,18 +4277,18 @@ module.exports = (function(){
                             result2 = [result2, result3];
                         } else {
                             result2 = null;
-                            pos = pos2;
+                            pos = clone(pos2);
                         }
                     } else {
                         result2 = null;
-                        pos = pos2;
+                        pos = clone(pos2);
                     }
                     while (result2 !== null) {
                         result1.push(result2);
-                        pos2 = pos;
-                        if (input.charCodeAt(pos) === 46) {
+                        pos2 = clone(pos);
+                        if (input.charCodeAt(pos.offset) === 46) {
                             result2 = ".";
-                            pos++;
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -4487,30 +4301,30 @@ module.exports = (function(){
                                 result2 = [result2, result3];
                             } else {
                                 result2 = null;
-                                pos = pos2;
+                                pos = clone(pos2);
                             }
                         } else {
                             result2 = null;
-                            pos = pos2;
+                            pos = clone(pos2);
                         }
                     }
                     if (result1 !== null) {
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, obj) {
+                    result0 = (function(offset, line, column, obj) {
                         return append(obj);
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4519,11 +4333,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (/^[a-zA-Z$:]/.test(input.charAt(pos))) {
-                    result0 = input.charAt(pos);
-                    pos++;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (/^[a-zA-Z$:]/.test(input.charAt(pos.offset))) {
+                    result0 = input.charAt(pos.offset);
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -4532,9 +4346,9 @@ module.exports = (function(){
                 }
                 if (result0 !== null) {
                     result1 = [];
-                    if (/^[a-zA-Z_0-9:]/.test(input.charAt(pos))) {
-                        result2 = input.charAt(pos);
-                        pos++;
+                    if (/^[a-zA-Z_0-9:]/.test(input.charAt(pos.offset))) {
+                        result2 = input.charAt(pos.offset);
+                        advance(pos, 1);
                     } else {
                         result2 = null;
                         if (reportFailures === 0) {
@@ -4543,9 +4357,9 @@ module.exports = (function(){
                     }
                     while (result2 !== null) {
                         result1.push(result2);
-                        if (/^[a-zA-Z_0-9:]/.test(input.charAt(pos))) {
-                            result2 = input.charAt(pos);
-                            pos++;
+                        if (/^[a-zA-Z_0-9:]/.test(input.charAt(pos.offset))) {
+                            result2 = input.charAt(pos.offset);
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -4557,23 +4371,23 @@ module.exports = (function(){
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, chars) {
+                    result0 = (function(offset, line, column, chars) {
                         var ret = chars[0];
                         for(i = 1; i < chars.length; i++) {
                             ret = ret + chars[i].join('');
                         }
                         return ret;
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4582,15 +4396,15 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_QuotedWord();
                 if (result0 !== null) {
-                    result0 = (function(offset, q) {
+                    result0 = (function(offset, line, column, q) {
                         return '"' + q.value + '"';
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4609,11 +4423,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.charCodeAt(pos) === 39) {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.charCodeAt(pos.offset) === 39) {
                     result0 = "'";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -4622,9 +4436,9 @@ module.exports = (function(){
                 }
                 if (result0 !== null) {
                     result1 = [];
-                    if (/^[^']/.test(input.charAt(pos))) {
-                        result2 = input.charAt(pos);
-                        pos++;
+                    if (/^[^']/.test(input.charAt(pos.offset))) {
+                        result2 = input.charAt(pos.offset);
+                        advance(pos, 1);
                     } else {
                         result2 = null;
                         if (reportFailures === 0) {
@@ -4632,9 +4446,9 @@ module.exports = (function(){
                         }
                     }
                     if (result2 === null) {
-                        if (input.charCodeAt(pos) === 32) {
+                        if (input.charCodeAt(pos.offset) === 32) {
                             result2 = " ";
-                            pos++;
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -4644,9 +4458,9 @@ module.exports = (function(){
                     }
                     while (result2 !== null) {
                         result1.push(result2);
-                        if (/^[^']/.test(input.charAt(pos))) {
-                            result2 = input.charAt(pos);
-                            pos++;
+                        if (/^[^']/.test(input.charAt(pos.offset))) {
+                            result2 = input.charAt(pos.offset);
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -4654,9 +4468,9 @@ module.exports = (function(){
                             }
                         }
                         if (result2 === null) {
-                            if (input.charCodeAt(pos) === 32) {
+                            if (input.charCodeAt(pos.offset) === 32) {
                                 result2 = " ";
-                                pos++;
+                                advance(pos, 1);
                             } else {
                                 result2 = null;
                                 if (reportFailures === 0) {
@@ -4666,9 +4480,9 @@ module.exports = (function(){
                         }
                     }
                     if (result1 !== null) {
-                        if (input.charCodeAt(pos) === 39) {
+                        if (input.charCodeAt(pos.offset) === 39) {
                             result2 = "'";
-                            pos++;
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -4679,25 +4493,25 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, c) {
+                    result0 = (function(offset, line, column, c) {
                         return {
                             value: c.join('')
                         }
-                    })(pos0, result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4706,11 +4520,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.charCodeAt(pos) === 34) {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.charCodeAt(pos.offset) === 34) {
                     result0 = "\"";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -4719,9 +4533,9 @@ module.exports = (function(){
                 }
                 if (result0 !== null) {
                     result1 = [];
-                    if (/^[^"]/.test(input.charAt(pos))) {
-                        result2 = input.charAt(pos);
-                        pos++;
+                    if (/^[^"]/.test(input.charAt(pos.offset))) {
+                        result2 = input.charAt(pos.offset);
+                        advance(pos, 1);
                     } else {
                         result2 = null;
                         if (reportFailures === 0) {
@@ -4729,9 +4543,9 @@ module.exports = (function(){
                         }
                     }
                     if (result2 === null) {
-                        if (input.charCodeAt(pos) === 32) {
+                        if (input.charCodeAt(pos.offset) === 32) {
                             result2 = " ";
-                            pos++;
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -4741,9 +4555,9 @@ module.exports = (function(){
                     }
                     while (result2 !== null) {
                         result1.push(result2);
-                        if (/^[^"]/.test(input.charAt(pos))) {
-                            result2 = input.charAt(pos);
-                            pos++;
+                        if (/^[^"]/.test(input.charAt(pos.offset))) {
+                            result2 = input.charAt(pos.offset);
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -4751,9 +4565,9 @@ module.exports = (function(){
                             }
                         }
                         if (result2 === null) {
-                            if (input.charCodeAt(pos) === 32) {
+                            if (input.charCodeAt(pos.offset) === 32) {
                                 result2 = " ";
-                                pos++;
+                                advance(pos, 1);
                             } else {
                                 result2 = null;
                                 if (reportFailures === 0) {
@@ -4763,9 +4577,9 @@ module.exports = (function(){
                         }
                     }
                     if (result1 !== null) {
-                        if (input.charCodeAt(pos) === 34) {
+                        if (input.charCodeAt(pos.offset) === 34) {
                             result2 = "\"";
-                            pos++;
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -4776,25 +4590,25 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, c) {
+                    result0 = (function(offset, line, column, c) {
                         return {
                             value: c.join('')
                         }
-                    })(pos0, result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4813,11 +4627,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.charCodeAt(pos) === 39) {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.charCodeAt(pos.offset) === 39) {
                     result0 = "'";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -4827,9 +4641,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_Digits();
                     if (result1 !== null) {
-                        if (input.charCodeAt(pos) === 39) {
+                        if (input.charCodeAt(pos.offset) === 39) {
                             result2 = "'";
-                            pos++;
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -4840,25 +4654,25 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, d) {
+                    result0 = (function(offset, line, column, d) {
                         return {
                             value: d
                         }
-                    })(pos0, result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4867,11 +4681,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.charCodeAt(pos) === 34) {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.charCodeAt(pos.offset) === 34) {
                     result0 = "\"";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -4881,9 +4695,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_Digits();
                     if (result1 !== null) {
-                        if (input.charCodeAt(pos) === 34) {
+                        if (input.charCodeAt(pos.offset) === 34) {
                             result2 = "\"";
-                            pos++;
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -4894,25 +4708,25 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, d) {
+                    result0 = (function(offset, line, column, d) {
                         return {
                             value: d
                         }
-                    })(pos0, result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4921,10 +4735,10 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
-                if (input.substr(pos, 6) === "return") {
+                pos0 = clone(pos);
+                if (input.substr(pos.offset, 6) === "return") {
                     result0 = "return";
-                    pos += 6;
+                    advance(pos, 6);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -4932,14 +4746,14 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset) {
+                    result0 = (function(offset, line, column) {
                         return {
-                            line: computeErrorPosition().line
+                            line: line
                         }
-                    })(pos0);
+                    })(pos0.offset, pos0.line, pos0.column);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -4948,8 +4762,8 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Ret();
                 if (result0 !== null) {
                     result1 = parse_insig();
@@ -4963,9 +4777,9 @@ module.exports = (function(){
                                 if (result4 !== null) {
                                     result5 = parse_insig();
                                     if (result5 !== null) {
-                                        if (input.charCodeAt(pos) === 59) {
+                                        if (input.charCodeAt(pos.offset) === 59) {
                                             result6 = ";";
-                                            pos++;
+                                            advance(pos, 1);
                                         } else {
                                             result6 = null;
                                             if (reportFailures === 0) {
@@ -4977,34 +4791,34 @@ module.exports = (function(){
                                             result0 = [result0, result1, result2, result3, result4, result5, result6];
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, re, o, r) {
+                    result0 = (function(offset, line, column, re, o, r) {
                         var ret = {
                             type: 'return',
                             line: re.line,
@@ -5015,10 +4829,10 @@ module.exports = (function(){
                             ret.route = r;
                         }
                         return ret;
-                    })(pos0, result0[0], result0[2], result0[4]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[2], result0[4]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5043,20 +4857,20 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_Word();
                 if (result0 !== null) {
-                    result0 = (function(offset, o) {
+                    result0 = (function(offset, line, column, o) {
                         if(symbols[o] === undefined) {
-                            throw new this.SyntaxError("Line " + computeErrorPosition().line + ": Unresolved symbol '" + o + "'");
+                            throw new this.SyntaxError("Line " + line + ": Unresolved symbol '" + o + "'");
                         }
                         return {
                             ref: o
                         }
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5065,11 +4879,11 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.substr(pos, 3) === "via") {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 3) === "via") {
                     result0 = "via";
-                    pos += 3;
+                    advance(pos, 3);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -5079,9 +4893,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos, 5) === "route") {
+                        if (input.substr(pos.offset, 5) === "route") {
                             result2 = "route";
-                            pos += 5;
+                            advance(pos, 5);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -5095,9 +4909,9 @@ module.exports = (function(){
                                 if (result4 !== null) {
                                     result5 = parse_insig();
                                     if (result5 !== null) {
-                                        if (input.substr(pos, 5) === "using") {
+                                        if (input.substr(pos.offset, 5) === "using") {
                                             result6 = "using";
-                                            pos += 5;
+                                            advance(pos, 5);
                                         } else {
                                             result6 = null;
                                             if (reportFailures === 0) {
@@ -5107,9 +4921,9 @@ module.exports = (function(){
                                         if (result6 !== null) {
                                             result7 = parse_insig();
                                             if (result7 !== null) {
-                                                if (input.substr(pos, 6) === "method") {
+                                                if (input.substr(pos.offset, 6) === "method") {
                                                     result8 = "method";
-                                                    pos += 6;
+                                                    advance(pos, 6);
                                                 } else {
                                                     result8 = null;
                                                     if (reportFailures === 0) {
@@ -5119,9 +4933,9 @@ module.exports = (function(){
                                                 if (result8 !== null) {
                                                     result9 = parse_insig();
                                                     if (result9 !== null) {
-                                                        if (input.substr(pos, 3) === "get") {
+                                                        if (input.substr(pos.offset, 3) === "get") {
                                                             result10 = "get";
-                                                            pos += 3;
+                                                            advance(pos, 3);
                                                         } else {
                                                             result10 = null;
                                                             if (reportFailures === 0) {
@@ -5129,9 +4943,9 @@ module.exports = (function(){
                                                             }
                                                         }
                                                         if (result10 === null) {
-                                                            if (input.substr(pos, 4) === "post") {
+                                                            if (input.substr(pos.offset, 4) === "post") {
                                                                 result10 = "post";
-                                                                pos += 4;
+                                                                advance(pos, 4);
                                                             } else {
                                                                 result10 = null;
                                                                 if (reportFailures === 0) {
@@ -5139,9 +4953,9 @@ module.exports = (function(){
                                                                 }
                                                             }
                                                             if (result10 === null) {
-                                                                if (input.substr(pos, 3) === "put") {
+                                                                if (input.substr(pos.offset, 3) === "put") {
                                                                     result10 = "put";
-                                                                    pos += 3;
+                                                                    advance(pos, 3);
                                                                 } else {
                                                                     result10 = null;
                                                                     if (reportFailures === 0) {
@@ -5149,9 +4963,9 @@ module.exports = (function(){
                                                                     }
                                                                 }
                                                                 if (result10 === null) {
-                                                                    if (input.substr(pos, 6) === "delete") {
+                                                                    if (input.substr(pos.offset, 6) === "delete") {
                                                                         result10 = "delete";
-                                                                        pos += 6;
+                                                                        advance(pos, 6);
                                                                     } else {
                                                                         result10 = null;
                                                                         if (reportFailures === 0) {
@@ -5159,9 +4973,9 @@ module.exports = (function(){
                                                                         }
                                                                     }
                                                                     if (result10 === null) {
-                                                                        if (input.substr(pos, 5) === "patch") {
+                                                                        if (input.substr(pos.offset, 5) === "patch") {
                                                                             result10 = "patch";
-                                                                            pos += 5;
+                                                                            advance(pos, 5);
                                                                         } else {
                                                                             result10 = null;
                                                                             if (reportFailures === 0) {
@@ -5181,67 +4995,67 @@ module.exports = (function(){
                                                                     result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12];
                                                                 } else {
                                                                     result0 = null;
-                                                                    pos = pos1;
+                                                                    pos = clone(pos1);
                                                                 }
                                                             } else {
                                                                 result0 = null;
-                                                                pos = pos1;
+                                                                pos = clone(pos1);
                                                             }
                                                         } else {
                                                             result0 = null;
-                                                            pos = pos1;
+                                                            pos = clone(pos1);
                                                         }
                                                     } else {
                                                         result0 = null;
-                                                        pos = pos1;
+                                                        pos = clone(pos1);
                                                     }
                                                 } else {
                                                     result0 = null;
-                                                    pos = pos1;
+                                                    pos = clone(pos1);
                                                 }
                                             } else {
                                                 result0 = null;
-                                                pos = pos1;
+                                                pos = clone(pos1);
                                             }
                                         } else {
                                             result0 = null;
-                                            pos = pos1;
+                                            pos = clone(pos1);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos1;
+                                        pos = clone(pos1);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos1;
+                                    pos = clone(pos1);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, p, m, h) {
+                    result0 = (function(offset, line, column, p, m, h) {
                         return {
                             path: p,
                             method: m,
                             headers: h || {}
                         }
-                    })(pos0, result0[4], result0[10], result0[12]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[4], result0[10], result0[12]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5275,19 +5089,19 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_JSON();
                 if (result0 !== null) {
-                    result0 = (function(offset, v) {
+                    result0 = (function(offset, line, column, v) {
                         return {
-                            object: v,
+                            object: v === "__null__" ? null : v,
                             type: 'define',
-                            line: computeErrorPosition().line
+                            line: line
                         }
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5296,16 +5110,16 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_StringLiteral();
                 if (result0 !== null) {
-                    result0 = (function(offset, s) {
+                    result0 = (function(offset, line, column, s) {
                         var s = append(s);
                         return s.substr(1, s.length - 2);
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5314,15 +5128,15 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_Number();
                 if (result0 !== null) {
-                    result0 = (function(offset, n) {
+                    result0 = (function(offset, line, column, n) {
                         return parseFloat(append(n));
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5331,15 +5145,15 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_Array();
                 if (result0 !== null) {
-                    result0 = (function(offset, n) {
+                    result0 = (function(offset, line, column, n) {
                         return JSON.parse(append(n));
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5348,15 +5162,15 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_True();
                 if (result0 !== null) {
-                    result0 = (function(offset, t) {
+                    result0 = (function(offset, line, column, t) {
                         return JSON.parse(t);
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5365,15 +5179,15 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_False();
                 if (result0 !== null) {
-                    result0 = (function(offset, f) {
+                    result0 = (function(offset, line, column, f) {
                         return JSON.parse(f);
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5382,15 +5196,15 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_Null();
                 if (result0 !== null) {
-                    result0 = (function(offset, n) {
-                        return null;
-                    })(pos0, result0);
+                    result0 = (function(offset, line, column, n) {
+                        return "__null__";
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5399,16 +5213,16 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_Struct();
                 if (result0 !== null) {
-                    result0 = (function(offset, o) {
+                    result0 = (function(offset, line, column, o) {
                         var str = append(o);
                         return JSON.parse(str);
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5417,12 +5231,12 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_insig();
                 if (result0 !== null) {
-                    if (input.charCodeAt(pos) === 123) {
+                    if (input.charCodeAt(pos.offset) === 123) {
                         result1 = "{";
-                        pos++;
+                        advance(pos, 1);
                     } else {
                         result1 = null;
                         if (reportFailures === 0) {
@@ -5437,9 +5251,9 @@ module.exports = (function(){
                             if (result3 !== null) {
                                 result4 = parse_insig();
                                 if (result4 !== null) {
-                                    if (input.charCodeAt(pos) === 125) {
+                                    if (input.charCodeAt(pos.offset) === 125) {
                                         result5 = "}";
-                                        pos++;
+                                        advance(pos, 1);
                                     } else {
                                         result5 = null;
                                         if (reportFailures === 0) {
@@ -5452,31 +5266,31 @@ module.exports = (function(){
                                             result0 = [result0, result1, result2, result3, result4, result5, result6];
                                         } else {
                                             result0 = null;
-                                            pos = pos0;
+                                            pos = clone(pos0);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos0;
+                                        pos = clone(pos0);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos0;
+                                    pos = clone(pos0);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos0;
+                                pos = clone(pos0);
                             }
                         } else {
                             result0 = null;
-                            pos = pos0;
+                            pos = clone(pos0);
                         }
                     } else {
                         result0 = null;
-                        pos = pos0;
+                        pos = clone(pos0);
                     }
                 } else {
                     result0 = null;
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5485,7 +5299,7 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_Pair();
                 if (result0 !== null) {
                     result1 = parse_insig();
@@ -5499,26 +5313,26 @@ module.exports = (function(){
                                     result0 = [result0, result1, result2, result3, result4];
                                 } else {
                                     result0 = null;
-                                    pos = pos0;
+                                    pos = clone(pos0);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos0;
+                                pos = clone(pos0);
                             }
                         } else {
                             result0 = null;
-                            pos = pos0;
+                            pos = clone(pos0);
                         }
                     } else {
                         result0 = null;
-                        pos = pos0;
+                        pos = clone(pos0);
                     }
                 } else {
                     result0 = null;
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 if (result0 === null) {
-                    pos0 = pos;
+                    pos0 = clone(pos);
                     result0 = parse_insig();
                     if (result0 !== null) {
                         result1 = parse_Pair();
@@ -5528,15 +5342,15 @@ module.exports = (function(){
                                 result0 = [result0, result1, result2];
                             } else {
                                 result0 = null;
-                                pos = pos0;
+                                pos = clone(pos0);
                             }
                         } else {
                             result0 = null;
-                            pos = pos0;
+                            pos = clone(pos0);
                         }
                     } else {
                         result0 = null;
-                        pos = pos0;
+                        pos = clone(pos0);
                     }
                 }
                 return result0;
@@ -5546,16 +5360,16 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4, result5, result6;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_insig();
                 if (result0 !== null) {
                     result1 = parse_StringLiteral();
                     if (result1 !== null) {
                         result2 = parse_insig();
                         if (result2 !== null) {
-                            if (input.charCodeAt(pos) === 58) {
+                            if (input.charCodeAt(pos.offset) === 58) {
                                 result3 = ":";
-                                pos++;
+                                advance(pos, 1);
                             } else {
                                 result3 = null;
                                 if (reportFailures === 0) {
@@ -5572,31 +5386,31 @@ module.exports = (function(){
                                             result0 = [result0, result1, result2, result3, result4, result5, result6];
                                         } else {
                                             result0 = null;
-                                            pos = pos0;
+                                            pos = clone(pos0);
                                         }
                                     } else {
                                         result0 = null;
-                                        pos = pos0;
+                                        pos = clone(pos0);
                                     }
                                 } else {
                                     result0 = null;
-                                    pos = pos0;
+                                    pos = clone(pos0);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos0;
+                                pos = clone(pos0);
                             }
                         } else {
                             result0 = null;
-                            pos = pos0;
+                            pos = clone(pos0);
                         }
                     } else {
                         result0 = null;
-                        pos = pos0;
+                        pos = clone(pos0);
                     }
                 } else {
                     result0 = null;
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5605,10 +5419,10 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4;
                 var pos0;
 
-                pos0 = pos;
-                if (input.charCodeAt(pos) === 91) {
+                pos0 = clone(pos);
+                if (input.charCodeAt(pos.offset) === 91) {
                     result0 = "[";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -5623,9 +5437,9 @@ module.exports = (function(){
                         if (result2 !== null) {
                             result3 = parse_insig();
                             if (result3 !== null) {
-                                if (input.charCodeAt(pos) === 93) {
+                                if (input.charCodeAt(pos.offset) === 93) {
                                     result4 = "]";
-                                    pos++;
+                                    advance(pos, 1);
                                 } else {
                                     result4 = null;
                                     if (reportFailures === 0) {
@@ -5636,23 +5450,23 @@ module.exports = (function(){
                                     result0 = [result0, result1, result2, result3, result4];
                                 } else {
                                     result0 = null;
-                                    pos = pos0;
+                                    pos = clone(pos0);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos0;
+                                pos = clone(pos0);
                             }
                         } else {
                             result0 = null;
-                            pos = pos0;
+                            pos = clone(pos0);
                         }
                     } else {
                         result0 = null;
-                        pos = pos0;
+                        pos = clone(pos0);
                     }
                 } else {
                     result0 = null;
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5661,7 +5475,7 @@ module.exports = (function(){
                 var result0, result1, result2, result3, result4;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_Value();
                 if (result0 !== null) {
                     result1 = parse_insig();
@@ -5675,23 +5489,23 @@ module.exports = (function(){
                                     result0 = [result0, result1, result2, result3, result4];
                                 } else {
                                     result0 = null;
-                                    pos = pos0;
+                                    pos = clone(pos0);
                                 }
                             } else {
                                 result0 = null;
-                                pos = pos0;
+                                pos = clone(pos0);
                             }
                         } else {
                             result0 = null;
-                            pos = pos0;
+                            pos = clone(pos0);
                         }
                     } else {
                         result0 = null;
-                        pos = pos0;
+                        pos = clone(pos0);
                     }
                 } else {
                     result0 = null;
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 if (result0 === null) {
                     result0 = parse_Value();
@@ -5703,8 +5517,8 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Int();
                 if (result0 !== null) {
                     result1 = parse_Frac();
@@ -5714,18 +5528,18 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 === null) {
-                    pos1 = pos;
+                    pos1 = clone(pos);
                     result0 = parse_Int();
                     if (result0 !== null) {
                         result1 = parse_Frac();
@@ -5733,14 +5547,14 @@ module.exports = (function(){
                             result0 = [result0, result1];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                     if (result0 === null) {
-                        pos1 = pos;
+                        pos1 = clone(pos);
                         result0 = parse_Int();
                         if (result0 !== null) {
                             result1 = parse_Exp();
@@ -5748,11 +5562,11 @@ module.exports = (function(){
                                 result0 = [result0, result1];
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                         if (result0 === null) {
                             result0 = parse_Int();
@@ -5760,12 +5574,12 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, c) {
+                    result0 = (function(offset, line, column, c) {
                         return append(c);
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5774,10 +5588,10 @@ module.exports = (function(){
                 var result0, result1;
                 var pos0;
 
-                pos0 = pos;
-                if (input.charCodeAt(pos) === 43) {
+                pos0 = clone(pos);
+                if (input.charCodeAt(pos.offset) === 43) {
                     result0 = "+";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -5791,17 +5605,17 @@ module.exports = (function(){
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos0;
+                        pos = clone(pos0);
                     }
                 } else {
                     result0 = null;
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 if (result0 === null) {
-                    pos0 = pos;
-                    if (input.charCodeAt(pos) === 45) {
+                    pos0 = clone(pos);
+                    if (input.charCodeAt(pos.offset) === 45) {
                         result0 = "-";
-                        pos++;
+                        advance(pos, 1);
                     } else {
                         result0 = null;
                         if (reportFailures === 0) {
@@ -5814,11 +5628,11 @@ module.exports = (function(){
                             result0 = [result0, result1];
                         } else {
                             result0 = null;
-                            pos = pos0;
+                            pos = clone(pos0);
                         }
                     } else {
                         result0 = null;
-                        pos = pos0;
+                        pos = clone(pos0);
                     }
                 }
                 return result0;
@@ -5828,10 +5642,10 @@ module.exports = (function(){
                 var result0, result1;
                 var pos0;
 
-                pos0 = pos;
-                if (input.charCodeAt(pos) === 46) {
+                pos0 = clone(pos);
+                if (input.charCodeAt(pos.offset) === 46) {
                     result0 = ".";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -5845,11 +5659,11 @@ module.exports = (function(){
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos0;
+                        pos = clone(pos0);
                     }
                 } else {
                     result0 = null;
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5858,7 +5672,7 @@ module.exports = (function(){
                 var result0, result1;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_e();
                 if (result0 !== null) {
                     result1 = parse_Int();
@@ -5867,11 +5681,11 @@ module.exports = (function(){
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos0;
+                        pos = clone(pos0);
                     }
                 } else {
                     result0 = null;
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5879,9 +5693,9 @@ module.exports = (function(){
             function parse_e() {
                 var result0;
 
-                if (input.charCodeAt(pos) === 101) {
+                if (input.charCodeAt(pos.offset) === 101) {
                     result0 = "e";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -5889,9 +5703,9 @@ module.exports = (function(){
                     }
                 }
                 if (result0 === null) {
-                    if (input.substr(pos, 2) === "e+") {
+                    if (input.substr(pos.offset, 2) === "e+") {
                         result0 = "e+";
-                        pos += 2;
+                        advance(pos, 2);
                     } else {
                         result0 = null;
                         if (reportFailures === 0) {
@@ -5899,9 +5713,9 @@ module.exports = (function(){
                         }
                     }
                     if (result0 === null) {
-                        if (input.substr(pos, 2) === "e-") {
+                        if (input.substr(pos.offset, 2) === "e-") {
                             result0 = "e-";
-                            pos += 2;
+                            advance(pos, 2);
                         } else {
                             result0 = null;
                             if (reportFailures === 0) {
@@ -5909,9 +5723,9 @@ module.exports = (function(){
                             }
                         }
                         if (result0 === null) {
-                            if (input.charCodeAt(pos) === 69) {
+                            if (input.charCodeAt(pos.offset) === 69) {
                                 result0 = "E";
-                                pos++;
+                                advance(pos, 1);
                             } else {
                                 result0 = null;
                                 if (reportFailures === 0) {
@@ -5919,9 +5733,9 @@ module.exports = (function(){
                                 }
                             }
                             if (result0 === null) {
-                                if (input.substr(pos, 2) === "E+") {
+                                if (input.substr(pos.offset, 2) === "E+") {
                                     result0 = "E+";
-                                    pos += 2;
+                                    advance(pos, 2);
                                 } else {
                                     result0 = null;
                                     if (reportFailures === 0) {
@@ -5929,9 +5743,9 @@ module.exports = (function(){
                                     }
                                 }
                                 if (result0 === null) {
-                                    if (input.substr(pos, 2) === "E-") {
+                                    if (input.substr(pos.offset, 2) === "E-") {
                                         result0 = "E-";
-                                        pos += 2;
+                                        advance(pos, 2);
                                     } else {
                                         result0 = null;
                                         if (reportFailures === 0) {
@@ -5950,10 +5764,10 @@ module.exports = (function(){
                 var result0, result1;
                 var pos0;
 
-                pos0 = pos;
-                if (/^[0-9]/.test(input.charAt(pos))) {
-                    result1 = input.charAt(pos);
-                    pos++;
+                pos0 = clone(pos);
+                if (/^[0-9]/.test(input.charAt(pos.offset))) {
+                    result1 = input.charAt(pos.offset);
+                    advance(pos, 1);
                 } else {
                     result1 = null;
                     if (reportFailures === 0) {
@@ -5964,9 +5778,9 @@ module.exports = (function(){
                     result0 = [];
                     while (result1 !== null) {
                         result0.push(result1);
-                        if (/^[0-9]/.test(input.charAt(pos))) {
-                            result1 = input.charAt(pos);
-                            pos++;
+                        if (/^[0-9]/.test(input.charAt(pos.offset))) {
+                            result1 = input.charAt(pos.offset);
+                            advance(pos, 1);
                         } else {
                             result1 = null;
                             if (reportFailures === 0) {
@@ -5978,12 +5792,12 @@ module.exports = (function(){
                     result0 = null;
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, d) {
+                    result0 = (function(offset, line, column, d) {
                         return parseInt(append(d));
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -5991,9 +5805,9 @@ module.exports = (function(){
             function parse_True() {
                 var result0;
 
-                if (input.substr(pos, 4) === "true") {
+                if (input.substr(pos.offset, 4) === "true") {
                     result0 = "true";
-                    pos += 4;
+                    advance(pos, 4);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -6006,9 +5820,9 @@ module.exports = (function(){
             function parse_False() {
                 var result0;
 
-                if (input.substr(pos, 5) === "false") {
+                if (input.substr(pos.offset, 5) === "false") {
                     result0 = "false";
-                    pos += 5;
+                    advance(pos, 5);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -6021,9 +5835,9 @@ module.exports = (function(){
             function parse_Null() {
                 var result0;
 
-                if (input.substr(pos, 4) === "null") {
+                if (input.substr(pos.offset, 4) === "null") {
                     result0 = "null";
-                    pos += 4;
+                    advance(pos, 4);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -6036,9 +5850,9 @@ module.exports = (function(){
             function parse_Comma() {
                 var result0;
 
-                if (input.charCodeAt(pos) === 44) {
+                if (input.charCodeAt(pos.offset) === 44) {
                     result0 = ",";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -6051,9 +5865,9 @@ module.exports = (function(){
             function parse_dquote() {
                 var result0;
 
-                if (/^["]/.test(input.charAt(pos))) {
-                    result0 = input.charAt(pos);
-                    pos++;
+                if (/^["]/.test(input.charAt(pos.offset))) {
+                    result0 = input.charAt(pos.offset);
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -6066,9 +5880,9 @@ module.exports = (function(){
             function parse_squote() {
                 var result0;
 
-                if (/^[']/.test(input.charAt(pos))) {
-                    result0 = input.charAt(pos);
-                    pos++;
+                if (/^[']/.test(input.charAt(pos.offset))) {
+                    result0 = input.charAt(pos.offset);
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -6082,8 +5896,8 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_sp();
                 if (result0 !== null) {
                     result1 = [];
@@ -6098,21 +5912,21 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset) { return ''})(pos0);
+                    result0 = (function(offset, line, column) { return ''})(pos0.offset, pos0.line, pos0.column);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6121,11 +5935,11 @@ module.exports = (function(){
                 var result0, result1;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = [];
-                if (/^[\t]/.test(input.charAt(pos))) {
-                    result1 = input.charAt(pos);
-                    pos++;
+                if (/^[\t]/.test(input.charAt(pos.offset))) {
+                    result1 = input.charAt(pos.offset);
+                    advance(pos, 1);
                 } else {
                     result1 = null;
                     if (reportFailures === 0) {
@@ -6133,9 +5947,9 @@ module.exports = (function(){
                     }
                 }
                 if (result1 === null) {
-                    if (/^[ ]/.test(input.charAt(pos))) {
-                        result1 = input.charAt(pos);
-                        pos++;
+                    if (/^[ ]/.test(input.charAt(pos.offset))) {
+                        result1 = input.charAt(pos.offset);
+                        advance(pos, 1);
                     } else {
                         result1 = null;
                         if (reportFailures === 0) {
@@ -6145,9 +5959,9 @@ module.exports = (function(){
                 }
                 while (result1 !== null) {
                     result0.push(result1);
-                    if (/^[\t]/.test(input.charAt(pos))) {
-                        result1 = input.charAt(pos);
-                        pos++;
+                    if (/^[\t]/.test(input.charAt(pos.offset))) {
+                        result1 = input.charAt(pos.offset);
+                        advance(pos, 1);
                     } else {
                         result1 = null;
                         if (reportFailures === 0) {
@@ -6155,9 +5969,9 @@ module.exports = (function(){
                         }
                     }
                     if (result1 === null) {
-                        if (/^[ ]/.test(input.charAt(pos))) {
-                            result1 = input.charAt(pos);
-                            pos++;
+                        if (/^[ ]/.test(input.charAt(pos.offset))) {
+                            result1 = input.charAt(pos.offset);
+                            advance(pos, 1);
                         } else {
                             result1 = null;
                             if (reportFailures === 0) {
@@ -6167,12 +5981,12 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset) {
+                    result0 = (function(offset, line, column) {
                         return ''
-                    })(pos0);
+                    })(pos0.offset, pos0.line, pos0.column);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6181,10 +5995,10 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
-                if (/^[\r\n]/.test(input.charAt(pos))) {
-                    result0 = input.charAt(pos);
-                    pos++;
+                pos0 = clone(pos);
+                if (/^[\r\n]/.test(input.charAt(pos.offset))) {
+                    result0 = input.charAt(pos.offset);
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -6192,12 +6006,12 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, c) {
+                    result0 = (function(offset, line, column, c) {
                         return c;
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6206,8 +6020,8 @@ module.exports = (function(){
                 var result0, result1;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Identifier();
                 if (result0 !== null) {
                     result1 = parse_ExtIdentifier();
@@ -6216,19 +6030,19 @@ module.exports = (function(){
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, i, e) {
+                    result0 = (function(offset, line, column, i, e) {
                         return i + e;
-                    })(pos0, result0[0], result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6237,7 +6051,7 @@ module.exports = (function(){
                 var result0, result1;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = [];
                 result1 = parse_Descendent();
                 if (result1 === null) {
@@ -6251,12 +6065,12 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, c) {
+                    result0 = (function(offset, line, column, c) {
                         return c.join('');
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6265,11 +6079,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.charCodeAt(pos) === 91) {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.charCodeAt(pos.offset) === 91) {
                     result0 = "[";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -6285,9 +6099,9 @@ module.exports = (function(){
                         }
                     }
                     if (result1 !== null) {
-                        if (input.charCodeAt(pos) === 93) {
+                        if (input.charCodeAt(pos.offset) === 93) {
                             result2 = "]";
-                            pos++;
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -6298,23 +6112,23 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, p) {
+                    result0 = (function(offset, line, column, p) {
                         return '[' + p + ']';
-                    })(pos0, result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6323,11 +6137,11 @@ module.exports = (function(){
                 var result0, result1, result2, result3;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.charCodeAt(pos) === 63) {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.charCodeAt(pos.offset) === 63) {
                     result0 = "?";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -6336,9 +6150,9 @@ module.exports = (function(){
                 }
                 result0 = result0 !== null ? result0 : "";
                 if (result0 !== null) {
-                    if (input.charCodeAt(pos) === 40) {
+                    if (input.charCodeAt(pos.offset) === 40) {
                         result1 = "(";
-                        pos++;
+                        advance(pos, 1);
                     } else {
                         result1 = null;
                         if (reportFailures === 0) {
@@ -6348,9 +6162,9 @@ module.exports = (function(){
                     if (result1 !== null) {
                         result2 = parse_ExprBlock();
                         if (result2 !== null) {
-                            if (input.charCodeAt(pos) === 41) {
+                            if (input.charCodeAt(pos.offset) === 41) {
                                 result3 = ")";
-                                pos++;
+                                advance(pos, 1);
                             } else {
                                 result3 = null;
                                 if (reportFailures === 0) {
@@ -6361,27 +6175,27 @@ module.exports = (function(){
                                 result0 = [result0, result1, result2, result3];
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, q, e) {
+                    result0 = (function(offset, line, column, q, e) {
                         return q + '(' + e + ')'
-                    })(pos0, result0[0], result0[2]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[2]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6390,15 +6204,15 @@ module.exports = (function(){
                 var result0;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = parse_StringLiteral();
                 if (result0 !== null) {
-                    result0 = (function(offset, s) {
+                    result0 = (function(offset, line, column, s) {
                         return s.substr(1, s.length - 2);
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6407,11 +6221,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (input.charCodeAt(pos) === 34) {
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.charCodeAt(pos.offset) === 34) {
                     result0 = "\"";
-                    pos++;
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -6421,9 +6235,9 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_DoubleString();
                     if (result1 !== null) {
-                        if (input.charCodeAt(pos) === 34) {
+                        if (input.charCodeAt(pos.offset) === 34) {
                             result2 = "\"";
-                            pos++;
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -6434,21 +6248,21 @@ module.exports = (function(){
                             result0 = [result0, result1, result2];
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 === null) {
-                    pos1 = pos;
-                    if (input.charCodeAt(pos) === 39) {
+                    pos1 = clone(pos);
+                    if (input.charCodeAt(pos.offset) === 39) {
                         result0 = "'";
-                        pos++;
+                        advance(pos, 1);
                     } else {
                         result0 = null;
                         if (reportFailures === 0) {
@@ -6458,9 +6272,9 @@ module.exports = (function(){
                     if (result0 !== null) {
                         result1 = parse_SingleString();
                         if (result1 !== null) {
-                            if (input.charCodeAt(pos) === 39) {
+                            if (input.charCodeAt(pos.offset) === 39) {
                                 result2 = "'";
-                                pos++;
+                                advance(pos, 1);
                             } else {
                                 result2 = null;
                                 if (reportFailures === 0) {
@@ -6471,24 +6285,24 @@ module.exports = (function(){
                                 result0 = [result0, result1, result2];
                             } else {
                                 result0 = null;
-                                pos = pos1;
+                                pos = clone(pos1);
                             }
                         } else {
                             result0 = null;
-                            pos = pos1;
+                            pos = clone(pos1);
                         }
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, parts) {
+                    result0 = (function(offset, line, column, parts) {
                         return '"' + parts[1] + '"';
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6497,11 +6311,11 @@ module.exports = (function(){
                 var result0, result1, result2;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
-                if (/^[a-zA-Z$:]/.test(input.charAt(pos))) {
-                    result0 = input.charAt(pos);
-                    pos++;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (/^[a-zA-Z$:]/.test(input.charAt(pos.offset))) {
+                    result0 = input.charAt(pos.offset);
+                    advance(pos, 1);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -6510,9 +6324,9 @@ module.exports = (function(){
                 }
                 if (result0 !== null) {
                     result1 = [];
-                    if (/^[a-zA-Z_0-9:]/.test(input.charAt(pos))) {
-                        result2 = input.charAt(pos);
-                        pos++;
+                    if (/^[a-zA-Z_0-9:]/.test(input.charAt(pos.offset))) {
+                        result2 = input.charAt(pos.offset);
+                        advance(pos, 1);
                     } else {
                         result2 = null;
                         if (reportFailures === 0) {
@@ -6521,9 +6335,9 @@ module.exports = (function(){
                     }
                     while (result2 !== null) {
                         result1.push(result2);
-                        if (/^[a-zA-Z_0-9:]/.test(input.charAt(pos))) {
-                            result2 = input.charAt(pos);
-                            pos++;
+                        if (/^[a-zA-Z_0-9:]/.test(input.charAt(pos.offset))) {
+                            result2 = input.charAt(pos.offset);
+                            advance(pos, 1);
                         } else {
                             result2 = null;
                             if (reportFailures === 0) {
@@ -6535,23 +6349,23 @@ module.exports = (function(){
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, c) {
+                    result0 = (function(offset, line, column, c) {
                         var ret = c[0];
                         for(i = 1; i < c.length; i++) {
                             ret = ret + c[i].join('');
                         }
                         return ret;
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6560,8 +6374,8 @@ module.exports = (function(){
                 var result0, result1;
                 var pos0, pos1;
 
-                pos0 = pos;
-                pos1 = pos;
+                pos0 = clone(pos);
+                pos1 = clone(pos);
                 result0 = parse_Selector();
                 if (result0 !== null) {
                     result1 = parse_Identifier();
@@ -6569,19 +6383,19 @@ module.exports = (function(){
                         result0 = [result0, result1];
                     } else {
                         result0 = null;
-                        pos = pos1;
+                        pos = clone(pos1);
                     }
                 } else {
                     result0 = null;
-                    pos = pos1;
+                    pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, s, i) {
+                    result0 = (function(offset, line, column, s, i) {
                         return s + i;
-                    })(pos0, result0[0], result0[1]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[0], result0[1]);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6589,9 +6403,9 @@ module.exports = (function(){
             function parse_Selector() {
                 var result0;
 
-                if (input.substr(pos, 2) === "..") {
+                if (input.substr(pos.offset, 2) === "..") {
                     result0 = "..";
-                    pos += 2;
+                    advance(pos, 2);
                 } else {
                     result0 = null;
                     if (reportFailures === 0) {
@@ -6599,9 +6413,9 @@ module.exports = (function(){
                     }
                 }
                 if (result0 === null) {
-                    if (input.charCodeAt(pos) === 46) {
+                    if (input.charCodeAt(pos.offset) === 46) {
                         result0 = ".";
-                        pos++;
+                        advance(pos, 1);
                     } else {
                         result0 = null;
                         if (reportFailures === 0) {
@@ -6616,10 +6430,10 @@ module.exports = (function(){
                 var result0, result1;
                 var pos0;
 
-                pos0 = pos;
-                if (/^[0-9]/.test(input.charAt(pos))) {
-                    result1 = input.charAt(pos);
-                    pos++;
+                pos0 = clone(pos);
+                if (/^[0-9]/.test(input.charAt(pos.offset))) {
+                    result1 = input.charAt(pos.offset);
+                    advance(pos, 1);
                 } else {
                     result1 = null;
                     if (reportFailures === 0) {
@@ -6630,9 +6444,9 @@ module.exports = (function(){
                     result0 = [];
                     while (result1 !== null) {
                         result0.push(result1);
-                        if (/^[0-9]/.test(input.charAt(pos))) {
-                            result1 = input.charAt(pos);
-                            pos++;
+                        if (/^[0-9]/.test(input.charAt(pos.offset))) {
+                            result1 = input.charAt(pos.offset);
+                            advance(pos, 1);
                         } else {
                             result1 = null;
                             if (reportFailures === 0) {
@@ -6644,12 +6458,12 @@ module.exports = (function(){
                     result0 = null;
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, d) {
+                    result0 = (function(offset, line, column, d) {
                         return parseInt(d.join(''));
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6658,11 +6472,11 @@ module.exports = (function(){
                 var result0, result1;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = [];
-                if (/^[ -&]/.test(input.charAt(pos))) {
-                    result1 = input.charAt(pos);
-                    pos++;
+                if (/^[ -&]/.test(input.charAt(pos.offset))) {
+                    result1 = input.charAt(pos.offset);
+                    advance(pos, 1);
                 } else {
                     result1 = null;
                     if (reportFailures === 0) {
@@ -6670,9 +6484,9 @@ module.exports = (function(){
                     }
                 }
                 if (result1 === null) {
-                    if (/^[(-[]/.test(input.charAt(pos))) {
-                        result1 = input.charAt(pos);
-                        pos++;
+                    if (/^[(-[]/.test(input.charAt(pos.offset))) {
+                        result1 = input.charAt(pos.offset);
+                        advance(pos, 1);
                     } else {
                         result1 = null;
                         if (reportFailures === 0) {
@@ -6680,9 +6494,9 @@ module.exports = (function(){
                         }
                     }
                     if (result1 === null) {
-                        if (/^[\]-\uFFFF]/.test(input.charAt(pos))) {
-                            result1 = input.charAt(pos);
-                            pos++;
+                        if (/^[\]-\uFFFF]/.test(input.charAt(pos.offset))) {
+                            result1 = input.charAt(pos.offset);
+                            advance(pos, 1);
                         } else {
                             result1 = null;
                             if (reportFailures === 0) {
@@ -6690,9 +6504,9 @@ module.exports = (function(){
                             }
                         }
                         if (result1 === null) {
-                            if (/^[\\"]/.test(input.charAt(pos))) {
-                                result1 = input.charAt(pos);
-                                pos++;
+                            if (/^[\\"]/.test(input.charAt(pos.offset))) {
+                                result1 = input.charAt(pos.offset);
+                                advance(pos, 1);
                             } else {
                                 result1 = null;
                                 if (reportFailures === 0) {
@@ -6704,9 +6518,9 @@ module.exports = (function(){
                 }
                 while (result1 !== null) {
                     result0.push(result1);
-                    if (/^[ -&]/.test(input.charAt(pos))) {
-                        result1 = input.charAt(pos);
-                        pos++;
+                    if (/^[ -&]/.test(input.charAt(pos.offset))) {
+                        result1 = input.charAt(pos.offset);
+                        advance(pos, 1);
                     } else {
                         result1 = null;
                         if (reportFailures === 0) {
@@ -6714,9 +6528,9 @@ module.exports = (function(){
                         }
                     }
                     if (result1 === null) {
-                        if (/^[(-[]/.test(input.charAt(pos))) {
-                            result1 = input.charAt(pos);
-                            pos++;
+                        if (/^[(-[]/.test(input.charAt(pos.offset))) {
+                            result1 = input.charAt(pos.offset);
+                            advance(pos, 1);
                         } else {
                             result1 = null;
                             if (reportFailures === 0) {
@@ -6724,9 +6538,9 @@ module.exports = (function(){
                             }
                         }
                         if (result1 === null) {
-                            if (/^[\]-\uFFFF]/.test(input.charAt(pos))) {
-                                result1 = input.charAt(pos);
-                                pos++;
+                            if (/^[\]-\uFFFF]/.test(input.charAt(pos.offset))) {
+                                result1 = input.charAt(pos.offset);
+                                advance(pos, 1);
                             } else {
                                 result1 = null;
                                 if (reportFailures === 0) {
@@ -6734,9 +6548,9 @@ module.exports = (function(){
                                 }
                             }
                             if (result1 === null) {
-                                if (/^[\\"]/.test(input.charAt(pos))) {
-                                    result1 = input.charAt(pos);
-                                    pos++;
+                                if (/^[\\"]/.test(input.charAt(pos.offset))) {
+                                    result1 = input.charAt(pos.offset);
+                                    advance(pos, 1);
                                 } else {
                                     result1 = null;
                                     if (reportFailures === 0) {
@@ -6748,12 +6562,12 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, c) {
+                    result0 = (function(offset, line, column, c) {
                         return c.join('');
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6762,11 +6576,11 @@ module.exports = (function(){
                 var result0, result1;
                 var pos0;
 
-                pos0 = pos;
+                pos0 = clone(pos);
                 result0 = [];
-                if (/^[ -!]/.test(input.charAt(pos))) {
-                    result1 = input.charAt(pos);
-                    pos++;
+                if (/^[ -!]/.test(input.charAt(pos.offset))) {
+                    result1 = input.charAt(pos.offset);
+                    advance(pos, 1);
                 } else {
                     result1 = null;
                     if (reportFailures === 0) {
@@ -6774,9 +6588,9 @@ module.exports = (function(){
                     }
                 }
                 if (result1 === null) {
-                    if (/^[#-[]/.test(input.charAt(pos))) {
-                        result1 = input.charAt(pos);
-                        pos++;
+                    if (/^[#-[]/.test(input.charAt(pos.offset))) {
+                        result1 = input.charAt(pos.offset);
+                        advance(pos, 1);
                     } else {
                         result1 = null;
                         if (reportFailures === 0) {
@@ -6784,9 +6598,9 @@ module.exports = (function(){
                         }
                     }
                     if (result1 === null) {
-                        if (/^[\]-\uFFFF]/.test(input.charAt(pos))) {
-                            result1 = input.charAt(pos);
-                            pos++;
+                        if (/^[\]-\uFFFF]/.test(input.charAt(pos.offset))) {
+                            result1 = input.charAt(pos.offset);
+                            advance(pos, 1);
                         } else {
                             result1 = null;
                             if (reportFailures === 0) {
@@ -6794,9 +6608,9 @@ module.exports = (function(){
                             }
                         }
                         if (result1 === null) {
-                            if (/^[\\']/.test(input.charAt(pos))) {
-                                result1 = input.charAt(pos);
-                                pos++;
+                            if (/^[\\']/.test(input.charAt(pos.offset))) {
+                                result1 = input.charAt(pos.offset);
+                                advance(pos, 1);
                             } else {
                                 result1 = null;
                                 if (reportFailures === 0) {
@@ -6808,9 +6622,9 @@ module.exports = (function(){
                 }
                 while (result1 !== null) {
                     result0.push(result1);
-                    if (/^[ -!]/.test(input.charAt(pos))) {
-                        result1 = input.charAt(pos);
-                        pos++;
+                    if (/^[ -!]/.test(input.charAt(pos.offset))) {
+                        result1 = input.charAt(pos.offset);
+                        advance(pos, 1);
                     } else {
                         result1 = null;
                         if (reportFailures === 0) {
@@ -6818,9 +6632,9 @@ module.exports = (function(){
                         }
                     }
                     if (result1 === null) {
-                        if (/^[#-[]/.test(input.charAt(pos))) {
-                            result1 = input.charAt(pos);
-                            pos++;
+                        if (/^[#-[]/.test(input.charAt(pos.offset))) {
+                            result1 = input.charAt(pos.offset);
+                            advance(pos, 1);
                         } else {
                             result1 = null;
                             if (reportFailures === 0) {
@@ -6828,9 +6642,9 @@ module.exports = (function(){
                             }
                         }
                         if (result1 === null) {
-                            if (/^[\]-\uFFFF]/.test(input.charAt(pos))) {
-                                result1 = input.charAt(pos);
-                                pos++;
+                            if (/^[\]-\uFFFF]/.test(input.charAt(pos.offset))) {
+                                result1 = input.charAt(pos.offset);
+                                advance(pos, 1);
                             } else {
                                 result1 = null;
                                 if (reportFailures === 0) {
@@ -6838,9 +6652,9 @@ module.exports = (function(){
                                 }
                             }
                             if (result1 === null) {
-                                if (/^[\\']/.test(input.charAt(pos))) {
-                                    result1 = input.charAt(pos);
-                                    pos++;
+                                if (/^[\\']/.test(input.charAt(pos.offset))) {
+                                    result1 = input.charAt(pos.offset);
+                                    advance(pos, 1);
                                 } else {
                                     result1 = null;
                                     if (reportFailures === 0) {
@@ -6852,12 +6666,12 @@ module.exports = (function(){
                     }
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, c) {
+                    result0 = (function(offset, line, column, c) {
                         return c.join('');
-                    })(pos0, result0);
+                    })(pos0.offset, pos0.line, pos0.column, result0);
                 }
                 if (result0 === null) {
-                    pos = pos0;
+                    pos = clone(pos0);
                 }
                 return result0;
             }
@@ -6877,36 +6691,6 @@ module.exports = (function(){
                 return cleanExpected;
             }
 
-            function computeErrorPosition() {
-                /*
-                 * The first idea was to use |String.split| to break the input up to the
-                 * error position along newlines and derive the line and column from
-                 * there. However IE's |split| implementation is so broken that it was
-                 * enough to prevent it.
-                 */
-
-                var line = 1;
-                var column = 1;
-                var seenCR = false;
-
-                for (var i = 0; i < Math.max(pos, rightmostFailuresPos); i++) {
-                    var ch = input.charAt(i);
-                    if (ch === "\n") {
-                        if (!seenCR) { line++; }
-                        column = 1;
-                        seenCR = false;
-                    } else if (ch === "\r" || ch === "\u2028" || ch === "\u2029") {
-                        line++;
-                        column = 1;
-                        seenCR = true;
-                    } else {
-                        column++;
-                        seenCR = false;
-                    }
-                }
-
-                return { line: line, column: column };
-            }
 
 
             // Utils to establish the right semantic model
@@ -7281,28 +7065,28 @@ module.exports = (function(){
              * 1. The parser successfully parsed the whole input.
              *
              *    - |result !== null|
-             *    - |pos === input.length|
+             *    - |pos.offset === input.length|
              *    - |rightmostFailuresExpected| may or may not contain something
              *
              * 2. The parser successfully parsed only a part of the input.
              *
              *    - |result !== null|
-             *    - |pos < input.length|
+             *    - |pos.offset < input.length|
              *    - |rightmostFailuresExpected| may or may not contain something
              *
              * 3. The parser did not successfully parse any part of the input.
              *
              *   - |result === null|
-             *   - |pos === 0|
+             *   - |pos.offset === 0|
              *   - |rightmostFailuresExpected| contains at least one failure
              *
              * All code following this comment (including called functions) must
              * handle these states.
              */
-            if (result === null || pos !== input.length) {
-                var offset = Math.max(pos, rightmostFailuresPos);
+            if (result === null || pos.offset !== input.length) {
+                var offset = Math.max(pos.offset, rightmostFailuresPos.offset);
                 var found = offset < input.length ? input.charAt(offset) : null;
-                var errorPosition = computeErrorPosition();
+                var errorPosition = pos.offset > rightmostFailuresPos.offset ? pos : rightmostFailuresPos;
 
                 throw new this.SyntaxError(
                     cleanupExpected(rightmostFailuresExpected),

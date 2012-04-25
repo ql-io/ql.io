@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-var util = require('util');
+var util = require('util'),
+    _ = require('underscore');
+
 exports.echo = function() {
     return this.next(null, Array.prototype.slice.call(arguments));
 }
@@ -25,6 +27,15 @@ exports.thru = function() {
 
 exports.append = function() {
     this.row = this.row.concat(Array.prototype.slice.call(arguments));
+    return this.next(null, this.row);
+}
+
+exports.appendFields = function() {
+    var args = Array.prototype.slice.call(arguments);
+    var self = this;
+    _.each(args, function(arg, i) {
+        self.row['arg' + i] = arg;
+    });
     return this.next(null, this.row);
 }
 

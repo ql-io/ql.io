@@ -76,6 +76,40 @@ module.exports = {
         });
     },
 
+    'join-cols-as-args-with-aliases': function(test) {
+        var script = 'u = require("./test/udfs/args.js");\
+                          a1 = [{"name": "Brand-A", "keys" : [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]},\
+                                {"name": "Brand-B", "keys" : [{ "name": "G1"},{"name": "G2"}]},\
+                                {"name": "Brand-C", "keys" : [{ "name": "G4"},{"name": "G2"}]}];\
+                          a2 = [{"name": "Brand-A", "details": [{"name": "G3","count": 32},{"name": "G5","count": 18}]},\
+                                {"name": "Brand-C", "details": [{"name": "G3","count": 32}, {"name": "G5","count": 18}]}];\
+                          return select a2.details as details from a1 as a1, a2 as a2 where a1.name = a2.name and u.appendFields(a1.name, a2.name)';
+        engine.execute(script, function (emitter) {
+            emitter.on('end', function (err, results) {
+                if(err) {
+                    console.log(err.stack || err);
+                    test.ok(false);
+                    test.done();
+                }
+                else {
+                    test.deepEqual(results.body[0].details, [
+                        { name: 'G3', count: 32 },
+                        { name: 'G5', count: 18 }
+                    ]);
+                    test.deepEqual(results.body[0].arg0, 'Brand-A');
+                    test.deepEqual(results.body[0].arg1, 'Brand-A');
+                    test.deepEqual(results.body[1].details, [
+                        { name: 'G3', count: 32 },
+                        { name: 'G5', count: 18 }
+                    ]);
+                    test.deepEqual(results.body[1].arg0, 'Brand-C');
+                    test.deepEqual(results.body[1].arg1, 'Brand-C');
+                    test.done();
+                }
+            })
+        });
+    },
+
     'join-cols-as-args-plus-one': function(test) {
         var script = 'u = require("./test/udfs/args.js");\
                       a1 = [{"name": "Brand-A", "keys" : [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]},\
@@ -103,6 +137,49 @@ module.exports = {
                     test.deepEqual(results.body[1][1], 'Brand-C');
                     test.deepEqual(results.body[1][2], 'Brand-C');
                     test.deepEqual(results.body[1][3], [{ "name": "G4"},{"name": "G2"}]);
+                    test.done();
+                }
+            })
+        });
+    },
+
+    'join-cols-as-args-plus-one-with-alias': function (test) {
+        var script = 'u = require("./test/udfs/args.js");\
+                          a1 = [{"name": "Brand-A", "keys" : [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]},\
+                                {"name": "Brand-B", "keys" : [{ "name": "G1"},{"name": "G2"}]},\
+                                {"name": "Brand-C", "keys" : [{ "name": "G4"},{"name": "G2"}]}];\
+                          a2 = [{"name": "Brand-A", "details": [{"name": "G3","count": 32},{"name": "G5","count": 18}]},\
+                                {"name": "Brand-C", "details": [{"name": "G3","count": 32}, {"name": "G5","count": 18}]}];\
+                          return select a2.details as details from a1 as a1, a2 as a2 where a1.name = a2.name and u.appendFields(a1.name, a2.name, a1.keys)';
+        engine.execute(script, function (emitter) {
+            emitter.on('end', function (err, results) {
+                if(err) {
+                    console.log(err.stack || err);
+                    test.ok(false);
+                    test.done();
+                }
+                else {
+                    test.deepEqual(results.body[0].details, [
+                        { name: 'G3', count: 32 },
+                        { name: 'G5', count: 18 }
+                    ]);
+                    test.deepEqual(results.body[0].arg0, 'Brand-A');
+                    test.deepEqual(results.body[0].arg1, 'Brand-A');
+                    test.deepEqual(results.body[0].arg2, [
+                        { "name": "G1"},
+                        {"name": "G2"},
+                        {"name": "G3"}
+                    ]);
+                    test.deepEqual(results.body[1].details, [
+                        { name: 'G3', count: 32 },
+                        { name: 'G5', count: 18 }
+                    ]);
+                    test.deepEqual(results.body[1].arg0, 'Brand-C');
+                    test.deepEqual(results.body[1].arg1, 'Brand-C');
+                    test.deepEqual(results.body[1].arg2, [
+                        { "name": "G4"},
+                        {"name": "G2"}
+                    ]);
                     test.done();
                 }
             })

@@ -1,3 +1,45 @@
+## Apr 19, 2012
+
+* Updated PEG.js to 0.7. I see 50% improvement in speed which matters for string and uri templates
+  as we don't yet cache parser output.
+* Remove duplicates from in clause. 
+* Use hasOwnProperty in place of prop lookup while joining
+
+## Apr 18, 2012
+
+* Deal with non UTF-8 encodings from upstream resources
+
+## Apr 17, 2012
+
+* When joining, use '==' to maintain backwards compat
+
+## Apr 16, 2012
+
+* Minor cleanup of event names and classes to make the API less specific.
+
+## Apr 15, 2012
+
+* Refactor logging to error, access, proxy and default logs. The proxy log file contains outgoing
+  req/resp, access log contains incoming requests, error log contains all errors and warnings,
+  and the rest go to ql.io.log. All these files are rotated.
+
+## Apr 13, 2012
+
+* Include a payload with begin events
+
+## Apr 12, 2012
+
+* Support local offset and limit
+
+## Apr 11, 2012
+
+* Cleanup logging (first phase)
+* Fix the case of alias names with joins and UDFs.
+
+## Apr 08, 2012
+
+* Support null values in Values
+
 ## Apr 07, 2012
 
 * Fix the issue posted in https://groups.google.com/forum/?fromgroups#!topic/qlio/JaMC1GVP1sA.

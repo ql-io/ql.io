@@ -30,6 +30,8 @@ exports.load = function (opts) {
         return [];
     }
     var tables = {};
+
+    logEmitter.emitEvent('Loading tables from ' + rootdir);
     loadInternal(rootdir, '', logEmitter, config, tables);
     return tables;
 
