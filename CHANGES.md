@@ -1,3 +1,7 @@
+## Apr 25, 2012
+
+* Added new syntaxes "with part" and opaque insert param.
+
 ## Apr 24, 2012
 
 * Fix expression parsing in string template so that a token like `"{obj.prop[?(@.price > 2)]}"` is
