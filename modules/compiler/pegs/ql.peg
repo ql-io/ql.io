@@ -699,13 +699,19 @@ InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? ins
     if (!c && v.value.length > 1){
         throw new this.SyntaxError("Line " + line + ": Values do not have paired columns.");
     }
-    return {
+    ret = {
         type: 'insert',
         source: s,
-        columns: c,
         values: v.value,
         line: line
     }
+    if (c){
+        ret.columns = c,
+        ret.values = v.value;
+    }else{
+        ret.values = v.value[0];
+    }
+    return ret
 }
 
 // Delete statement

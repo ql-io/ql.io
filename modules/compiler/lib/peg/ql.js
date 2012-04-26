@@ -2823,13 +2823,19 @@ module.exports = (function(){
                         if (!c && v.value.length > 1){
                             throw new this.SyntaxError("Line " + line + ": Values do not have paired columns.");
                         }
-                        return {
+                        ret = {
                             type: 'insert',
                             source: s,
-                            columns: c,
                             values: v.value,
                             line: line
                         }
+                        if (c){
+                            ret.columns = c,
+                                ret.values = v.value;
+                        }else{
+                            ret.values = v.value[0];
+                        }
+                        return ret
                     })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6], result0[12]);
                 }
                 if (result0 === null) {
