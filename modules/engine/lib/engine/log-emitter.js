@@ -189,7 +189,7 @@ var LogEmitter = module.exports = function() {
             msg = arguments[0];
         }
         event.clazz = 'heartbeat';
-        this.emit(eventTypes.HEART_BEAT, event, msg, cause);
+        this.emit(eventTypes.HEART_BEAT, event, msg);
     }
 
 
