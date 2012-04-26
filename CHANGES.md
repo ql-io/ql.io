@@ -1,3 +1,7 @@
+## Apr 26, 2012
+
+* Switch to new cluster2
+
 ## Apr 24, 2012
 
 * Add a null check on join loop

@@ -242,7 +242,6 @@ var Console = module.exports = function(opts, cb) {
                     },
                     function(emitter) {
                         setupExecStateEmitter(emitter, execState, req.param('events'));
-                        setupCounters(emitter);
                         emitter.on('end', urlEvent.cb);
                     }
                 );
@@ -297,7 +296,6 @@ var Console = module.exports = function(opts, cb) {
             },
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
-                setupCounters(emitter);
                 emitter.on('end', urlEvent.cb);
             }
         );
@@ -374,7 +372,6 @@ var Console = module.exports = function(opts, cb) {
             },
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
-                setupCounters(emitter);
                 emitter.on('end', urlEvent.cb);
             }
         );
@@ -428,7 +425,6 @@ var Console = module.exports = function(opts, cb) {
             },
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
-                setupCounters(emitter);
                 emitter.on('end', urlEvent.cb);
             }
         );
@@ -516,7 +512,6 @@ var Console = module.exports = function(opts, cb) {
             },
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
-                setupCounters(emitter);
                 emitter.on('end', urlEvent.cb);
             }
         );
@@ -569,7 +564,6 @@ var Console = module.exports = function(opts, cb) {
                     parentEvent: urlEvent.event
                 }, function(emitter) {
                     setupExecStateEmitter(emitter, execState, req.param('events'));
-                    setupCounters(emitter);
                     emitter.on('end', urlEvent.cb);
                 })
             }
@@ -623,7 +617,7 @@ var Console = module.exports = function(opts, cb) {
     var heartbeat = setInterval(function () {
         engine.emit(Engine.Events.HEART_BEAT, {
             pid: process.pid,
-            uptime: process.uptime(),
+            uptime: Math.round(process.uptime()),
             freemem: os.freemem()
         });
     }, 60000);
@@ -681,7 +675,6 @@ var Console = module.exports = function(opts, cb) {
                     _.each(events, function(event) {
                         emitter.on(event, _collect);
                     });
-                    setupCounters(emitter);
                     emitter.on('end', function(err, results) {
                         if(err) {
                             var packet = {
@@ -761,36 +754,6 @@ var Console = module.exports = function(opts, cb) {
                 execState.push(packet);
             });
         });
-    }
-
-    // Send to master
-    function setupCounters(emitter) {
-        if(process.send) {
-            emitter.on(Engine.Events.SCRIPT_ACK, function(packet) {
-                process.send({
-                    type: 'counter',
-                    name: Engine.Events.SCRIPT_ACK,
-                    pid: process.pid});
-            })
-            emitter.on(Engine.Events.STATEMENT_REQUEST, function(packet) {
-                process.send({
-                    type: 'counter',
-                    name: Engine.Events.STATEMENT_REQUEST,
-                    pid: process.pid});
-            })
-            emitter.on(Engine.Events.STATEMENT_RESPONSE, function(packet) {
-                process.send({
-                    type: 'counter',
-                    name: Engine.Events.STATEMENT_RESPONSE,
-                    pid: process.pid});
-            })
-            emitter.on(Engine.Events.SCRIPT_DONE, function(packet) {
-                process.send({
-                    type: 'counter',
-                    name: Engine.Events.SCRIPT_DONE,
-                    pid: process.pid});
-            })
-        }
     }
 
     function handleResponseCB(req, res, execState, err, results) {
