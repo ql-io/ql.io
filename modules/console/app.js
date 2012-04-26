@@ -614,7 +614,7 @@ var Console = module.exports = function(config, cb) {
     var heartbeat = setInterval(function () {
         engine.emit(Engine.Events.HEART_BEAT, {
             pid: process.pid,
-            uptime: process.uptime(),
+            uptime: Math.round(process.uptime()),
             freemem: os.freemem()
         });
     }, 60000);
