@@ -140,28 +140,29 @@ var getCache = exports.getCache = function (config, cache, engine, errorCb) {
 
     if(cache) {
         cache.on('start', function(event){
-            engine.emitEvent({clazz: 'info', name: 'cacheStart'}, JSON.stringify(event));
+            engine.emitEvent({clazz: 'info', name: 'cacheStart'}, JSON.stringify({name:'cacheStart', event:event}));
         });
         cache.on('end', function(event){
-            engine.emitEvent({clazz: 'info', name: 'cacheEnd'}, JSON.stringify(event));
+            engine.emitEvent({clazz: 'info', name: 'cacheEnd'}, JSON.stringify({name:'cacheEnd', event:event}));
         });
         cache.on('new', function(event){
-            engine.emitEvent({clazz: 'info', name: 'cacheNew'}, JSON.stringify(event));
+            engine.emitEvent({clazz: 'info', name: 'cacheNew'}, JSON.stringify({name:'cacheNew', event:event}));
         });
         cache.on('hit', function(event){
-            engine.emitEvent({clazz: 'info', name: 'cacheHit'}, JSON.stringify(event));
+            engine.emitEvent({clazz: 'info', name: 'cacheHit'}, JSON.stringify({name:'cacheHit', event:event}));
         });
         cache.on('miss', function(event){
-            engine.emitEvent({clazz: 'info', name: 'cacheMiss'}, JSON.stringify(event));
+            engine.emitEvent({clazz: 'info', name: 'cacheMiss'}, JSON.stringify({name:'cacheMiss', event:event}));
         });
         cache.on('heartbeat', function(event){
-            engine.emit(Engine.Events.HEART_BEAT, JSON.stringify(event));
+            engine.emitHeartBeat({clazz: 'heartbeat', name: 'cacheHeartBeat'},
+                JSON.stringify({name:'cacheHeartBeat', event:event}));
         });
         cache.on('info', function(event){
-            engine.emitEvent({clazz: 'info', name: 'cacheInfo'}, JSON.stringify(event));
+            engine.emitEvent({clazz: 'info', name: 'cacheInfo'}, JSON.stringify({name:'cacheInfo', event:event}));
         });
         cache.on('error', function(event){
-            engine.emitEvent({clazz: 'error', name: 'cacheError'}, JSON.stringify(event));
+            engine.emitEvent({clazz: 'error', name: 'cacheError'}, JSON.stringify({name:'cacheError', event:event}));
         });
     }
 
