@@ -17,6 +17,7 @@
 var Engine = require('../lib/engine'),
     Listener = require('./utils/log-listener.js'),
     http = require('http'),
+    events = require('events'),
     fs = require('fs'),
     util = require('util');
 
@@ -509,6 +510,7 @@ module.exports = {
 }
 
 function mockCache() {
+    events.EventEmitter.call(this);
     var theCache = {};
     this.put = function (key, data, duration, cb) {
         cb = cb || function (err, result) {
@@ -537,3 +539,4 @@ function mockCache() {
         cb(null, {message:'success', data:result});
     }
 }
+util.inherits(mockCache, events.EventEmitter);
