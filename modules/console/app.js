@@ -54,6 +54,14 @@ var Console = module.exports = function(opts, cb) {
 
     var app = this.app = express.createServer();
 
+    // Remains true until the app receives a 'close' event. Once this event is received, the app
+    // sends 'connection: close' on responses (except for express served responses) and ends
+    // the connection. See the app.on('close') handler below.
+    var serving;
+    app.on('listening', function() {
+        serving = true;
+    });
+
     app.enable('case sensitive routes'); // Default routes are not case sensitive
 
     // Add parser for xml
@@ -626,6 +634,7 @@ var Console = module.exports = function(opts, cb) {
     app.on('close', function() {
         clearInterval(heartbeat);
         cacheUtil.stopCache(cache);
+        serving = false;
     });
 
     // Also listen to WebSocket requests
@@ -693,6 +702,9 @@ var Console = module.exports = function(opts, cb) {
                                 type: Engine.Events.SCRIPT_RESULT,
                                 data: results
                             }));
+                        }
+                        if(!serving) {
+                            connection.end();
                         }
                     })
                 })
@@ -781,7 +793,7 @@ var Console = module.exports = function(opts, cb) {
             res._header = undefined;
             var contentType = results.headers['content-type'];
             var h = {
-                'Connection': 'keep-alive',
+                'Connection': serving ? 'keep-alive' : 'close',
                 'Transfer-Encoding' : 'chunked'
             };
             _.each(results.headers, function(value, name) {
@@ -811,6 +823,10 @@ var Console = module.exports = function(opts, cb) {
                 res.write(')');
             }
             res.end();
+        }
+        // If we get a 'close' event, end on all pending connections.
+        if(!serving) {
+            req.connection.end();
         }
     }
 

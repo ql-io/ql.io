@@ -1,5 +1,6 @@
 ## Apr 27, 2012
 
+* End pending connections on close after responses are written.
 * Support cache events (hit, miss, new, error, info, heartbeat)
 
 ## Apr 26, 2012
