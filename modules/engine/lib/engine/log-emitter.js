@@ -176,6 +176,18 @@ var LogEmitter = module.exports = function() {
         this.emit(eventTypes.ERROR, event, msg, cause);
     }
 
+    /**
+     * Emits an error
+     */
+    this.emitHeartBeat = function () {
+        var msg = 'Heart beat event raised without message';
+        if (arguments.length > 0) {
+            msg = arguments[0];
+        }
+        this.emit(eventTypes.HEART_BEAT, msg);
+    }
+
+
     function getUTimeInSecs() {
         return Math.floor(new Date().getTime() / 1000);
     }
