@@ -551,9 +551,41 @@ module.exports = {
                 }
             });
         });
+    },
+    'verify events':function (test) {
+        var counter = 1;
+
+        var engine = new Engine({
+            tables:__dirname + '/cache',
+            config:__dirname + '/cache/dev2.json'
+        });
+
+        var events = [];
+
+        engine.on(Engine.Events.EVENT,function(calCtx, msg){
+            events.push(msg);
+        });
+        engine.on(Engine.Events.ERROR,function(calCtx, msg){
+            events.push(msg);
+        });
+
+        engine.on(Engine.Events.HEARTBEAT,function(calCtx, msg){
+            events.push(msg);
+        });
+        setTimeout(function () {
+            test.deepEqual(events,[
+                '{"name":"cacheStart","event":{"opts":"be-nice"}}',
+                '{"name":"cacheError","event":{"error":"cranky"}}',
+                '{"name":"cacheNew","event":{"key":"foo"}}',
+                '{"name":"cacheHit","event":{"key":"foo"}}',
+                '{"name":"cacheMiss","event":{"key":"foo"}}',
+                '{"name":"cacheInfo","event":{"details":"something"}}',
+                '{"name":"cacheEnd"}'
+            ])
+            test.done();
+        }, 100);
+
     }
-
-
 }
 
 function mockCache() {
