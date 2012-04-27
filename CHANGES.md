@@ -1,3 +1,7 @@
+## Apr 27, 2012
+
+* Support cache events (hit, miss, new, error, info, heartbeat)
+
 ## Apr 26, 2012
 
 * Switch to new cluster2
