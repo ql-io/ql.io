@@ -20,7 +20,19 @@ var Cache = module.exports = function (opts) {
     events.EventEmitter.call(this);
 
     var theCache = {};
+    var self = this;
+
     this.start = function () {
+        setTimeout(function () {
+            self.emit('start', {opts:opts});
+            self.emit('error', {error:'cranky'});
+            self.emit('new', {key:'foo'});
+            self.emit('hit', {key:'foo'});
+            self.emit('miss', {key:'foo'});
+            self.emit('info', {details:'something'});
+            self.emit('heartbeat', {details:'faint'});
+            self.emit('end');
+        }, 5);
     }
 
     this.end = function () {

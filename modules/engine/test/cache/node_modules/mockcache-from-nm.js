@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var util = require('util'),
+    events = require('events');
+
 var Cache = module.exports = function (opts) {
+    events.EventEmitter.call(this);
+
     var theCache = {};
     this.start = function () {
     }
 
     this.end = function () {
     }
+
     this.put = function (key, data, duration, cb) {
         cb = cb || function (err, result) {
         };
@@ -47,3 +53,5 @@ var Cache = module.exports = function (opts) {
         cb(null, {message:'success', data:result});
     }
 }
+
+util.inherits(Cache, events.EventEmitter);
