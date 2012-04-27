@@ -455,6 +455,53 @@ module.exports = {
             });
         });
     },
+    'external cache json - custom requestId':function (test) {
+        var counter = 1;
+
+        var server = http.createServer(function (req, res) {
+            res.writeHead(200, {
+                'Content-Type':'application/json'
+            });
+            res.end(JSON.stringify({'counter':counter}));
+            counter++;
+        });
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+                tables:__dirname + '/cache',
+                config:__dirname + '/cache/dev.json',
+                'request-id': 'x-my-request-id'
+            });
+            var script = "select * from auto.compute.key";
+
+            engine.exec(script, function (err, result) {
+                if (err) {
+                    console.log(err.stack || util.inspect(err, false, 10));
+                    test.fail('got error');
+                    test.done();
+                    server.close();
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                    test.deepEqual(result.body, {counter:1});
+                    engine.exec(script, function (err, result) {
+                        if (err) {
+                            console.log(err.stack || util.inspect(err, false, 10));
+                            test.fail('got error');
+                            test.done();
+                        }
+                        else {
+                            test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                            test.ok(result.headers['x-my-request-id'], 'Custom request id expected');
+                            test.deepEqual(result.body, {counter:1});
+                            test.done();
+                        }
+                        server.close();
+                    });
+                }
+            });
+        });
+    },
     'external cache json from nm':function (test) {
         var counter = 1;
 
