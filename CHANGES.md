@@ -4,6 +4,7 @@
 
 ## Apr 24, 2012
 
+* Add a null check on join loop
 * Fix expression parsing in string template so that a token like `"{obj.prop[?(@.price > 2)]}"` is
   valid
 
