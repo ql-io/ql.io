@@ -155,8 +155,7 @@ var getCache = exports.getCache = function (config, cache, engine, errorCb) {
             engine.emitEvent({clazz: 'info', name: 'cacheMiss'}, JSON.stringify({name:'cacheMiss', event:event}));
         });
         cache.on('heartbeat', function(event){
-            engine.emitHeartBeat({clazz: 'heartbeat', name: 'cacheHeartBeat'},
-                JSON.stringify({name:'cacheHeartBeat', event:event}));
+            engine.emitHeartBeat(JSON.stringify({name:'cacheHeartBeat', event:event}));
         });
         cache.on('info', function(event){
             engine.emitEvent({clazz: 'info', name: 'cacheInfo'}, JSON.stringify({name:'cacheInfo', event:event}));
