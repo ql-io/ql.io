@@ -180,8 +180,8 @@ var LogEmitter = module.exports = function() {
      * Emits an error
      */
     this.emitHeartBeat = function () {
-        msg = 'Heart beat event raised without message', cause;
-        if (arguments.length === 1) {
+        var msg = 'Heart beat event raised without message';
+        if (arguments.length > 0) {
             msg = arguments[0];
         }
         this.emit(eventTypes.HEART_BEAT, msg);
