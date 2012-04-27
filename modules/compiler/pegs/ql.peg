@@ -467,7 +467,7 @@ Type = 'select' / 'insert' / 'delete' / 'update'
 URI = QuotedWord
 
 Verb = 'on' insig t:Type insig m:VerbName insig u:URI insig  a:WithAliases? h:UsingHeaders?
-            d:UsingDefaults? p:UsingMonkeyPatch? insig b:UsingBodyTemplate? insig wp:WithPart? insig
+            d:UsingDefaults? p:UsingMonkeyPatch? insig b:UsingBodyTemplate? insig
             auth:AuthenticateUsing? insig r:ResultSet? insig exp:Expires? {
     var ret = {
         type: t,
@@ -484,9 +484,6 @@ Verb = 'on' insig t:Type insig m:VerbName insig u:URI insig  a:WithAliases? h:Us
     }
     if(p) ret.patch = p;
     ret.body = b;
-    if (wp){
-        ret.parts = wp;
-    }
     return ret;
 }
 
@@ -692,7 +689,7 @@ ColumnsParen = '(' insig c:ColumnsClause insig ')' {
 }
 
 // Insert Statement
-InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? insig 'values' insig '(' insig v:CSV insig ')' {
+InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? insig 'values' insig '(' insig v:CSV insig ')'  insig wp:WithPart? {
     if(c && c.length != v.value.length) {
         throw new this.SyntaxError("Line " + line + ": Number of values does not match number of columns.");
     }
@@ -710,6 +707,9 @@ InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? ins
         ret.values = v.value;
     }else{
         ret.values = v.value[0];
+    }
+    if (wp){
+        ret.parts = wp.value;
     }
     return ret
 }

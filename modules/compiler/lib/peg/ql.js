@@ -839,7 +839,7 @@ module.exports = (function(){
             }
 
             function parse_Verb() {
-                var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16, result17, result18, result19, result20, result21;
+                var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16, result17, result18, result19;
                 var pos0, pos1;
 
                 pos0 = clone(pos);
@@ -887,33 +887,20 @@ module.exports = (function(){
                                                                     if (result13 !== null) {
                                                                         result14 = parse_insig();
                                                                         if (result14 !== null) {
-                                                                            result15 = parse_WithPart();
+                                                                            result15 = parse_AuthenticateUsing();
                                                                             result15 = result15 !== null ? result15 : "";
                                                                             if (result15 !== null) {
                                                                                 result16 = parse_insig();
                                                                                 if (result16 !== null) {
-                                                                                    result17 = parse_AuthenticateUsing();
+                                                                                    result17 = parse_ResultSet();
                                                                                     result17 = result17 !== null ? result17 : "";
                                                                                     if (result17 !== null) {
                                                                                         result18 = parse_insig();
                                                                                         if (result18 !== null) {
-                                                                                            result19 = parse_ResultSet();
+                                                                                            result19 = parse_Expires();
                                                                                             result19 = result19 !== null ? result19 : "";
                                                                                             if (result19 !== null) {
-                                                                                                result20 = parse_insig();
-                                                                                                if (result20 !== null) {
-                                                                                                    result21 = parse_Expires();
-                                                                                                    result21 = result21 !== null ? result21 : "";
-                                                                                                    if (result21 !== null) {
-                                                                                                        result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16, result17, result18, result19, result20, result21];
-                                                                                                    } else {
-                                                                                                        result0 = null;
-                                                                                                        pos = clone(pos1);
-                                                                                                    }
-                                                                                                } else {
-                                                                                                    result0 = null;
-                                                                                                    pos = clone(pos1);
-                                                                                                }
+                                                                                                result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16, result17, result18, result19];
                                                                                             } else {
                                                                                                 result0 = null;
                                                                                                 pos = clone(pos1);
@@ -995,7 +982,7 @@ module.exports = (function(){
                     pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, line, column, t, m, u, a, h, d, p, b, wp, auth, r, exp) {
+                    result0 = (function(offset, line, column, t, m, u, a, h, d, p, b, auth, r, exp) {
                         var ret = {
                             type: t,
                             method: m,
@@ -1011,11 +998,8 @@ module.exports = (function(){
                         }
                         if(p) ret.patch = p;
                         ret.body = b;
-                        if (wp){
-                            ret.parts = wp;
-                        }
                         return ret;
-                    })(pos0.offset, pos0.line, pos0.column, result0[2], result0[4], result0[6], result0[8], result0[9], result0[10], result0[11], result0[13], result0[15], result0[17], result0[19], result0[21]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[2], result0[4], result0[6], result0[8], result0[9], result0[10], result0[11], result0[13], result0[15], result0[17], result0[19]);
                 }
                 if (result0 === null) {
                     pos = clone(pos0);
@@ -2678,7 +2662,7 @@ module.exports = (function(){
             }
 
             function parse_InsertStatement() {
-                var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14;
+                var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16;
                 var pos0, pos1;
 
                 pos0 = clone(pos);
@@ -2754,7 +2738,20 @@ module.exports = (function(){
                                                                             }
                                                                         }
                                                                         if (result14 !== null) {
-                                                                            result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14];
+                                                                            result15 = parse_insig();
+                                                                            if (result15 !== null) {
+                                                                                result16 = parse_WithPart();
+                                                                                result16 = result16 !== null ? result16 : "";
+                                                                                if (result16 !== null) {
+                                                                                    result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16];
+                                                                                } else {
+                                                                                    result0 = null;
+                                                                                    pos = clone(pos1);
+                                                                                }
+                                                                            } else {
+                                                                                result0 = null;
+                                                                                pos = clone(pos1);
+                                                                            }
                                                                         } else {
                                                                             result0 = null;
                                                                             pos = clone(pos1);
@@ -2816,7 +2813,7 @@ module.exports = (function(){
                     pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, line, column, s, c, v) {
+                    result0 = (function(offset, line, column, s, c, v, wp) {
                         if(c && c.length != v.value.length) {
                             throw new this.SyntaxError("Line " + line + ": Number of values does not match number of columns.");
                         }
@@ -2835,8 +2832,11 @@ module.exports = (function(){
                         }else{
                             ret.values = v.value[0];
                         }
+                        if (wp){
+                            ret.parts = wp.value;
+                        }
                         return ret
-                    })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6], result0[12]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6], result0[12], result0[16]);
                 }
                 if (result0 === null) {
                     pos = clone(pos0);

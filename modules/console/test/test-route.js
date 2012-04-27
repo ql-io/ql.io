@@ -486,5 +486,67 @@ module.exports = {
             });
         });
         req.end();
+    },
+    'insert' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(4000, function () {
+        });
+
+        var options = {
+            host:'localhost',
+            port:4000,
+            path:'/ebay/trading/uploadpic?pic=http://developer.ebay.com/DevZone/XML/docs/images/hp_book_image.jpg',
+            method:'POST'
+        };
+        var req = http.request(options);
+        req.addListener('response', function (resp) {
+            var data = '';
+            resp.addListener('data', function (chunk) {
+                data += chunk;
+            });
+            resp.addListener('end', function () {
+                test.equal(resp.statusCode, 404);
+                c.app.close();
+                test.done();
+            });
+        });
+        req.end();
+    },
+    'insert part' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(4000, function () {
+        });
+
+        var options = {
+            host:'localhost',
+            port:4000,
+            path:'/ebay/trading/uploadpicparts?pic=http://developer.ebay.com/DevZone/XML/docs/images/hp_book_image.jpg&part=something',
+            method:'POST'
+        };
+        var req = http.request(options);
+        req.addListener('response', function (resp) {
+            var data = '';
+            resp.addListener('data', function (chunk) {
+                data += chunk;
+            });
+            resp.addListener('end', function () {
+                test.equal(resp.statusCode, 404);
+                c.app.close();
+                test.done();
+            });
+        });
+        req.end();
     }
 }
