@@ -127,3 +127,35 @@ exports['insert-opaque'] = function(test) {
     test.deepEqual(statement, e);
     test.done();
 };
+
+exports['insert-multiparts'] = function(test) {
+    var q = 'insert into mytable (name, salary) values ( "John Smith", 5) with part "{myparts}"';
+    var statement = compiler.compile(q);
+    var e = [
+        {
+            "type": "insert",
+            "source": {
+                "name": "mytable"
+            },
+            "values": [
+                "John Smith",
+                5
+            ],
+            "line": 1,
+            "columns": [
+                {
+                    "type": "column",
+                    "name": "name"
+                },
+                {
+                    "type": "column",
+                    "name": "salary"
+                }
+            ],
+            "parts": "{myparts}",
+            "id": 0
+        }
+    ]
+    test.deepEqual(statement, e);
+    test.done();
+};
