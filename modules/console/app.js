@@ -22,6 +22,7 @@ var winston = require('winston'),
     headers = require('headers'),
     fs = require('fs'),
     os = require('os'),
+    util = require('util'),
     sanitize = require('validator').sanitize,
     connect = require('connect'),
     expat = require('xml2json'),
@@ -31,7 +32,8 @@ var winston = require('winston'),
     MutableURI = require('ql.io-mutable-uri'),
     _ = require('underscore'),
     WebSocketServer = require('websocket').server,
-    compress = require('./lib/compress.js').compress;
+    compress = require('./lib/compress.js').compress,
+    formidable = require('formidable');
 
 exports.version = require('./package.json').version;
 
@@ -70,6 +72,37 @@ var Console = module.exports = function(config, cb) {
             }
         });
     };
+
+    // Add parser for multipart
+    connect.bodyParser.parse['multipart/form-data'] = function(req, options, next) {
+        var parts = [], idx = 0;
+        var form = new formidable.IncomingForm();
+        form.onPart = function(part) {
+            if (form.headers['content-length']) {
+                var buf = new Buffer(parseInt(form.headers['content-length'], 10));
+            } else {
+                var buf = new Buffer(10485760); // 10MB
+            }
+            if (part.filename) {
+                part.on('data', function(b) {
+                    idx = idx + b.copy(buf, idx);
+                });
+                part.on('end', function() {
+                    buf = buf.slice(0, idx);
+                    parts.push({ 'name' : part.filename, 'size' : idx, 'data' : buf });
+                    idx = 0;
+                });
+                part.on('error', function(err) {
+                    // TODO: handle this
+                });
+            }
+        }
+
+        form.parse(req, function(err, fields, files) {
+            req.parts = parts;
+            util.debug(util.inspect({fields: fields, parts: parts})); // TODO: remove later
+        });
+    }
 
     var bodyParser = connect.bodyParser();
     app.use(bodyParser); // parses the body for application/x-www-form-urlencoded and application/json
