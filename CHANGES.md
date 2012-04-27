@@ -1,3 +1,7 @@
+## Apr 27, 2012
+
+* End pending connections on close after responses are written.
+
 ## Apr 26, 2012
 
 * Switch to new cluster2
