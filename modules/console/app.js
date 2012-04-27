@@ -99,8 +99,14 @@ var Console = module.exports = function(config, cb) {
         }
 
         form.parse(req, function(err, fields, files) {
+            req.body = {};
             req.parts = parts;
             util.debug(util.inspect({fields: fields, parts: parts})); // TODO: remove later
+            if (err) {
+                next(err);
+            } else {
+                next();
+            }
         });
     }
 
