@@ -161,7 +161,7 @@ var getCache = exports.getCache = function (config, cache, engine, errorCb) {
             engine.emitEvent({clazz: 'info', name: 'cacheInfo'}, JSON.stringify({name:'cacheInfo', event:event}));
         });
         cache.on('error', function(event){
-            engine.emitEvent({clazz: 'error', name: 'cacheError'}, JSON.stringify({name:'cacheError', event:event}));
+            engine.emitError({clazz: 'error', name: 'cacheError'}, JSON.stringify({name:'cacheError', event:event}));
         });
     }
 
