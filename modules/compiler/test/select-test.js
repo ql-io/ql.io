@@ -950,14 +950,5 @@ module.exports = {
         test.equals(select.columns[0].name, "a[\"b\"]");
         test.equals(cooked[0].route.path.value, '/a');
         test.done();
-    },
-
-    'select-join-return-deps': function(test) {
-        var q = 'master = select * from table.master where query = "iPad" limit 10;\
-                 details = select * from table.details where id in ("{master.id}");\
-                 return select m.id, m.title, d.text from master as m, details as d where m.id = d.id;';
-        var cooked = compiler.compile(q);
-        console.log(cooked);
-        test.done();
     }
 };
