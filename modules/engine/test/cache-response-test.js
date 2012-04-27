@@ -569,7 +569,7 @@ module.exports = {
             events.push(msg);
         });
 
-        engine.on(Engine.Events.HEARTBEAT,function(calCtx, msg){
+        engine.on(Engine.Events.HEART_BEAT,function(msg){
             events.push(msg);
         });
         setTimeout(function () {
@@ -580,6 +580,7 @@ module.exports = {
                 '{"name":"cacheHit","event":{"key":"foo"}}',
                 '{"name":"cacheMiss","event":{"key":"foo"}}',
                 '{"name":"cacheInfo","event":{"details":"something"}}',
+                '{"name":"cacheHeartBeat","event":{"details":"faint"}}',
                 '{"name":"cacheEnd"}'
             ])
             test.done();
