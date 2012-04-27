@@ -1,0 +1,7 @@
+{
+    "cache": {
+        "impl": "../../test/cache/mockcrankycache.js",
+        "options": "be-nice"
+    }
+}
+

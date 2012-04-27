@@ -31,7 +31,8 @@ var winston = require('winston'),
     MutableURI = require('ql.io-mutable-uri'),
     _ = require('underscore'),
     WebSocketServer = require('websocket').server,
-    compress = require('./lib/compress.js').compress;
+    compress = require('./lib/compress.js').compress,
+    cacheUtil = require('./lib/cache-util.js');
 
 exports.version = require('./package.json').version;
 
@@ -43,11 +44,13 @@ var skipHeaders = ['connection', 'host', 'referer', 'content-length', 'accept', 
     'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers',
     'transfer-encoding', 'upgrade'];
 
-var Console = module.exports = function(config, cb) {
+var Console = module.exports = function(opts, cb) {
 
-    config = config || {};
+    opts = opts || {};
 
-    var engine = new Engine(config);
+    var cache = opts.cache = cacheUtil.startCache(opts.config);
+
+    var engine = new Engine(opts);
 
     var app = this.app = express.createServer();
 
@@ -83,7 +86,7 @@ var Console = module.exports = function(config, cb) {
     app.use(bodyParser); // parses the body for application/x-www-form-urlencoded and application/json
     var respHeaders = require(__dirname + '/lib/middleware/resp-headers');
     app.use(respHeaders());
-    if(config['enable console']) {
+    if(opts['enable console']) {
         // If you want unminified JS and CSS, jus add property debug: true to js and css vars below.
         var qlAssets = {
             'js': {
@@ -525,7 +528,7 @@ var Console = module.exports = function(config, cb) {
     /*
      * '/q' is disabled only if the console is created with config, 'enable q' : false.
      */
-    var enableQ = config['enable q'] === undefined ? true : config['enable q'];
+    var enableQ = opts['enable q'] === undefined ? true : opts['enable q'];
 
     if(enableQ) {
         app.get('/q', function(req, res) {
@@ -630,6 +633,7 @@ var Console = module.exports = function(config, cb) {
     // Let the Engine cleanup during shutdown
     app.on('close', function() {
         clearInterval(heartbeat);
+        cacheUtil.stopCache(cache);
         serving = false;
     });
 

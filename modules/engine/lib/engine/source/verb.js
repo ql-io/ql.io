@@ -61,6 +61,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             key.push(_util.toNormalizedSting(_.chain(args.headers)
                 .keys()
                 .without(skipHeaders)
+                .without(args.reqIdName)
                 .sortBy(function(header){return header;})
                 .reduce(function(obj,header){
                     obj[header] = args.headers[header];
@@ -232,7 +233,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
         });
     };
 
-    this.computeKey = function(table, method, uri, params, headers, body, args){
+    this.computeKey = function(table, method, uri, params, headers, body, reqIdName, args){
         return this['compute key']({
             table: table,
             method: method,
@@ -240,6 +241,7 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             params: params,
             body: body,
             headers: headers,
+            reqIdName: reqIdName,
             log: this.curry(this.log, args.logEmitter, args.parentEvent)
         });
     }
@@ -624,8 +626,8 @@ function send(verb, args, uri, params, cb) {
         headers[k.toLowerCase()] = v;
     });
 
-    var name = args.settings['request-id'] ? args.settings['request-id'] : 'request-id';
-    headers[name]  = (params['request-id'] || args.resource.headers['request-id'] ||
+    var reqIdName = args.settings['request-id'] ? args.settings['request-id'] : 'request-id';
+    headers[reqIdName]  = (params['request-id'] || args.resource.headers['request-id'] ||
         args.parentEvent.uuid) + '!ql.io' + '!' + getIp() + '[';
 
     // Monkey patch headers
@@ -652,7 +654,7 @@ function send(verb, args, uri, params, cb) {
     // Resource key to use in the cache
     var key;
     if(verb.cache.expires){
-        key = args.resource.computeKey(verb.table, args.resource.method || 'GET', uri, params, headers, body, args);
+        key = args.resource.computeKey(verb.table, args.resource.method || 'GET', uri, params, headers, body, reqIdName, args);
     }
 
     request.send({
@@ -666,7 +668,7 @@ function send(verb, args, uri, params, cb) {
         body: body,
         params: params,
         parentEvent: args.parentEvent,
-        requestId: name,
+        requestId: reqIdName,
         emitter: args.emitter,
         logEmitter: args.logEmitter,
         statement: args.statement,
