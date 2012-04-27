@@ -25,7 +25,7 @@ var _           = require('underscore'),
 
 var Console = require('../app.js');
 var c = new Console({
-    tables: __dirname + '/tables',
+    tables: __dirname + '/insert',
     routes: __dirname + '/routes',
     config: __dirname + '/config/dev.json',
     'enable console': false,
@@ -37,7 +37,7 @@ var app = c.app;
 module.exports = {
     'upload files': function(test) {
         app.listen(3000, function() {
-            var statement = 'insert into ...';
+            var statement = 'insert into insert.into (name) values ("hello") with part "{req.parts[0]}";';
             var options = {
                 host: 'localhost',
                 port: 3000,
