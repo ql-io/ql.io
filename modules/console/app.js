@@ -563,53 +563,58 @@ var Console = module.exports = function(config, cb) {
      */
     var enableQ = config['enable q'] === undefined ? true : config['enable q'];
 
-    if(enableQ) {
-        app.get('/q', function(req, res) {
-                var holder = {
-                    params: {},
-                    headers: {} ,
-                    connection: {
-                        remoteAddress: req.connection.remoteAddress
-                    }
-                };
-                var query = req.param('s');
-                if (!query) {
-                    res.writeHead(400, 'Bad input', {
-                        'content-type' : 'application/json'
-                    });
-                    res.write(JSON.stringify({'err' : 'Missing query'}));
-                    res.end();
-                    return;
-                }
-                query = sanitize(query).str;
-                collectHttpQueryParams(req, holder, true);
-                collectHttpHeaders(req, holder);
-                var urlEvent = engine.beginEvent({
-                    clazz: 'info',
-                    type: 'route',
-                    name: req.method.toUpperCase() + ' ' + req.url,
-                    message: {
-                        ip: req.connection.remoteAddress,
-                        method: req.method,
-                        path: req.url,
-                        headers: req.headers
-                    },
-                    cb: function(err, results) {
-                        return handleResponseCB(req, res, execState, err, results);
-                    }
-                });
-                var execState = [];
-                engine.execute(query,
-                    {
-                        request: holder,
-                        parentEvent: urlEvent.event
-                    }, function(emitter) {
-                        setupExecStateEmitter(emitter, execState, req.param('events'));
-                        setupCounters(emitter);
-                        emitter.on('end', urlEvent.cb);
-                    })
+    var q =  function(req, res) {
+        var holder = {
+            params: {},
+            headers: {} ,
+            connection: {
+                remoteAddress: req.connection.remoteAddress
             }
-        );
+        };
+        var query = req.param('s');
+        if (!query) {
+            res.writeHead(400, 'Bad input', {
+                'content-type' : 'application/json'
+            });
+            res.write(JSON.stringify({'err' : 'Missing query'}));
+            res.end();
+            return;
+        }
+        query = sanitize(query).str;
+        collectHttpQueryParams(req, holder, true);
+        collectHttpHeaders(req, holder);
+        var urlEvent = engine.beginEvent({
+            clazz: 'info',
+            type: 'route',
+            name: req.method.toUpperCase() + ' ' + req.url,
+            message: {
+                ip: req.connection.remoteAddress,
+                method: req.method,
+                path: req.url,
+                headers: req.headers
+            },
+            cb: function(err, results) {
+                return handleResponseCB(req, res, execState, err, results);
+            }
+        });
+        var execState = [];
+        engine.execute(query,
+            {
+                request: holder,
+                parentEvent: urlEvent.event
+            }, function(emitter) {
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
+                emitter.on('end', urlEvent.cb);
+            })
+    }
+
+    if(enableQ) {
+        app.get('/q', q);
+        app.post('/q', q);
+        app.put('/q', q);
+        app.delete('/q', q);
+        app.patch('/q', q);
     }
 
     // 404 Handling
