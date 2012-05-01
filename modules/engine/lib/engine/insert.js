@@ -78,6 +78,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             xformers: opts.xformers,
             serializers: opts.serializers,
             params: values,
+            parts: opts.request.parts,
             request: request,
             statement: statement,
             emitter: emitter,
