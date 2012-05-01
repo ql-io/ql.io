@@ -30,10 +30,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         request = opts.request, emitter = opts.emitter,
         insertTx, table, values, name, resource;
 
-    values = {};
-    _.each(statement.values, function(value, i) {
-        values[statement.columns[i].name] = jsonfill.lookup(value, context);
-    });
+
 
     // Get the dest
     name = statement.source.name;
@@ -69,6 +66,14 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         var verb = table.verb('insert');
         if(!verb) {
             return insertTx.cb('Table ' + statement.source.name + ' does not support insert');
+        }
+        values = {};
+        if (statement.columns){
+            _.each(statement.values, function(value, i) {
+                values[statement.columns[i].name] = jsonfill.lookup(value, context);
+            });
+        }else{
+            verb.opaque = statement.values;
         }
         verb.exec({
             context: opts.context,
