@@ -24,7 +24,9 @@ var _ = require('underscore'),
     URI = require('uri'),
     response = require('./response.js'),
     zlib = require('zlib'),
-    uuid = require('node-uuid');
+    uuid = require('node-uuid'),
+    streamBuffer = require("stream-buffers"),
+    FormData = require('form-data');
 
 var maxResponseLength;
 
@@ -116,6 +118,27 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             packet.body = args.body;
         }
         args.emitter.emit(packet.type, packet);
+    }
+
+    if (args.parts) {
+        var form = new FormData(), size = 0;
+        if (args.body) {
+            size += args.body.length;
+            form.append('body', new Buffer(args.body));
+        }
+        _.each(args.parts, function(part) {
+            var rsb = new streamBuffer.ReadableStreamBuffer({
+                frequency: 1,       // in milliseconds.
+                chunkSize: 32576    // in bytes.
+            });
+            size += part.data.length;
+            rsb.pause();
+            rsb.put(part.data);
+            rsb.path = part.name;
+            form.append(part.name, rsb);
+        });
+        _.extend(options.headers, form.getHeaders()); // set the multipart/form-data boundary
+        options.headers['content-length'] = parseInt(options.headers['content-length'], 10) + size;
     }
 
     var followRedirects = true, maxRedirects = 10;
@@ -262,7 +285,10 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         });
     });
 
-    if (args.body) {
+    if (args.parts) {
+        form.pipe(clientRequest);
+        timings.send = Date.now() - reqStart;
+    } else if (args.body) {
         clientRequest.write(args.body);
         timings.send = Date.now() - reqStart;
     }

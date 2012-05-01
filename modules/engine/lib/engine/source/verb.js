@@ -668,6 +668,7 @@ function send(verb, args, uri, params, cb) {
         headers: headers,
         body: body,
         params: params,
+        parts: args.parts,
         parentEvent: args.parentEvent,
         requestId: name,
         emitter: args.emitter,
