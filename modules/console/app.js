@@ -75,15 +75,15 @@ var Console = module.exports = function(config, cb) {
 
     // Add parser for multipart
     connect.bodyParser.parse['multipart/form-data'] = function(req, options, next) {
-        var parts = [], idx = 0;
+        var body, parts = [], idx = 0;
         var form = new formidable.IncomingForm();
         form.onPart = function(part) {
-            if (form.headers['content-length']) {
-                var buf = new Buffer(parseInt(form.headers['content-length'], 10));
-            } else {
-                var buf = new Buffer(10485760); // 10MB
-            }
             if (part.filename) {
+                if (form.headers['content-length']) {
+                    var buf = new Buffer(parseInt(form.headers['content-length'], 10));
+                } else {
+                    var buf = new Buffer(10485760); // 10MB
+                }
                 part.on('data', function(b) {
                     idx = idx + b.copy(buf, idx);
                 });
@@ -95,13 +95,20 @@ var Console = module.exports = function(config, cb) {
                 part.on('error', function(err) {
                     // TODO: handle this
                 });
+            } else { // let formidable handle the body
+                form.handlePart(part);
             }
         }
 
+        form.on('field', function(field, value) {
+            if (field === 'body') {
+                body = expat.toJson(value, {coerce: true, object: true});
+            }
+        });
+
         form.parse(req, function(err, fields, files) {
-            req.body = {};
+            req.body = body;
             req.parts = parts;
-            util.debug(util.inspect({fields: fields, parts: parts})); // TODO: remove later
             if (err) {
                 next(err);
             } else {
@@ -207,6 +214,7 @@ var Console = module.exports = function(config, cb) {
                 var holder = {
                     params: {},
                     headers: {},
+                    parts: {},
                     routeParams: {},
                     connection: {
                         remoteAddress: req.connection.remoteAddress
@@ -252,6 +260,9 @@ var Console = module.exports = function(config, cb) {
                 holder.connection = {
                     remoteAddress: req.connection.remoteAddress
                 };
+
+                holder.parts = req.parts;
+
                 // Start the top level event
                 var urlEvent = engine.beginEvent({
                     clazz: 'info',
@@ -566,7 +577,8 @@ var Console = module.exports = function(config, cb) {
     var q =  function(req, res) {
         var holder = {
             params: {},
-            headers: {} ,
+            headers: {},
+            parts: {},
             connection: {
                 remoteAddress: req.connection.remoteAddress
             }
@@ -597,6 +609,7 @@ var Console = module.exports = function(config, cb) {
                 return handleResponseCB(req, res, execState, err, results);
             }
         });
+        holder.parts = req.parts;
         var execState = [];
         engine.execute(query,
             {
