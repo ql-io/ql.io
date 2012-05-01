@@ -33,6 +33,6 @@
     "devDependencies": {
         "nodeunit": "0.7.4",
         "mime" : "1.2.5",
-        "multiparter" : "0.1.4"
+        "node-form-data": "https://github.com/felixge/node-form-data/tarball/master"
     }
 }
