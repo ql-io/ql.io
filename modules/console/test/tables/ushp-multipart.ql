@@ -1,7 +1,7 @@
 -- Example: insert into upload.site.hosted.pictures
 -- http://eazye.qa.ebay.com/ws/api.dll
 create table upload.site.hosted.pictures
-  on insert post to "http://localhost:6000/ws/api.dll"
+  on insert post to "http://eazye.qa.ebay.com/ws/api.dll"
      using headers
       'X-EBAY-API-COMPATIBILITY-LEVEL' = '745',
       'X-EBAY-API-DEV-NAME' = 'urn:ebay-marketplace-devid:df9d8b8c-d406-403e-857a-b3a49d9e902e',
