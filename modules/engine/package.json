@@ -29,7 +29,7 @@
         "csv": "0.0.11",
         "iconv": "1.1.3",
         "stream-buffers": "https://github.com/idralyuk/node-stream-buffer/tarball/master",
-        "node-form-data": "https://github.com/felixge/node-form-data/tarball/master"
+        "node-form-data": "https://github.com/idralyuk/node-form-data/tarball/master"
     },
     "devDependencies": {
         "nodeunit": "0.7.4",
