@@ -77,6 +77,7 @@ module.exports = (function(){
                 "DescribeRouteStatement": parse_DescribeRouteStatement,
                 "DescribeStatement": parse_DescribeStatement,
                 "ColumnsParen": parse_ColumnsParen,
+                "ValuesParen": parse_ValuesParen,
                 "InsertStatement": parse_InsertStatement,
                 "DeleteStatement": parse_DeleteStatement,
                 "ColumnsClause": parse_ColumnsClause,
@@ -2661,8 +2662,92 @@ module.exports = (function(){
                 return result0;
             }
 
+            function parse_ValuesParen() {
+                var result0, result1, result2, result3, result4, result5, result6;
+                var pos0, pos1;
+
+                pos0 = clone(pos);
+                pos1 = clone(pos);
+                if (input.substr(pos.offset, 6) === "values") {
+                    result0 = "values";
+                    advance(pos, 6);
+                } else {
+                    result0 = null;
+                    if (reportFailures === 0) {
+                        matchFailed("\"values\"");
+                    }
+                }
+                if (result0 !== null) {
+                    result1 = parse_insig();
+                    if (result1 !== null) {
+                        if (input.charCodeAt(pos.offset) === 40) {
+                            result2 = "(";
+                            advance(pos, 1);
+                        } else {
+                            result2 = null;
+                            if (reportFailures === 0) {
+                                matchFailed("\"(\"");
+                            }
+                        }
+                        if (result2 !== null) {
+                            result3 = parse_insig();
+                            if (result3 !== null) {
+                                result4 = parse_CSV();
+                                if (result4 !== null) {
+                                    result5 = parse_insig();
+                                    if (result5 !== null) {
+                                        if (input.charCodeAt(pos.offset) === 41) {
+                                            result6 = ")";
+                                            advance(pos, 1);
+                                        } else {
+                                            result6 = null;
+                                            if (reportFailures === 0) {
+                                                matchFailed("\")\"");
+                                            }
+                                        }
+                                        if (result6 !== null) {
+                                            result0 = [result0, result1, result2, result3, result4, result5, result6];
+                                        } else {
+                                            result0 = null;
+                                            pos = clone(pos1);
+                                        }
+                                    } else {
+                                        result0 = null;
+                                        pos = clone(pos1);
+                                    }
+                                } else {
+                                    result0 = null;
+                                    pos = clone(pos1);
+                                }
+                            } else {
+                                result0 = null;
+                                pos = clone(pos1);
+                            }
+                        } else {
+                            result0 = null;
+                            pos = clone(pos1);
+                        }
+                    } else {
+                        result0 = null;
+                        pos = clone(pos1);
+                    }
+                } else {
+                    result0 = null;
+                    pos = clone(pos1);
+                }
+                if (result0 !== null) {
+                    result0 = (function(offset, line, column, v) {
+                        return v
+                    })(pos0.offset, pos0.line, pos0.column, result0[4]);
+                }
+                if (result0 === null) {
+                    pos = clone(pos0);
+                }
+                return result0;
+            }
+
             function parse_InsertStatement() {
-                var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16;
+                var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10;
                 var pos0, pos1;
 
                 pos0 = clone(pos);
@@ -2700,74 +2785,15 @@ module.exports = (function(){
                                         if (result6 !== null) {
                                             result7 = parse_insig();
                                             if (result7 !== null) {
-                                                if (input.substr(pos.offset, 6) === "values") {
-                                                    result8 = "values";
-                                                    advance(pos, 6);
-                                                } else {
-                                                    result8 = null;
-                                                    if (reportFailures === 0) {
-                                                        matchFailed("\"values\"");
-                                                    }
-                                                }
+                                                result8 = parse_ValuesParen();
+                                                result8 = result8 !== null ? result8 : "";
                                                 if (result8 !== null) {
                                                     result9 = parse_insig();
                                                     if (result9 !== null) {
-                                                        if (input.charCodeAt(pos.offset) === 40) {
-                                                            result10 = "(";
-                                                            advance(pos, 1);
-                                                        } else {
-                                                            result10 = null;
-                                                            if (reportFailures === 0) {
-                                                                matchFailed("\"(\"");
-                                                            }
-                                                        }
+                                                        result10 = parse_WithPart();
+                                                        result10 = result10 !== null ? result10 : "";
                                                         if (result10 !== null) {
-                                                            result11 = parse_insig();
-                                                            if (result11 !== null) {
-                                                                result12 = parse_CSV();
-                                                                if (result12 !== null) {
-                                                                    result13 = parse_insig();
-                                                                    if (result13 !== null) {
-                                                                        if (input.charCodeAt(pos.offset) === 41) {
-                                                                            result14 = ")";
-                                                                            advance(pos, 1);
-                                                                        } else {
-                                                                            result14 = null;
-                                                                            if (reportFailures === 0) {
-                                                                                matchFailed("\")\"");
-                                                                            }
-                                                                        }
-                                                                        if (result14 !== null) {
-                                                                            result15 = parse_insig();
-                                                                            if (result15 !== null) {
-                                                                                result16 = parse_WithPart();
-                                                                                result16 = result16 !== null ? result16 : "";
-                                                                                if (result16 !== null) {
-                                                                                    result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16];
-                                                                                } else {
-                                                                                    result0 = null;
-                                                                                    pos = clone(pos1);
-                                                                                }
-                                                                            } else {
-                                                                                result0 = null;
-                                                                                pos = clone(pos1);
-                                                                            }
-                                                                        } else {
-                                                                            result0 = null;
-                                                                            pos = clone(pos1);
-                                                                        }
-                                                                    } else {
-                                                                        result0 = null;
-                                                                        pos = clone(pos1);
-                                                                    }
-                                                                } else {
-                                                                    result0 = null;
-                                                                    pos = clone(pos1);
-                                                                }
-                                                            } else {
-                                                                result0 = null;
-                                                                pos = clone(pos1);
-                                                            }
+                                                            result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10];
                                                         } else {
                                                             result0 = null;
                                                             pos = clone(pos1);
@@ -2814,10 +2840,14 @@ module.exports = (function(){
                 }
                 if (result0 !== null) {
                     result0 = (function(offset, line, column, s, c, v, wp) {
+                        if (!v && c){
+                            throw new this.SyntaxError("Line " + line + ": Values are required if columns are specified.");
+
+                        }
                         if(c && c.length != v.value.length) {
                             throw new this.SyntaxError("Line " + line + ": Number of values does not match number of columns.");
                         }
-                        if (!c && v.value.length > 1){
+                        if (!c && v && v.value.length > 1){
                             throw new this.SyntaxError("Line " + line + ": Values do not have paired columns.");
                         }
                         ret = {
@@ -2826,17 +2856,19 @@ module.exports = (function(){
                             values: v.value,
                             line: line
                         }
-                        if (c){
-                            ret.columns = c,
-                                ret.values = v.value;
-                        }else{
-                            ret.values = v.value[0];
+                        if (v){
+                            if (c){
+                                ret.columns = c,
+                                    ret.values = v.value;
+                            }else{
+                                ret.values = v.value[0];
+                            }
                         }
                         if (wp){
                             ret.parts = wp.value;
                         }
                         return ret
-                    })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6], result0[12], result0[16]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6], result0[8], result0[10]);
                 }
                 if (result0 === null) {
                     pos = clone(pos0);

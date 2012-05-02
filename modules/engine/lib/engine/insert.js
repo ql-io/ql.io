@@ -73,7 +73,14 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 values[statement.columns[i].name] = jsonfill.lookup(value, context);
             });
         }else{
-            verb.opaque = statement.values;
+            //assert.ok(statement.values.length > 0, 'statement value should have only one item for opaque param.');
+            if (statement.values){
+                // user specified values in console
+                verb.opaque = statement.values;
+            }else{
+                //default opaque value is at req.body
+                verb.opaque = context;
+            }
         }
         verb.exec({
             context: opts.context,

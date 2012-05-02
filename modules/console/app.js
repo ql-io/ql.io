@@ -72,7 +72,22 @@ var Console = module.exports = function(config, cb) {
             }
         });
     };
-
+    connect.bodyParser.parse['opaque'] = function(req, options, next) {
+        var buf = '';
+        req.setEncoding('utf8');
+        req.on('data', function (chunk) {
+            buf += chunk
+        });
+        req.on('end', function () {
+            try {
+                req.body = buf;
+                next();
+            }
+            catch(err) {
+                next(err);
+            }
+        });
+    };
     // Add parser for multipart
     connect.bodyParser.parse['multipart/form-data'] = function(req, options, next) {
         var body, parts = [], idx = 0;
