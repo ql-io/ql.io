@@ -22,8 +22,7 @@ var _           = require('underscore'),
     util        = require('util'),
     FormData = require('form-data'),
     formidable = require('formidable'),
-    Buffer     = require('buffer').Buffer,
-    Engine = require('ql.io-engine');
+    Buffer     = require('buffer').Buffer;
 
 var Console = require('../app.js');
 
@@ -41,47 +40,47 @@ module.exports = {
     'upload files': function(test) {
         var upload_server = http.createServer(function(req, res) {
             if (req.url == '/upload') {
-                var parts = [], idx = 0;
-                var form = new formidable.IncomingForm();
-                form.onPart = function(part) {
-                    if (form.headers['content-length']) {
-                        var buf = new Buffer(parseInt(form.headers['content-length'], 10));
-                    } else {
-                        var buf = new Buffer(10485760); // 10MB
-                    }
+                var form = new formidable.IncomingForm(), parts = [];
 
-                    if (part.filename) {
-                        part.on('data', function(b) {
-                            idx = idx + b.copy(buf, idx);
-                        });
-                        part.on('end', function() {
-                            buf = buf.slice(0, idx);
-                            parts.push({ 'name' : part.filename, 'size' : idx, 'data' : buf });
-                            idx = 0;
-                        });
-                        part.on('error', function(err) {
-                            // TODO: handle this
-                        });
-                    }
+                form.onPart = function(part) {
+                    var chunks = [], idx = 0, size = 0;
+
+                    part.on('data', function(c) {
+                        chunks[idx++] = c;
+                        size += c.length;
+                    });
+
+                    part.on('end', function() {
+                        var buf = new Buffer(size), i = 0, idx = 0;
+                        while (i < chunks.length) {
+                            idx = idx + chunks[i++].copy(buf, idx);
+                        }
+                        var p = { 'name' : part.name, 'size' : size, 'data' : buf };
+                        parts.push(p);
+                    });
+
+                    part.on('error', function(err) {
+                        console.log('error: ' + util.inspect(err));
+                    });
                 }
 
-                form.parse(req, function(err, fields, files) {
+                form.parse(req, function(err) {
                     if (err) {
                         util.debug(err);
                     }
                     req.body = {};
                     req.parts = parts;
-                    util.debug("Server on :4000\n" + util.inspect({fields: fields, parts: parts})); // TODO: remove later
+                    util.debug("Server on :4000\n" + util.inspect({parts: parts})); // TODO: remove later
                 });
 
                 form.parse(req, function(err, fields, files) {
                     res.writeHead(200, {'content-type': 'application/json'});
-                    var MultipartTestResponse = { 'parts' : parts };
-                    res.end(JSON.stringify(MultipartTestResponse));
+                    var resp = { 'MultipartTestResponse' : { 'parts' : parts }};
+                    res.end(JSON.stringify(resp));
                 });
                 return;
             }
-        }).listen(4000);
+        }).listen(5000);
 
         app.listen(3000, function() {
             var form = new FormData();
@@ -89,11 +88,12 @@ module.exports = {
 
             var dir = __dirname + '/images/';
             // var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg', 'ql.io.jpg' ];
-            var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg' ];
+            // var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg' ];
+            var files = [ 'ql.io.jpg' ];
             var idx = 0;
 
-            _.forEach(files, function(file) {
-                form.append('file-' + idx++, fs.createReadStream(dir + file));
+            _.each(files, function(file) {
+                form.append(file, fs.createReadStream(dir + file));
             });
 
             var options = {
@@ -113,12 +113,12 @@ module.exports = {
 
             request.on('response', function(response) {
                 response.setEncoding("utf8");
-                console.log(response.statusCode);
+                // console.log(response.statusCode);
                 var data = "";
                 response.on("data", function(chunk) {
                     data += chunk;
                 });
-
+                console.log(data);
                 test.equals(response.statusCode, 200);
                 app.close();
                 upload_server.close();
@@ -127,7 +127,7 @@ module.exports = {
 
             request.on('error', function(error) {
                 if (error) {
-                    console.log(error);
+                    console.log('error: ' + error);
                 }
             });
         });
