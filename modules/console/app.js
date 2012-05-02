@@ -72,6 +72,7 @@ var Console = module.exports = function(config, cb) {
             }
         });
     };
+
     connect.bodyParser.parse['opaque'] = function(req, options, next) {
         var buf = '';
         req.setEncoding('utf8');
@@ -88,41 +89,36 @@ var Console = module.exports = function(config, cb) {
             }
         });
     };
+
     // Add parser for multipart
-    connect.bodyParser.parse['multipart/form-data'] = function(req, options, next) {
-        var body, parts = [], idx = 0;
-        var form = new formidable.IncomingForm();
+    var multiParser = function(req, options, next) {
+        var form = new formidable.IncomingForm(), parts = [];
+
+
         form.onPart = function(part) {
-            if (part.filename) {
-                if (form.headers['content-length']) {
-                    var buf = new Buffer(parseInt(form.headers['content-length'], 10));
-                } else {
-                    var buf = new Buffer(10485760); // 10MB
+            var chunks = [], idx = 0, size = 0;
+
+            part.on('data', function(c) {
+                chunks[idx++] = c;
+                size += c.length;
+            });
+
+            part.on('end', function() {
+                var buf = new Buffer(size), i = 0, idx = 0;
+                while (i < chunks.length) {
+                    idx = idx + chunks[i++].copy(buf, idx);
                 }
-                part.on('data', function(b) {
-                    idx = idx + b.copy(buf, idx);
-                });
-                part.on('end', function() {
-                    buf = buf.slice(0, idx);
-                    parts.push({ 'name' : part.filename, 'size' : idx, 'data' : buf });
-                    idx = 0;
-                });
-                part.on('error', function(err) {
-                    // TODO: handle this
-                });
-            } else { // let formidable handle the body
-                form.handlePart(part);
-            }
+                var p = { 'name' : part.name, 'size' : idx, 'data' : buf };
+                parts.push(p);
+            });
+
+            part.on('error', function(err) {
+                next(err);
+            });
         }
 
-        form.on('field', function(field, value) {
-            if (field === 'body') {
-                body = expat.toJson(value, {coerce: true, object: true});
-            }
-        });
-
         form.parse(req, function(err, fields, files) {
-            req.body = body;
+            req.body = parts.splice(0, 1); // by our convention the first part is the body
             req.parts = parts;
             if (err) {
                 next(err);
@@ -131,6 +127,11 @@ var Console = module.exports = function(config, cb) {
             }
         });
     }
+
+    // Add parser for multipart requests
+    connect.bodyParser.parse['multipart/form-data'] = multiParser;
+    connect.bodyParser.parse['multipart/related'] = multiParser;
+    connect.bodyParser.parse['multipart/mixed'] = multiParser;
 
     var bodyParser = connect.bodyParser();
     app.use(bodyParser); // parses the body for application/x-www-form-urlencoded and application/json

@@ -25,8 +25,9 @@ var _ = require('underscore'),
     response = require('./response.js'),
     zlib = require('zlib'),
     uuid = require('node-uuid'),
-    streamBuffer = require("stream-buffers"),
-    FormData = require('form-data');
+    jsonfill = require('../jsonfill.js'),
+    FormData = require('form-data'),
+    util = require('util');
 
 var maxResponseLength;
 
@@ -120,25 +121,18 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         args.emitter.emit(packet.type, packet);
     }
 
-    if (args.parts) {
-        var form = new FormData(), size = 0;
+    if (args.parts && args.statement.parts) {
+        var parts = { 'req' : { 'parts' : args.parts }};
+        var part = jsonfill.lookup(args.statement.parts, parts);
+
+        var form = new FormData();
         if (args.body) {
-            size += args.body.length;
             form.append('body', new Buffer(args.body));
         }
-        _.each(args.parts, function(part) {
-            var rsb = new streamBuffer.ReadableStreamBuffer({
-                frequency: 1,       // in milliseconds.
-                chunkSize: 32576    // in bytes.
-            });
-            size += part.data.length;
-            rsb.pause();
-            rsb.put(part.data);
-            rsb.path = part.name;
-            form.append(part.name, rsb);
-        });
-        _.extend(options.headers, form.getHeaders()); // set the multipart/form-data boundary
-        options.headers['content-length'] = parseInt(options.headers['content-length'], 10) + size;
+        if (part) {
+            form.append(part.name, part.data);
+        }
+        _.extend(options.headers, form.getCustomHeaders(args.resource.body.type));
     }
 
     var followRedirects = true, maxRedirects = 10;
@@ -285,7 +279,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         });
     });
 
-    if (args.parts) {
+    if (args.parts && form) {
         form.pipe(clientRequest);
         timings.send = Date.now() - reqStart;
     } else if (args.body) {

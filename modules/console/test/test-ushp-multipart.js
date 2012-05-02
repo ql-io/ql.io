@@ -38,49 +38,6 @@ var app = c.app;
 
 module.exports = {
     'upload files': function(test) {
-        var upload_server = http.createServer(function(req, res) {
-            if (req.url == '/upload') {
-                var form = new formidable.IncomingForm(), parts = [];
-
-                form.onPart = function(part) {
-                    var chunks = [], idx = 0, size = 0;
-
-                    part.on('data', function(c) {
-                        chunks[idx++] = c;
-                        size += c.length;
-                    });
-
-                    part.on('end', function() {
-                        var buf = new Buffer(size), i = 0, idx = 0;
-                        while (i < chunks.length) {
-                            idx = idx + chunks[i++].copy(buf, idx);
-                        }
-                        var p = { 'name' : part.name, 'size' : size, 'data' : buf };
-                        parts.push(p);
-                    });
-
-                    part.on('error', function(err) {
-                        console.log('error: ' + util.inspect(err));
-                    });
-                }
-
-                form.parse(req, function(err) {
-                    if (err) {
-                        util.debug(err);
-                    }
-                    req.body = {};
-                    req.parts = parts;
-                    util.debug("Server on :4000\n" + util.inspect({parts: parts})); // TODO: remove later
-                });
-
-                form.parse(req, function(err, fields, files) {
-                    res.writeHead(200, {'content-type': 'application/json'});
-                    var resp = { 'MultipartTestResponse' : { 'parts' : parts }};
-                    res.end(JSON.stringify(resp));
-                });
-                return;
-            }
-        }).listen(5000);
 
         app.listen(3000, function() {
             var form = new FormData();
@@ -89,7 +46,7 @@ module.exports = {
             var dir = __dirname + '/images/';
             // var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg', 'ql.io.jpg' ];
             // var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg' ];
-            var files = [ 'ql.io.jpg' ];
+            var files = [ 'logoEbay_x45.gif' ];
             var idx = 0;
 
             _.each(files, function(file) {
@@ -99,7 +56,7 @@ module.exports = {
             var options = {
                 host: 'localhost',
                 port: 3000,
-                path: '/multipart/test/upload?desc=something',
+                path: '/upload/site/hosted/pictures',
                 method: 'POST',
                 headers: _.extend({
                     host: 'localhost',
@@ -121,7 +78,6 @@ module.exports = {
                 console.log(data);
                 test.equals(response.statusCode, 200);
                 app.close();
-                upload_server.close();
                 test.done();
             });
 
