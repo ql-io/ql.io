@@ -101,7 +101,6 @@ var Console = module.exports = function(config, cb) {
         form.parse(req, function(err, fields, files) {
             req.body = parts.splice(0, 1); // by our convention the first part is the body
             req.parts = parts;
-            console.log(util.inspect({'req.parts in app.js': parts}))
             if (err) {
                 next(err);
             } else {
