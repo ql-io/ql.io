@@ -279,7 +279,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         });
     });
 
-    if (args.parts) {
+    if (args.parts && form) {
         form.pipe(clientRequest);
         timings.send = Date.now() - reqStart;
     } else if (args.body) {
