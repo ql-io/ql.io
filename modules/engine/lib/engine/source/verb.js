@@ -641,6 +641,9 @@ function send(verb, args, uri, params, cb) {
     if(args.resource.method === 'post' || args.resource.method === 'put' || args.resource.method === 'delete' || args.resource.method === 'patch') {
         var payload = args.resource.tmpl(parsed, params, headers, args);
         body = payload.content;
+        if (args.resource.opaque){
+            body = args.resource.opaque;
+        }
         if(body) {
             headers['content-length'] = body.length;
         }
