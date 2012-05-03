@@ -22,19 +22,8 @@ var _           = require('underscore'),
     util        = require('util'),
     FormData = require('form-data'),
     formidable = require('formidable'),
-    Buffer     = require('buffer').Buffer;
-
-var Console = require('../app.js');
-
-var c = new Console({
-    tables : __dirname + '/tables',
-    routes: __dirname + '/routes',
-    config: __dirname + '/config/dev.json',
-    'enable console': false,
-    connection: 'close'
-});
-
-var app = c.app;
+    Buffer     = require('buffer').Buffer,
+    Console = require('../app.js');
 
 module.exports = {
     'upload files': function(test) {
@@ -70,18 +59,27 @@ module.exports = {
                     }
                     req.body = {};
                     req.parts = parts;
-                    util.debug("Server on :4000\n" + util.inspect({parts: parts})); // TODO: remove later
                 });
 
                 form.parse(req, function(err, fields, files) {
-                    res.writeHead(200, {'content-type': 'application/json'});
-                    var resp = { 'MultipartTestResponse' : { 'parts' : parts }};
+                    res.writeHead(200, {'content-type': 'application/json; charset=UTF-8'});
+                    var desc = _.pluck(parts, 'name');
+                    var resp = { 'MultipartTestResponse' : { 'parts' : desc }};
                     res.end(JSON.stringify(resp));
                 });
                 return;
             }
-        }).listen(5000);
+        }).listen(4000);
 
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes: __dirname + '/routes',
+            config: __dirname + '/config/dev.json',
+            'enable console': false,
+            connection: 'close'
+        });
+
+        var app = c.app;
         app.listen(3000, function() {
             var form = new FormData();
             form.append('body', new Buffer('<test>Test Body</test>'));
@@ -89,7 +87,7 @@ module.exports = {
             var dir = __dirname + '/images/';
             // var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg', 'ql.io.jpg' ];
             // var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg' ];
-            var files = [ 'ql.io.jpg' ];
+            var files = [ 'logoEbay_x45.gif' ];
             var idx = 0;
 
             _.each(files, function(file) {
@@ -112,17 +110,21 @@ module.exports = {
             form.pipe(request);
 
             request.on('response', function(response) {
-                response.setEncoding("utf8");
-                // console.log(response.statusCode);
+                response.setEncoding('utf8');
                 var data = "";
-                response.on("data", function(chunk) {
+                response.on('data', function(chunk) {
                     data += chunk;
                 });
-                console.log(data);
-                test.equals(response.statusCode, 200);
-                app.close();
-                upload_server.close();
-                test.done();
+
+                response.on('end', function() {
+                    var r = JSON.parse(data);
+                    test.equals(r.parts[0], 'body');
+                    test.equals(r.parts[1], 'logoEbay_x45.gif');
+                    test.equals(response.statusCode, 200);
+                    app.close();
+                    upload_server.close();
+                    test.done();
+                });
             });
 
             request.on('error', function(error) {
