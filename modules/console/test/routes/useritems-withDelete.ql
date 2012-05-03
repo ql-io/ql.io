@@ -10,4 +10,4 @@ return {
 "tradingItem" : "{tradingItem}",
 "bidders" : "{bidders}",
 "bestOffers" : "{bestOffers}"
-} via route "/del/foo/bar/{selector}?userid={userId}&itemid={itemId }" using method delete;
+} via route "/del/foo/bar/{selector}?userid={userId}&itemid={itemId}" using method delete;
