@@ -22,70 +22,74 @@ var _           = require('underscore'),
     util        = require('util'),
     FormData = require('form-data'),
     formidable = require('formidable'),
-    Buffer     = require('buffer').Buffer;
+    Buffer     = require('buffer').Buffer,
+    Console = require('../app.js');
 
-var Console = require('../app.js');
+// Test end-to-end flow to the UploadSiteHostedPictures Service
+// This is the same test as test-multipart.js, only hits the actual service instead of a mock service
 
-var c = new Console({
-    tables : __dirname + '/tables',
-    routes: __dirname + '/routes',
-    config: __dirname + '/config/dev.json',
-    'enable console': false,
-    connection: 'close'
-});
+var testUSHPMultipart = function(test) {
 
-var app = c.app;
+    var c = new Console({
+        tables : __dirname + '/tables',
+        routes: __dirname + '/routes',
+        config: __dirname + '/config/dev.json',
+        'enable console': false,
+        connection: 'close'
+    });
+
+    var app = c.app;
+
+    app.listen(3000, function() {
+        var form = new FormData();
+        form.append('body', new Buffer('<test>Test Body</test>'));
+
+        var dir = __dirname + '/images/';
+        // var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg', 'ql.io.jpg' ];
+        // var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg' ];
+        var files = [ 'logoEbay_x45.gif' ];
+        var idx = 0;
+
+        _.each(files, function(file) {
+            form.append(file, fs.createReadStream(dir + file));
+        });
+
+        var options = {
+            host: 'localhost',
+            port: 3000,
+            path: '/upload/site/hosted/pictures',
+            method: 'POST',
+            headers: _.extend({
+                host: 'localhost',
+                connection: 'close'
+            }, form.getHeaders())
+        };
+
+        var request = http.request(options);
+
+        form.pipe(request);
+
+        request.on('response', function(response) {
+            response.setEncoding("utf8");
+            // console.log(response.statusCode);
+            var data = "";
+            response.on("data", function(chunk) {
+                data += chunk;
+            });
+            console.log(data);
+            test.equals(response.statusCode, 200);
+            app.close();
+            test.done();
+        });
+
+        request.on('error', function(error) {
+            if (error) {
+                console.log('error: ' + error);
+            }
+        });
+    });
+}
 
 module.exports = {
-    'upload files': function(test) {
 
-        app.listen(3000, function() {
-            var form = new FormData();
-            form.append('body', new Buffer('<test>Test Body</test>'));
-
-            var dir = __dirname + '/images/';
-            // var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg', 'ql.io.jpg' ];
-            // var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg' ];
-            var files = [ 'logoEbay_x45.gif' ];
-            var idx = 0;
-
-            _.each(files, function(file) {
-                form.append(file, fs.createReadStream(dir + file));
-            });
-
-            var options = {
-                host: 'localhost',
-                port: 3000,
-                path: '/upload/site/hosted/pictures',
-                method: 'POST',
-                headers: _.extend({
-                    host: 'localhost',
-                    connection: 'close'
-                }, form.getHeaders())
-            };
-
-            var request = http.request(options);
-
-            form.pipe(request);
-
-            request.on('response', function(response) {
-                response.setEncoding("utf8");
-                // console.log(response.statusCode);
-                var data = "";
-                response.on("data", function(chunk) {
-                    data += chunk;
-                });
-                console.log(data);
-                test.equals(response.statusCode, 200);
-                app.close();
-                test.done();
-            });
-
-            request.on('error', function(error) {
-                if (error) {
-                    console.log('error: ' + error);
-                }
-            });
-        });
-    }
 }
