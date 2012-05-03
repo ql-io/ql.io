@@ -16,7 +16,7 @@
 
 'use strict';
 
-var cluster2 = require('cluster2'),
+var Cluster = require('cluster2'),
     fs = require('fs'),
     winston = require('winston'),
     os = require('os'),
@@ -27,14 +27,14 @@ var cluster2 = require('cluster2'),
 
 // Trap all uncaught exception here.
 process.on('uncaughtException', function(error) {
-    // TODO: This has to the log file
+    // TODO: Report to logger
     console.log(error.stack || error);
 });
 
 exports.version = require('../package.json').version;
 
 exports.exec = function() {
-    var loggerFn, cb, opts
+    var loggerFn, cb, opts;
     if(arguments.length === 1) {
         cb = arguments[0];
     }
@@ -89,28 +89,35 @@ exports.exec = function() {
             validator: function(status, headers, data) {
                 return JSON.parse(data);
             }
-        }
+        },
+        timeout: 300 * 1000 // Idle client socket timeout
     };
     options.__proto__ = program;
 
+    var cluster = new Cluster(options);
     if(process.argv.indexOf('stop') >= 0) {
-        cluster2.stop(options);
+        cluster.stop(options);
     }
     else if(process.argv.indexOf('shutdown') >= 0) {
-        cluster2.shutdown(options);
+        cluster.shutdown(options);
     }
     else {
         var emitter;
-        cluster2.listen(options, function(cb2) {
-            createConsole(options, function(app, e) {
-                emitter = e;
-                cb2(app);
-            })
-        }, function(app) {
-            if(cb) {
-                cb(app, program, emitter);
+        cluster.listen(
+            // Create an app and call back
+            function(cb2) {
+                createConsole(options, cluster, function(app, e) {
+                    emitter = e;
+                    cb2(app);
+                })
+            },
+            // Cluster is ready
+            function(app) {
+                if(cb) {
+                    cb(app, program, emitter);
+                }
             }
-        });
+        );
     }
 }
 
@@ -178,26 +185,54 @@ function addFileLoggers(options, emitter) {
         }
     });
     emitter.on('error', function (event, message) {
-        var warn = errLogger.warn || errLogger.warning;
-        warn(message || event);
+        errLogger.error(message || event);
+    });
+
+    emitter.on('fatal', function (event, message) {
+        errLogger.error(message || event);
     });
 
     emitter.on('ql.io-warning', function (event, message) {
         var warn = errLogger.warn || errLogger.warning;
         warn(message || event);
     });
-    emitter.on('warning', function (event, message) {
+    emitter.on('warning', function (message) {
         var warn = errLogger.warn || errLogger.warning;
-        warn(message || event);
+        warn(message);
     });
 }
 
-function createConsole(options, cb) {
+function createConsole(options, cluster, cb) {
     var disableConsole = Boolean(program.disableConsole);
     var disableQ = Boolean(program.disableQ);
     return new Console({
         loggerFn: function(emitter) {
+            // Add loggers
             options.loggerFn.call(null, options, emitter);
+
+            // Listen to cluster events
+            cluster.on('died', function(pid) {
+                emitter.emit('fatal', {
+                    pid: pid,
+                    message: 'Process died'
+                });
+            });
+            cluster.on('forked', function(pid) {
+                emitter.emit('info', {
+                    pid: pid,
+                    message: 'Worker forked'
+                });
+            });
+            cluster.on('SIGTERM', function(pid) {
+                emitter.emit('info', {
+                    signal: 'SIGTERM',
+                    pid: pid,
+                    message: 'Shutting down'
+                });
+            });
+            cluster.on('warning', function(message) {
+                emitter.emit('warning', message);
+            })
         },
         'tables': program.tables,
         'routes': program.routes,

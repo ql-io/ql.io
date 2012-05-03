@@ -17,6 +17,7 @@
 var Engine = require('../lib/engine'),
     Listener = require('./utils/log-listener.js'),
     http = require('http'),
+    events = require('events'),
     fs = require('fs'),
     util = require('util');
 
@@ -454,6 +455,53 @@ module.exports = {
             });
         });
     },
+    'external cache json - custom requestId':function (test) {
+        var counter = 1;
+
+        var server = http.createServer(function (req, res) {
+            res.writeHead(200, {
+                'Content-Type':'application/json'
+            });
+            res.end(JSON.stringify({'counter':counter}));
+            counter++;
+        });
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+                tables:__dirname + '/cache',
+                config:__dirname + '/cache/dev.json',
+                'request-id': 'x-my-request-id'
+            });
+            var script = "select * from auto.compute.key";
+
+            engine.exec(script, function (err, result) {
+                if (err) {
+                    console.log(err.stack || util.inspect(err, false, 10));
+                    test.fail('got error');
+                    test.done();
+                    server.close();
+                }
+                else {
+                    test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                    test.deepEqual(result.body, {counter:1});
+                    engine.exec(script, function (err, result) {
+                        if (err) {
+                            console.log(err.stack || util.inspect(err, false, 10));
+                            test.fail('got error');
+                            test.done();
+                        }
+                        else {
+                            test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                            test.ok(result.headers['x-my-request-id'], 'Custom request id expected');
+                            test.deepEqual(result.body, {counter:1});
+                            test.done();
+                        }
+                        server.close();
+                    });
+                }
+            });
+        });
+    },
     'external cache json from nm':function (test) {
         var counter = 1;
 
@@ -503,12 +551,46 @@ module.exports = {
                 }
             });
         });
+    },
+    'verify events':function (test) {
+        var counter = 1;
+
+        var engine = new Engine({
+            tables:__dirname + '/cache',
+            config:__dirname + '/cache/dev2.json'
+        });
+
+        var events = [];
+
+        engine.on(Engine.Events.EVENT,function(calCtx, msg){
+            events.push(msg);
+        });
+        engine.on(Engine.Events.ERROR,function(calCtx, msg){
+            events.push(msg);
+        });
+
+        engine.on(Engine.Events.HEART_BEAT,function(msg){
+            events.push(msg);
+        });
+        setTimeout(function () {
+            test.deepEqual(events,[
+                '{"name":"cacheStart","event":{"opts":"be-nice"}}',
+                '{"name":"cacheError","event":{"error":"cranky"}}',
+                '{"name":"cacheNew","event":{"key":"foo"}}',
+                '{"name":"cacheHit","event":{"key":"foo"}}',
+                '{"name":"cacheMiss","event":{"key":"foo"}}',
+                '{"name":"cacheInfo","event":{"details":"something"}}',
+                '{"name":"cacheHeartBeat","event":{"details":"faint"}}',
+                '{"name":"cacheEnd"}'
+            ])
+            test.done();
+        }, 100);
+
     }
-
-
 }
 
 function mockCache() {
+    events.EventEmitter.call(this);
     var theCache = {};
     this.put = function (key, data, duration, cb) {
         cb = cb || function (err, result) {
@@ -537,3 +619,4 @@ function mockCache() {
         cb(null, {message:'success', data:result});
     }
 }
+util.inherits(mockCache, events.EventEmitter);

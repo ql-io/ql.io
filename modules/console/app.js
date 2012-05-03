@@ -33,7 +33,8 @@ var winston = require('winston'),
     _ = require('underscore'),
     WebSocketServer = require('websocket').server,
     compress = require('./lib/compress.js').compress,
-    formidable = require('formidable');
+    formidable = require('formidable'),
+    cacheUtil = require('./lib/cache-util.js');
 
 exports.version = require('./package.json').version;
 
@@ -45,13 +46,23 @@ var skipHeaders = ['connection', 'host', 'referer', 'content-length', 'accept', 
     'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers',
     'transfer-encoding', 'upgrade'];
 
-var Console = module.exports = function(config, cb) {
+var Console = module.exports = function(opts, cb) {
 
-    config = config || {};
+    opts = opts || {};
 
-    var engine = new Engine(config);
+    var cache = opts.cache = cacheUtil.startCache(opts.config);
+
+    var engine = new Engine(opts);
 
     var app = this.app = express.createServer();
+
+    // Remains true until the app receives a 'close' event. Once this event is received, the app
+    // sends 'connection: close' on responses (except for express served responses) and ends
+    // the connection. See the app.on('close') handler below.
+    var serving;
+    app.on('listening', function() {
+        serving = true;
+    });
 
     app.enable('case sensitive routes'); // Default routes are not case sensitive
 
@@ -126,7 +137,7 @@ var Console = module.exports = function(config, cb) {
                 next();
             }
         });
-    }
+    };
 
     // Add parser for multipart requests
     connect.bodyParser.parse['multipart/form-data'] = multiParser;
@@ -137,7 +148,7 @@ var Console = module.exports = function(config, cb) {
     app.use(bodyParser); // parses the body for application/x-www-form-urlencoded and application/json
     var respHeaders = require(__dirname + '/lib/middleware/resp-headers');
     app.use(respHeaders());
-    if(config['enable console']) {
+    if(opts['enable console']) {
         // If you want unminified JS and CSS, jus add property debug: true to js and css vars below.
         var qlAssets = {
             'js': {
@@ -588,7 +599,7 @@ var Console = module.exports = function(config, cb) {
     /*
      * '/q' is disabled only if the console is created with config, 'enable q' : false.
      */
-    var enableQ = config['enable q'] === undefined ? true : config['enable q'];
+    var enableQ = opts['enable q'] === undefined ? true : opts['enable q'];
 
     var q =  function(req, res) {
         var holder = {
@@ -625,7 +636,6 @@ var Console = module.exports = function(config, cb) {
                 return handleResponseCB(req, res, execState, err, results);
             }
         });
-        holder.parts = req.parts;
         var execState = [];
         engine.execute(query,
             {
@@ -633,10 +643,11 @@ var Console = module.exports = function(config, cb) {
                 parentEvent: urlEvent.event
             }, function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
-                setupCounters(emitter);
                 emitter.on('end', urlEvent.cb);
-            })
+            }
+        );
     }
+
 
     if(enableQ) {
         app.get('/q', q);
@@ -693,7 +704,7 @@ var Console = module.exports = function(config, cb) {
     var heartbeat = setInterval(function () {
         engine.emit(Engine.Events.HEART_BEAT, {
             pid: process.pid,
-            uptime: process.uptime(),
+            uptime: Math.round(process.uptime()),
             freemem: os.freemem()
         });
     }, 60000);
@@ -701,6 +712,8 @@ var Console = module.exports = function(config, cb) {
     // Let the Engine cleanup during shutdown
     app.on('close', function() {
         clearInterval(heartbeat);
+        cacheUtil.stopCache(cache);
+        serving = false;
     });
 
     // Also listen to WebSocket requests
@@ -769,6 +782,9 @@ var Console = module.exports = function(config, cb) {
                                 type: Engine.Events.SCRIPT_RESULT,
                                 data: results
                             }));
+                        }
+                        if(!serving) {
+                            connection.end();
                         }
                     })
                 })
@@ -887,7 +903,7 @@ var Console = module.exports = function(config, cb) {
             res._header = undefined;
             var contentType = results.headers['content-type'];
             var h = {
-                'Connection': 'keep-alive',
+                'Connection': serving ? 'keep-alive' : 'close',
                 'Transfer-Encoding' : 'chunked'
             };
             _.each(results.headers, function(value, name) {
@@ -917,6 +933,10 @@ var Console = module.exports = function(config, cb) {
                 res.write(')');
             }
             res.end();
+        }
+        // If we get a 'close' event, end on all pending connections.
+        if(!serving) {
+            req.connection.end();
         }
     }
 

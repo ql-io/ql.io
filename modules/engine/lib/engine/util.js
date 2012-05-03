@@ -113,25 +113,23 @@ var toNormalizedSting = exports.toNormalizedSting = function(obj, dupGuard) {
     return ret;
 }
 
-var getCache = exports.getCache = function (config, cache, errorCb) {
+var getCache = exports.getCache = function (config, cache, engine, errorCb) {
     errorCb = errorCb || function(e) {};
-    if (cache) {
-        return cache;
-    }
-    if(config.cache && config.cache.impl){
+
+    if(!cache && config.cache && config.cache.impl){
         var cacheConfig = config.cache.options;
+        var newCache;
         try {
-            var cache;
             if(cacheConfig == undefined){
-                cache = new (cacheRequire(config.cache.impl))();
+                newCache = new (cacheRequire(config.cache.impl))();
             }
             else {
-                cache = new (cacheRequire(config.cache.impl))(cacheConfig);
+                newCache = new (cacheRequire(config.cache.impl))(cacheConfig);
             }
-            if(_.isFunction(cache.start)){
-                cache.start();
+            if(_.isFunction(newCache.start)){
+                newCache.start();
             }
-            return cache;
+            cache = newCache;
         }
         catch(e){
             errorCb({cache:config.cache,
@@ -139,6 +137,35 @@ var getCache = exports.getCache = function (config, cache, errorCb) {
                 error:e});
         }
     }
+
+    if(cache) {
+        cache.on('start', function(event){
+            engine.emitEvent({clazz: 'info', name: 'cacheStart'}, JSON.stringify({name:'cacheStart', event:event}));
+        });
+        cache.on('end', function(event){
+            engine.emitEvent({clazz: 'info', name: 'cacheEnd'}, JSON.stringify({name:'cacheEnd', event:event}));
+        });
+        cache.on('new', function(event){
+            engine.emitEvent({clazz: 'info', name: 'cacheNew'}, JSON.stringify({name:'cacheNew', event:event}));
+        });
+        cache.on('hit', function(event){
+            engine.emitEvent({clazz: 'info', name: 'cacheHit'}, JSON.stringify({name:'cacheHit', event:event}));
+        });
+        cache.on('miss', function(event){
+            engine.emitEvent({clazz: 'info', name: 'cacheMiss'}, JSON.stringify({name:'cacheMiss', event:event}));
+        });
+        cache.on('heartbeat', function(event){
+            engine.emitHeartBeat(JSON.stringify({name:'cacheHeartBeat', event:event}));
+        });
+        cache.on('info', function(event){
+            engine.emitEvent({clazz: 'info', name: 'cacheInfo'}, JSON.stringify({name:'cacheInfo', event:event}));
+        });
+        cache.on('error', function(event){
+            engine.emitError({clazz: 'error', name: 'cacheError'}, JSON.stringify({name:'cacheError', event:event}));
+        });
+    }
+
+    return cache;
 }
 
 function cacheRequire(name){
