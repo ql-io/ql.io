@@ -290,6 +290,7 @@ function execInternal(opts, statement, cb, parentEvent) {
                 params[offset] = statement.offset;
 
                 verb.exec({
+                    name: name,
                     context: opts.context,
                     config: opts.config,
                     settings: opts.settings,

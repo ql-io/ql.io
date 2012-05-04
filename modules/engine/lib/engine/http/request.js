@@ -27,7 +27,8 @@ var _ = require('underscore'),
     uuid = require('node-uuid'),
     jsonfill = require('../jsonfill.js'),
     FormData = require('form-data'),
-    util = require('util');
+    util = require('util'),
+    charlie = require('charlie');
 
 var maxResponseLength;
 
@@ -48,6 +49,8 @@ exports.send = function(args) {
     port = authority.port() || (isTls ? 443 : 80);
     assert.ok(port, 'Port of URI [' + args.uri  + '] is invalid');
     path = (heirpart.path().value || '') + (uri.querystring() || '');
+
+    assert.ok(args.name, 'table name not specified');
 
     if(args.config.proxy) {
         var proxyConfig = args.config.proxy;
@@ -137,7 +140,28 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
 
     var followRedirects = true, maxRedirects = 10;
 
+    // Exponential backff with a reset
+    var minDelay = args.statement.minDelay|| 500;
+    var maxDelay = args.statement.maxDelay || 30000;
+    var timeout = args.statement.timeout || 10000;
+    var decision = charlie.ask([args.uri, args.name], minDelay, maxDelay);
+    if(decision.state === 'nogo') {
+        args.logEmitter.emitError(args.httpReqTx.event, JSON.stringify({
+            message: 'Backoff in progress',
+            start: decision.start,
+            count: decision.count,
+            delay: decision.delay
+        }));
+        var err = new Error('Back-off in progress');
+        err.uri = args.uri;
+        err.status = 502;
+        return args.httpReqTx.cb(err);
+    }
+
     var clientRequest = client.request(options, function (res) {
+        // Tell charlie that things are good.
+        charlie.ok([args.uri, args.name]);
+
         if (followRedirects && (res.statusCode >= 301 && res.statusCode <= 307) &&
             (options.method.toUpperCase() === 'GET' || options.method.toUpperCase() === 'HEAD')) {
             res.socket.destroy();
@@ -286,9 +310,13 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         clientRequest.write(args.body);
         timings.send = Date.now() - reqStart;
     }
-    clientRequest.on('error', function (err) {
+
+    function handleError(err) {
+        // Destroy the socket first
+        clientRequest.connection.destroy();
+
         args.logEmitter.emitError(args.httpReqTx.event, {
-            message: err.message || 'Network error'
+            message: err ? err.code || err.message : 'Network error'
         });
         // For select, retry once on network error
         if (retry === 0 && args.statement.type === 'select') {
@@ -302,11 +330,18 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             sendMessage(args, client, options, 1);
         }
         else {
+            charlie.notok([args.uri, args.name]);
+            err = err || {
+                message: err ? err.code || err.message : 'Network error'
+            }
             err.uri = args.uri;
             err.status = 502;
             return args.httpReqTx.cb(err);
         }
-    });
+    }
+
+    clientRequest.setTimeout(timeout, handleError);
+    clientRequest.on('error', handleError);
     clientRequest.end();
 }
 
