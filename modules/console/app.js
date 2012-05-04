@@ -22,6 +22,7 @@ var winston = require('winston'),
     headers = require('headers'),
     fs = require('fs'),
     os = require('os'),
+    util = require('util'),
     sanitize = require('validator').sanitize,
     connect = require('connect'),
     expat = require('xml2json'),
@@ -32,6 +33,7 @@ var winston = require('winston'),
     _ = require('underscore'),
     WebSocketServer = require('websocket').server,
     compress = require('./lib/compress.js').compress,
+    formidable = require('formidable'),
     cacheUtil = require('./lib/cache-util.js');
 
 exports.version = require('./package.json').version;
@@ -81,6 +83,66 @@ var Console = module.exports = function(opts, cb) {
             }
         });
     };
+
+    connect.bodyParser.parse['opaque'] = function(req, options, next) {
+        var buf = '';
+        req.setEncoding('utf8');
+        req.on('data', function (chunk) {
+            buf += chunk
+        });
+        req.on('end', function () {
+            try {
+                req.body = buf;
+                next();
+            }
+            catch(err) {
+                next(err);
+            }
+        });
+    };
+
+    // Add parser for multipart
+    var multiParser = function(req, options, next) {
+        var form = new formidable.IncomingForm(), parts = [];
+
+
+        form.onPart = function(part) {
+            var chunks = [], idx = 0, size = 0;
+
+            part.on('data', function(c) {
+                chunks[idx++] = c;
+                size += c.length;
+            });
+
+            part.on('end', function() {
+                var buf = new Buffer(size), i = 0, idx = 0;
+                while (i < chunks.length) {
+                    idx = idx + chunks[i++].copy(buf, idx);
+                }
+                var p = { 'name' : part.name, 'size' : idx, 'data' : buf };
+                parts.push(p);
+            });
+
+            part.on('error', function(err) {
+                next(err);
+            });
+        }
+
+        form.parse(req, function(err, fields, files) {
+            req.body = parts.splice(0, 1); // by our convention the first part is the body
+            req.parts = parts;
+            if (err) {
+                next(err);
+            } else {
+                next();
+            }
+        });
+    };
+
+    // Add parser for multipart requests
+    connect.bodyParser.parse['multipart/form-data'] = multiParser;
+    connect.bodyParser.parse['multipart/related'] = multiParser;
+    connect.bodyParser.parse['multipart/mixed'] = multiParser;
 
     var bodyParser = connect.bodyParser();
     app.use(bodyParser); // parses the body for application/x-www-form-urlencoded and application/json
@@ -151,9 +213,9 @@ var Console = module.exports = function(opts, cb) {
             {
                 mount : '/scripts/compiler.js',
                 require : [ 'ql.io-compiler',
-                        'headers',
-                        'mustache',
-                        'events'],
+                    'headers',
+                    'mustache',
+                    'events'],
                 filter : require('uglify-js')
             }));
         app.get('/console', function(req, res) {
@@ -179,6 +241,7 @@ var Console = module.exports = function(opts, cb) {
                 var holder = {
                     params: {},
                     headers: {},
+                    parts: {},
                     routeParams: {},
                     connection: {
                         remoteAddress: req.connection.remoteAddress
@@ -224,6 +287,9 @@ var Console = module.exports = function(opts, cb) {
                 holder.connection = {
                     remoteAddress: req.connection.remoteAddress
                 };
+
+                holder.parts = req.parts;
+
                 // Start the top level event
                 var urlEvent = engine.beginEvent({
                     clazz: 'info',
@@ -250,6 +316,7 @@ var Console = module.exports = function(opts, cb) {
                     },
                     function(emitter) {
                         setupExecStateEmitter(emitter, execState, req.param('events'));
+                        setupCounters(emitter);
                         emitter.on('end', urlEvent.cb);
                     }
                 );
@@ -304,6 +371,7 @@ var Console = module.exports = function(opts, cb) {
             },
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
                 emitter.on('end', urlEvent.cb);
             }
         );
@@ -380,6 +448,7 @@ var Console = module.exports = function(opts, cb) {
             },
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
                 emitter.on('end', urlEvent.cb);
             }
         );
@@ -433,6 +502,7 @@ var Console = module.exports = function(opts, cb) {
             },
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
                 emitter.on('end', urlEvent.cb);
             }
         );
@@ -472,25 +542,25 @@ var Console = module.exports = function(opts, cb) {
                 routeInfo: result,
                 related:
                     _(result.related).chain()
-                    .map(function(route){
-                        var parse = new MutableURI(route);
-                        return {
-                            method: parse.getParam('method'),
-                            path: parse.getParam('path'),
-                            about: route
-                        };
-                    })
-                    .value(),
+                        .map(function(route){
+                            var parse = new MutableURI(route);
+                            return {
+                                method: parse.getParam('method'),
+                                path: parse.getParam('path'),
+                                about: route
+                            };
+                        })
+                        .value(),
                 tables:
                     _(result.tables).chain()
-                    .map(function(table){
-                        var parse = new MutableURI(table);
-                        return {
-                            name: parse.getParam('name'),
-                            about: table
-                        };
-                    })
-                    .value()
+                        .map(function(table){
+                            var parse = new MutableURI(table);
+                            return {
+                                name: parse.getParam('name'),
+                                about: table
+                            };
+                        })
+                        .value()
             });
         }
 
@@ -520,6 +590,7 @@ var Console = module.exports = function(opts, cb) {
             },
             function(emitter) {
                 setupExecStateEmitter(emitter, execState, req.param('events'));
+                setupCounters(emitter);
                 emitter.on('end', urlEvent.cb);
             }
         );
@@ -530,52 +601,60 @@ var Console = module.exports = function(opts, cb) {
      */
     var enableQ = opts['enable q'] === undefined ? true : opts['enable q'];
 
-    if(enableQ) {
-        app.get('/q', function(req, res) {
-            var holder = {
-                params: {},
-                headers: {} ,
-                connection: {
-                    remoteAddress: req.connection.remoteAddress
-                }
-            };
-            var query = req.param('s');
-            if (!query) {
-                res.writeHead(400, 'Bad input', {
-                    'content-type' : 'application/json'
-                });
-                res.write(JSON.stringify({'err' : 'Missing query'}));
-                res.end();
-                return;
+    var q =  function(req, res) {
+        var holder = {
+            params: {},
+            headers: {},
+            parts: {},
+            connection: {
+                remoteAddress: req.connection.remoteAddress
             }
-            query = sanitize(query).str;
-            collectHttpQueryParams(req, holder, true);
-            collectHttpHeaders(req, holder);
-            var urlEvent = engine.beginEvent({
-                clazz: 'info',
-                type: 'route',
-                name: req.method.toUpperCase() + ' ' + req.url,
-                message: {
-                    ip: req.connection.remoteAddress,
-                    method: req.method,
-                    path: req.url,
-                    headers: req.headers
-                },
-                cb: function(err, results) {
-                    return handleResponseCB(req, res, execState, err, results);
-                }
+        };
+        var query = req.param('s');
+        if (!query) {
+            res.writeHead(400, 'Bad input', {
+                'content-type' : 'application/json'
             });
-            var execState = [];
-            engine.execute(query,
-                {
-                    request: holder,
-                    parentEvent: urlEvent.event
-                }, function(emitter) {
-                    setupExecStateEmitter(emitter, execState, req.param('events'));
-                    emitter.on('end', urlEvent.cb);
-                })
+            res.write(JSON.stringify({'err' : 'Missing query'}));
+            res.end();
+            return;
+        }
+        query = sanitize(query).str;
+        collectHttpQueryParams(req, holder, true);
+        collectHttpHeaders(req, holder);
+        var urlEvent = engine.beginEvent({
+            clazz: 'info',
+            type: 'route',
+            name: req.method.toUpperCase() + ' ' + req.url,
+            message: {
+                ip: req.connection.remoteAddress,
+                method: req.method,
+                path: req.url,
+                headers: req.headers
+            },
+            cb: function(err, results) {
+                return handleResponseCB(req, res, execState, err, results);
+            }
+        });
+        var execState = [];
+        engine.execute(query,
+            {
+                request: holder,
+                parentEvent: urlEvent.event
+            }, function(emitter) {
+                setupExecStateEmitter(emitter, execState, req.param('events'));
+                emitter.on('end', urlEvent.cb);
             }
         );
+    }
+
+
+    if(enableQ) {
+        app.get('/q', q);
+        app.post('/q', q);
+        app.put('/q', q);
+        app.delete('/q', q);
+        app.patch('/q', q);
     }
 
     // 404 Handling
@@ -684,6 +763,7 @@ var Console = module.exports = function(opts, cb) {
                     _.each(events, function(event) {
                         emitter.on(event, _collect);
                     });
+                    setupCounters(emitter);
                     emitter.on('end', function(err, results) {
                         if(err) {
                             var packet = {
@@ -766,6 +846,36 @@ var Console = module.exports = function(opts, cb) {
                 execState.push(packet);
             });
         });
+    }
+
+    // Send to master
+    function setupCounters(emitter) {
+        if(process.send) {
+            emitter.on(Engine.Events.SCRIPT_ACK, function(packet) {
+                process.send({
+                    type: 'counter',
+                    name: Engine.Events.SCRIPT_ACK,
+                    pid: process.pid});
+            })
+            emitter.on(Engine.Events.STATEMENT_REQUEST, function(packet) {
+                process.send({
+                    type: 'counter',
+                    name: Engine.Events.STATEMENT_REQUEST,
+                    pid: process.pid});
+            })
+            emitter.on(Engine.Events.STATEMENT_RESPONSE, function(packet) {
+                process.send({
+                    type: 'counter',
+                    name: Engine.Events.STATEMENT_RESPONSE,
+                    pid: process.pid});
+            })
+            emitter.on(Engine.Events.SCRIPT_DONE, function(packet) {
+                process.send({
+                    type: 'counter',
+                    name: Engine.Events.SCRIPT_DONE,
+                    pid: process.pid});
+            })
+        }
     }
 
     function handleResponseCB(req, res, execState, err, results) {

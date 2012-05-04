@@ -1,3 +1,7 @@
+## May 3, 2012
+
+* Add support for multipart requests.
+
 ## Apr 27, 2012
 
 * End pending connections on close after responses are written.
@@ -6,6 +10,10 @@
 ## Apr 26, 2012
 
 * Switch to new cluster2
+
+## Apr 25, 2012
+
+* Added new syntaxes "with part" and opaque insert param.
 
 ## Apr 24, 2012
 

@@ -30,10 +30,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         request = opts.request, emitter = opts.emitter,
         insertTx, table, values, name, resource;
 
-    values = {};
-    _.each(statement.values, function(value, i) {
-        values[statement.columns[i].name] = jsonfill.lookup(value, context);
-    });
+
 
     // Get the dest
     name = statement.source.name;
@@ -53,8 +50,12 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         cb: cb});
 
     resource = context[name];
+    values = {};
     if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
         resource = jsonfill.unwrap(resource);
+        _.each(statement.values, function(value, i) {
+            values[statement.columns[i].name] = jsonfill.lookup(value, context);
+        });
         _.each(values, function(val, key) {
             resource[key] = val;
         });
@@ -70,6 +71,20 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         if(!verb) {
             return insertTx.cb('Table ' + statement.source.name + ' does not support insert');
         }
+        if (statement.columns){
+            _.each(statement.values, function(value, i) {
+                values[statement.columns[i].name] = jsonfill.lookup(value, context);
+            });
+        }else{
+            //assert.ok(statement.values.length > 0, 'statement value should have only one item for opaque param.');
+            if (statement.values){
+                // user specified values in console
+                verb.opaque = statement.values;
+            }else{
+                //default opaque value is at req.body
+                verb.opaque = context;
+            }
+        }
         verb.exec({
             context: opts.context,
             config: opts.config,
@@ -78,6 +93,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             xformers: opts.xformers,
             serializers: opts.serializers,
             params: values,
+            parts: opts.request.parts,
             request: request,
             statement: statement,
             emitter: emitter,

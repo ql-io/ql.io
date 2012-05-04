@@ -1,0 +1,15 @@
+HTTP/1.1 200 OK
+Content-Type: text/xml
+Server: Apache-Coyote/1.1
+X-EBAY-API-POOL-NAME: ___cDRidW9kbHdj
+X-EBAY-API-SERVER-NAME: ___RSpURFZOMzU0KDI1KDY0KzEzLTc1Mjk9Nj8z
+X-EBAY-ESB-APP-NAME: urn:ebay-marketplace-consumerid:c87a61a3-1940-44eb-a0b0-f86bc71a5443
+X-EBAY-ESB-CALL-NAME: UploadSiteHostedPictures
+X-EBAY-ESB-GUID: urn:uuid:66A35C6EB8DB58C99D1336006788858
+X-EBAY-ESB-SITEID: 0
+Date: Wed, 02 May 2012 21:04:23 GMT
+Content-Length: 2248
+Connection: Keep-Alive
+
+<?xml version="1.0" encoding="UTF-8"?>
+<UploadSiteHostedPicturesResponse xmlns="urn:ebay:apis:eBLBaseComponents"><Timestamp>2012-05-02T21:04:21.818Z</Timestamp><Ack>Success</Ack><Version>773</Version><Build>E773_CORE_BUNDLED_14811755_R1</Build><PictureSystemVersion>2</PictureSystemVersion><SiteHostedPictureDetails><PictureName>my_pic</PictureName><PictureSet>Standard</PictureSet><PictureFormat>JPG</PictureFormat><FullURL>http://i.ebayimg.qa.ebay.com/00/s/MTIwMFgxNjAw/$(KGrHgoS,KEEk,K!BkUOBPo,FRt3mQ~~60_1.JPG?set_id=8800005007</FullURL><BaseURL>http://i.ebayimg.qa.ebay.com/00/s/MTIwMFgxNjAw/$(KGrHgoS,KEEk,K!BkUOBPo,FRt3mQ~~60_</BaseURL><PictureSetMember><MemberURL>http://i.ebayimg.qa.ebay.com/00/s/MTIwMFgxNjAw/$(KGrHgoS,KEEk,K!BkUOBPo,FRt3mQ~~60_0.JPG</MemberURL><PictureHeight>72</PictureHeight><PictureWidth>96</PictureWidth></PictureSetMember><PictureSetMember><MemberURL>http://i.ebayimg.qa.ebay.com/00/s/MTIwMFgxNjAw/$(KGrHgoS,KEEk,K!BkUOBPo,FRt3mQ~~60_1.JPG</MemberURL><PictureHeight>300</PictureHeight><PictureWidth>400</PictureWidth></PictureSetMember><PictureSetMember><MemberURL>http://i.ebayimg.qa.ebay.com/00/s/MTIwMFgxNjAw/$(KGrHgoS,KEEk,K!BkUOBPo,FRt3mQ~~60_2.JPG</MemberURL><PictureHeight>150</PictureHeight><PictureWidth>200</PictureWidth></PictureSetMember><PictureSetMember><MemberURL>http://i.ebayimg.qa.ebay.com/00/s/MTIwMFgxNjAw/$(KGrHgoS,KEEk,K!BkUOBPo,FRt3mQ~~60_12.JPG</MemberURL><PictureHeight>375</PictureHeight><PictureWidth>500</PictureWidth></PictureSetMember><PictureSetMember><MemberURL>http://i.ebayimg.qa.ebay.com/00/s/MTIwMFgxNjAw/$(KGrHgoS,KEEk,K!BkUOBPo,FRt3mQ~~60_14.JPG</MemberURL><PictureHeight>48</PictureHeight><PictureWidth>64</PictureWidth></PictureSetMember><PictureSetMember><MemberURL>http://i.ebayimg.qa.ebay.com/00/s/MTIwMFgxNjAw/$(KGrHgoS,KEEk,K!BkUOBPo,FRt3mQ~~60_35.JPG</MemberURL><PictureHeight>225</PictureHeight><PictureWidth>300</PictureWidth></PictureSetMember><PictureSetMember><MemberURL>http://i.ebayimg.qa.ebay.com/00/s/MTIwMFgxNjAw/$(KGrHgoS,KEEk,K!BkUOBPo,FRt3mQ~~60_39.JPG</MemberURL><PictureHeight>32</PictureHeight><PictureWidth>32</PictureWidth></PictureSetMember><UseByDate>2012-05-12T21:04:21.490Z</UseByDate></SiteHostedPictureDetails></UploadSiteHostedPicturesResponse>

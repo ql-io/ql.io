@@ -525,6 +525,11 @@ UsingBodyTemplate = 'using' insig 'bodyTemplate' insig t:QuotedWord insig 'type'
     }
     return ret;
 }
+
+WithPart = 'with' insig 'part' insig p:QuotedWord{
+    return p;
+}
+
 // This clause is used to split POST requests
 ForEachMember = 'foreach' insig id:QuotedWord {
   return id.value;
@@ -678,19 +683,44 @@ DescribeStatement = d:Describe insig s:Source {
     }
 }
 
+ColumnsParen = '(' insig c:ColumnsClause insig ')' {
+    return c
+}
+
+ValuesParen = 'values' insig '(' insig v:CSV  insig ')'{
+    return v
+}
+
 // Insert Statement
-InsertStatement = 'insert' insig 'in' 'to' insig s:Source insig '(' insig c:ColumnsClause insig ')'
-                    insig 'values' insig '(' v:CSV ')' {
-    if(c.length != v.value.length) {
-        throw new this.SyntaxError("Line " + line + ": Number of values does not match number of columns.");
+InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? insig v:ValuesParen?  insig wp:WithPart? {
+    if (!v && c){
+    throw new this.SyntaxError("Line " + line + ": Values are required if columns are specified.");
+
+}
+if(c && c.length != v.value.length) {
+    throw new this.SyntaxError("Line " + line + ": Number of values does not match number of columns.");
+}
+if (!c && v && v.value.length > 1){
+    throw new this.SyntaxError("Line " + line + ": Values do not have paired columns.");
+}
+ret = {
+    type: 'insert',
+    source: s,
+    values: v.value,
+    line: line
+}
+if (v){
+    if (c){
+        ret.columns = c,
+            ret.values = v.value;
+    }else{
+        ret.values = v.value[0];
     }
-    return {
-        type: 'insert',
-        source: s,
-        columns: c,
-        values: v.value,
-        line: line
-    }
+}
+if (wp){
+    ret.parts = wp.value;
+}
+return ret;
 }
 
 // Delete statement

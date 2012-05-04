@@ -24,7 +24,10 @@ var _ = require('underscore'),
     URI = require('uri'),
     response = require('./response.js'),
     zlib = require('zlib'),
-    uuid = require('node-uuid');
+    uuid = require('node-uuid'),
+    jsonfill = require('../jsonfill.js'),
+    FormData = require('form-data'),
+    util = require('util');
 
 var maxResponseLength;
 
@@ -116,6 +119,20 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             packet.body = args.body;
         }
         args.emitter.emit(packet.type, packet);
+    }
+
+    if (args.parts && args.statement.parts) {
+        var parts = { 'req' : { 'parts' : args.parts }};
+        var part = jsonfill.lookup(args.statement.parts, parts);
+
+        var form = new FormData();
+        if (args.body) {
+            form.append('body', new Buffer(args.body));
+        }
+        if (part) {
+            form.append(part.name, part.data);
+        }
+        _.extend(options.headers, form.getCustomHeaders(args.resource.body.type));
     }
 
     var followRedirects = true, maxRedirects = 10;
@@ -262,7 +279,10 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         });
     });
 
-    if (args.body) {
+    if (args.parts && form) {
+        form.pipe(clientRequest);
+        timings.send = Date.now() - reqStart;
+    } else if (args.body) {
         clientRequest.write(args.body);
         timings.send = Date.now() - reqStart;
     }

@@ -199,7 +199,7 @@ Engine.prototype.execute = function() {
     context = opts.context || {};
     parentEvent = opts.parentEvent;
     route = opts.route;
-    request = opts.request || { headers: {}, params: {}};
+    request = opts.request || { headers: {}, params: {}, parts: {}};
     if(route) {
         _.extend(context, opts.request.routeParams || {});
     }

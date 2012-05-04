@@ -118,6 +118,53 @@ module.exports = {
             });
         })
     },
+    'check delete /del/foo/bar/{selector}?userid={userId}&address={itemId}' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.post('/ping/pong', function(req, res) {
+                var data = '';
+                req.on('data', function(chunk) {
+                    data += chunk;
+                });
+                req.on('end', function() {
+                    res.send(data);
+                });
+            });
+
+            testHttpapp.listen(80126, function() {
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/del/foo/bar/Details?userid=sallamar&address=260852758792',
+                    method : 'DELETE'
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        var json = JSON.parse(data);
+                        test.ok(json.user, 'missing user data');
+                        test.ok(json.user.Ack, 'missing user Ack');
+                        test.equal(json.user.Ack, 'Success');
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.end();
+            });
+        })
+    },
     'check post json' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
@@ -439,5 +486,135 @@ module.exports = {
             });
         });
         req.end();
+    },
+    'insert' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(4000, function () {
+        });
+
+        var options = {
+            host:'localhost',
+            port:4000,
+            path:'/ebay/trading/uploadpic?pic=http://developer.ebay.com/DevZone/XML/docs/images/hp_book_image.jpg',
+            method:'POST'
+        };
+        var req = http.request(options);
+        req.addListener('response', function (resp) {
+            var data = '';
+            resp.addListener('data', function (chunk) {
+                data += chunk;
+            });
+            resp.addListener('end', function () {
+                test.equal(resp.statusCode, 404);
+                c.app.close();
+                test.done();
+            });
+        });
+        req.end();
+    },
+    'insert part' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(4000, function () {
+        });
+
+        var options = {
+            host:'localhost',
+            port:4000,
+            path:'/ebay/trading/uploadpicparts?pic=http://developer.ebay.com/DevZone/XML/docs/images/hp_book_image.jpg&part=something',
+            method:'POST'
+        };
+        var req = http.request(options);
+        req.addListener('response', function (resp) {
+            var data = '';
+            resp.addListener('data', function (chunk) {
+                data += chunk;
+            });
+            resp.addListener('end', function () {
+                test.equal(resp.statusCode, 404);
+                c.app.close();
+                test.done();
+            });
+        });
+        req.end();
+    },
+    'opaque': function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.post('/ping/pong', function(req, res) {
+                var data = '';
+                req.on('data', function(chunk) {
+                    data += chunk;
+                });
+                req.on('end', function() {
+                    res.send(data);
+                });
+            });
+
+            testHttpapp.listen(80126, function() {
+                var mybody = '<?xml version="1.0" encoding="utf-8"?>\n<UploadSiteHostedPicturesRequest xmlns="urn:ebay:apis:eBLBaseComponents">\n\
+        <ExternalPictureURL>http://developer.ebay.com/DevZone/XML/docs/images/hp_book_image.jpg</ExternalPictureURL> \n\
+        <PictureName>HarryPotterPic-1</PictureName>\n\
+            <RequesterCredentials>\n\
+            <eBayAuthToken>AgAAAA**AQAAAA**aAAAAA**mRsvTg**nY+sHZ2PrBmdj6wVnY+sEZ2PrA2dj6wFk4CoAZeHowmdj6x9nY+seQ**2oQBAA**AAMAAA**4zft+pfZAUlEDvEbfasDfR4BwoxjEoWAwxvvykdZ/7il08ZLxfgiAj/bQujsZy0NteI7lKg2+MA25CY0LDfjA/YoPdhVCa0eu+BvgSLM+qigoWmA2A/81bRDs7i6pU3F2hXTGdToAkFpsTCec9G4H0LHpfu63mr9fS07rqXgaCIxG/JbiWfrv1QV6jAYrUPlQUWwL9z7+YQhy/l2bxGiW2QxlPmiWqjqZn3F+fOBUTHIeP5/BBKteHnQd7TvvMCV2vnIeckLUuXRF/hrG1kXn6v8r2FZzj4vIN0FZlDVZHHQpEVR6EhYNaeeLtSsSVp0kW0Ebt5cqKfGhW/I8L5jR3ZkyBFq03y3Z8qQ2d5chEERBg4Hf72+pZVSLmJ4T1KDtTIATfHlGBxghLiHEdlOLjhGtk4hQPaZlb+DB3eCOUJAjs7VrCYUAmofEgjLqOSmQ+7M48WmQ48a3F3BPEqpG3CpiqZcKzKkVxeu43MkzyeG+VNK7mPc+Zlgn6jJxQPTCMMw4P2fhJ6qU+cGfbsijUvqOSICWcbgEjlVKEsBWNuPLPrav9ELzQSNwYwYxsO46HqrNCC6kQx4pk1AagOTV22JpNIoSijTZecVJDin/NHqKmT92HizkuYDIHvRCoWnQIoZ1xh5qetuTkSEgnR+Kl/3mQnK4Gu5pHK4sJYBhneOe8N9Q7Q0Tam5yPyQ4uhrt9TOXtgPVXvJ5ZPBJ3TM6lZktWJq8wlViXQDFPjQhd/QcYfUH8nsoPbwBwld3E86</eBayAuthToken>\n\
+        </RequesterCredentials>\n\
+        </UploadSiteHostedPicturesRequest>'
+                var mypath = '/ebay/trading/opaque?body='+mybody
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    //path: '/uploadpic',
+                    path : '/ebay/trading/opaque',
+                    //path: '/ping/pong',
+                    method : 'POST',
+                    headers : {
+                        'content-type' : 'opaque'//'application/xml'
+                        //'opaque' : true
+                    }
+
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        try{
+                            var json = JSON.parse(data);
+                        }catch (e){
+                            test.ok(false, "response is not json")
+                        }
+                        test.equal(json.Ack, "Success");
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.write(mybody);
+                //req.opaque = true;
+                //req.body = 'opaque'
+                req.end();
+
+            });
+        });
     }
 }
