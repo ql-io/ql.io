@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2011 eBay Software Foundation
  *
@@ -694,33 +693,32 @@ ValuesParen = 'values' insig '(' insig v:CSV  insig ')'{
 // Insert Statement
 InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? insig v:ValuesParen?  insig wp:WithPart? {
     if (!v && c){
-    throw new this.SyntaxError("Line " + line + ": Values are required if columns are specified.");
-
-}
-if(c && c.length != v.value.length) {
-    throw new this.SyntaxError("Line " + line + ": Number of values does not match number of columns.");
-}
-if (!c && v && v.value.length > 1){
-    throw new this.SyntaxError("Line " + line + ": Values do not have paired columns.");
-}
-ret = {
-    type: 'insert',
-    source: s,
-    values: v.value,
-    line: line
-}
-if (v){
-    if (c){
-        ret.columns = c,
-            ret.values = v.value;
-    }else{
-        ret.values = v.value[0];
+        throw new this.SyntaxError("Line " + line + ": Values are required if columns are specified.");
     }
-}
-if (wp){
-    ret.parts = wp.value;
-}
-return ret;
+    if(c && c.length != v.value.length) {
+        throw new this.SyntaxError("Line " + line + ": Number of values does not match number of columns.");
+    }
+    if (!c && v && v.value.length > 1){
+        throw new this.SyntaxError("Line " + line + ": Values do not have paired columns.");
+    }
+    ret = {
+        type: 'insert',
+        source: s,
+        values: v.value,
+        line: line
+    }
+    if (v){
+        if (c){
+            ret.columns = c,
+            ret.values = v.value;
+        }else{
+            ret.values = v.value[0];
+        }
+    }
+    if (wp){
+        ret.parts = wp.value;
+    }
+    return ret;
 }
 
 // Delete statement
