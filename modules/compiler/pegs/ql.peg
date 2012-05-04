@@ -22,8 +22,8 @@
         if(s === 'object') {
             if(value) {
                 if(typeof value.length === 'number' &&
-                    !(value.propertyIsEnumerable('length')) &&
-                    typeof value.splice === 'function') {
+                   !(value.propertyIsEnumerable('length')) &&
+                   typeof value.splice === 'function') {
                     s = 'array';
                 }
             }
@@ -197,7 +197,7 @@
                             })
                             if(statement.usingColumnAliases) {
                                 main.columns[main.columns.length - 1].alias = cond.rhs.alias ||
-                                    cond.rhs.value.substr(index + main.fromClause[0].alias.length + 1);
+                                          cond.rhs.value.substr(index + main.fromClause[0].alias.length + 1);
                             }
                             main.extras.push(main.columns.length -1);
                         }
@@ -209,7 +209,7 @@
                             });
                             if(statement.usingColumnAliases) {
                                 join.columns[join.columns.length - 1].alias = cond.lhs.alias ||
-                                    cond.lhs.name.substr(index + join.fromClause[0].alias.length + 1)
+                                               cond.lhs.name.substr(index + join.fromClause[0].alias.length + 1)
                             }
                             join.extras.push(join.columns.length - 1);
                         }
@@ -224,7 +224,7 @@
                             })
                             if(statement.usingColumnAliases) {
                                 join.columns[join.columns.length - 1].alias = cond.rhs.alias ||
-                                    cond.rhs.value.substr(index + join.fromClause[0].alias.length + 1)
+                                        cond.rhs.value.substr(index + join.fromClause[0].alias.length + 1)
                             }
                             join.extras.push(join.columns.length - 1);
                         }
@@ -236,7 +236,7 @@
                             });
                             if(statement.usingColumnAliases) {
                                 main.columns[main.columns.length - 1].alias = cond.lhs.alias ||
-                                    cond.lhs.name.substr(index + main.fromClause[0].alias.length + 1)
+                                        cond.lhs.name.substr(index + main.fromClause[0].alias.length + 1)
                             }
 
                             main.extras.push(main.columns.length -1);
@@ -294,7 +294,7 @@
         for(var i = 0; i < main.columns.length; i++) {
             if(!main.columns[i].operator) {
                 var prefixed = false;
-                for(var j = 0; j < main.fromClause.length; j++) {
+                 for(var j = 0; j < main.fromClause.length; j++) {
                     if(main.columns[i].name.indexOf(main.fromClause[j].alias + '.') === 0) {
                         prefixed = true;
                         break;
@@ -387,12 +387,12 @@
 //
 start = crlf* larr:LineCrlf* insig r:Return? insig crlf* insig carr:Comment* insig crlf*{
     ret = [];
-ret = ret.concat(larr);
-if(r) {
-    ret.push(r);
-}
-ret = ret.concat(carr);
-return ret;
+    ret = ret.concat(larr);
+    if(r) {
+        ret.push(r);
+    }
+    ret = ret.concat(carr);
+    return ret;
 }
 
 // A line in a statement
@@ -411,13 +411,13 @@ Line = sp l:(Assign / Comment) {
 // In an assignment, the RHS is optional to support single statement scripts.
 Assign = a:Output? s:StatementOrObject insig ';'? insig {
     if(a) {
-    s.assign = a.assign;
-    s.line = a.line;
-}
+        s.assign = a.assign;
+        s.line = a.line;
+    }
 
-// Add LHS to the symbol table
-symbols[a.assign] = {};
-return s;
+    // Add LHS to the symbol table
+    symbols[a.assign] = {};
+    return s;
 }
 
 // A statement or object
@@ -431,7 +431,7 @@ CallUdf = u:UDF {
 }
 
 Statement = SelectStatement / ShowRoutesStatement / ShowStatement / DescribeRouteStatement /
-    DescribeStatement / InsertStatement / DeleteStatement / CreateStatement
+            DescribeStatement / InsertStatement / DeleteStatement / CreateStatement
 
 Output = insig w:Word insig '=' insig {
     return {
@@ -449,25 +449,25 @@ Comment = '--' sp c:[\u0020-\uffff]* crlf? {
 }
 
 // create table statement
-    CreateStatement = 'create' insig 'table' insig s:NonAliasSource insig v:Verb* {
+CreateStatement = 'create' insig 'table' insig s:NonAliasSource insig v:Verb* {
     var s = {
         type: 'create',
         name: s.name,
         line: line
     };
-for(i = 0; i < v.length; i++) {
-    s[v[i].type] = v[i];
-    delete v[i].type;
-}
-return s;
+    for(i = 0; i < v.length; i++) {
+        s[v[i].type] = v[i];
+        delete v[i].type;
+    }
+    return s;
 }
 
 Type = 'select' / 'insert' / 'delete' / 'update'
 URI = QuotedWord
 
 Verb = 'on' insig t:Type insig m:VerbName insig u:URI insig  a:WithAliases? h:UsingHeaders?
-    d:UsingDefaults? p:UsingMonkeyPatch? insig b:UsingBodyTemplate? insig
-    auth:AuthenticateUsing? insig r:ResultSet? insig exp:Expires? {
+            d:UsingDefaults? p:UsingMonkeyPatch? insig b:UsingBodyTemplate? insig
+            auth:AuthenticateUsing? insig r:ResultSet? insig exp:Expires? {
     var ret = {
         type: t,
         method: m,
@@ -476,14 +476,14 @@ Verb = 'on' insig t:Type insig m:VerbName insig u:URI insig  a:WithAliases? h:Us
         aliases: a || {},
         headers: h || {},
         resultSet: r || '',
-        cache: exp || {},
+        cache: exp || {}
     };
-if(auth && auth.length > 0) {
-    ret.auth = auth;
-}
-if(p) ret.patch = p;
-ret.body = b;
-return ret;
+    if(auth && auth.length > 0) {
+        ret.auth = auth;
+    }
+    if(p) ret.patch = p;
+    ret.body = b;
+    return ret;
 }
 
 // A verb maps to an HTTP method. Don't ask for custom methods. Just use POST
@@ -515,15 +515,15 @@ UsingMonkeyPatch = 'using' insig 'patch' insig t:QuotedWord {
     return t.value;
 }
 UsingBodyTemplate = 'using' insig 'bodyTemplate' insig t:QuotedWord insig 'type' insig
-m:QuotedWord insig f:ForEachMember? insig {
+                            m:QuotedWord insig f:ForEachMember? insig {
     var ret = {
         template: t.value,
         type: m.value
     }
     if(f) {
-    ret.foreach = f;
-}
-return ret;
+        ret.foreach = f;
+    }
+    return ret;
 }
 
 WithPart = 'with' insig 'part' insig p:QuotedWord{
@@ -532,7 +532,7 @@ WithPart = 'with' insig 'part' insig p:QuotedWord{
 
 // This clause is used to split POST requests
 ForEachMember = 'foreach' insig id:QuotedWord {
-    return id.value;
+  return id.value;
 }
 WithAliases = 'with' insig 'aliases' p:NVPs {
     return merge(p);
@@ -546,9 +546,9 @@ ResultSet = 'resultset' insig r:QuotedWord {
 
 // Comma-separated name=value pairs
 NVPs = n:NVP narr:(CNVP)* {
-    var ret = [n];
-ret = ret.concat(narr);
-return ret;
+  var ret = [n];
+  ret = ret.concat(narr);
+  return ret;
 }
 CNVP = ',' n:NVP {
     return n;
@@ -567,7 +567,7 @@ Expires = insig 'expires' insig d:Digits insig {
 
 // Select statement
 SelectStatement = s:Select insig c:ColumnsClause insig 'from' insig fc:FromClause insig
-wc:WhereClause* insig l:Limit* insig o:Offset* {
+                  wc:WhereClause* insig l:Limit* insig o:Offset* {
     var s = {
         type: s.type,
         line: s.line,
@@ -575,60 +575,60 @@ wc:WhereClause* insig l:Limit* insig o:Offset* {
         columns: c,
         whereCriteria: wc[0]
     };
-if(l[0]) {
-    s.limit = l[0];
-}
-if(o[0]) {
-    s.offset = o[0];
-}
-s.id = id;
-if(c && c.length > 0 && c[0].alias) {
-    s.usingColumnAliases = true
-}
+    if(l[0]) {
+        s.limit = l[0];
+    }
+    if(o[0]) {
+        s.offset = o[0];
+    }
+    s.id = id;
+    if(c && c.length > 0 && c[0].alias) {
+        s.usingColumnAliases = true
+    }
 
-// Extras from where clause - there are non-literal args of UDFs in the where clause
-if(s.whereCriteria && typeOf(s.columns) === 'array') {
-    for(var i = 0; i < s.whereCriteria.length; i++) {
-        var where = s.whereCriteria[i];
-        if(where.operator === 'udf') {
-            for(var j = 0; j < where.args.length; j++) {
-                if(where.args[j].type === 'column') {
-                    // If this column is not already selected, included it now.
-                    for(var c = 0; c < s.columns.length; c++) {
-                        if(s.columns[c].name === where.args[j].name) {
-                            if(s.columns[c].alias) {
-                                where.args[j].alias = s.columns[c].alias
-                                delete where.args[j].index;
+    // Extras from where clause - there are non-literal args of UDFs in the where clause
+    if(s.whereCriteria && typeOf(s.columns) === 'array') {
+        for(var i = 0; i < s.whereCriteria.length; i++) {
+            var where = s.whereCriteria[i];
+            if(where.operator === 'udf') {
+                for(var j = 0; j < where.args.length; j++) {
+                    if(where.args[j].type === 'column') {
+                        // If this column is not already selected, included it now.
+                        for(var c = 0; c < s.columns.length; c++) {
+                            if(s.columns[c].name === where.args[j].name) {
+                                if(s.columns[c].alias) {
+                                    where.args[j].alias = s.columns[c].alias
+                                    delete where.args[j].index;
+                                }
+                                else {
+                                    where.args[j].index = c;
+                                }
+                                break;
+                            }
+                        }
+                        if(!where.args[j].hasOwnProperty('alias') && !where.args[j].hasOwnProperty('index')) {
+                            s.extras = s.extras || [];
+                            s.extras.push(s.columns.length);
+                            var extra = {name: where.args[j].name, type: 'column'};
+                            // Index or name into selected columns
+                            if(s.columns[0].alias) {
+                                extra.alias = where.args[j].name;
+                                where.args[j].alias = extra.alias;
                             }
                             else {
-                                where.args[j].index = c;
+                                where.args[j].index = s.columns.length;
                             }
-                            break;
+                            extra.for = 'udf';
+                            s.columns.push(extra);
                         }
-                    }
-                    if(!where.args[j].hasOwnProperty('alias') && !where.args[j].hasOwnProperty('index')) {
-                        s.extras = s.extras || [];
-                        s.extras.push(s.columns.length);
-                        var extra = {name: where.args[j].name, type: 'column'};
-                        // Index or name into selected columns
-                        if(s.columns[0].alias) {
-                            extra.alias = where.args[j].name;
-                            where.args[j].alias = extra.alias;
-                        }
-                        else {
-                            where.args[j].index = s.columns.length;
-                        }
-                        extra.for = 'udf';
-                        s.columns.push(extra);
                     }
                 }
             }
         }
     }
-}
-s = splitJoins(s);
-delete s.id;
-return s;
+    s = splitJoins(s);
+    delete s.id;
+    return s;
 }
 
 Select = s:'select' {
@@ -666,7 +666,7 @@ Describe = (('describe') / ('desc')) {
     }
 }
 DescribeRouteStatement = d:Describe insig 'route' insig p:QuotedWord insig 'using' insig 'method'
-insig m:('get' / 'post' / 'put' / 'delete' / 'patch') {
+                         insig m:('get' / 'post' / 'put' / 'delete' / 'patch') {
     return {
         type: 'describe route',
         line: d.line,
@@ -720,7 +720,7 @@ if (v){
 if (wp){
     ret.parts = wp.value;
 }
-return ret
+return ret;
 }
 
 // Delete statement
@@ -788,8 +788,8 @@ Offset = 'offset' insig n:Digits {
 
 WhereCriteria = c:Cond carr:(AndCond)* {
     var ret = [c];
-ret = ret.concat(carr);
-return ret;
+    ret = ret.concat(carr);
+    return ret;
 }
 
 And = 'and'
@@ -942,9 +942,9 @@ sQuotedWord = '\'' c:([^'] / ' ')* '\'' {
 }
 
 dQuotedWord = '"' c:([^"] / ' ')* '"' {
-return {
-    value: c.join('')
-}
+    return {
+        value: c.join('')
+    }
 }
 
 QuotedDigits = sQuotedDigits / dQuotedDigits
@@ -975,10 +975,10 @@ Return = re:Ret insig o:RetVal insig r:Route? insig ';'? {
         id: id,
         rhs: o
     };
-if(r) {
-    ret.route = r;
-}
-return ret;
+    if(r) {
+        ret.route = r;
+    }
+    return ret;
 }
 
 RetVal = Statement / CallUdf / RetRef / Value
@@ -993,7 +993,7 @@ RetRef = o:Word {
 }
 
 Route = 'via' insig 'route' insig p:QuotedWord insig 'using' insig 'method' insig
-m:('get' / 'post' / 'put' / 'delete' / 'patch') insig h:UsingHeaders? {
+            m:('get' / 'post' / 'put' / 'delete' / 'patch') insig h:UsingHeaders? {
     return {
         path: p,
         method: m,
@@ -1002,7 +1002,7 @@ m:('get' / 'post' / 'put' / 'delete' / 'patch') insig h:UsingHeaders? {
 }
 
 // JSON
-    JSON = Object / StringVal / NumberVal / ArrayVal / TrueVal / FalseVal / NullVal
+JSON = Object / StringVal / NumberVal / ArrayVal / TrueVal / FalseVal / NullVal
 Value = v:JSON {
     return {
         object: v === "__null__" ? null : v,
@@ -1060,11 +1060,11 @@ Int =('+'? Digits) / ('-' Digits)
 
 Frac = '.' Digits?
 
-    Exp = e Int?
+Exp = e Int?
 
-    e = ('e') / ('e+') / ('e-') / 'E' / ('E+') / ('E-')
+e = ('e') / ('e+') / ('e-') / 'E' / ('E+') / ('E-')
 
-    Digits = d:[0-9]+ {
+Digits = d:[0-9]+ {
     return parseInt(append(d));
 }
 
@@ -1083,11 +1083,11 @@ squote = [\u0027]
 insig = sp crlf* sp { return ''}
 
 sp = ([\x09]/[\x20])*{
-    return ''
+  return ''
 }
 
 crlf = c:[\x0d\x0a] {
-    return c;
+  return c;
 }
 
 //
@@ -1132,7 +1132,7 @@ Descendent = s:Selector i:Identifier {
 Selector = d:('..' / '.')
 
 PositiveNumber = d:[0-9]+ {
-    return parseInt(d.join(''));
+  return parseInt(d.join(''));
 }
 
 StringLiteral = parts:(('"' DoubleString '"') / ("'" SingleString "'")) {
@@ -1152,29 +1152,29 @@ SingleString = c:achar* {
 // In the original JSON grammar: "any-Unicode-character-except-"-or-\-or-control-character"
 dchar = [^"\\\0-\x1F\x7f]
     / '\\"'  { return '"';  }
-/ "\\\\" { return "\\"; }
-/ "\\/"  { return "/";  }
-/ "\\b"  { return "\b"; }
-/ "\\f"  { return "\f"; }
-/ "\\n"  { return "\n"; }
-/ "\\r"  { return "\r"; }
-/ "\\t"  { return "\t"; }
-/ "\\u" h1:hexDigit h2:hexDigit h3:hexDigit h4:hexDigit {
-return String.fromCharCode(parseInt("0x" + h1 + h2 + h3 + h4));
+    / "\\\\" { return "\\"; }
+    / "\\/"  { return "/";  }
+    / "\\b"  { return "\b"; }
+    / "\\f"  { return "\f"; }
+    / "\\n"  { return "\n"; }
+    / "\\r"  { return "\r"; }
+    / "\\t"  { return "\t"; }
+    / "\\u" h1:hexDigit h2:hexDigit h3:hexDigit h4:hexDigit {
+    return String.fromCharCode(parseInt("0x" + h1 + h2 + h3 + h4));
 }
 
 achar = [^'\\\0-\x1F\x7f]
     / "\\'"  { return "\'";  }
-/ "\\\\" { return "\\"; }
-/ "\\/"  { return "/";  }
-/ "\\b"  { return "\b"; }
-/ "\\f"  { return "\f"; }
-/ "\\n"  { return "\n"; }
-/ "\\r"  { return "\r"; }
-/ "\\t"  { return "\t"; }
-/ "\\u" h1:hexDigit h2:hexDigit h3:hexDigit h4:hexDigit {
-return String.fromCharCode(parseInt("0x" + h1 + h2 + h3 + h4));
+    / "\\\\" { return "\\"; }
+    / "\\/"  { return "/";  }
+    / "\\b"  { return "\b"; }
+    / "\\f"  { return "\f"; }
+    / "\\n"  { return "\n"; }
+    / "\\r"  { return "\r"; }
+    / "\\t"  { return "\t"; }
+    / "\\u" h1:hexDigit h2:hexDigit h3:hexDigit h4:hexDigit {
+    return String.fromCharCode(parseInt("0x" + h1 + h2 + h3 + h4));
 }
 
 hexDigit
-    = [0-9a-fA-F]
+  = [0-9a-fA-F]
