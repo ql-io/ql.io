@@ -82,7 +82,7 @@ exports.END_EVENT = 'ql.io-end-event';
 /**
  * Event emitted periodically by an instance of the ql.io server..
  */
-exports.HEART_BEAT = 'ql.io-hear-tbeat'
+exports.HEART_BEAT = 'ql.io-heart-beat'
 
 /**
  * An event.
