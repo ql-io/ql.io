@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.ebay.qlio</groupId>
-    <artifactId>app</artifactId>
+    <artifactId>console</artifactId>
     <version>1.0</version>
     <name>ql.io ${artifactId}:: JavaScript</name>
 

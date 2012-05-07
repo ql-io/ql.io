@@ -9,17 +9,6 @@
     <version>1.0</version>
     <name>ql.io ${artifactId}:: JavaScript</name>
 
-    <properties>
-        <sonar.host.url>http://sonar.vip.qa.ebay.com/</sonar.host.url>
-        <sonar.jdbc.url>jdbc:oracle:thin:@sonardb.vip.qa.ebay.com:1521:sonardb</sonar.jdbc.url>
-        <sonar.jdbc.driverClassName>oracle.jdbc.driver.OracleDriver</sonar.jdbc.driverClassName>
-        <sonar.jdbc.username>sonar_user</sonar.jdbc.username>
-        <sonar.jdbc.password>sonar_user</sonar.jdbc.password>
-
-        <sonar.language>js</sonar.language>
-        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-        <sonar.sonar.javascript.jstestdriverfolder>jstestdriver</sonar.sonar.javascript.jstestdriverfolder>
-    </properties>
 
     <build>
         <sourceDirectory>lib</sourceDirectory>
