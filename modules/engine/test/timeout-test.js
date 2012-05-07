@@ -18,7 +18,7 @@
 
 process.on('uncaughtException', function(e) {
 //    TODO: Not clear why async.js throws the TypeError
-//    console.log(e.stack || e);
+    console.log(e.stack || e);
 });
 
 var fs = require('fs'),
@@ -37,7 +37,6 @@ module.exports = {
                 res.end(JSON.stringify({
                     'message': 'ok'
                 }));
-
             }, 15000);
         });
 
@@ -45,7 +44,7 @@ module.exports = {
             // Do the test here.
             var engine = new Engine({
             });
-            var script = 'create table timeout on select get from "http://localhost:3000/"\nreturn select * from timeout;';
+            var script = 'create table timeout1 on select get from "http://localhost:3000/"\nreturn select * from timeout1;';
             engine.execute(
                 script,
                 function (emitter) {
@@ -73,7 +72,6 @@ module.exports = {
                 res.end(JSON.stringify({
                     'message': 'ok'
                 }));
-
             }, 500);
         });
 
@@ -81,7 +79,7 @@ module.exports = {
             // Do the test here.
             var engine = new Engine({
             });
-            var script = 'create table timeout on select get from "http://localhost:3000/"\nreturn select * from timeout timeout 100;';
+            var script = 'create table timeout2 on select get from "http://localhost:3000/"\nreturn select * from timeout2 timeout 100;';
             engine.execute(
                 script,
                 function (emitter) {
@@ -100,67 +98,9 @@ module.exports = {
         });
     },
 
-    'retries-below-threshold': function (test) {
+    'timeouts-below-threshold': function (test) {
         var attempt = 0;
         var server = http.createServer(function (req, res) {
-            attempt++;
-            if(attempt < 4) {
-                setTimeout(function () {
-                    res.writeHead(200, {
-                        'Content-Type': 'application/json'
-                    });
-                    res.end(JSON.stringify({
-                        'message': 'ok'
-                    }));
-                }, 500);
-            }
-            else {
-                res.writeHead(200, {
-                    'Content-Type': 'application/json'
-                });
-                res.end(JSON.stringify({
-                    'message': 'ok'
-                }));
-            }
-        });
-
-        server.listen(3000, function () {
-            // Do the test here.
-            var engine = new Engine({
-            });
-            var script = 'create table timeout on select get from "http://localhost:3000/"\nreturn select * from timeout timeout 100;';
-
-            var fails = 0, passes = 0;
-            function send(callback) {
-                engine.execute(
-                    script,
-                    function (emitter) {
-                        emitter.on('end', function (err, results) {
-                            if(err) {
-                                fails++;
-                            }
-                            else {
-                                passes++;
-                            }
-                            callback(null, {passes: passes, fails: fails});
-                        });
-                    });
-            }
-
-            async.series([send, send, send, send], function (err, results) {
-                test.equals(results.length, 4);
-                test.equals(results[3].passes, 3); // three failures
-                test.equals(results[3].fails, 1); // no success
-                server.close();
-                test.done();
-            })
-        });
-    },
-
-    'retries-above-threshold': function (test) {
-        var attempt = 0;
-        var server = http.createServer(function (req, res) {
-            attempt++;
             if(attempt < 3) {
                 setTimeout(function () {
                     res.writeHead(200, {
@@ -179,62 +119,16 @@ module.exports = {
                     'message': 'ok'
                 }));
             }
+            attempt++;
         });
 
         server.listen(3000, function () {
             // Do the test here.
             var engine = new Engine({
             });
-            var script = 'create table timeout on select get from "http://localhost:3000/"\nreturn select * from timeout timeout 100;';
+            var script = 'create table timeout3 on select get from "http://localhost:3000/"\nreturn select * from timeout3 timeout 100;';
 
             var fails = 0, passes = 0;
-            function send(callback) {
-                engine.execute(
-                    script,
-                    function (emitter) {
-                        emitter.on('end', function (err, results) {
-                            if(err) {
-                                fails++;
-                            }
-                            else {
-                                passes++;
-                            }
-                            callback(null, {passes: passes, fails: fails});
-                        });
-                    });
-            }
-
-            async.series([send, send, send, send], function(err, results) {
-                test.equals(results.length, 4);
-                test.equals(results[3].passes, 4); // three failures
-                test.equals(results[3].fails, 0); // no success
-                server.close();
-                test.done();
-            })
-        });
-    },
-
-    'backoff': function (test) {
-        var attempt = 0;
-        var server = http.createServer(function (req, res) {
-            setTimeout(function () {
-                res.writeHead(200, {
-                    'Content-Type': 'application/json'
-                });
-                res.end(JSON.stringify({
-                    'message': 'ok'
-                }));
-            }, 500);
-        });
-
-        server.listen(3000, function () {
-            // Do the test here.
-            var engine = new Engine({
-            });
-            var script = 'create table timeout on select get from "http://localhost:3000/"\nreturn select * from timeout timeout 100;';
-
-            var fails = 0, passes = 0;
-
             function send(callback) {
                 engine.execute(
                     script,
@@ -253,10 +147,136 @@ module.exports = {
 
             async.series([send, send, send, send], function (err, results) {
                 test.equals(results.length, 4);
-                test.equals(results[3].passes, 0); // three failures
-                test.equals(results[3].fails, 4); // no success
+                test.equals(results[3].passes, 1);
+                test.equals(results[3].fails, 3);
                 server.close();
                 test.done();
+            })
+        });
+    },
+
+    'retries-above-threshold': function (test) {
+        var attempt = 0;
+        var server = http.createServer(function (req, res) {
+            if(attempt < 4) {
+                setTimeout(function () {
+                    res.writeHead(200, {
+                        'Content-Type': 'application/json'
+                    });
+                    res.end(JSON.stringify({
+                        'message': 'ok'
+                    }));
+                }, 500);
+            }
+            else {
+                res.writeHead(200, {
+                    'Content-Type': 'application/json'
+                });
+                res.end(JSON.stringify({
+                    'message': 'ok'
+                }));
+            }
+            attempt++;
+        });
+
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+            });
+            var script = 'create table timeout4 on select get from "http://localhost:3000/"\nreturn select * from timeout timeout4 100;';
+
+            var fails = 0, passes = 0;
+            function send(callback) {
+                engine.execute(
+                    script,
+                    function (emitter) {
+                        emitter.on('end', function (err, results) {
+                            if(err) {
+                                fails++;
+                            }
+                            else {
+                                passes++;
+                            }
+                            callback(null, {passes: passes, fails: fails});
+                        });
+                    });
+            }
+
+            async.series([send, send, send, send, send], function(err, results) {
+                test.equals(results.length, 5);
+                test.equals(results[4].passes, 0);
+                test.equals(results[4].fails, 5); // due to backoff
+                server.close();
+                test.done();
+            })
+        });
+    },
+
+    'backoff-end': function (test) {
+        var attempts = 0;
+        var server = http.createServer(function (req, res) {
+            if(attempts < 3) {
+                setTimeout(function () {
+                    res.writeHead(200, {
+                        'Content-Type': 'application/json'
+                    });
+                    res.end(JSON.stringify({
+                        'message': 'ok'
+                    }));
+                }, 100);
+            }
+            else {
+                res.writeHead(200, {
+                    'Content-Type': 'application/json'
+                });
+                res.end(JSON.stringify({
+                    'message': 'ok'
+                }));
+            }
+            attempts++;
+        });
+
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+            });
+            var script = 'create table timeout5 on select get from "http://localhost:3000/"\nreturn select * from timeout5 timeout 100 minDelay 100 maxDelay 500;';
+
+            var fails = 0, passes = 0;
+
+            function send(callback) {
+                engine.execute(
+                    script,
+                    function (emitter) {
+                        emitter.on('end', function (err, results) {
+                            if(err) {
+                                fails++;
+                            }
+                            else {
+                                passes++;
+                            }
+                            callback(null, {passes: passes, fails: fails});
+                        });
+                    });
+            }
+
+            async.series([send, send, send, send, send], function (err, results) {
+                // Wait till maxDelay
+                setTimeout(function() {
+                    engine.execute(
+                        script,
+                        function (emitter) {
+                            emitter.on('end', function (err, results) {
+                                // Should pass
+                                if(err) {
+                                    test.ok(false, 'unexpected');
+                                }
+                                server.close();
+                                test.done();
+
+                            });
+                        });
+                }, 550);
             })
         });
     }

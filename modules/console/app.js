@@ -896,11 +896,6 @@ var Console = module.exports = function(opts, cb) {
             res.end();
         }
         else {
-            //
-            // Hack: This is a hack to fix expressjs. The way expressjs is written forbids calling
-            // writeHead. We need to look more closely into this.
-            //
-            res._header = undefined;
             var contentType = results.headers['content-type'];
             var h = {
                 'Connection': serving ? 'keep-alive' : 'close',

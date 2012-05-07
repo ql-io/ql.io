@@ -49,7 +49,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
     //
     execInternal(opts, statement, function(err, results) {
         if(err) {
-            return selectEvent.cb(err, results);
+            return selectEvent.end(err, results);
         }
         if(statement.joiner) {
             // Do the join now - execute the joiner once for each row from the main's results.
@@ -89,6 +89,9 @@ exports.exec = function(opts, statement, parentEvent, cb) {
 
             // Execute joins
             async.parallel(funcs, function(err, more) {
+                if(err) {
+                    return selectEvent.end(err);
+                }
                 // If there is nothing to loop through, leave the body undefined.
                 var body = results.body ? [] : undefined;
                 var tempNames = [], tempIndices = [], first = true;
@@ -152,22 +155,34 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 results.body = body;
                 // Apply UDFs on the where clause.
                 udf.applyWhere(opts, statement, results, function(err, results) {
-                    if(statement.assign) {
-                        opts.context[statement.assign] = results.body;
-                        opts.emitter.emit(statement.assign, results.body);
+                    if(err) {
+                        return selectEvent.end(err);
                     }
-                    return selectEvent.cb(err, results);
+                    else {
+                        if(statement.assign) {
+                            opts.context[statement.assign] = results.body;
+                            opts.emitter.emit(statement.assign, results.body);
+                        }
+                        return selectEvent.end(null, results);
+                    }
                 }, tempNames, tempIndices);
             });
         }
         else {
             if(statement.joiner) {
                 // Defer where clause UDF to the join time
-                return selectEvent.cb(err, results);
+                return selectEvent.end(err, results);
             }
             else {
                 // Run where clause UDFs now
-                return udf.applyWhere(opts, statement, results, selectEvent.cb);
+                return udf.applyWhere(opts, statement, results, function(err, results) {
+                    if(err) {
+                        return selectEvent.end(err);
+                    }
+                    else {
+                        return selectEvent.end(null, results);
+                    }
+                });
             }
         }
     }, selectEvent.event);

@@ -146,19 +146,21 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
     var timeout = args.statement.timeout || 10000;
     var decision = charlie.ask([args.uri, args.name], minDelay, maxDelay);
     if(decision.state === 'nogo') {
-        args.logEmitter.emitError(args.httpReqTx.event, JSON.stringify({
-            message: 'Backoff in progress',
-            start: decision.start,
-            count: decision.count,
-            delay: decision.delay
-        }));
         var err = new Error('Back-off in progress');
         err.uri = args.uri;
         err.status = 502;
+        err.start = decision.start;
+        err.count = decision.count;
+        err.delay = decision.delay;
         return args.httpReqTx.cb(err);
     }
 
+    // As of node 0.6.17, 'timeout' events can get emitted after we get a valid response from
+    // the socket. We need to work-around that for now.
+    // TODO: cleanup when fixed in node.
+    var happy = false;
     var clientRequest = client.request(options, function (res) {
+        happy = true;
         // Tell charlie that things are good.
         charlie.ok([args.uri, args.name]);
 
@@ -254,7 +256,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             unzip.on('end', function () {
                 result = response.parseResponse(timings, reqStart, args, res, bufs);
                 putInCache(key, cache, result, res, expires);
-                response.exec(timings, reqStart, args, uniqueId, res, start, result, options, status);
+                response.exec(timings, reqStart, args, uniqueId, res, start, result, options);
             });
             unzip.on('error', function (err) {
                 var err = new Error('Corrupted stream');
@@ -311,7 +313,29 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         timings.send = Date.now() - reqStart;
     }
 
-    function handleError(err) {
+
+    var timedout = false;
+    clientRequest.setTimeout(timeout, function() {
+        if(happy) {
+            return;
+        }
+        timedout = true;
+
+        // No need to end/destroy the socket since node does it.
+
+        charlie.notok([args.uri, args.name]);
+        return args.httpReqTx.end({
+            message: 'Request timed out',
+            timeout: timeout,
+            uri: args.uri,
+            status: 502
+        });
+    });
+    clientRequest.on('error', function(err) {
+        // timeout also triggers error
+        if(timedout) {
+            return;
+        }
         // Destroy the socket first
         clientRequest.connection.destroy();
 
@@ -319,7 +343,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             message: err ? err.code || err.message : 'Network error'
         });
         // For select, retry once on network error
-        if (retry === 0 && args.statement.type === 'select') {
+        if (!timedout && retry === 0 && args.statement.type === 'select') {
             args.logEmitter.emitEvent(args.httpReqTx.event, {
                 message: 'Retrying - ' + args.uri
             });
@@ -338,10 +362,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             err.status = 502;
             return args.httpReqTx.cb(err);
         }
-    }
-
-    clientRequest.setTimeout(timeout, handleError);
-    clientRequest.on('error', handleError);
+    });
     clientRequest.end();
 }
 
@@ -375,7 +396,7 @@ function sendMessage(args, client, options, retry) {
                     'cache-key': key,
                     'hit': true
                 });
-                response.exec(timings, reqStart, args, uuid(), result.data.res, start, result.data.result, options, status);
+                response.exec(timings, reqStart, args, uuid(), result.data.res, start, result.data.result, options);
             }
         });
     }

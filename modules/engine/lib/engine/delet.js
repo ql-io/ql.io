@@ -46,7 +46,7 @@ exports.exec = function (opts, statement, parentEvent, cb) {
             line: statement.line
         },
         cb: function (err, results) {
-            return deleteEvent.cb(err, results);
+            return deleteEvent.end(err, results);
         }
     });
 
