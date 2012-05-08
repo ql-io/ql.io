@@ -381,7 +381,7 @@ module.exports = {
                     test.equals(table.name, 'ebay.trading.bestoffers');
                     test.equals(table.about, '/table?name=ebay.trading.bestoffers');
                     test.equals(table.info, '');
-                    test.ok(_.isArray(table.routes) & table.routes.length == 2);
+                    test.ok(_.isArray(table.routes) & table.routes.length == 3);
                     test.ok(table.select && table.select.uri && table.select.uri && table.select.params
                         && table.select.headers && table.select.body);
                     c.app.close();
@@ -421,7 +421,7 @@ module.exports = {
                     test.equals(table.name, 'ebay.trading.bestoffers');
                     test.equals(table.about, '/table?name=ebay.trading.bestoffers');
                     test.equals(table.info, '');
-                    test.ok(_.isArray(table.routes) & table.routes.length == 2);
+                    test.ok(_.isArray(table.routes) & table.routes.length == 3);
                     test.ok(table.select && table.select.method && table.select.uri && table.select.params
                         && table.select.headers && table.select.body);
                     c.app.close();
