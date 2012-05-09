@@ -1,3 +1,7 @@
+## May 8, 2012
+
+* Moved maxNestedRequests warning out of the _.each loop in select.js
+
 ## May 3, 2012
 
 * Add support for multipart requests.
