@@ -30,5 +30,8 @@ endif
 	killall memcached
 
 test-part:
-	@echo "You can run 'make unixtest' but it may install memcache if not there"
+	export LD_LIBRARY_PATH=/usr/local/lib
+	memcached -u $(user) -d -m 24 -p 8026 &
+	node_modules/.bin/nodeunit test --reporter junit --output ../../reports
+	killall memcached
 
