@@ -4,7 +4,7 @@ module.exports = (function(){
    *
    * http://pegjs.majda.cz/
    */
-
+  
   function quote(s) {
     /*
      * ECMA-262, 5th ed., 7.8.4: All characters may appear literally in a
@@ -27,7 +27,7 @@ module.exports = (function(){
       .replace(/[\x00-\x07\x0B\x0E-\x1F\x80-\uFFFF]/g, escape)
       + '"';
   }
-
+  
   var result = {
     /*
      * Parses the input with a generated parser. If the parsing is successfull,
@@ -43,7 +43,7 @@ module.exports = (function(){
         "variable": parse_variable,
         "digits": parse_digits
       };
-
+      
       if (startRule !== undefined) {
         if (parseFunctions[startRule] === undefined) {
           throw new Error("Invalid rule name: " + quote(startRule) + ".");
@@ -51,28 +51,28 @@ module.exports = (function(){
       } else {
         startRule = "template";
       }
-
-      var pos = 0;
+      
+      var pos = { offset: 0, line: 1, column: 1, seenCR: false };
       var reportFailures = 0;
-      var rightmostFailuresPos = 0;
+      var rightmostFailuresPos = { offset: 0, line: 1, column: 1, seenCR: false };
       var rightmostFailuresExpected = [];
-
+      
       function padLeft(input, padding, length) {
         var result = input;
-
+        
         var padLength = length - input.length;
         for (var i = 0; i < padLength; i++) {
           result = padding + result;
         }
-
+        
         return result;
       }
-
+      
       function escape(ch) {
         var charCode = ch.charCodeAt(0);
         var escapeChar;
         var length;
-
+        
         if (charCode <= 0xFF) {
           escapeChar = 'x';
           length = 2;
@@ -80,28 +80,58 @@ module.exports = (function(){
           escapeChar = 'u';
           length = 4;
         }
-
+        
         return '\\' + escapeChar + padLeft(charCode.toString(16).toUpperCase(), '0', length);
       }
-
+      
+      function clone(object) {
+        var result = {};
+        for (var key in object) {
+          result[key] = object[key];
+        }
+        return result;
+      }
+      
+      function advance(pos, n) {
+        var endOffset = pos.offset + n;
+        
+        for (var offset = pos.offset; offset < endOffset; offset++) {
+          var ch = input.charAt(offset);
+          if (ch === "\n") {
+            if (!pos.seenCR) { pos.line++; }
+            pos.column = 1;
+            pos.seenCR = false;
+          } else if (ch === "\r" || ch === "\u2028" || ch === "\u2029") {
+            pos.line++;
+            pos.column = 1;
+            pos.seenCR = true;
+          } else {
+            pos.column++;
+            pos.seenCR = false;
+          }
+        }
+        
+        pos.offset += n;
+      }
+      
       function matchFailed(failure) {
-        if (pos < rightmostFailuresPos) {
+        if (pos.offset < rightmostFailuresPos.offset) {
           return;
         }
-
-        if (pos > rightmostFailuresPos) {
-          rightmostFailuresPos = pos;
+        
+        if (pos.offset > rightmostFailuresPos.offset) {
+          rightmostFailuresPos = clone(pos);
           rightmostFailuresExpected = [];
         }
-
+        
         rightmostFailuresExpected.push(failure);
       }
-
+      
       function parse_template() {
         var result0, result1;
         var pos0;
-
-        pos0 = pos;
+        
+        pos0 = clone(pos);
         result0 = [];
         result1 = parse_expression();
         if (result1 === null) {
@@ -115,7 +145,7 @@ module.exports = (function(){
           }
         }
         if (result0 !== null) {
-          result0 = (function(offset, c) {
+          result0 = (function(offset, line, column, c) {
             var o = [];
             o.push(c[0]);
             var current = 0;
@@ -134,30 +164,30 @@ module.exports = (function(){
                 },
                 stream: o
             }
-        })(pos0, result0);
+        })(pos0.offset, pos0.line, pos0.column, result0);
         }
         if (result0 === null) {
-          pos = pos0;
+          pos = clone(pos0);
         }
         return result0;
       }
-
+      
       function parse_literal() {
         var result0;
-
-        if (/^[^^`{}]/.test(input.charAt(pos))) {
-          result0 = input.charAt(pos);
-          pos++;
+        
+        if (/^[^^ "'<>`{}]/.test(input.charAt(pos.offset))) {
+          result0 = input.charAt(pos.offset);
+          advance(pos, 1);
         } else {
           result0 = null;
           if (reportFailures === 0) {
-            matchFailed("[^^`{}]");
+            matchFailed("[^^ \"'<>`{}]");
           }
         }
         if (result0 === null) {
-          if (input.charCodeAt(pos) === 32) {
+          if (input.charCodeAt(pos.offset) === 32) {
             result0 = " ";
-            pos++;
+            advance(pos, 1);
           } else {
             result0 = null;
             if (reportFailures === 0) {
@@ -170,16 +200,16 @@ module.exports = (function(){
         }
         return result0;
       }
-
+      
       function parse_expression() {
         var result0, result1, result2;
         var pos0, pos1;
-
-        pos0 = pos;
-        pos1 = pos;
-        if (input.charCodeAt(pos) === 123) {
+        
+        pos0 = clone(pos);
+        pos1 = clone(pos);
+        if (input.charCodeAt(pos.offset) === 123) {
           result0 = "{";
-          pos++;
+          advance(pos, 1);
         } else {
           result0 = null;
           if (reportFailures === 0) {
@@ -189,9 +219,9 @@ module.exports = (function(){
         if (result0 !== null) {
           result1 = parse_variable();
           if (result1 !== null) {
-            if (input.charCodeAt(pos) === 125) {
+            if (input.charCodeAt(pos.offset) === 125) {
               result2 = "}";
-              pos++;
+              advance(pos, 1);
             } else {
               result2 = null;
               if (reportFailures === 0) {
@@ -202,36 +232,36 @@ module.exports = (function(){
               result0 = [result0, result1, result2];
             } else {
               result0 = null;
-              pos = pos1;
+              pos = clone(pos1);
             }
           } else {
             result0 = null;
-            pos = pos1;
+            pos = clone(pos1);
           }
         } else {
           result0 = null;
-          pos = pos1;
+          pos = clone(pos1);
         }
         if (result0 !== null) {
-          result0 = (function(offset, v) {
+          result0 = (function(offset, line, column, v) {
             var token = {
                 variable: v,
                 str: stringify(v)
             };
             return token;
-        })(pos0, result0[1]);
+        })(pos0.offset, pos0.line, pos0.column, result0[1]);
         }
         if (result0 === null) {
-          pos = pos0;
+          pos = clone(pos0);
         }
         return result0;
       }
-
+      
       function parse_variable() {
         var result0, result1;
         var pos0;
-
-        pos0 = pos;
+        
+        pos0 = clone(pos);
         result0 = [];
         result1 = parse_literal();
         while (result1 !== null) {
@@ -239,7 +269,7 @@ module.exports = (function(){
           result1 = parse_literal();
         }
         if (result0 !== null) {
-          result0 = (function(offset, l) {
+          result0 = (function(offset, line, column, l) {
             var o = [];
             o.push(l[0]);
             var current = 0;
@@ -253,23 +283,23 @@ module.exports = (function(){
                 }
             }
             return (o.length === 1) ? o[0] : o;
-        })(pos0, result0);
+        })(pos0.offset, pos0.line, pos0.column, result0);
         }
         if (result0 === null) {
-          pos = pos0;
+          pos = clone(pos0);
         }
         return result0;
       }
-
+      
       function parse_digits() {
         var result0, result1;
         var pos0;
-
-        pos0 = pos;
+        
+        pos0 = clone(pos);
         result0 = [];
-        if (/^[0-9]/.test(input.charAt(pos))) {
-          result1 = input.charAt(pos);
-          pos++;
+        if (/^[0-9]/.test(input.charAt(pos.offset))) {
+          result1 = input.charAt(pos.offset);
+          advance(pos, 1);
         } else {
           result1 = null;
           if (reportFailures === 0) {
@@ -278,9 +308,9 @@ module.exports = (function(){
         }
         while (result1 !== null) {
           result0.push(result1);
-          if (/^[0-9]/.test(input.charAt(pos))) {
-            result1 = input.charAt(pos);
-            pos++;
+          if (/^[0-9]/.test(input.charAt(pos.offset))) {
+            result1 = input.charAt(pos.offset);
+            advance(pos, 1);
           } else {
             result1 = null;
             if (reportFailures === 0) {
@@ -289,24 +319,24 @@ module.exports = (function(){
           }
         }
         if (result0 !== null) {
-          result0 = (function(offset, d) {
+          result0 = (function(offset, line, column, d) {
             var str = '';
             for(var i = 0; i < d.length; i++) {
                 str += d[i];
             }
             return str;
-        })(pos0, result0);
+        })(pos0.offset, pos0.line, pos0.column, result0);
         }
         if (result0 === null) {
-          pos = pos0;
+          pos = clone(pos0);
         }
         return result0;
       }
-
-
+      
+      
       function cleanupExpected(expected) {
         expected.sort();
-
+        
         var lastExpected = null;
         var cleanExpected = [];
         for (var i = 0; i < expected.length; i++) {
@@ -317,39 +347,9 @@ module.exports = (function(){
         }
         return cleanExpected;
       }
-
-      function computeErrorPosition() {
-        /*
-         * The first idea was to use |String.split| to break the input up to the
-         * error position along newlines and derive the line and column from
-         * there. However IE's |split| implementation is so broken that it was
-         * enough to prevent it.
-         */
-
-        var line = 1;
-        var column = 1;
-        var seenCR = false;
-
-        for (var i = 0; i < Math.max(pos, rightmostFailuresPos); i++) {
-          var ch = input.charAt(i);
-          if (ch === "\n") {
-            if (!seenCR) { line++; }
-            column = 1;
-            seenCR = false;
-          } else if (ch === "\r" || ch === "\u2028" || ch === "\u2029") {
-            line++;
-            column = 1;
-            seenCR = true;
-          } else {
-            column++;
-            seenCR = false;
-          }
-        }
-
-        return { line: line, column: column };
-      }
-
-
+      
+      
+      
           function typeOf(value) {
               var s = typeof value;
               if(s === 'object') {
@@ -445,39 +445,39 @@ module.exports = (function(){
               }
               return str;
           }
-
-
+      
+      
       var result = parseFunctions[startRule]();
-
+      
       /*
        * The parser is now in one of the following three states:
        *
        * 1. The parser successfully parsed the whole input.
        *
        *    - |result !== null|
-       *    - |pos === input.length|
+       *    - |pos.offset === input.length|
        *    - |rightmostFailuresExpected| may or may not contain something
        *
        * 2. The parser successfully parsed only a part of the input.
        *
        *    - |result !== null|
-       *    - |pos < input.length|
+       *    - |pos.offset < input.length|
        *    - |rightmostFailuresExpected| may or may not contain something
        *
        * 3. The parser did not successfully parse any part of the input.
        *
        *   - |result === null|
-       *   - |pos === 0|
+       *   - |pos.offset === 0|
        *   - |rightmostFailuresExpected| contains at least one failure
        *
        * All code following this comment (including called functions) must
        * handle these states.
        */
-      if (result === null || pos !== input.length) {
-        var offset = Math.max(pos, rightmostFailuresPos);
+      if (result === null || pos.offset !== input.length) {
+        var offset = Math.max(pos.offset, rightmostFailuresPos.offset);
         var found = offset < input.length ? input.charAt(offset) : null;
-        var errorPosition = computeErrorPosition();
-
+        var errorPosition = pos.offset > rightmostFailuresPos.offset ? pos : rightmostFailuresPos;
+        
         throw new this.SyntaxError(
           cleanupExpected(rightmostFailuresExpected),
           found,
@@ -486,20 +486,20 @@ module.exports = (function(){
           errorPosition.column
         );
       }
-
+      
       return result;
     },
-
+    
     /* Returns the parser source code. */
     toSource: function() { return this._source; }
   };
-
+  
   /* Thrown when a parser encounters a syntax error. */
-
+  
   result.SyntaxError = function(expected, found, offset, line, column) {
     function buildMessage(expected, found) {
       var expectedHumanized, foundHumanized;
-
+      
       switch (expected.length) {
         case 0:
           expectedHumanized = "end of input";
@@ -512,12 +512,12 @@ module.exports = (function(){
             + " or "
             + expected[expected.length - 1];
       }
-
+      
       foundHumanized = found ? quote(found) : "end of input";
-
+      
       return "Expected " + expectedHumanized + " but " + foundHumanized + " found.";
     }
-
+    
     this.name = "SyntaxError";
     this.expected = expected;
     this.found = found;
@@ -526,8 +526,8 @@ module.exports = (function(){
     this.line = line;
     this.column = column;
   };
-
+  
   result.SyntaxError.prototype = Error.prototype;
-
+  
   return result;
 })();

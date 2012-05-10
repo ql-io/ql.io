@@ -616,5 +616,50 @@ module.exports = {
 
             });
         });
+    },
+    'optional param' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.post('/ping/pong', function(req, res) {
+                var data = '';
+                req.on('data', function(chunk) {
+                    data += chunk;
+                });
+                req.on('end', function() {
+                    res.send(data);
+                });
+            });
+
+            testHttpapp.listen(80126, function() {
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/profile?kw=wii&messageid=junk&include=hello&userid=test1',
+                    method : 'GET'
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        var json = JSON.parse(data);
+                        test.ok(_.isArray(json), 'expecting an array');
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.end();
+            });
+        })
     }
 }

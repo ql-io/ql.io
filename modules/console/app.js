@@ -253,14 +253,14 @@ var Console = module.exports = function(opts, cb) {
 
                 // find a route (i.e. associated cooked script)
                 var route = _(verbRouteVariants).chain()
-                    .filter(function (verbRouteVariant) {
-                        return _.isEqual(_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)),
-                            _.keys(verbRouteVariant.query))
+                    .sortBy(function (verbRouteVariant){ return -_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)).length})
+                    .find(function(verbRouteVariant){//find the route that matches the most params and also does not miss any required param
+                        var missed = _.difference(_.keys(verbRouteVariant.query), _.keys(holder.params));
+                        var mismatch = _.filter(missed, function(key){
+                            return verbRouteVariant.query[key] && verbRouteVariant.query[key].indexOf("^") == 0;
+                        });
+                        return !mismatch.length;
                     })
-                    .reduce(function (match, route) {
-                        return match == null ?
-                            route : _.keys(route.query).length > _.keys(match.query).length ? route : match;
-                    }, null)
                     .value();
 
                 if (!route) {
@@ -279,7 +279,11 @@ var Console = module.exports = function(opts, cb) {
                 });
 
                 _.each(route.query, function(queryParam, paramName) {
-                    holder.routeParams[queryParam] = holder.params[paramName].toString();
+                    if (holder.params[paramName]){
+                        holder.routeParams[queryParam] = holder.params[paramName].toString();
+                    }else{
+                        holder.routeParams[queryParam] = null;
+                    }
                 });
 
                 // collect headers
