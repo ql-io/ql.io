@@ -252,7 +252,11 @@ var Console = module.exports = function(opts, cb) {
                 collectHttpQueryParams(req, holder, false);
 
                 // find a route (i.e. associated cooked script)
+                // routes that distinguish required and optional params
                 var route = _(verbRouteVariants).chain()
+                    .filter(function (verbRouteVariant){
+                        return verbRouteVariant.routeInfo.optparam;
+                    })
                     .sortBy(function (verbRouteVariant){ return -_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)).length})
                     .find(function(verbRouteVariant){//find the route that matches the most params and also does not miss any required param
                         var missed = _.difference(_.keys(verbRouteVariant.query), _.keys(holder.params));
@@ -262,6 +266,23 @@ var Console = module.exports = function(opts, cb) {
                         return !mismatch.length;
                     })
                     .value();
+                // second try
+                // conventional match all params
+                if (!route){
+                    route = _(verbRouteVariants).chain()
+                        .reject(function (verbRouteVariant){
+                            return verbRouteVariant.routeInfo.optparam;
+                        })
+                        .filter(function (verbRouteVariant) {
+                            return _.isEqual(_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)),
+                                _.keys(verbRouteVariant.query))
+                        })
+                        .reduce(function (match, route) {
+                            return match == null ?
+                                route : _.keys(route.query).length > _.keys(match.query).length ? route : match;
+                        }, null)
+                        .value();
+                }
 
                 if (!route) {
                     res.writeHead(400, 'Bad input', {

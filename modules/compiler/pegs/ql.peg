@@ -990,13 +990,18 @@ RetRef = o:Word {
     }
 }
 
-Route = 'via' insig 'route' insig p:QuotedWord insig 'using' insig 'method' insig
+Route = 'via' insig 'route' insig p:QuotedWord insig op:OptParam? insig 'using' insig 'method' insig
             m:('get' / 'post' / 'put' / 'delete' / 'patch') insig h:UsingHeaders? {
     return {
         path: p,
         method: m,
-        headers: h || {}
+        headers: h || {},
+        optparam: op
     }
+}
+
+OptParam = 'with' insig 'optional' insig 'params' {
+    return true;
 }
 
 // JSON
