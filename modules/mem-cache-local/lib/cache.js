@@ -117,7 +117,9 @@ var Cache = module.exports = function (opts) {
 
         cacheKey = crypto.createHash('md5').update(key).digest('hex');
 
-        memcached.set(cacheKey, {key:key, data:data}, duration, function (err, result) {
+        var dataStr = JSON.stringify({key:key, data:data});
+
+        memcached.set(cacheKey, dataStr, duration, function (err, result) {
             if (err) {
                 self.emit(cacheEvents.ERROR, {key:key, error:err});
 
@@ -148,24 +150,33 @@ var Cache = module.exports = function (opts) {
 
         cacheKey = crypto.createHash('md5').update(key).digest('hex');
 
-        memcached.get(cacheKey, function (err, result) {
+        memcached.get(cacheKey, function (err, resultStr) {
             if (err) {
                 self.emit(cacheEvents.MISS, {key:key, error:err});
 
                 return cb({message:'failed', data:{key:key}, error:err});
-            } else if (result && key === result.key) {
-                self.emit(cacheEvents.HIT, {key:key});
-
-                return cb(null, {message:'success', data:result.data});
+            } else if (resultStr) {
+                var result;
+                try {
+                    result = JSON.parse(resultStr);
+                    if (key === result.key) {
+                        self.emit(cacheEvents.HIT, {key:key});
+                        return cb(null, {message:'success', data:result.data});
+                    }
+                }
+                catch(e){
+                    self.emit(cacheEvents.MISS, {key:key, error:e, result:resultStr});
+                    return cb({message:'failed', data:{key:key}, error:e, result:resultStr});
+                }
             } else {
-                self.emit(cacheEvents.MISS, {key:key, error:'unexpected result', result:result});
-
-                return cb({message:'failed', data:{key:key}, error:'unexpected result', result:result});
+                self.emit(cacheEvents.MISS, {key:key, error:'unexpected result', result:resultStr});
+                return cb({message:'failed', data:{key:key}, error:'unexpected result', result:resultStr});
             }
 
         });
     }
 }
+
 
 util.inherits(Cache, events.EventEmitter);
 
