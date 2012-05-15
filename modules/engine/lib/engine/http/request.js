@@ -122,16 +122,21 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
     }
 
     if (args.parts && args.statement.parts) {
-        var parts = { 'req' : { 'parts' : args.parts }};
-        var part = jsonfill.lookup(args.statement.parts, parts);
-
         var form = new FormData();
         if (args.body) {
             form.append('body', new Buffer(args.body));
         }
-        if (part) {
-            form.append(part.name, part.data);
-        }
+
+        var tmp_parts = { 'req' : { 'parts' : args.parts }};
+
+        _.each(args.statement.parts, function(p) {
+            var part = jsonfill.lookup(p, tmp_parts);
+
+            if (part) {
+                form.append(part.name, part.data);
+            }
+        });
+
         _.extend(options.headers, form.getCustomHeaders(args.resource.body.type));
     }
 
