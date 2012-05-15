@@ -1,3 +1,7 @@
+## May 15, 2012
+
+* Added support for multiple attachments.
+
 ## May 8, 2012
 
 * Moved maxNestedRequests warning out of the _.each loop in select.js
