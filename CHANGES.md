@@ -2,6 +2,10 @@
 
 * Added support for multiple attachments.
 
+## May 14, 2012
+
+* Support larger than 1mb data in local-mem-cache.
+
 ## May 8, 2012
 
 * Moved maxNestedRequests warning out of the _.each loop in select.js
