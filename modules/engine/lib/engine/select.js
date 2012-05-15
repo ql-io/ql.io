@@ -58,6 +58,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
 
             // Prepare the joins
             funcs = [];
+            var maxRequests = _util.getMaxRequests(opts.config, opts.logEmitter), maxNestedRequestsExceeded = false;
             _.each(results.body, function(row) {
                 // Clone the joiner since we are going to modify it
                 cloned = clone(statement.joiner);
@@ -66,9 +67,8 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 cloned.whereCriteria[0].rhs.value = (_.isArray(row) || _.isObject(row)) ? row[joiningColumn] : row;
 
                 // Determine whether the number of funcs is within the limit, otherwise break out of the loop
-                var maxRequests = _util.getMaxRequests(opts.config, opts.logEmitter);
                 if (funcs.length >= maxRequests) {
-                    opts.logEmitter.emitWarning('Pruning the number of nested requests to config.maxNestedRequests = ' + maxRequests + '.');
+                    maxNestedRequestsExceeded = true;
                     return;
                 }
 
@@ -86,6 +86,10 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                     };
                 }(cloned));
             });
+
+            if (maxNestedRequestsExceeded) {
+                opts.logEmitter.emitWarning('Pruned the number of nested requests to config.maxNestedRequests = ' + maxRequests + '.');
+            }
 
             // Execute joins
             async.parallel(funcs, function(err, more) {
