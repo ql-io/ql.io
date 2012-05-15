@@ -65,3 +65,96 @@ exports['1mb-test'] = function (test) {
     });
 }
 
+exports['2mb-test'] = function (test) {
+    var cache = new Cache('127.0.0.1:8026');
+    var events = [];
+
+    _.chain(Cache.Events)
+        .values()
+        .each(function (name) {
+            cache.on(name, function (event) {
+                var eventObj = {};
+                eventObj[name] = event;
+                events.push(eventObj);
+                if (name == Cache.Events.END) {
+                    test.deepEqual(events, [
+                        { start:{ opts:'127.0.0.1:8026' } },
+                        { new:{ key:'2mb-test', duration:100 } },
+                        { hit:{ key:'2mb-test' } },
+                        { end:undefined }
+                    ]);
+                    test.done();
+                }
+            })
+        })
+        .value();
+    cache.start();
+
+    var data = fs.readFileSync(__dirname + '/2mb.txt', 'utf8');
+
+    cache.put('2mb-test', data, 100, function (err, result) {
+        if (err) {
+            test.ok(false, util.inspect(err, false, null));
+        }
+        else {
+            test.deepEqual(result, { message:'success', data:true });
+        }
+
+        cache.get('2mb-test', function (err, result) {
+            if (err) {
+                test.ok(false, util.inspect(err, false, null));
+            }
+            else {
+                test.deepEqual(result, { message:'success', data:data });
+            }
+            cache.end();
+        });
+    });
+}
+exports['CategoryService.xml-test'] = function (test) {
+    var cache = new Cache('127.0.0.1:8026');
+    var events = [];
+
+    _.chain(Cache.Events)
+        .values()
+        .each(function (name) {
+            cache.on(name, function (event) {
+                var eventObj = {};
+                eventObj[name] = event;
+                events.push(eventObj);
+                if (name == Cache.Events.END) {
+                    test.deepEqual(events, [
+                        { start:{ opts:'127.0.0.1:8026' } },
+                        { new:{ key:'CategoryService.xml-test', duration:100 } },
+                        { hit:{ key:'CategoryService.xml-test' } },
+                        { end:undefined }
+                    ]);
+                    test.done();
+                }
+            })
+        })
+        .value();
+    cache.start();
+
+    var data = fs.readFileSync(__dirname + '/CategoryService.xml', 'utf8');
+
+    cache.put('CategoryService.xml-test', data, 100, function (err, result) {
+        if (err) {
+            test.ok(false, util.inspect(err, false, null));
+        }
+        else {
+            test.deepEqual(result, { message:'success', data:true });
+        }
+
+        cache.get('CategoryService.xml-test', function (err, result) {
+            if (err) {
+                test.ok(false, util.inspect(err, false, null));
+            }
+            else {
+                test.deepEqual(result, { message:'success', data:data });
+            }
+            cache.end();
+        });
+    });
+}
+
