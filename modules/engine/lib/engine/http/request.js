@@ -157,10 +157,8 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
 
     // As of node 0.6.17, 'timeout' events can get emitted after we get a valid response from
     // the socket. We need to work-around that for now.
-    // TODO: cleanup when fixed in node.
-    var happy = false;
+    var happy = false; // This flag keeps track of whether we're getting response and to skip timeout events.
     var clientRequest = client.request(options, function (res) {
-        happy = true;
         // Tell charlie that things are good.
         charlie.ok([args.uri, args.name]);
 
@@ -254,6 +252,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
                 bufs.push(chunk);
             });
             unzip.on('end', function () {
+                happy = true;
                 result = response.parseResponse(timings, reqStart, args, res, bufs);
                 putInCache(key, cache, result, res, expires);
                 response.exec(timings, reqStart, args, uniqueId, res, start, result, options);
@@ -317,6 +316,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
     var timedout = false;
     clientRequest.setTimeout(timeout, function() {
         if(happy) {
+            console.log('*** timeout received when not expected');
             return;
         }
         timedout = true;

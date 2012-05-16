@@ -72,7 +72,7 @@ module.exports = {
                 res.end(JSON.stringify({
                     'message': 'ok'
                 }));
-            }, 500);
+            }, 150);
         });
 
         server.listen(3000, function () {
