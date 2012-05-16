@@ -87,7 +87,7 @@ module.exports = {
             var dir = __dirname + '/images/';
             // var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg', 'ql.io.jpg' ];
             // var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg' ];
-            var files = [ 'logoEbay_x45.gif' ];
+            var files = [ 'logoEbay_x45.gif', 'ebay_closeup.jpeg' ];
             var idx = 0;
 
             _.each(files, function(file) {
@@ -120,6 +120,7 @@ module.exports = {
                     var r = JSON.parse(data);
                     test.equals(r.parts[0], 'body');
                     test.equals(r.parts[1], 'logoEbay_x45.gif');
+                    test.equals(r.parts[2], 'ebay_closeup.jpeg');
                     test.equals(response.statusCode, 200);
                     app.close();
                     upload_server.close();

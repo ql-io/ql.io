@@ -129,7 +129,7 @@ exports['insert-opaque'] = function(test) {
 };
 
 exports['insert-multiparts'] = function(test) {
-    var q = 'insert into mytable (name, salary) values ( "John Smith", 5) with part "{myparts}"';
+    var q = 'insert into mytable (name, salary) values ( "John Smith", 5) with parts "{parts[0]}", "{parts[4]}", "{parts[2]}"';
     var statement = compiler.compile(q);
     var e = [
         {
@@ -152,7 +152,11 @@ exports['insert-multiparts'] = function(test) {
                     "name": "salary"
                 }
             ],
-            "parts": "{myparts}",
+            "parts": [
+                "{parts[0]}",
+                "{parts[4]}",
+                "{parts[2]}"
+            ],
             "id": 0
         }
     ]
