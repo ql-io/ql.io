@@ -1,3 +1,7 @@
+## May 15, 2012
+
+* Be able to start on multiple ports (separated by commas)
+
 ## May 14, 2012
 
 * Support larger than 1mb data in local-mem-cache.
