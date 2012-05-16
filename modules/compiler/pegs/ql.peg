@@ -990,13 +990,14 @@ RetRef = o:Word {
     }
 }
 
-Route = 'via' insig 'route' insig p:QuotedWord insig op:OptParam? insig 'using' insig 'method' insig
+Route = 'via' insig 'route' insig p:QuotedWord insig op:OptParam? insig d:UsingDefaults? insig 'using' insig 'method' insig
             m:('get' / 'post' / 'put' / 'delete' / 'patch') insig h:UsingHeaders? {
     return {
         path: p,
         method: m,
         headers: h || {},
-        optparam: op
+        optparam: op || false,
+        defaults: d || {}
     }
 }
 

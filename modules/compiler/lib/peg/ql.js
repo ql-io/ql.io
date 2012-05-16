@@ -5094,7 +5094,7 @@ module.exports = (function(){
             }
 
             function parse_Route() {
-                var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14;
+                var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16;
                 var pos0, pos1;
 
                 pos0 = clone(pos);
@@ -5132,90 +5132,103 @@ module.exports = (function(){
                                         if (result6 !== null) {
                                             result7 = parse_insig();
                                             if (result7 !== null) {
-                                                if (input.substr(pos.offset, 5) === "using") {
-                                                    result8 = "using";
-                                                    advance(pos, 5);
-                                                } else {
-                                                    result8 = null;
-                                                    if (reportFailures === 0) {
-                                                        matchFailed("\"using\"");
-                                                    }
-                                                }
+                                                result8 = parse_UsingDefaults();
+                                                result8 = result8 !== null ? result8 : "";
                                                 if (result8 !== null) {
                                                     result9 = parse_insig();
                                                     if (result9 !== null) {
-                                                        if (input.substr(pos.offset, 6) === "method") {
-                                                            result10 = "method";
-                                                            advance(pos, 6);
+                                                        if (input.substr(pos.offset, 5) === "using") {
+                                                            result10 = "using";
+                                                            advance(pos, 5);
                                                         } else {
                                                             result10 = null;
                                                             if (reportFailures === 0) {
-                                                                matchFailed("\"method\"");
+                                                                matchFailed("\"using\"");
                                                             }
                                                         }
                                                         if (result10 !== null) {
                                                             result11 = parse_insig();
                                                             if (result11 !== null) {
-                                                                if (input.substr(pos.offset, 3) === "get") {
-                                                                    result12 = "get";
-                                                                    advance(pos, 3);
+                                                                if (input.substr(pos.offset, 6) === "method") {
+                                                                    result12 = "method";
+                                                                    advance(pos, 6);
                                                                 } else {
                                                                     result12 = null;
                                                                     if (reportFailures === 0) {
-                                                                        matchFailed("\"get\"");
-                                                                    }
-                                                                }
-                                                                if (result12 === null) {
-                                                                    if (input.substr(pos.offset, 4) === "post") {
-                                                                        result12 = "post";
-                                                                        advance(pos, 4);
-                                                                    } else {
-                                                                        result12 = null;
-                                                                        if (reportFailures === 0) {
-                                                                            matchFailed("\"post\"");
-                                                                        }
-                                                                    }
-                                                                    if (result12 === null) {
-                                                                        if (input.substr(pos.offset, 3) === "put") {
-                                                                            result12 = "put";
-                                                                            advance(pos, 3);
-                                                                        } else {
-                                                                            result12 = null;
-                                                                            if (reportFailures === 0) {
-                                                                                matchFailed("\"put\"");
-                                                                            }
-                                                                        }
-                                                                        if (result12 === null) {
-                                                                            if (input.substr(pos.offset, 6) === "delete") {
-                                                                                result12 = "delete";
-                                                                                advance(pos, 6);
-                                                                            } else {
-                                                                                result12 = null;
-                                                                                if (reportFailures === 0) {
-                                                                                    matchFailed("\"delete\"");
-                                                                                }
-                                                                            }
-                                                                            if (result12 === null) {
-                                                                                if (input.substr(pos.offset, 5) === "patch") {
-                                                                                    result12 = "patch";
-                                                                                    advance(pos, 5);
-                                                                                } else {
-                                                                                    result12 = null;
-                                                                                    if (reportFailures === 0) {
-                                                                                        matchFailed("\"patch\"");
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        }
+                                                                        matchFailed("\"method\"");
                                                                     }
                                                                 }
                                                                 if (result12 !== null) {
                                                                     result13 = parse_insig();
                                                                     if (result13 !== null) {
-                                                                        result14 = parse_UsingHeaders();
-                                                                        result14 = result14 !== null ? result14 : "";
+                                                                        if (input.substr(pos.offset, 3) === "get") {
+                                                                            result14 = "get";
+                                                                            advance(pos, 3);
+                                                                        } else {
+                                                                            result14 = null;
+                                                                            if (reportFailures === 0) {
+                                                                                matchFailed("\"get\"");
+                                                                            }
+                                                                        }
+                                                                        if (result14 === null) {
+                                                                            if (input.substr(pos.offset, 4) === "post") {
+                                                                                result14 = "post";
+                                                                                advance(pos, 4);
+                                                                            } else {
+                                                                                result14 = null;
+                                                                                if (reportFailures === 0) {
+                                                                                    matchFailed("\"post\"");
+                                                                                }
+                                                                            }
+                                                                            if (result14 === null) {
+                                                                                if (input.substr(pos.offset, 3) === "put") {
+                                                                                    result14 = "put";
+                                                                                    advance(pos, 3);
+                                                                                } else {
+                                                                                    result14 = null;
+                                                                                    if (reportFailures === 0) {
+                                                                                        matchFailed("\"put\"");
+                                                                                    }
+                                                                                }
+                                                                                if (result14 === null) {
+                                                                                    if (input.substr(pos.offset, 6) === "delete") {
+                                                                                        result14 = "delete";
+                                                                                        advance(pos, 6);
+                                                                                    } else {
+                                                                                        result14 = null;
+                                                                                        if (reportFailures === 0) {
+                                                                                            matchFailed("\"delete\"");
+                                                                                        }
+                                                                                    }
+                                                                                    if (result14 === null) {
+                                                                                        if (input.substr(pos.offset, 5) === "patch") {
+                                                                                            result14 = "patch";
+                                                                                            advance(pos, 5);
+                                                                                        } else {
+                                                                                            result14 = null;
+                                                                                            if (reportFailures === 0) {
+                                                                                                matchFailed("\"patch\"");
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
                                                                         if (result14 !== null) {
-                                                                            result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14];
+                                                                            result15 = parse_insig();
+                                                                            if (result15 !== null) {
+                                                                                result16 = parse_UsingHeaders();
+                                                                                result16 = result16 !== null ? result16 : "";
+                                                                                if (result16 !== null) {
+                                                                                    result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16];
+                                                                                } else {
+                                                                                    result0 = null;
+                                                                                    pos = clone(pos1);
+                                                                                }
+                                                                            } else {
+                                                                                result0 = null;
+                                                                                pos = clone(pos1);
+                                                                            }
                                                                         } else {
                                                                             result0 = null;
                                                                             pos = clone(pos1);
@@ -5277,14 +5290,15 @@ module.exports = (function(){
                     pos = clone(pos1);
                 }
                 if (result0 !== null) {
-                    result0 = (function(offset, line, column, p, op, m, h) {
+                    result0 = (function(offset, line, column, p, op, d, m, h) {
                         return {
                             path: p,
                             method: m,
                             headers: h || {},
-                            optparam: op
+                            optparam: op || false,
+                            defaults: d || {}
                         }
-                    })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6], result0[12], result0[14]);
+                    })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6], result0[8], result0[14], result0[16]);
                 }
                 if (result0 === null) {
                     pos = clone(pos0);

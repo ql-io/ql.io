@@ -290,8 +290,14 @@ var Console = module.exports = function(opts, cb) {
                     return;
                 }
 
+
+                //collect default query params if needed
+                var keys = _.difference(_.keys(route.routeInfo.defaults), _.keys(holder.params))
+                _.each(keys, function(key){
+                    holder.params[key] = route.routeInfo.defaults[key];
+                })
                 // collect the path params
-                var keys = _.keys(req.params);
+                keys = _.keys(req.params);
                 _.each(keys, function(key) {
                     holder.routeParams[key] = req.params[key];
                 });
