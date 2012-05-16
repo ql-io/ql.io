@@ -260,13 +260,14 @@ var Console = module.exports = function(opts, cb) {
                                 return _.has(verbRouteVariant.routeInfo.defaults, verbRouteVariant.query[k]);
                             })
                             .value();
-                        //missed query params that are neither defaults nor user provided
+                        // missed query params that are neither defaults nor user provided
                         var missed = _.difference(_.keys(verbRouteVariant.query), _.union(defaultKeys, _.keys(holder.params)));
                         var misrequired = _.filter(missed, function(key){
                             if (verbRouteVariant.routeInfo.optparam){
                                 // if with optional params, find if any required param is missed
                                 return verbRouteVariant.query[key] && verbRouteVariant.query[key].indexOf("^") == 0;
-                            }else{
+                            }
+                            else{
                                 // everything is required
                                 return missed;
                             }
@@ -297,13 +298,8 @@ var Console = module.exports = function(opts, cb) {
                 }
 
 
-                //collect default query params if needed
+                // collect default query params if needed
                 _.defaults(holder.params, route.routeInfo.defaults);
-                //var keys = _.difference(_.keys(route.routeInfo.defaults), _.keys(holder.params))
-                //_.each(keys, function(key){
-                //    holder.params[key] = route.routeInfo.defaults[key];
-                //})
-                // collect the path params
                 var keys = _.keys(req.params);
                 _.each(keys, function(key) {
                     holder.routeParams[key] = req.params[key];
