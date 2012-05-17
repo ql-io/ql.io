@@ -267,7 +267,7 @@ var Console = module.exports = function(opts, cb) {
                                 // if with optional params, find if any required param is missed
                                 return verbRouteVariant.query[key] && verbRouteVariant.query[key].indexOf("^") == 0;
                             }
-                            else{
+                            else {
                                 // everything is required
                                 return missed;
                             }
