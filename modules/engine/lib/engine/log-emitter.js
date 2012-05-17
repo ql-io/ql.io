@@ -171,6 +171,10 @@ var LogEmitter = module.exports = function() {
         }
         else if (arguments.length === 1) {
             msg = arguments[0];
+            if(msg.stack) {
+                cause = msg;
+                msg = msg.message;
+            }
         }
         event.clazz = 'error';
         this.emit(eventTypes.ERROR, event, msg, cause);

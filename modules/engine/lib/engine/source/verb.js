@@ -661,6 +661,7 @@ function send(verb, args, uri, params, cb) {
     }
 
     request.send({
+        name: args.name,
         cb: cb,
         table: verb.table,
         config: args.config || {},

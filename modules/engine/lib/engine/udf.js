@@ -59,7 +59,7 @@ exports.applyWhere = function(opts, statement, results, cb, tempNames, tempIndic
         if(udfCalls.length > 0) {
             async.series(udfCalls, function (err, mods) {
                 results.body = mods[0];
-                return cb(null, results);
+                return cb(err, results);
             })
         }
         else {
