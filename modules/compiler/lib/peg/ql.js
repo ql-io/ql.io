@@ -2790,7 +2790,7 @@ module.exports = (function(){
       }
 
       function parse_InsertStatement() {
-        var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10;
+        var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15;
         var pos0, pos1;
 
         pos0 = clone(pos);
@@ -2836,7 +2836,40 @@ module.exports = (function(){
                             result10 = parse_WithParts();
                             result10 = result10 !== null ? result10 : "";
                             if (result10 !== null) {
-                              result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10];
+                              result11 = parse_Timeout();
+                              result11 = result11 !== null ? result11 : "";
+                              if (result11 !== null) {
+                                result12 = parse_insig();
+                                if (result12 !== null) {
+                                  result13 = parse_MinDelay();
+                                  result13 = result13 !== null ? result13 : "";
+                                  if (result13 !== null) {
+                                    result14 = parse_insig();
+                                    if (result14 !== null) {
+                                      result15 = parse_MaxDelay();
+                                      result15 = result15 !== null ? result15 : "";
+                                      if (result15 !== null) {
+                                        result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15];
+                                      } else {
+                                        result0 = null;
+                                        pos = clone(pos1);
+                                      }
+                                    } else {
+                                      result0 = null;
+                                      pos = clone(pos1);
+                                    }
+                                  } else {
+                                    result0 = null;
+                                    pos = clone(pos1);
+                                  }
+                                } else {
+                                  result0 = null;
+                                  pos = clone(pos1);
+                                }
+                              } else {
+                                result0 = null;
+                                pos = clone(pos1);
+                              }
                             } else {
                               result0 = null;
                               pos = clone(pos1);
@@ -2882,7 +2915,7 @@ module.exports = (function(){
           pos = clone(pos1);
         }
         if (result0 !== null) {
-          result0 = (function(offset, line, column, s, c, v, wp) {
+          result0 = (function(offset, line, column, s, c, v, wp, timeout, minDelay, maxDelay) {
             if (!v && c){
                 throw new this.SyntaxError("Line " + line + ": Values are required if columns are specified.");
             }
@@ -2898,6 +2931,16 @@ module.exports = (function(){
                 values: v.value,
                 line: line
             }
+            if(timeout) {
+                ret.timeout = timeout;
+            }
+            if(minDelay) {
+                ret.minDelay = minDelay;
+            }
+            if(maxDelay) {
+                ret.maxDelay = maxDelay;
+            }
+
             if (v){
                 if (c){
                     ret.columns = c,
@@ -2910,7 +2953,7 @@ module.exports = (function(){
                 ret.parts = wp.value;
             }
             return ret;
-        })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6], result0[8], result0[10]);
+        })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6], result0[8], result0[10], result0[11], result0[13], result0[15]);
         }
         if (result0 === null) {
           pos = clone(pos0);
@@ -2919,7 +2962,7 @@ module.exports = (function(){
       }
 
       function parse_DeleteStatement() {
-        var result0, result1, result2, result3, result4, result5, result6, result7;
+        var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12;
         var pos0, pos1;
 
         pos0 = clone(pos);
@@ -2959,7 +3002,46 @@ module.exports = (function(){
                       result7 = parse_WhereClause();
                     }
                     if (result6 !== null) {
-                      result0 = [result0, result1, result2, result3, result4, result5, result6];
+                      result7 = parse_insig();
+                      if (result7 !== null) {
+                        result8 = parse_Timeout();
+                        result8 = result8 !== null ? result8 : "";
+                        if (result8 !== null) {
+                          result9 = parse_insig();
+                          if (result9 !== null) {
+                            result10 = parse_MinDelay();
+                            result10 = result10 !== null ? result10 : "";
+                            if (result10 !== null) {
+                              result11 = parse_insig();
+                              if (result11 !== null) {
+                                result12 = parse_MaxDelay();
+                                result12 = result12 !== null ? result12 : "";
+                                if (result12 !== null) {
+                                  result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12];
+                                } else {
+                                  result0 = null;
+                                  pos = clone(pos1);
+                                }
+                              } else {
+                                result0 = null;
+                                pos = clone(pos1);
+                              }
+                            } else {
+                              result0 = null;
+                              pos = clone(pos1);
+                            }
+                          } else {
+                            result0 = null;
+                            pos = clone(pos1);
+                          }
+                        } else {
+                          result0 = null;
+                          pos = clone(pos1);
+                        }
+                      } else {
+                        result0 = null;
+                        pos = clone(pos1);
+                      }
                     } else {
                       result0 = null;
                       pos = clone(pos1);
@@ -2989,14 +3071,25 @@ module.exports = (function(){
           pos = clone(pos1);
         }
         if (result0 !== null) {
-          result0 = (function(offset, line, column, s, wc) {
-            return {
+          result0 = (function(offset, line, column, s, wc, timeout, minDelay, maxDelay) {
+            var s = {
                 type: 'delete',
                 source: s,
                 whereCriteria: wc[0],
                 line: line
             }
-        })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6]);
+
+            if(timeout) {
+                s.timeout = timeout;
+            }
+            if(minDelay) {
+                s.minDelay = minDelay;
+            }
+            if(maxDelay) {
+                s.maxDelay = maxDelay;
+            }
+            return s;
+        })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6], result0[8], result0[10], result0[12]);
         }
         if (result0 === null) {
           pos = clone(pos0);
