@@ -4,7 +4,7 @@ module.exports = (function(){
    *
    * http://pegjs.majda.cz/
    */
-  
+
   function quote(s) {
     /*
      * ECMA-262, 5th ed., 7.8.4: All characters may appear literally in a
@@ -27,7 +27,7 @@ module.exports = (function(){
       .replace(/[\x00-\x07\x0B\x0E-\x1F\x80-\uFFFF]/g, escape)
       + '"';
   }
-  
+
   var result = {
     /*
      * Parses the input with a generated parser. If the parsing is successfull,
@@ -89,6 +89,9 @@ module.exports = (function(){
         "WhereClause": parse_WhereClause,
         "Limit": parse_Limit,
         "Offset": parse_Offset,
+        "Timeout": parse_Timeout,
+        "MinDelay": parse_MinDelay,
+        "MaxDelay": parse_MaxDelay,
         "WhereCriteria": parse_WhereCriteria,
         "And": parse_And,
         "Cond": parse_Cond,
@@ -175,7 +178,7 @@ module.exports = (function(){
         "achar": parse_achar,
         "hexDigit": parse_hexDigit
       };
-      
+
       if (startRule !== undefined) {
         if (parseFunctions[startRule] === undefined) {
           throw new Error("Invalid rule name: " + quote(startRule) + ".");
@@ -183,28 +186,28 @@ module.exports = (function(){
       } else {
         startRule = "start";
       }
-      
+
       var pos = { offset: 0, line: 1, column: 1, seenCR: false };
       var reportFailures = 0;
       var rightmostFailuresPos = { offset: 0, line: 1, column: 1, seenCR: false };
       var rightmostFailuresExpected = [];
-      
+
       function padLeft(input, padding, length) {
         var result = input;
-        
+
         var padLength = length - input.length;
         for (var i = 0; i < padLength; i++) {
           result = padding + result;
         }
-        
+
         return result;
       }
-      
+
       function escape(ch) {
         var charCode = ch.charCodeAt(0);
         var escapeChar;
         var length;
-        
+
         if (charCode <= 0xFF) {
           escapeChar = 'x';
           length = 2;
@@ -212,10 +215,10 @@ module.exports = (function(){
           escapeChar = 'u';
           length = 4;
         }
-        
+
         return '\\' + escapeChar + padLeft(charCode.toString(16).toUpperCase(), '0', length);
       }
-      
+
       function clone(object) {
         var result = {};
         for (var key in object) {
@@ -223,10 +226,10 @@ module.exports = (function(){
         }
         return result;
       }
-      
+
       function advance(pos, n) {
         var endOffset = pos.offset + n;
-        
+
         for (var offset = pos.offset; offset < endOffset; offset++) {
           var ch = input.charAt(offset);
           if (ch === "\n") {
@@ -242,27 +245,27 @@ module.exports = (function(){
             pos.seenCR = false;
           }
         }
-        
+
         pos.offset += n;
       }
-      
+
       function matchFailed(failure) {
         if (pos.offset < rightmostFailuresPos.offset) {
           return;
         }
-        
+
         if (pos.offset > rightmostFailuresPos.offset) {
           rightmostFailuresPos = clone(pos);
           rightmostFailuresExpected = [];
         }
-        
+
         rightmostFailuresExpected.push(failure);
       }
-      
+
       function parse_start() {
         var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = [];
@@ -368,11 +371,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_LineCrlf() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Line();
@@ -403,11 +406,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Line() {
         var result0, result1;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_sp();
@@ -439,11 +442,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Assign() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Output();
@@ -493,7 +496,7 @@ module.exports = (function(){
                 s.assign = a.assign;
                 s.line = a.line;
             }
-        
+
             // Add LHS to the symbol table
             symbols[a.assign] = {};
             return s;
@@ -504,10 +507,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_StatementOrObject() {
         var result0;
-        
+
         result0 = parse_Statement();
         if (result0 === null) {
           result0 = parse_Value();
@@ -517,11 +520,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_CallUdf() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_UDF();
         if (result0 !== null) {
@@ -537,10 +540,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Statement() {
         var result0;
-        
+
         result0 = parse_SelectStatement();
         if (result0 === null) {
           result0 = parse_ShowRoutesStatement();
@@ -565,11 +568,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Output() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_insig();
@@ -624,11 +627,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Comment() {
         var result0, result1, result2, result3;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 2) === "--") {
@@ -700,11 +703,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_CreateStatement() {
         var result0, result1, result2, result3, result4, result5, result6, result7;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 6) === "create") {
@@ -790,10 +793,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Type() {
         var result0;
-        
+
         if (input.substr(pos.offset, 6) === "select") {
           result0 = "select";
           advance(pos, 6);
@@ -838,11 +841,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Verb() {
         var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16, result17, result18, result19;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 2) === "on") {
@@ -1007,10 +1010,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_VerbName() {
         var result0;
-        
+
         result0 = parse_GetFrom();
         if (result0 === null) {
           result0 = parse_PostTo();
@@ -1026,11 +1029,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_GetFrom() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 3) === "get") {
@@ -1078,11 +1081,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_PostTo() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 4) === "post") {
@@ -1130,11 +1133,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_PutTo() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 3) === "put") {
@@ -1182,11 +1185,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Delete() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         if (input.substr(pos.offset, 6) === "delete") {
           result0 = "delete";
@@ -1207,11 +1210,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Patch() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         if (input.substr(pos.offset, 5) === "patch") {
           result0 = "patch";
@@ -1232,11 +1235,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_UsingDefaults() {
         var result0, result1, result2, result3;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 5) === "using") {
@@ -1290,11 +1293,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_UsingHeaders() {
         var result0, result1, result2, result3;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 5) === "using") {
@@ -1348,11 +1351,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_UsingMonkeyPatch() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 5) === "using") {
@@ -1412,11 +1415,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_UsingBodyTemplate() {
         var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 5) === "using") {
@@ -1534,11 +1537,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_WithParts() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 4) === "with") {
@@ -1598,11 +1601,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_ForEachMember() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 7) === "foreach") {
@@ -1642,11 +1645,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_WithAliases() {
         var result0, result1, result2, result3;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 4) === "with") {
@@ -1700,11 +1703,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_AuthenticateUsing() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 12) === "authenticate") {
@@ -1775,11 +1778,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_ResultSet() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 9) === "resultset") {
@@ -1819,11 +1822,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_NVPs() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_NVP();
@@ -1856,11 +1859,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_CNVP() {
         var result0, result1;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.charCodeAt(pos.offset) === 44) {
@@ -1894,11 +1897,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_NVP() {
         var result0, result1, result2, result3, result4, result5, result6;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_insig();
@@ -1968,11 +1971,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Expires() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_insig();
@@ -2026,11 +2029,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_SelectStatement() {
-        var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13;
+        var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16, result17, result18;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Select();
@@ -2066,23 +2069,54 @@ module.exports = (function(){
                         if (result8 !== null) {
                           result9 = parse_insig();
                           if (result9 !== null) {
-                            result10 = [];
-                            result11 = parse_Limit();
-                            while (result11 !== null) {
-                              result10.push(result11);
-                              result11 = parse_Limit();
-                            }
+                            result10 = parse_Limit();
+                            result10 = result10 !== null ? result10 : "";
                             if (result10 !== null) {
                               result11 = parse_insig();
                               if (result11 !== null) {
-                                result12 = [];
-                                result13 = parse_Offset();
-                                while (result13 !== null) {
-                                  result12.push(result13);
-                                  result13 = parse_Offset();
-                                }
+                                result12 = parse_Offset();
+                                result12 = result12 !== null ? result12 : "";
                                 if (result12 !== null) {
-                                  result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12];
+                                  result13 = parse_insig();
+                                  if (result13 !== null) {
+                                    result14 = parse_Timeout();
+                                    result14 = result14 !== null ? result14 : "";
+                                    if (result14 !== null) {
+                                      result15 = parse_insig();
+                                      if (result15 !== null) {
+                                        result16 = parse_MinDelay();
+                                        result16 = result16 !== null ? result16 : "";
+                                        if (result16 !== null) {
+                                          result17 = parse_insig();
+                                          if (result17 !== null) {
+                                            result18 = parse_MaxDelay();
+                                            result18 = result18 !== null ? result18 : "";
+                                            if (result18 !== null) {
+                                              result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15, result16, result17, result18];
+                                            } else {
+                                              result0 = null;
+                                              pos = clone(pos1);
+                                            }
+                                          } else {
+                                            result0 = null;
+                                            pos = clone(pos1);
+                                          }
+                                        } else {
+                                          result0 = null;
+                                          pos = clone(pos1);
+                                        }
+                                      } else {
+                                        result0 = null;
+                                        pos = clone(pos1);
+                                      }
+                                    } else {
+                                      result0 = null;
+                                      pos = clone(pos1);
+                                    }
+                                  } else {
+                                    result0 = null;
+                                    pos = clone(pos1);
+                                  }
                                 } else {
                                   result0 = null;
                                   pos = clone(pos1);
@@ -2136,7 +2170,7 @@ module.exports = (function(){
           pos = clone(pos1);
         }
         if (result0 !== null) {
-          result0 = (function(offset, line, column, s, c, fc, wc, l, o) {
+          result0 = (function(offset, line, column, s, c, fc, wc, l, o, timeout, minDelay, maxDelay) {
             var s = {
                 type: s.type,
                 line: s.line,
@@ -2144,17 +2178,26 @@ module.exports = (function(){
                 columns: c,
                 whereCriteria: wc[0]
             };
-            if(l[0]) {
-                s.limit = l[0];
+            if(l) {
+                s.limit = l;
             }
-            if(o[0]) {
-                s.offset = o[0];
+            if(o) {
+                s.offset = o;
+            }
+            if(timeout) {
+                s.timeout = timeout;
+            }
+            if(minDelay) {
+                s.minDelay = minDelay;
+            }
+            if(maxDelay) {
+                s.maxDelay = maxDelay;
             }
             s.id = id;
             if(c && c.length > 0 && c[0].alias) {
                 s.usingColumnAliases = true
             }
-        
+
             // Extras from where clause - there are non-literal args of UDFs in the where clause
             if(s.whereCriteria && typeOf(s.columns) === 'array') {
                 for(var i = 0; i < s.whereCriteria.length; i++) {
@@ -2198,18 +2241,18 @@ module.exports = (function(){
             s = splitJoins(s);
             delete s.id;
             return s;
-        })(pos0.offset, pos0.line, pos0.column, result0[0], result0[2], result0[6], result0[8], result0[10], result0[12]);
+        })(pos0.offset, pos0.line, pos0.column, result0[0], result0[2], result0[6], result0[8], result0[10], result0[12], result0[14], result0[16], result0[18]);
         }
         if (result0 === null) {
           pos = clone(pos0);
         }
         return result0;
       }
-      
+
       function parse_Select() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         if (input.substr(pos.offset, 6) === "select") {
           result0 = "select";
@@ -2233,11 +2276,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_ShowRoutesStatement() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Show();
@@ -2280,11 +2323,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_ShowStatement() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Show();
@@ -2327,11 +2370,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Show() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         if (input.substr(pos.offset, 4) === "show") {
           result0 = "show";
@@ -2354,11 +2397,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Describe() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         if (input.substr(pos.offset, 8) === "describe") {
           result0 = "describe";
@@ -2392,11 +2435,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_DescribeRouteStatement() {
         var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Describe();
@@ -2557,11 +2600,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_DescribeStatement() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Describe();
@@ -2597,11 +2640,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_ColumnsParen() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.charCodeAt(pos.offset) === 40) {
@@ -2661,11 +2704,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_ValuesParen() {
         var result0, result1, result2, result3, result4, result5, result6;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 6) === "values") {
@@ -2745,11 +2788,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_InsertStatement() {
-        var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10;
+        var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 6) === "insert") {
@@ -2793,7 +2836,40 @@ module.exports = (function(){
                             result10 = parse_WithParts();
                             result10 = result10 !== null ? result10 : "";
                             if (result10 !== null) {
-                              result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10];
+                              result11 = parse_Timeout();
+                              result11 = result11 !== null ? result11 : "";
+                              if (result11 !== null) {
+                                result12 = parse_insig();
+                                if (result12 !== null) {
+                                  result13 = parse_MinDelay();
+                                  result13 = result13 !== null ? result13 : "";
+                                  if (result13 !== null) {
+                                    result14 = parse_insig();
+                                    if (result14 !== null) {
+                                      result15 = parse_MaxDelay();
+                                      result15 = result15 !== null ? result15 : "";
+                                      if (result15 !== null) {
+                                        result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12, result13, result14, result15];
+                                      } else {
+                                        result0 = null;
+                                        pos = clone(pos1);
+                                      }
+                                    } else {
+                                      result0 = null;
+                                      pos = clone(pos1);
+                                    }
+                                  } else {
+                                    result0 = null;
+                                    pos = clone(pos1);
+                                  }
+                                } else {
+                                  result0 = null;
+                                  pos = clone(pos1);
+                                }
+                              } else {
+                                result0 = null;
+                                pos = clone(pos1);
+                              }
                             } else {
                               result0 = null;
                               pos = clone(pos1);
@@ -2839,7 +2915,7 @@ module.exports = (function(){
           pos = clone(pos1);
         }
         if (result0 !== null) {
-          result0 = (function(offset, line, column, s, c, v, wp) {
+          result0 = (function(offset, line, column, s, c, v, wp, timeout, minDelay, maxDelay) {
             if (!v && c){
                 throw new this.SyntaxError("Line " + line + ": Values are required if columns are specified.");
             }
@@ -2855,6 +2931,16 @@ module.exports = (function(){
                 values: v.value,
                 line: line
             }
+            if(timeout) {
+                ret.timeout = timeout;
+            }
+            if(minDelay) {
+                ret.minDelay = minDelay;
+            }
+            if(maxDelay) {
+                ret.maxDelay = maxDelay;
+            }
+
             if (v){
                 if (c){
                     ret.columns = c,
@@ -2867,18 +2953,18 @@ module.exports = (function(){
                 ret.parts = wp.value;
             }
             return ret;
-        })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6], result0[8], result0[10]);
+        })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6], result0[8], result0[10], result0[11], result0[13], result0[15]);
         }
         if (result0 === null) {
           pos = clone(pos0);
         }
         return result0;
       }
-      
+
       function parse_DeleteStatement() {
-        var result0, result1, result2, result3, result4, result5, result6, result7;
+        var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 6) === "delete") {
@@ -2916,7 +3002,46 @@ module.exports = (function(){
                       result7 = parse_WhereClause();
                     }
                     if (result6 !== null) {
-                      result0 = [result0, result1, result2, result3, result4, result5, result6];
+                      result7 = parse_insig();
+                      if (result7 !== null) {
+                        result8 = parse_Timeout();
+                        result8 = result8 !== null ? result8 : "";
+                        if (result8 !== null) {
+                          result9 = parse_insig();
+                          if (result9 !== null) {
+                            result10 = parse_MinDelay();
+                            result10 = result10 !== null ? result10 : "";
+                            if (result10 !== null) {
+                              result11 = parse_insig();
+                              if (result11 !== null) {
+                                result12 = parse_MaxDelay();
+                                result12 = result12 !== null ? result12 : "";
+                                if (result12 !== null) {
+                                  result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12];
+                                } else {
+                                  result0 = null;
+                                  pos = clone(pos1);
+                                }
+                              } else {
+                                result0 = null;
+                                pos = clone(pos1);
+                              }
+                            } else {
+                              result0 = null;
+                              pos = clone(pos1);
+                            }
+                          } else {
+                            result0 = null;
+                            pos = clone(pos1);
+                          }
+                        } else {
+                          result0 = null;
+                          pos = clone(pos1);
+                        }
+                      } else {
+                        result0 = null;
+                        pos = clone(pos1);
+                      }
                     } else {
                       result0 = null;
                       pos = clone(pos1);
@@ -2946,25 +3071,36 @@ module.exports = (function(){
           pos = clone(pos1);
         }
         if (result0 !== null) {
-          result0 = (function(offset, line, column, s, wc) {
-            return {
+          result0 = (function(offset, line, column, s, wc, timeout, minDelay, maxDelay) {
+            var s = {
                 type: 'delete',
                 source: s,
                 whereCriteria: wc[0],
                 line: line
             }
-        })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6]);
+
+            if(timeout) {
+                s.timeout = timeout;
+            }
+            if(minDelay) {
+                s.minDelay = minDelay;
+            }
+            if(maxDelay) {
+                s.maxDelay = maxDelay;
+            }
+            return s;
+        })(pos0.offset, pos0.line, pos0.column, result0[4], result0[6], result0[8], result0[10], result0[12]);
         }
         if (result0 === null) {
           pos = clone(pos0);
         }
         return result0;
       }
-      
+
       function parse_ColumnsClause() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_All();
         if (result0 === null) {
@@ -2989,11 +3125,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_FromClause() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result1 = parse_Source();
@@ -3033,21 +3169,21 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Source() {
         var result0;
-        
+
         result0 = parse_AliasSource();
         if (result0 === null) {
           result0 = parse_NonAliasSource();
         }
         return result0;
       }
-      
+
       function parse_CommaSource() {
         var result0, result1, result2, result3;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_insig();
@@ -3085,11 +3221,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_AliasSource() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Name();
@@ -3144,11 +3280,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_NonAliasSource() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_Name();
         if (result0 !== null) {
@@ -3164,11 +3300,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_WhereClause() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 5) === "where") {
@@ -3208,11 +3344,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Limit() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 5) === "limit") {
@@ -3252,11 +3388,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Offset() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 6) === "offset") {
@@ -3296,11 +3432,143 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
+      function parse_Timeout() {
+        var result0, result1, result2;
+        var pos0, pos1;
+
+        pos0 = clone(pos);
+        pos1 = clone(pos);
+        if (input.substr(pos.offset, 7).toLowerCase() === "timeout") {
+          result0 = input.substr(pos.offset, 7);
+          advance(pos, 7);
+        } else {
+          result0 = null;
+          if (reportFailures === 0) {
+            matchFailed("\"timeout\"");
+          }
+        }
+        if (result0 !== null) {
+          result1 = parse_insig();
+          if (result1 !== null) {
+            result2 = parse_Digits();
+            if (result2 !== null) {
+              result0 = [result0, result1, result2];
+            } else {
+              result0 = null;
+              pos = clone(pos1);
+            }
+          } else {
+            result0 = null;
+            pos = clone(pos1);
+          }
+        } else {
+          result0 = null;
+          pos = clone(pos1);
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, line, column, n) {
+            return n;
+        })(pos0.offset, pos0.line, pos0.column, result0[2]);
+        }
+        if (result0 === null) {
+          pos = clone(pos0);
+        }
+        return result0;
+      }
+
+      function parse_MinDelay() {
+        var result0, result1, result2;
+        var pos0, pos1;
+
+        pos0 = clone(pos);
+        pos1 = clone(pos);
+        if (input.substr(pos.offset, 8).toLowerCase() === "mindelay") {
+          result0 = input.substr(pos.offset, 8);
+          advance(pos, 8);
+        } else {
+          result0 = null;
+          if (reportFailures === 0) {
+            matchFailed("\"minDelay\"");
+          }
+        }
+        if (result0 !== null) {
+          result1 = parse_insig();
+          if (result1 !== null) {
+            result2 = parse_Digits();
+            if (result2 !== null) {
+              result0 = [result0, result1, result2];
+            } else {
+              result0 = null;
+              pos = clone(pos1);
+            }
+          } else {
+            result0 = null;
+            pos = clone(pos1);
+          }
+        } else {
+          result0 = null;
+          pos = clone(pos1);
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, line, column, n) {
+            return n;
+        })(pos0.offset, pos0.line, pos0.column, result0[2]);
+        }
+        if (result0 === null) {
+          pos = clone(pos0);
+        }
+        return result0;
+      }
+
+      function parse_MaxDelay() {
+        var result0, result1, result2;
+        var pos0, pos1;
+
+        pos0 = clone(pos);
+        pos1 = clone(pos);
+        if (input.substr(pos.offset, 8).toLowerCase() === "maxdelay") {
+          result0 = input.substr(pos.offset, 8);
+          advance(pos, 8);
+        } else {
+          result0 = null;
+          if (reportFailures === 0) {
+            matchFailed("\"maxDelay\"");
+          }
+        }
+        if (result0 !== null) {
+          result1 = parse_insig();
+          if (result1 !== null) {
+            result2 = parse_Digits();
+            if (result2 !== null) {
+              result0 = [result0, result1, result2];
+            } else {
+              result0 = null;
+              pos = clone(pos1);
+            }
+          } else {
+            result0 = null;
+            pos = clone(pos1);
+          }
+        } else {
+          result0 = null;
+          pos = clone(pos1);
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, line, column, n) {
+            return n;
+        })(pos0.offset, pos0.line, pos0.column, result0[2]);
+        }
+        if (result0 === null) {
+          pos = clone(pos0);
+        }
+        return result0;
+      }
+
       function parse_WhereCriteria() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Cond();
@@ -3333,10 +3601,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_And() {
         var result0;
-        
+
         if (input.substr(pos.offset, 3) === "and") {
           result0 = "and";
           advance(pos, 3);
@@ -3348,10 +3616,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Cond() {
         var result0;
-        
+
         result0 = parse_EqCond();
         if (result0 === null) {
           result0 = parse_InCond();
@@ -3361,11 +3629,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_AndCond() {
         var result0, result1, result2, result3;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_insig();
@@ -3403,11 +3671,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_EqCond() {
         var result0, result1, result2, result3, result4, result5, result6;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_insig();
@@ -3463,11 +3731,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_InCond() {
         var result0, result1, result2, result3, result4, result5, result6, result7, result8;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Name();
@@ -3562,11 +3830,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_CSV() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_insig();
@@ -3613,11 +3881,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_CommaCSVMember() {
         var result0, result1, result2, result3;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_insig();
@@ -3655,10 +3923,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_CSVMember() {
         var result0;
-        
+
         result0 = parse_QuotedWord();
         if (result0 === null) {
           result0 = parse_QuotedDigits();
@@ -3671,11 +3939,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Ref() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_Name();
         if (result0 !== null) {
@@ -3690,11 +3958,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Operator() {
         var result0, result1, result2;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_insig();
         if (result0 !== null) {
@@ -3755,11 +4023,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_RHS() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_AliasedRef();
         if (result0 === null) {
@@ -3786,11 +4054,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_AliasedRef() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_JSONPath();
         if (result0 !== null) {
@@ -3806,11 +4074,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_All() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         if (input.charCodeAt(pos.offset) === 42) {
           result0 = "*";
@@ -3834,11 +4102,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Fields() {
         var result0, result1, result2, result3, result4, result5;
         var pos0, pos1, pos2;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Field();
@@ -3921,11 +4189,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Field() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_AliasField();
         if (result0 === null) {
@@ -3941,11 +4209,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_AliasField() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_NonAliasField();
@@ -4001,21 +4269,21 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_NonAliasField() {
         var result0;
-        
+
         result0 = parse_UDF();
         if (result0 === null) {
           result0 = parse_Column();
         }
         return result0;
       }
-      
+
       function parse_UDF() {
         var result0, result1, result2, result3, result4, result5, result6;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Name();
@@ -4092,11 +4360,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_UDFParams() {
         var result0, result1, result2, result3, result4, result5;
         var pos0, pos1, pos2;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_UDFParam();
@@ -4173,21 +4441,21 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_UDFParam() {
         var result0;
-        
+
         result0 = parse_LiteralParam();
         if (result0 === null) {
           result0 = parse_Column();
         }
         return result0;
       }
-      
+
       function parse_LiteralParam() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_JSON();
         if (result0 !== null) {
@@ -4203,11 +4471,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_ParamDigits() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_Digits();
         if (result0 !== null) {
@@ -4223,11 +4491,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Column() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_JSONPath();
         if (result0 !== null) {
@@ -4243,11 +4511,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_FieldName() {
         var result0, result1, result2, result3;
         var pos0, pos1, pos2;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Selector();
@@ -4320,11 +4588,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Selector() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         result0 = parse_Word();
         if (result0 !== null) {
@@ -4453,10 +4721,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Comma() {
         var result0;
-        
+
         if (input.charCodeAt(pos.offset) === 44) {
           result0 = ",";
           advance(pos, 1);
@@ -4468,11 +4736,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Name() {
         var result0, result1, result2, result3;
         var pos0, pos1, pos2;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Word();
@@ -4545,11 +4813,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Word() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (/^[a-zA-Z$:]/.test(input.charAt(pos.offset))) {
@@ -4608,11 +4876,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_QuotedWordVal() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_QuotedWord();
         if (result0 !== null) {
@@ -4625,21 +4893,21 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_QuotedWord() {
         var result0;
-        
+
         result0 = parse_sQuotedWord();
         if (result0 === null) {
           result0 = parse_dQuotedWord();
         }
         return result0;
       }
-      
+
       function parse_sQuotedWord() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.charCodeAt(pos.offset) === 39) {
@@ -4732,11 +5000,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_dQuotedWord() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.charCodeAt(pos.offset) === 34) {
@@ -4829,21 +5097,21 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_QuotedDigits() {
         var result0;
-        
+
         result0 = parse_sQuotedDigits();
         if (result0 === null) {
           result0 = parse_dQuotedDigits();
         }
         return result0;
       }
-      
+
       function parse_sQuotedDigits() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.charCodeAt(pos.offset) === 39) {
@@ -4893,11 +5161,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_dQuotedDigits() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.charCodeAt(pos.offset) === 34) {
@@ -4947,11 +5215,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Ret() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         if (input.substr(pos.offset, 6) === "return") {
           result0 = "return";
@@ -4974,11 +5242,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Return() {
         var result0, result1, result2, result3, result4, result5, result6;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Ret();
@@ -5053,10 +5321,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_RetVal() {
         var result0;
-        
+
         result0 = parse_Statement();
         if (result0 === null) {
           result0 = parse_CallUdf();
@@ -5069,11 +5337,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_RetRef() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_Word();
         if (result0 !== null) {
@@ -5091,11 +5359,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Route() {
         var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.substr(pos.offset, 3) === "via") {
@@ -5276,10 +5544,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_JSON() {
         var result0;
-        
+
         result0 = parse_Object();
         if (result0 === null) {
           result0 = parse_StringVal();
@@ -5301,11 +5569,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Value() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_JSON();
         if (result0 !== null) {
@@ -5322,11 +5590,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_StringVal() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_StringLiteral();
         if (result0 !== null) {
@@ -5340,11 +5608,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_NumberVal() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_Number();
         if (result0 !== null) {
@@ -5357,11 +5625,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_ArrayVal() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_Array();
         if (result0 !== null) {
@@ -5374,11 +5642,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_TrueVal() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_True();
         if (result0 !== null) {
@@ -5391,11 +5659,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_FalseVal() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_False();
         if (result0 !== null) {
@@ -5408,11 +5676,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_NullVal() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_Null();
         if (result0 !== null) {
@@ -5425,11 +5693,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Object() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_Struct();
         if (result0 !== null) {
@@ -5443,11 +5711,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Struct() {
         var result0, result1, result2, result3, result4, result5, result6;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_insig();
         if (result0 !== null) {
@@ -5511,11 +5779,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Members() {
         var result0, result1, result2, result3, result4;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_Pair();
         if (result0 !== null) {
@@ -5572,11 +5840,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Pair() {
         var result0, result1, result2, result3, result4, result5, result6;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_insig();
         if (result0 !== null) {
@@ -5631,11 +5899,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Array() {
         var result0, result1, result2, result3, result4;
         var pos0;
-        
+
         pos0 = clone(pos);
         if (input.charCodeAt(pos.offset) === 91) {
           result0 = "[";
@@ -5687,11 +5955,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Elements() {
         var result0, result1, result2, result3, result4;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_Value();
         if (result0 !== null) {
@@ -5729,11 +5997,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Number() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Int();
@@ -5800,11 +6068,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Int() {
         var result0, result1;
         var pos0;
-        
+
         pos0 = clone(pos);
         if (input.charCodeAt(pos.offset) === 43) {
           result0 = "+";
@@ -5854,11 +6122,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Frac() {
         var result0, result1;
         var pos0;
-        
+
         pos0 = clone(pos);
         if (input.charCodeAt(pos.offset) === 46) {
           result0 = ".";
@@ -5884,11 +6152,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Exp() {
         var result0, result1;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_e();
         if (result0 !== null) {
@@ -5906,10 +6174,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_e() {
         var result0;
-        
+
         if (input.charCodeAt(pos.offset) === 101) {
           result0 = "e";
           advance(pos, 1);
@@ -5976,11 +6244,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Digits() {
         var result0, result1;
         var pos0;
-        
+
         pos0 = clone(pos);
         if (/^[0-9]/.test(input.charAt(pos.offset))) {
           result1 = input.charAt(pos.offset);
@@ -6018,10 +6286,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_True() {
         var result0;
-        
+
         if (input.substr(pos.offset, 4) === "true") {
           result0 = "true";
           advance(pos, 4);
@@ -6033,10 +6301,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_False() {
         var result0;
-        
+
         if (input.substr(pos.offset, 5) === "false") {
           result0 = "false";
           advance(pos, 5);
@@ -6048,10 +6316,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Null() {
         var result0;
-        
+
         if (input.substr(pos.offset, 4) === "null") {
           result0 = "null";
           advance(pos, 4);
@@ -6063,10 +6331,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Comma() {
         var result0;
-        
+
         if (input.charCodeAt(pos.offset) === 44) {
           result0 = ",";
           advance(pos, 1);
@@ -6078,10 +6346,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_dquote() {
         var result0;
-        
+
         if (/^["]/.test(input.charAt(pos.offset))) {
           result0 = input.charAt(pos.offset);
           advance(pos, 1);
@@ -6093,10 +6361,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_squote() {
         var result0;
-        
+
         if (/^[']/.test(input.charAt(pos.offset))) {
           result0 = input.charAt(pos.offset);
           advance(pos, 1);
@@ -6108,11 +6376,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_insig() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_sp();
@@ -6147,11 +6415,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_sp() {
         var result0, result1;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = [];
         if (/^[\t]/.test(input.charAt(pos.offset))) {
@@ -6207,11 +6475,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_crlf() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         if (/^[\r\n]/.test(input.charAt(pos.offset))) {
           result0 = input.charAt(pos.offset);
@@ -6232,11 +6500,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_JSONPath() {
         var result0, result1;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Identifier();
@@ -6263,11 +6531,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_ExtIdentifier() {
         var result0, result1;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = [];
         result1 = parse_Descendent();
@@ -6291,11 +6559,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Indexed() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.charCodeAt(pos.offset) === 91) {
@@ -6349,11 +6617,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Expr() {
         var result0, result1, result2, result3;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.charCodeAt(pos.offset) === 63) {
@@ -6416,11 +6684,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_ExprBlock() {
         var result0;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = parse_StringLiteral();
         if (result0 !== null) {
@@ -6433,11 +6701,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Identifier() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (/^[a-zA-Z$:]/.test(input.charAt(pos.offset))) {
@@ -6496,11 +6764,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Descendent() {
         var result0, result1;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         result0 = parse_Selector();
@@ -6526,10 +6794,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_Selector() {
         var result0;
-        
+
         if (input.substr(pos.offset, 2) === "..") {
           result0 = "..";
           advance(pos, 2);
@@ -6552,11 +6820,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_PositiveNumber() {
         var result0, result1;
         var pos0;
-        
+
         pos0 = clone(pos);
         if (/^[0-9]/.test(input.charAt(pos.offset))) {
           result1 = input.charAt(pos.offset);
@@ -6594,11 +6862,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_StringLiteral() {
         var result0, result1, result2;
         var pos0, pos1;
-        
+
         pos0 = clone(pos);
         pos1 = clone(pos);
         if (input.charCodeAt(pos.offset) === 34) {
@@ -6684,11 +6952,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_DoubleString() {
         var result0, result1;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = [];
         result1 = parse_dchar();
@@ -6706,11 +6974,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_SingleString() {
         var result0, result1;
         var pos0;
-        
+
         pos0 = clone(pos);
         result0 = [];
         result1 = parse_achar();
@@ -6728,11 +6996,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_dchar() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         if (/^[^"\\\0-\x1F]/.test(input.charAt(pos.offset))) {
           result0 = input.charAt(pos.offset);
           advance(pos, 1);
@@ -6939,11 +7207,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_achar() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
-        
+
         if (/^[^'\\\0-\x1F]/.test(input.charAt(pos.offset))) {
           result0 = input.charAt(pos.offset);
           advance(pos, 1);
@@ -7150,10 +7418,10 @@ module.exports = (function(){
         }
         return result0;
       }
-      
+
       function parse_hexDigit() {
         var result0;
-        
+
         if (/^[0-9a-fA-F]/.test(input.charAt(pos.offset))) {
           result0 = input.charAt(pos.offset);
           advance(pos, 1);
@@ -7165,11 +7433,11 @@ module.exports = (function(){
         }
         return result0;
       }
-      
-      
+
+
       function cleanupExpected(expected) {
         expected.sort();
-        
+
         var lastExpected = null;
         var cleanExpected = [];
         for (var i = 0; i < expected.length; i++) {
@@ -7180,9 +7448,9 @@ module.exports = (function(){
         }
         return cleanExpected;
       }
-      
-      
-      
+
+
+
           // Utils to establish the right semantic model
           function typeOf(value) {
               var s = typeof value;
@@ -7200,7 +7468,7 @@ module.exports = (function(){
               }
               return s;
           }
-      
+
           function append(arr) {
               var str = '';
               if(typeOf(arr) === 'array') {
@@ -7221,7 +7489,7 @@ module.exports = (function(){
               }
               return str;
           }
-      
+
           function merge(arr) {
               var i, ret = {};
               for(i = 0; i < arr.length; i++) {
@@ -7231,7 +7499,7 @@ module.exports = (function(){
               }
               return ret;
           }
-      
+
           function collect(arr, separator, ret, f) {
               for(var i = 0; i < arr.length; i++) {
                   if(typeOf(arr[i]) == 'array') {
@@ -7247,7 +7515,7 @@ module.exports = (function(){
                   }
               }
           }
-      
+
           function indexOf(names, name) {
               for(var i = 0; i < names.length; i++) {
                   if(names[i].name === name) {
@@ -7256,24 +7524,24 @@ module.exports = (function(){
               }
               return -1;
           }
-      
+
           // Split join statements in to main and a joiner. The main statement is the independent
           // and the joiner depends on the outcome of the main statement. In this process, we split
           // the columns in the columns clause across the main and joiner, and merge them at runtime
           // using the 'selected' array below.
           function splitJoins(statement, cb) {
               var main = statement, join, i, cond, column, sel;
-      
+
               // No need to split since there is no join.
               if(statement.fromClause.length === 1) {
                   return main;
               }
-      
+
               // Can't deal with joins between more than two tables.
               if(statement.fromClause.length > 2) {
                   throw new this.SyntaxError("Line: " + statement.line + ": Statement must have no more than two tables in the from clause");
               }
-      
+
               // Initialize the main statement.
               main = {
                   type: 'select',
@@ -7283,13 +7551,13 @@ module.exports = (function(){
                   extras: [], // Used only during selection discared laer.
                   whereCriteria: []
               };
-      
+
               if(statement.extras) {
                   // These are extra columns included the columns array - contain UDF args not already
                   // listed in the columns clause
                   main.udfExtras = statement.extras;
               }
-      
+
               // Initialize the joiner
               join = {
                   type: 'select',
@@ -7298,10 +7566,10 @@ module.exports = (function(){
                   extras: [], // used only during selection
                   whereCriteria: []
               };
-      
+
               main.fromClause = [statement.fromClause[0]];
               join.fromClause = [statement.fromClause[1]];
-      
+
               //  Split relevant columns into main and joiner
               for(i = 0; i < statement.columns.length; i++) {
                   column = statement.columns[i];
@@ -7339,12 +7607,12 @@ module.exports = (function(){
                       }
                   }
               }
-      
+
               // We need a where clause for the join
               if(!statement.whereCriteria) {
                   throw new this.SyntaxError("Line " + statement.line + ": Missing join condition in statement ");
               }
-      
+
               if(statement.whereCriteria) {
                   for(i = 0; i < statement.whereCriteria.length; i++) {
                       cond = statement.whereCriteria[i];
@@ -7405,7 +7673,7 @@ module.exports = (function(){
                                       main.columns[main.columns.length - 1].alias = cond.lhs.alias ||
                                               cond.lhs.name.substr(index + main.fromClause[0].alias.length + 1)
                                   }
-      
+
                                   main.extras.push(main.columns.length -1);
                               }
                           }
@@ -7421,7 +7689,7 @@ module.exports = (function(){
                       }
                   }
               }
-      
+
               if(join.whereCriteria && join.whereCriteria.length > 0) {
                   if(indexOf(main.columns, join.whereCriteria[0].rhs.value) >= 0) {
                       join.whereCriteria[0].rhs.joiningColumn = indexOf(main.columns, join.whereCriteria[0].rhs.value);
@@ -7438,7 +7706,7 @@ module.exports = (function(){
                   }
               }
               main.joiner = join;
-      
+
               // Reset the joiningColumn to the alias where columns are aliased
               // The joining column is an index by default.
               var joiningColumn;
@@ -7456,7 +7724,7 @@ module.exports = (function(){
                       throw new this.SyntaxError("Line " + main.line + ": Joining column " + joiningColumn + " could not resolved. File a bug.");
                   }
               }
-      
+
               // Verify that all columns have prefixes
               for(var i = 0; i < main.columns.length; i++) {
                   if(!main.columns[i].operator) {
@@ -7486,7 +7754,7 @@ module.exports = (function(){
                       }
                   }
               }
-      
+
               // Redo the UDF args since the indexes of column type args would be different now
               // The index for each column arg should map to the 'selected' array so that we can pick up
               // values of args from the 'selected' array.
@@ -7537,18 +7805,18 @@ module.exports = (function(){
                       }
                   }
               }
-      
+
               return main;
           }
-      
+
           // Symbol table - to check for unreferenced variables
           var symbols = {};
           var lincr = 0;
           var id = 0;
-      
-      
+
+
       var result = parseFunctions[startRule]();
-      
+
       /*
        * The parser is now in one of the following three states:
        *
@@ -7577,7 +7845,7 @@ module.exports = (function(){
         var offset = Math.max(pos.offset, rightmostFailuresPos.offset);
         var found = offset < input.length ? input.charAt(offset) : null;
         var errorPosition = pos.offset > rightmostFailuresPos.offset ? pos : rightmostFailuresPos;
-        
+
         throw new this.SyntaxError(
           cleanupExpected(rightmostFailuresExpected),
           found,
@@ -7586,20 +7854,20 @@ module.exports = (function(){
           errorPosition.column
         );
       }
-      
+
       return result;
     },
-    
+
     /* Returns the parser source code. */
     toSource: function() { return this._source; }
   };
-  
+
   /* Thrown when a parser encounters a syntax error. */
-  
+
   result.SyntaxError = function(expected, found, offset, line, column) {
     function buildMessage(expected, found) {
       var expectedHumanized, foundHumanized;
-      
+
       switch (expected.length) {
         case 0:
           expectedHumanized = "end of input";
@@ -7612,12 +7880,12 @@ module.exports = (function(){
             + " or "
             + expected[expected.length - 1];
       }
-      
+
       foundHumanized = found ? quote(found) : "end of input";
-      
+
       return "Expected " + expectedHumanized + " but " + foundHumanized + " found.";
     }
-    
+
     this.name = "SyntaxError";
     this.expected = expected;
     this.found = found;
@@ -7626,8 +7894,8 @@ module.exports = (function(){
     this.line = line;
     this.column = column;
   };
-  
+
   result.SyntaxError.prototype = Error.prototype;
-  
+
   return result;
 })();

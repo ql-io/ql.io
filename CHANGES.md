@@ -1,5 +1,6 @@
 ## May 15, 2012
 
+* Be able to start on multiple ports (separated by commas)
 * Added support for multiple attachments.
 
 ## May 14, 2012

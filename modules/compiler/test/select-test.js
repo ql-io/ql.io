@@ -950,5 +950,32 @@ module.exports = {
         test.equals(select.columns[0].name, "a[\"b\"]");
         test.equals(cooked[0].route.path.value, '/a');
         test.done();
+    },
+
+    'select-timeouts': function(test) {
+        var q = 'select a, b, c, d from foo timeout 10 minDelay 100 maxDelay 10000';
+        var statement = compiler.compile(q);
+        var e = [
+            {
+                type: 'select',
+                line: 1,
+                fromClause: [
+                    {'name': 'foo' }
+                ],
+                columns: [
+                    {name: 'a', type: "column"},
+                    {name: 'b', type: "column"},
+                    {name: 'c', type: "column"},
+                    {name: 'd', type: "column"}
+                ],
+                whereCriteria: undefined,
+                timeout: 10,
+                minDelay: 100,
+                maxDelay: 10000,
+                id: 0
+            }
+        ];
+        test.deepEqual(statement, e);
+        test.done();
     }
 };
