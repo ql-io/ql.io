@@ -1,3 +1,7 @@
+## May 17, 2012
+
+* Add optional parameters in route. Including "with optional params" in route would make params without ^ prefix optional.
+
 ## May 15, 2012
 
 * Be able to start on multiple ports (separated by commas)

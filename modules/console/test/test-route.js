@@ -559,16 +559,6 @@ module.exports = {
         });
         c.app.listen(3000, function() {
             var testHttpapp = express.createServer();
-            testHttpapp.post('/ping/pong', function(req, res) {
-                var data = '';
-                req.on('data', function(chunk) {
-                    data += chunk;
-                });
-                req.on('end', function() {
-                    res.send(data);
-                });
-            });
-
             testHttpapp.listen(80126, function() {
                 var mybody = '<?xml version="1.0" encoding="utf-8"?>\n<UploadSiteHostedPicturesRequest xmlns="urn:ebay:apis:eBLBaseComponents">\n\
         <ExternalPictureURL>http://developer.ebay.com/DevZone/XML/docs/images/hp_book_image.jpg</ExternalPictureURL> \n\
@@ -616,5 +606,114 @@ module.exports = {
 
             });
         });
+    },
+    'optional param' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.listen(80126, function() {
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/profile?kw=wii&messageid=junk&include=hello&userid=test1',
+                    method : 'GET'
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        var json = JSON.parse(data);
+                        test.ok(_.isArray(json), 'expecting an array');
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.end();
+            });
+        })
+    },
+    'optional param -negative' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.listen(80126, function() {
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/all?key=wii',
+                    method : 'GET'
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        test.equal(data, '{"err":"No matching route"}');
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.end();
+            });
+        })
+    },
+    'default route values' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.listen(80126, function() {
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/finddefault?kw=wii',
+                    method : 'GET'
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        try{
+                            var json = JSON.parse(data);
+                        }catch (e){
+                            test.ok(false, "response is not json")
+                        }
+                        test.ok(_.isArray(json), 'expected an array');
+                        test.equal(json.length, 1);
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.end();
+            });
+        })
     }
 }
