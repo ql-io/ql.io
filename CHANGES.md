@@ -1,8 +1,6 @@
 ## May 17, 2012
 
-* Add optional parameters in route. Including "with optional params" in route would
-start on multiple ports (separated by commas)
-* Added support for multiple attachments.
+* Add optional parameters in route. Including "with optional params" in route would make params without ^ prefix optional.
 
 ## May 15, 2012
 
