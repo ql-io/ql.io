@@ -54,7 +54,7 @@ exports.exec = function() {
     var cwd = process.cwd();
     program.option('-C, --cluster', 'run in cluster').
         option('-c, --config <configFile>', 'path to config', cwd + '/../config/dev.json').
-        option('-p, --port <port>', 'port to bind to', 3000).
+        option('-p, --port <port>', 'port to bind to', '3000').
         option('-m, --monPort <monPort>', 'port for monitoring', 3001).
         option('-t, --tables <tables>', 'path of dir containing tables', cwd + '/tables').
         option('-r, --routes <routes>', 'path of dir containing routes', cwd + '/routes').
@@ -70,9 +70,12 @@ exports.exec = function() {
     }
     program.parse(process.argv);
 
+    var ports = _.map(program.port.split(','), function(port) {
+        return parseInt(port);
+    });
     var options = {
         cluster: program.cluster,
-        port: parseInt(program.port),
+        port: ports,
         monPort: parseInt(program.monPort),
         config: program.config,
         tables: program.tables,

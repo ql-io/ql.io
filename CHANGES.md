@@ -1,3 +1,22 @@
+## May 17, 2012
+
+* Add optional parameters in route. Including "with optional params" in route would
+start on multiple ports (separated by commas)
+* Added support for multiple attachments.
+
+## May 15, 2012
+
+* Be able to start on multiple ports (separated by commas)
+* Added support for multiple attachments.
+
+## May 14, 2012
+
+* Support larger than 1mb data in local-mem-cache.
+
+## May 8, 2012
+
+* Moved maxNestedRequests warning out of the _.each loop in select.js
+
 ## May 3, 2012
 
 * Add support for multipart requests.

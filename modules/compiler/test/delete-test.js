@@ -60,3 +60,27 @@ exports['delete-csv'] = function (test) {
     test.deepEqual(statement, e);
     test.done();
 };
+
+exports['delete-timeouts'] = function(test) {
+    var q = "delete from ebay.item where itemId in ('180652013910','120711247507') timeout 10 minDelay 100 maxDelay 10000";
+    var statement = compiler.compile(q);
+    var e = [{
+            type: 'delete',
+            "source" :
+                {name: 'ebay.item'},
+            whereCriteria: [{
+                operator: 'in',
+                lhs: {name: 'itemId'},
+                "rhs":{
+                    value: ['180652013910', '120711247507']
+                }
+            }],
+            timeout: 10,
+            minDelay: 100,
+            maxDelay: 10000,
+            line: 1,
+            id: 0
+        }];
+    test.deepEqual(statement, e);
+    test.done();
+}
