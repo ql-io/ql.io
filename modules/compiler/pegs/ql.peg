@@ -525,7 +525,7 @@ UsingBodyTemplate = 'using' insig 'bodyTemplate' insig t:QuotedWord insig 'type'
     return ret;
 }
 
-WithPart = 'with' insig 'part' insig p:QuotedWord{
+WithParts = 'with' insig 'parts' insig p:CSV{
     return p;
 }
 
@@ -566,7 +566,7 @@ Expires = insig 'expires' insig d:Digits insig {
 
 // Select statement
 SelectStatement = s:Select insig c:ColumnsClause insig 'from' insig fc:FromClause insig
-                  wc:WhereClause* insig l:Limit* insig o:Offset* insig
+                  wc:WhereClause* insig l:Limit? insig o:Offset? insig
                   timeout:Timeout? insig minDelay:MinDelay? insig maxDelay:MaxDelay? {
     var s = {
         type: s.type,
@@ -701,7 +701,7 @@ ValuesParen = 'values' insig '(' insig v:CSV  insig ')'{
 }
 
 // Insert Statement
-InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? insig v:ValuesParen?  insig wp:WithPart? {
+InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? insig v:ValuesParen?  insig wp:WithParts? {
     if (!v && c){
         throw new this.SyntaxError("Line " + line + ": Values are required if columns are specified.");
     }

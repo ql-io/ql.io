@@ -59,7 +59,7 @@ module.exports = (function(){
         "UsingHeaders": parse_UsingHeaders,
         "UsingMonkeyPatch": parse_UsingMonkeyPatch,
         "UsingBodyTemplate": parse_UsingBodyTemplate,
-        "WithPart": parse_WithPart,
+        "WithParts": parse_WithParts,
         "ForEachMember": parse_ForEachMember,
         "WithAliases": parse_WithAliases,
         "AuthenticateUsing": parse_AuthenticateUsing,
@@ -1538,7 +1538,7 @@ module.exports = (function(){
         return result0;
       }
 
-      function parse_WithPart() {
+      function parse_WithParts() {
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
 
@@ -1556,19 +1556,19 @@ module.exports = (function(){
         if (result0 !== null) {
           result1 = parse_insig();
           if (result1 !== null) {
-            if (input.substr(pos.offset, 4) === "part") {
-              result2 = "part";
-              advance(pos, 4);
+            if (input.substr(pos.offset, 5) === "parts") {
+              result2 = "parts";
+              advance(pos, 5);
             } else {
               result2 = null;
               if (reportFailures === 0) {
-                matchFailed("\"part\"");
+                matchFailed("\"parts\"");
               }
             }
             if (result2 !== null) {
               result3 = parse_insig();
               if (result3 !== null) {
-                result4 = parse_QuotedWord();
+                result4 = parse_CSV();
                 if (result4 !== null) {
                   result0 = [result0, result1, result2, result3, result4];
                 } else {
@@ -2833,7 +2833,7 @@ module.exports = (function(){
                         if (result8 !== null) {
                           result9 = parse_insig();
                           if (result9 !== null) {
-                            result10 = parse_WithPart();
+                            result10 = parse_WithParts();
                             result10 = result10 !== null ? result10 : "";
                             if (result10 !== null) {
                               result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10];
