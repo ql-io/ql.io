@@ -252,15 +252,40 @@ var Console = module.exports = function(opts, cb) {
                 collectHttpQueryParams(req, holder, false);
 
                 // find a route (i.e. associated cooked script)
+                // routes that distinguish required and optional params
                 var route = _(verbRouteVariants).chain()
-                    .filter(function (verbRouteVariant) {
-                        return _.isEqual(_.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)),
-                            _.keys(verbRouteVariant.query))
+                    .filter(function (verbRouteVariant){var defaultKeys = _.chain(verbRouteVariant.query)
+                            .keys()
+                            .filter(function(k){
+                                return _.has(verbRouteVariant.routeInfo.defaults, verbRouteVariant.query[k]);
+                            })
+                            .value();
+                        // missed query params that are neither defaults nor user provided
+                        var missed = _.difference(_.keys(verbRouteVariant.query), _.union(defaultKeys, _.keys(holder.params)));
+                        var misrequired = _.filter(missed, function(key){
+                            if (verbRouteVariant.routeInfo.optparam){
+                                // if with optional params, find if any required param is missed
+                                return verbRouteVariant.query[key] && verbRouteVariant.query[key].indexOf("^") == 0;
+                            }
+                            else {
+                                // everything is required
+                                return missed;
+                            }
+                        });
+                        return !misrequired.length;
                     })
-                    .reduce(function (match, route) {
-                        return match == null ?
-                            route : _.keys(route.query).length > _.keys(match.query).length ? route : match;
-                    }, null)
+                    .max(function (verbRouteVariant){
+                        if (!verbRouteVariant.routeInfo.optparam){
+                            return 0;
+                        }
+                        // with optional param
+                        var matchCount = _.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)).length;
+                        var requiredCount = _.filter(_.keys(verbRouteVariant.query), function(key){
+                            return verbRouteVariant[key] && verbRouteVariant[key].indexOf("^") == 0;
+                        }).length;
+                        return matchCount - requiredCount;
+
+                    })
                     .value();
 
                 if (!route) {
@@ -272,14 +297,20 @@ var Console = module.exports = function(opts, cb) {
                     return;
                 }
 
-                // collect the path params
+
+                // collect default query params if needed
+                _.defaults(holder.params, route.routeInfo.defaults);
                 var keys = _.keys(req.params);
                 _.each(keys, function(key) {
                     holder.routeParams[key] = req.params[key];
                 });
 
                 _.each(route.query, function(queryParam, paramName) {
-                    holder.routeParams[queryParam] = holder.params[paramName].toString();
+                    if (holder.params[paramName]){
+                        holder.routeParams[queryParam] = holder.params[paramName].toString();
+                    }else{
+                        holder.routeParams[queryParam] = null;
+                    }
                 });
 
                 // collect headers

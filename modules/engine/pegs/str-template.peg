@@ -137,7 +137,7 @@ template = c:( expression / literal )* {
     }
 }
 
-literal = (([^^\`{}]) / ' ') / expression
+literal = (([^\`{}]) / ' ') / expression
 
 expression =  "{" v:variable "}" {
     var token = {
