@@ -86,6 +86,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             }
         }
         verb.exec({
+            name: name,
             context: opts.context,
             config: opts.config,
             settings: opts.settings,

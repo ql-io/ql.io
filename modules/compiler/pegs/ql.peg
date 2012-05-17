@@ -566,7 +566,8 @@ Expires = insig 'expires' insig d:Digits insig {
 
 // Select statement
 SelectStatement = s:Select insig c:ColumnsClause insig 'from' insig fc:FromClause insig
-                  wc:WhereClause* insig l:Limit* insig o:Offset* {
+                  wc:WhereClause* insig l:Limit? insig o:Offset? insig
+                  timeout:Timeout? insig minDelay:MinDelay? insig maxDelay:MaxDelay? {
     var s = {
         type: s.type,
         line: s.line,
@@ -574,11 +575,20 @@ SelectStatement = s:Select insig c:ColumnsClause insig 'from' insig fc:FromClaus
         columns: c,
         whereCriteria: wc[0]
     };
-    if(l[0]) {
-        s.limit = l[0];
+    if(l) {
+        s.limit = l;
     }
-    if(o[0]) {
-        s.offset = o[0];
+    if(o) {
+        s.offset = o;
+    }
+    if(timeout) {
+        s.timeout = timeout;
+    }
+    if(minDelay) {
+        s.minDelay = minDelay;
+    }
+    if(maxDelay) {
+        s.maxDelay = maxDelay;
     }
     s.id = id;
     if(c && c.length > 0 && c[0].alias) {
@@ -691,7 +701,9 @@ ValuesParen = 'values' insig '(' insig v:CSV  insig ')'{
 }
 
 // Insert Statement
-InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? insig v:ValuesParen?  insig wp:WithParts? {
+InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? insig v:ValuesParen?
+                   insig wp:WithParts?
+                   timeout:Timeout? insig minDelay:MinDelay? insig maxDelay:MaxDelay? {
     if (!v && c){
         throw new this.SyntaxError("Line " + line + ": Values are required if columns are specified.");
     }
@@ -707,6 +719,16 @@ InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? ins
         values: v.value,
         line: line
     }
+    if(timeout) {
+        ret.timeout = timeout;
+    }
+    if(minDelay) {
+        ret.minDelay = minDelay;
+    }
+    if(maxDelay) {
+        ret.maxDelay = maxDelay;
+    }
+
     if (v){
         if (c){
             ret.columns = c,
@@ -722,13 +744,25 @@ InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? ins
 }
 
 // Delete statement
-DeleteStatement = 'delete' insig 'from' insig s:Source insig wc:WhereClause* {
-    return {
+DeleteStatement = 'delete' insig 'from' insig s:Source insig wc:WhereClause* insig
+                  timeout:Timeout? insig minDelay:MinDelay? insig maxDelay:MaxDelay? {
+    var s = {
         type: 'delete',
         source: s,
         whereCriteria: wc[0],
         line: line
     }
+
+    if(timeout) {
+        s.timeout = timeout;
+    }
+    if(minDelay) {
+        s.minDelay = minDelay;
+    }
+    if(maxDelay) {
+        s.maxDelay = maxDelay;
+    }
+    return s;
 }
 
 // Various clauses
@@ -781,6 +815,21 @@ Limit = 'limit' insig n:Digits {
 
 // Offset
 Offset = 'offset' insig n:Digits {
+    return n;
+}
+
+// Timeout
+Timeout = 'timeout'i insig n:Digits {
+    return n;
+}
+
+// MinDelay
+MinDelay = 'minDelay'i insig n:Digits {
+    return n;
+}
+
+// MaxDelay
+MaxDelay = 'maxDelay'i insig n:Digits {
     return n;
 }
 

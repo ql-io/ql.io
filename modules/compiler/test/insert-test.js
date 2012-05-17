@@ -163,3 +163,30 @@ exports['insert-multiparts'] = function(test) {
     test.deepEqual(statement, e);
     test.done();
 };
+
+exports['insert-timeout'] = function(test) {
+    var q = "insert into suppliers (supplier_id, supplier_name) values ('24553', 'IBM') timeout 10 minDelay 100 maxDelay 10000";
+    var statement = compiler.compile(q);
+    var e = [{
+        "type": "insert",
+        "source": {
+            "name": "suppliers"
+        },
+        "columns": [
+            {name: "supplier_id",type: 'column'},
+            {name: "supplier_name",type: 'column'}
+        ],
+        "values": [
+            "24553",
+            "IBM"
+        ],
+        timeout: 10,
+        minDelay: 100,
+        maxDelay: 10000,
+        "line": 1,
+        "id": 0
+    }];
+    test.deepEqual(statement, e);
+    test.done();
+};
+
