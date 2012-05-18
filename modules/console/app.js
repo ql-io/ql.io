@@ -299,8 +299,8 @@ var Console = module.exports = function(opts, cb) {
 
 
                 // collect default query params if needed
-                _.each(route.routeInfo.defaults, function(defaultValue, queryParam){
-                    holder.routeParams[queryParam] = defaultValue.toString();
+                _.each(route.routeInfo.defaults, function(defaultValue, queryParam) {
+                    holder.routeParams[queryParam] = defaultValue;
                 });
                 var keys = _.keys(req.params);
                 _.each(keys, function(key) {
@@ -308,10 +308,10 @@ var Console = module.exports = function(opts, cb) {
                 });
 
                 _.each(route.query, function(queryParam, paramName) {
-                    if (holder.params[paramName]){
-                        holder.routeParams[queryParam] = holder.params[paramName].toString();
+                    if (holder.params[paramName]) {
+                        holder.routeParams[queryParam] = holder.params[paramName];
                     }
-                    else if (!holder.routeParams[queryParam]){
+                    else if (!holder.routeParams[queryParam]) {
                         holder.routeParams[queryParam] = null;
                     }
                 });
