@@ -60,6 +60,7 @@ exports.exec = function() {
         option('-r, --routes <routes>', 'path of dir containing routes', cwd + '/routes').
         option('-x, --xformers <xformers>', 'path of dir containing xformers', cwd + '/config/xformers.json').
         option('-a, --ecvPath <ecvPath>', 'ecv path', '/ecv').
+        option('-c, --ecvControl <ecvControl>', 'allow disabling ecv', false).
         option('-n, --noWorkers <noWorkers>', 'no of workers', os.cpus.length).
         option('-e, --disableConsole', 'disable the console', false).
         option('-q, --disableQ', 'disable /q', false);
@@ -84,10 +85,11 @@ exports.exec = function() {
         disableConsole: program.disableConsole,
         disableQ: program.disableQ,
         noWorkers: program.noWorkers,
-        ecvPath: program.ecvPath,
         'request-id': program.requestId || 'Request-ID',
         loggerFn: loggerFn,
         ecv: {
+            path: program.ecvPath,
+            control: program.ecvControl,
             monitor: '/tables',
             validator: function(status, headers, data) {
                 return JSON.parse(data);
