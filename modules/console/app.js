@@ -302,7 +302,6 @@ var Console = module.exports = function(opts, cb) {
                 _.each(route.routeInfo.defaults, function(defaultValue, queryParam){
                     holder.routeParams[queryParam] = defaultValue.toString();
                 });
-                holder.params['userid'] = 'ryantindall'
                 var keys = _.keys(req.params);
                 _.each(keys, function(key) {
                     holder.routeParams[key] = req.params[key];
