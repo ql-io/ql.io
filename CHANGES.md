@@ -1,6 +1,12 @@
+## May 18, 2012
+
+* Disable ability to enable/disable ecv checks by default. You can turn it on by adding arg
+   `--ecvControl true` to the start script.
+
 ## May 17, 2012
 
-* Add optional parameters in route. Including "with optional params" in route would make params without ^ prefix optional.
+* Add optional parameters in route. Including "with optional params" in route would make params
+  without ^ prefix optional.
 * Add more test cases, some bug fix in app.js to fully support defaults.
 
 ## May 15, 2012
