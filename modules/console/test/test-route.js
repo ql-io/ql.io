@@ -606,8 +606,42 @@ module.exports = {
 
             });
         });
+    },'optional param' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.listen(80126, function() {
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/profile?kw=wii',
+                    method : 'GET'
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        var json = JSON.parse(data);
+                        test.ok(_.isArray(json), 'expecting an array');
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.end();
+            });
+        })
     },
-    'optional param' : function(test) {
+    'optional param all' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
             routes : __dirname + '/routes/',
@@ -642,7 +676,41 @@ module.exports = {
             });
         })
     },
-    'optional param -negative' : function(test) {
+    'optional param no required provided -negative' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.listen(80126, function() {
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/profile',
+                    method : 'GET'
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        test.equal(data, '{"err":"No matching route"}');
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.end();
+            });
+        })
+    },
+    'no optional param syntax -negative' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
             routes : __dirname + '/routes/',
@@ -707,6 +775,85 @@ module.exports = {
                         }
                         test.ok(_.isArray(json), 'expected an array');
                         test.equal(json.length, 1);
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.end();
+            });
+        })
+    },
+    'default required' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.listen(80126, function() {
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/finddefault',
+                    method : 'GET'
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        try{
+                            var json = JSON.parse(data);
+                        }catch (e){
+                            test.ok(false, "response is not json")
+                        }
+                        test.ok(_.isArray(json), 'expected an array');
+                        test.equal(json.length, 1);
+                        c.app.close();
+                        testHttpapp.close();
+                        test.done();
+                    });
+                });
+                req.end();
+            });
+        })
+    },
+    'default in regular route' : function(test) {
+        var c = new Console({
+            tables : __dirname + '/tables',
+            routes : __dirname + '/routes/',
+            config : __dirname + '/config/dev.json',
+            'enable console' : false,
+            connection : 'close'
+        });
+        c.app.listen(3000, function() {
+            var testHttpapp = express.createServer();
+            testHttpapp.listen(80126, function() {
+                var options = {
+                    host : 'localhost',
+                    port : 3000,
+                    path : '/profile?messageid=mid&include=Details',
+                    method : 'GET'
+                };
+                var req = http.request(options);
+                req.addListener('response', function(resp) {
+                    var data = '';
+                    resp.addListener('data', function(chunk) {
+                        data += chunk;
+                    });
+                    resp.addListener('end', function() {
+                        try{
+                            var json = JSON.parse(data);
+                        }catch (e){
+                            test.ok(false, "response is not json")
+                        }
+                        test.equal(json.Ack, 'Success');
                         c.app.close();
                         testHttpapp.close();
                         test.done();
