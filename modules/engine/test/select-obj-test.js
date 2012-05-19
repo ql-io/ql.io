@@ -131,5 +131,22 @@ module.exports = {
                 test.done();
             })
         });
+    },
+
+    'select-indexed-ref': function (test) {
+        var q = "a = {\
+                  'b-1' : 'B1',\
+                  'b-2' : 'B2',\
+                  'b-3' : {\
+                      'c-1' : 'C1'\
+                  }\
+                };\
+                return select 'b-1', 'b-3'['c-1'] from a;"
+        engine.execute(q, function(emitter) {
+            emitter.on('end', function(err, results) {
+                test.deepEqual(results.body, [["B1","C1"]]);
+                test.done();
+            })
+        })
     }
 };

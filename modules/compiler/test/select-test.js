@@ -947,7 +947,7 @@ module.exports = {
         var select = cooked[0].rhs;
         test.equals(select.whereCriteria.length, 1);
         test.equals(select.whereCriteria[0].rhs.value, '{"a":"b"}');
-        test.equals(select.columns[0].name, "a[\"b\"]");
+        test.equals(select.columns[0].name, "a[b]");
         test.equals(cooked[0].route.path.value, '/a');
         test.done();
     },
