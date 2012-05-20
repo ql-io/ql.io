@@ -1,5 +1,6 @@
 ## May 18, 2012
 
+* Support array style reference in columns clause, such as `select 'b-1', 'b-3'['c-1'] from a`.
 * Disable ability to enable/disable ecv checks by default. You can turn it on by adding arg
    `--ecvControl true` to the start script.
 

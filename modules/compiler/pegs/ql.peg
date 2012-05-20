@@ -878,7 +878,7 @@ Ref = i:Name {
 
 Operator = (insig '=' insig/ insig 'in' insig)
 
-RHS = r:(AliasedRef/QuotedWord/QuotedDigits/Digits) {
+RHS = r:(QuotedWord/QuotedDigits/Digits/AliasedRef) {
     if(!r.hasOwnProperty('value')) {
         r = {
             value: r
@@ -974,6 +974,10 @@ Word = chars:([a-zA-Z$:][a-zA-Z_0-9:]*)  {
         ret = ret + chars[i].join('');
     }
     return ret;
+}
+
+WordVal = q:QuotedWord {
+    return q.value;
 }
 
 QuotedWordVal = q:QuotedWord {
@@ -1146,7 +1150,7 @@ crlf = c:[\x0d\x0a] {
 //
 // JSONPath
 //
-JSONPath = i:Identifier e:ExtIdentifier? {
+JSONPath = i:(Identifier / WordVal) e:ExtIdentifier? {
     return i + e;
 }
 
@@ -1154,7 +1158,7 @@ ExtIdentifier = c:( Descendent / Indexed )* {
     return c.join('');
 }
 
-Indexed = '[' p:(PositiveNumber / Property / Expr) ']' {
+Indexed = '[' p:(PositiveNumber / WordVal / Property / Expr) ']' {
     return '[' + p + ']';
 }
 
