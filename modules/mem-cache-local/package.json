@@ -1,7 +1,7 @@
 {
     "author": "ql.io",
     "name": "ql.io-mem-cache-local",
-    "version": "0.0.5",
+    "version": "0.1.0",
     "repository": {
         "type": "git",
         "url": "https://github.com/ql-io/ql.io"
@@ -12,8 +12,8 @@
     "main": "lib/cache.js",
     "dependencies": {
         "winston": "0.5.11",
-        "underscore": "1.3.1",
-        "memcached":"0.0.7"
+        "underscore": "1.3.3",
+        "memcached":"0.0.10"
     },
     "devDependencies": {
         "nodeunit": "0.7.4"

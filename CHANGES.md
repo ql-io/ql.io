@@ -1,3 +1,7 @@
+## May 20, 2012
+
+* Version 0.6
+
 ## May 18, 2012
 
 * Support array style reference in columns clause, such as `select 'b-1', 'b-3'['c-1'] from a`.
