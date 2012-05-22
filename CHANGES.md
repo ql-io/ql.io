@@ -1,6 +1,17 @@
+## May 20, 2012
+
+* Version 0.6
+
+## May 18, 2012
+
+* Support array style reference in columns clause, such as `select 'b-1', 'b-3'['c-1'] from a`.
+* Disable ability to enable/disable ecv checks by default. You can turn it on by adding arg
+   `--ecvControl true` to the start script.
+
 ## May 17, 2012
 
-* Add optional parameters in route. Including "with optional params" in route would make params without ^ prefix optional.
+* Add optional parameters in route. Including "with optional params" in route would make params
+  without ^ prefix optional.
 * Add more test cases, some bug fix in app.js to fully support defaults.
 
 ## May 15, 2012

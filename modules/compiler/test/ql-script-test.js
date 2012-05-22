@@ -523,6 +523,14 @@ return {"result" : "{fields}"};\
             test.ok(false);
             test.done();
         }
+    },
+
+    'indexed-prop-ref': function(test) {
+        var script = "select 'b-1', 'b-3'['c-1'] from a;";
+        var cooked = compiler.compile(script);
+        test.equals(cooked[0].columns[0].name, 'b-1');
+        test.equals(cooked[0].columns[1].name, 'b-3[c-1]');
+        test.done();
     }
 
 };

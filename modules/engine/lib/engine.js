@@ -443,7 +443,7 @@ function sweep(opts, parentEvent) {
                 execOne(opts, last, function(err, results) {
                     opts.execState[last.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
                     return parentEvent.end(err, results);
-                });
+                }, parentEvent);
             }
         }
         // Single statement (sans create/comments) - return the last result
