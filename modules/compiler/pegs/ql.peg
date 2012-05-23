@@ -408,7 +408,7 @@ Line = sp l:(Assign / Comment) {
 }
 
 // In an assignment, the RHS is optional to support single statement scripts.
-Assign = a:Output? s:StatementOrObject insig ';'? insig {
+Assign = a:Output? s:AssignRHS insig ';'? insig {
     if(a) {
         s.assign = a.assign;
         s.line = a.line;
@@ -417,6 +417,16 @@ Assign = a:Output? s:StatementOrObject insig ';'? insig {
     // Add LHS to the symbol table
     symbols[a.assign] = {};
     return s;
+}
+
+AssignRHS = Fallback
+
+Fallback = s1:StatementOrObject insig
+    s2:(('||' insig f:Fallback) { return f; })? {
+    if(s2) {
+        s1.fallback = s2;
+    }
+    return s1;
 }
 
 // A statement or object
@@ -1019,7 +1029,7 @@ Ret = 'return' {
     }
 }
 
-Return = re:Ret insig o:RetVal insig r:Route? insig ';'? {
+Return = re:Ret insig o:RetFallback insig r:Route? insig ';'? {
     var ret = {
         type: 'return',
         line: re.line,
@@ -1033,6 +1043,14 @@ Return = re:Ret insig o:RetVal insig r:Route? insig ';'? {
 }
 
 RetVal = Statement / CallUdf / RetRef / Value
+
+RetFallback = s1:RetVal insig
+    s2:(('||' insig f:RetFallback) { return f; })? {
+    if(s2) {
+        s1.fallback = s2;
+    }
+    return s1;
+}
 
 RetRef = o:Word {
     if(symbols[o] === undefined) {
