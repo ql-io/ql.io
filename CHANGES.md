@@ -1,3 +1,7 @@
+## May 22, 2012
+
+* Add fallback syntax to the language
+
 ## May 20, 2012
 
 * Version 0.6
