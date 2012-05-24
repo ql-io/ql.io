@@ -26,22 +26,13 @@ module.exports = {
                   b = "{a}";\
                   c = "{b}";\
                   return c;'
-        try {
-            cooked = compiler.compile(script);
-            test.equals(cooked[0].listeners.length, 1);
-            test.equals(cooked[0].listeners[0], 1);
-            test.equals(cooked[1].dependsOn.length, 1);
-            test.equals(cooked[1].dependsOn[0], 0);
-            test.equals(cooked[1].listeners.length, 1);
-            test.equals(cooked[1].listeners[0], 2);
-            test.equals(cooked[2].dependsOn.length, 1);
-            test.equals(cooked[2].dependsOn[0], 1);
-            test.done();
-        }
-        catch(e) {
-            console.log(e.stack || e);
-            test.fail(e);
-            test.done();
-        }
+        cooked = compiler.compile(script);
+        test.equals(cooked.dependsOn.length, 1);
+        test.equals(cooked.dependsOn[0].object, '{b}');
+        test.equals(cooked.dependsOn[0].dependsOn.length, 1);
+        test.equals(cooked.dependsOn[0].dependsOn[0].object, '{a}');
+        test.equals(cooked.dependsOn[0].dependsOn[0].dependsOn.length, 1);
+        test.equals(cooked.dependsOn[0].dependsOn[0].dependsOn[0].object, 'a');
+        test.done();
     }
 };

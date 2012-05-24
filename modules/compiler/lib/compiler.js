@@ -21,9 +21,6 @@ var ql = require('./peg/ql.js'),
 
 exports.version = require('../package.json').version;
 
-//
-// TODO: Most of this code should move to ql.peg
-//
 var cache = {};
 exports.compile = function(script) {
     var compiled, cooked, cacheKey;
@@ -35,7 +32,7 @@ exports.compile = function(script) {
     }
 
     compiled = ql.parse(script);
-    cooked = cook(compiled);
+    cooked = plan(compiled);
     if(Object.seal) {
         cooked = Object.freeze(cooked);
     }
@@ -44,22 +41,31 @@ exports.compile = function(script) {
     return cooked;
 }
 
-function cook(compiled) {
-    // Pass 0: One line - no need for cooking
-    if(compiled.length === 1) {
-        return compiled;
-    }
-
-    // Pass 1: collect all assignments
-    var symbols = {}, cooked = [], count, hasReturn, i, line;
+// Convert the compiled statements into an execution plan.
+// Once done, this returns a 'return' statement and its dependencies
+function plan(compiled) {
+    // Collect all assignments
+    var symbols = {}, i, line;
+    var ret, single, count = 0;
+    var comments = [];
     for(i = 0; i < compiled.length; i++) {
         line = compiled[i];
-        line.dependsOn = [];
-        line.listeners = [];
-        if(line.joiner) {
-            line.joiner.dependsOn = [];
-            line.joiner.listeners = [];
+
+        // Collect the statements and assign them to the following non-comment.
+        if(line.type === 'comment') {
+            comments.push(line);
+            continue;
         }
+
+        // Keep track of the single statement case.
+        single = line;
+
+        if(comments.length > 0) {
+            // Assign comments now.
+            line.comments = comments;
+            comments = [];
+        }
+
         if(line.assign) {
             if(symbols[line.assign]) {
                 throw new this.SyntaxError('Duplicate symbol ' + line.assign);
@@ -71,135 +77,124 @@ function cook(compiled) {
         else if(line.type === 'create') { // Makes sense when DDL is inline
             symbols[line.name] = line;
         }
-    }
-
-    // TODO: Get rid of statements with no dependencies
-
-    // Pass 2: wire up dependencies between statements
-    for(i = 0; i < compiled.length; i++) {
-        introspect(compiled[i], cooked, symbols);
-    }
-
-    // Check for return statements
-    // Return is required if the number of statements excluding create table statements and comments is more than 1.
-    count = 0;
-    hasReturn = false;
-    _.each(cooked, function(line) {
         if(line.type !== 'comment' && line.type !== 'create' && line.type !== 'return') {
             count++;
         }
         if(line.type === 'return') {
-            hasReturn = true;
+            ret = line;
         }
-    });
-    if(count > 1 && !hasReturn) {
-        throw new this.SyntaxError('Missing return statement');
     }
-    return cooked;
+    if(!ret) {
+        if(single) {
+            // Make up a return statement so that there is always a return statement
+            // when there is an executable statement in the script
+            ret = {
+                type: 'return',
+                line: single.line,
+                id: single.id,
+                rhs: single
+            }
+        }
+        else {
+            // If there is no executable script, just return the compiled statements as they are.
+            ret = compiled;
+        }
+    }
+
+    // Start with the return statement and create the plan.
+    walk(ret, symbols);
+
+    return ret;
 }
 
-// Introspect a statement for dependencies
-function introspect(line, cooked, symbols) {
-    var type = line.type, index, j, k, ref, refname, dependency, where;
+// Recursively walk up from the return statement to create the dependency tree.
+function walk(line, symbols) {
+    var type = line.type, dependency;
+    line.dependsOn = line.dependsOn || [];
     switch(type) {
-        case 'object' :
-        case 'comment' :
-        case 'create' :
-        case 'describe':
-        case 'show':
-        case 'insert' :
-            cooked.push(line);
+        case 'define':
+            introspectObject(line.object, symbols, line.dependsOn);
             break;
-        case 'define' :
-            introspectObject(line.object, symbols, line.dependsOn, line.id);
-            cooked.push(line);
-            break;
-        case 'delete' :
-            // Find dependencies from where
-            line = introspectWhere(line, symbols);
-            cooked.push(line);
-            break;
-        case 'select' :
-            // Find dependencies from fromClause
-            findFrom(line, symbols);
-
-            // Find dependencies from the joiner's fromClause
-            if(line.joiner) {
-                findFrom(line.joiner, symbols, line);
-            }
-
-            // Find dependencies in where
-            line = introspectWhere(line, symbols);
-            cooked.push(line);
-            break;
-        case 'return' :
+        case 'return':
             if(line.rhs.type === 'define') {
-                introspectObject(line.rhs.object, symbols, line.dependsOn, line.id);
+                introspectObject(line.rhs.object, symbols, line.dependsOn);
             }
-            else if(line.rhs.type === 'ref') {
-                dependency = symbols[refname];
+            else if(line.rhs.ref) {
+                dependency = symbols[line.rhs.ref];
                 if(dependency) {
-                    line.dependsOn.push(dependency.id);
-                    dependency.listeners.push(id);
+                    line.dependsOn.push(dependency);
+                    walk(dependency, symbols);
                 }
             }
             else {
                 // A statement
             }
-            cooked.push(line);
             break;
-        default:
+        case 'select':
+            introspectFrom(line, symbols);
+            if(line.joiner) {
+                introspectFrom(line.joiner, symbols, line);
+            }
+
+            // Find dependencies in where
+            line = introspectWhere(line, symbols);
+
+            if(line.fallback) {
+                walk(line.fallback, symbols);
+            }
+            break;
+        case 'describe':
+
     }
 }
 
-// Introspect return for dependencies
-function introspectString(v, refname, index, dependency, symbols, dependsOn, id) {
+//
+// Introspection utils
+//
+function introspectString(v, symbols, dependsOn) {
     if(v.indexOf('{') === 0 && v.indexOf('}') === v.length - 1) {
-        refname = v.substring(1, v.length - 1);
-        index = refname.indexOf('.');
+        var refname = v.substring(1, v.length - 1);
+        var index = refname.indexOf('.');
         if(index > 0) {
             refname = refname.substring(0, index);
         }
-        dependency = symbols[refname];
+        var dependency = symbols[refname];
         if(dependency) {
-            dependsOn.push(dependency.id);
-            dependency.listeners.push(id);
+            dependsOn.push(dependency);
+            walk(dependency, symbols);
         }
     }
 }
 
-function introspectObject(obj, symbols, dependsOn, id) {
-    var dependency, refname, index, arr = [];
+function introspectObject(obj, symbols, dependsOn) {
     if(_.isString(obj)) {
-        introspectString(obj, refname, index, dependency, symbols, dependsOn, id);
+        introspectString(obj, symbols, dependsOn);
     }
     else if(_.isArray(obj)) {
         _.each(obj, function(v) {
-            introspectObject(v, refname, index, dependency, symbols, dependsOn, id);
+            introspectObject(v, symbols, dependsOn);
         });
     }
     else if(_.isObject(obj)) {
         _.each(obj, function(v, n) {
             if(_.isString(v)) {
-                introspectString(v, refname, index, dependency, symbols, dependsOn, id);
+                introspectString(v, symbols, dependsOn);
             }
             else if(_.isArray(v)) {
-                arr = [];
+                var arr = [];
                 _.each(v, function(vi) {
-                    introspectObject(vi, symbols, dependsOn, id);
+                    introspectObject(vi, symbols, dependsOn);
                 });
                 ret[n] = arr;
             }
             else {
-                introspectObject(v, symbols, dependsOn, id);
+                introspectObject(v, symbols, dependsOn);
             }
         });
     }
 }
 
-// Find dependencies from from clause
-// When the line is a joiner, we need to wire the dependencies with the parent and not the joiner.
-function findFrom(line, symbols, parent) {
+function introspectFrom(line, symbols, parent) {
     var j, from, refname, dependency;
     for(j = 0; j < line.fromClause.length; j++) {
         from = line.fromClause[j];
@@ -207,13 +202,17 @@ function findFrom(line, symbols, parent) {
             refname = from.name.substring(1, from.name.length - 1);
             dependency = symbols[refname];
             if(dependency) {
-                if(parent) {
-                    parent.dependsOn.push(dependency.id);
-                    dependency.listeners.push(parent.id);
+                if(line.assign === refname) {
+                    throw new this.SyntaxError('Circular reference ' + line.assign);
                 }
                 else {
-                    line.dependsOn.push(dependency.id);
-                    dependency.listeners.push(line.id);
+                    if(parent) {
+                        parent.dependsOn.push(dependency);
+                    }
+                    else {
+                        line.dependsOn.push(dependency);
+                    }
+                    walk(dependency, symbols);
                 }
             }
         }
@@ -221,19 +220,22 @@ function findFrom(line, symbols, parent) {
             refname = from.name
             dependency = symbols[refname];
             if(dependency) {
-                if(parent) {
-                    parent.dependsOn.push(dependency.id);
-                    dependency.listeners.push(parent.id);
+                if(line.assign === refname) {
+                    throw new this.SyntaxError('Circular reference ' + line.assign);
                 }
                 else {
-                    line.dependsOn.push(dependency.id);
-                    dependency.listeners.push(line.id);
+                    if(parent) {
+                        parent.dependsOn.push(dependency);
+                    }
+                    else {
+                        line.dependsOn.push(dependency);
+                    }
+                    walk(dependency, symbols);
                 }
             }
         }
     }
 }
-
 
 function introspectWhere(line, symbols) {
     var j, where, k, ref, refname, index, dependency;
@@ -252,15 +254,18 @@ function introspectWhere(line, symbols) {
                                     refname = refname.substring(0, index);
                                 }
                                 dependency = symbols[refname];
-                                if(dependency) {
-                                    line.dependsOn.push(dependency.id);
-                                    dependency.listeners.push(line.id);
+                                if(line.assign === refname) {
+                                    throw new this.SyntaxError('Circular reference ' + line.assign);
+                                }
+                                else {
+                                    line.dependsOn.push(dependency);
+                                    walk(dependency, symbols);
                                 }
                             }
                         }
                     }
                     else if(where.rhs.type === 'select') {
-                        findFrom(where.rhs, symbols, line);
+                        introspectFrom(where.rhs, symbols, line);
                     }
                     break;
                 case '=' :
@@ -273,8 +278,13 @@ function introspectWhere(line, symbols) {
                         }
                         dependency = symbols[refname];
                         if(dependency) {
-                            line.dependsOn.push(dependency.id);
-                            dependency.listeners.push(line.id);
+                            if(line.assign === refname) {
+                                throw new this.SyntaxError('Circular reference ' + line.assign);
+                            }
+                            else {
+                                line.dependsOn.push(dependency);
+                                walk(dependency, symbols);
+                            }
                         }
                     }
                     break;

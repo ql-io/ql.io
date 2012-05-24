@@ -22,53 +22,70 @@ module.exports = {
     'return-values': function(test) {
         var q = "return 1 || 2 || 3";
         var statement = compiler.compile(q);
-        test.equal(statement[0].rhs.object, 1);
-        test.ok(statement[0].rhs.fallback);
-        test.ok(statement[0].rhs.fallback.object, 2);
-        test.ok(statement[0].rhs.fallback.fallback);
-        test.equal(statement[0].rhs.fallback.fallback.object, 3);
+        test.equal(statement.rhs.object, 1);
+        test.ok(statement.rhs.fallback);
+        test.ok(statement.rhs.fallback.object, 2);
+        test.ok(statement.rhs.fallback.fallback);
+        test.equal(statement.rhs.fallback.fallback.object, 3);
         test.done();
     },
 
     'return-select-obj': function(test) {
         var q = "return select * from a || { 'yeah': 'ok' };";
         var statement = compiler.compile(q);
-        test.equal(statement[0].rhs.type, 'select');
-        test.ok(statement[0].rhs.fallback);
-        test.deepEqual(statement[0].rhs.fallback.object, {'yeah': 'ok'});
+        test.equal(statement.rhs.type, 'select');
+        test.ok(statement.rhs.fallback);
+        test.deepEqual(statement.rhs.fallback.object, {'yeah': 'ok'});
         test.done();
     },
 
     'return-select-select': function(test) {
         var q = "return select * from a || select * from b;";
         var statement = compiler.compile(q);
-        test.equal(statement[0].rhs.type, 'select');
-        test.ok(statement[0].rhs.fallback);
-        test.equal(statement[0].rhs.fallback.type, 'select');
-        test.equal(statement[0].rhs.fallback.fromClause[0].name, 'b');
+        test.equal(statement.rhs.type, 'select');
+        test.ok(statement.rhs.fallback);
+        test.equal(statement.rhs.fallback.type, 'select');
+        test.equal(statement.rhs.fallback.fromClause[0].name, 'b');
         test.done();
     },
 
     'return-select-select-select': function(test) {
         var q = "return select * from a || select * from b || select * from c;";
         var statement = compiler.compile(q);
-        test.equal(statement[0].rhs.type, 'select');
-        test.ok(statement[0].rhs.fallback);
-        test.equal(statement[0].rhs.fallback.type, 'select');
-        test.equal(statement[0].rhs.fallback.fromClause[0].name, 'b');
-        test.equal(statement[0].rhs.fallback.fallback.type, 'select');
-        test.equal(statement[0].rhs.fallback.fallback.fromClause[0].name, 'c');
+        test.equal(statement.rhs.type, 'select');
+        test.ok(statement.rhs.fallback);
+        test.equal(statement.rhs.fallback.type, 'select');
+        test.equal(statement.rhs.fallback.fromClause[0].name, 'b');
+        test.equal(statement.rhs.fallback.fallback.type, 'select');
+        test.equal(statement.rhs.fallback.fallback.fromClause[0].name, 'c');
         test.done();
     },
 
     'assign-select-obj': function(test) {
         var q = "a = select * from a || 10.0;";
         var statement = compiler.compile(q);
-        test.equal(statement[0].type, 'select');
-        test.ok(statement[0].fallback);
-        test.equal(statement[0].fallback.object, 10);
+        test.equal(statement.rhs.type, 'select');
+        test.ok(statement.rhs.fallback);
+        test.equal(statement.rhs.fallback.object, 10);
+        test.done();
+    },
+
+    'deps-statements': function(test) {
+        var q = "a = select * from A;\n\
+                 b = select * from B;\n\
+                 foo = select * from a || select * from b;\n\
+                 return foo;";
+        var statement = compiler.compile(q);
+        test.equal(statement.rhs.ref, 'foo')
+        test.equal(statement.dependsOn.length, 1)
+        test.equal(statement.dependsOn[0].type, 'select');
+        test.equal(statement.dependsOn[0].fromClause[0].name, '{a}');
+        test.equal(statement.dependsOn[0].dependsOn.length, 1);
+        test.equal(statement.dependsOn[0].dependsOn[0].fromClause[0].name, 'A');
+        test.equal(statement.dependsOn[0].fallback.type, 'select');
+        test.equal(statement.dependsOn[0].fallback.fromClause[0].name, '{b}');
+        test.equal(statement.dependsOn[0].fallback.dependsOn.length, 1);
+        test.equal(statement.dependsOn[0].fallback.dependsOn[0].fromClause[0].name, 'B');
         test.done();
     }
-
-
 };

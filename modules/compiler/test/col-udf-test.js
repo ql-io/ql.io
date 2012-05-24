@@ -31,14 +31,14 @@ module.exports = {
                     { type: 'column', name: 'lname' }
                 ] }
         ];
-        test.deepEqual(c[0].columns, columns);
+        test.deepEqual(c.rhs.columns, columns);
         test.done();
     },
 
     'udf-args-literal': function(test) {
         var q = 'select id, name(1, 2.0, "hello", "hello world", {"p" : "v"}) from people';
         var c = compiler.compile(q);
-        test.deepEqual(c[0].columns[1].args, [
+        test.deepEqual(c.rhs.columns[1].args, [
             {
                 "type": "literal",
                 "value": 1
@@ -66,7 +66,7 @@ module.exports = {
     'udf-args-mixed': function(test) {
         var q = 'select id, name(1, fname, lname) from people;';
         var c = compiler.compile(q);
-        test.deepEqual(c[0].columns[1].args, [
+        test.deepEqual(c.rhs.columns[1].args, [
                        {
                           "type": "literal",
                           "value": 1
@@ -93,7 +93,7 @@ module.exports = {
              [ { type: 'column', name: 'fname' },
                { type: 'column', name: 'lname' } ],
             alias: 'name' } ];
-        test.deepEqual(c[0].columns, columns);
+        test.deepEqual(c.rhs.columns, columns);
         test.done();
     }
 };

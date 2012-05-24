@@ -21,8 +21,7 @@ var compiler = require('../lib/compiler');
 exports['simple'] = function(test) {
     var q = "create table twitter.public on select get from 'http://twitter.com/statuses/public_timeline.{^format}'  using defaults format = 'json'";
     var compiled = compiler.compile(q);
-    var e = [
-        { type: 'create',
+    var e = { type: 'create',
             name: 'twitter.public',
             line: 1,
             select:
@@ -34,9 +33,8 @@ exports['simple'] = function(test) {
                 resultSet: '',
                 cache: {},
                 body: '' },
-            id: 0 }
-    ];
-    test.deepEqual(compiled, e);
+            id: 0 };
+    test.deepEqual(compiled.rhs, e);
     test.done();
 };
 
@@ -51,8 +49,7 @@ exports['multiple actions'] = function(test) {
             using patch "shorten.js"\
             resultset "data.expand"';
     var compiled = compiler.compile(q);
-    var e = [
-        { type: 'create',
+    var e = { type: 'create',
             name: 'bitly.shorten',
             line: 1,
             insert:
@@ -81,9 +78,8 @@ exports['multiple actions'] = function(test) {
                 cache: {},
                 patch: 'shorten.js',
                 body: '' },
-            id: 0 }
-    ];
-    test.deepEqual(compiled, e);
+            id: 0 };
+    test.deepEqual(compiled.rhs, e);
     test.done();
 };
 
@@ -108,9 +104,7 @@ create table ebay.trading.getmyebaybuying\
     using patch "getmyebaybuying.js"\
     using bodyTemplate "getmyebaybuying.xml.mu" type "application/xml"';
     var compiled = compiler.compile(script);
-    test.ok(compiled[0]);
-    test.ok(compiled[1]);
-    test.equals(compiled[1].select.body.type, 'application/xml');
+    test.equals(compiled.rhs.select.body.type, 'application/xml');
     test.done();
 };
 
@@ -137,9 +131,7 @@ create table ebay.trading.getmyebaybuying\n\
 
     try {
         var compiled = compiler.compile(script);
-        test.ok(compiled[0]);
-        test.ok(compiled[1]);
-        test.equals(compiled[1].select.body.type, 'application/xml;foo=bar');
+        test.equals(compiled.rhs.select.body.type, 'application/xml;foo=bar');
         test.done();
     }
     catch(e) {
@@ -170,9 +162,7 @@ create table ebay.trading.getmyebaybuying\n\
 
     try {
         var compiled = compiler.compile(script);
-        test.ok(compiled[0]);
-        test.ok(compiled[1]);
-        test.equals(compiled[1].select.body.type, 'application/x-www-form-urlencoded');
+        test.equals(compiled.rhs.select.body.type, 'application/x-www-form-urlencoded');
         test.done();
     }
     catch(e) {
@@ -184,9 +174,7 @@ exports['auth'] = function(test) {
     var script = 'create table ebay.finding.items on select get from "{config.tables.ebay.finding.items.url}" authenticate using "authmod"';
     try {
         var compiled = compiler.compile(script);
-        test.ok(compiled[0]);
-        test.ok(compiled[0].select);
-        test.equals(compiled[0].select.auth, 'authmod');
+        test.equals(compiled.rhs.select.auth, 'authmod');
         test.done();
     }
     catch(e) {

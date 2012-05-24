@@ -21,7 +21,7 @@ var compiler = require('../lib/compiler');
 exports['insert'] = function(test) {
     var q = "insert into suppliers (supplier_id, supplier_name) values ('24553', 'IBM')";
     var statement = compiler.compile(q);
-    var e = [{
+    var e = {
         "type": "insert",
         "source": {
             "name": "suppliers"
@@ -36,8 +36,8 @@ exports['insert'] = function(test) {
         ],
         "line": 1,
         "id": 0
-    }];
-    test.deepEqual(statement, e);
+    };
+    test.deepEqual(statement.rhs, e);
     test.done();
 };
 
@@ -58,29 +58,7 @@ exports['mismatch-count'] = function(test) {
 exports['insert-assign'] = function(test) {
     var q = "a = insert into foo (a, b, c) values ('a', 'b', 'c'); \nreturn {};";
     var statement = compiler.compile(q);
-    var e = [
-        {
-            "type": "insert",
-            "source": {
-                "name": "foo"
-            },
-            "columns": [
-                {name: "a",type: 'column'},
-                {name: "b",type: 'column'},
-                {name: "c",type: 'column'}
-            ],
-            "values": [
-                "a",
-                "b",
-                "c"
-            ],
-            "line": 1,
-            "assign": "a",
-            "id": 0,
-            dependsOn: [],
-            listeners: []
-        },
-        {
+    var e = {
             rhs: {
                 "object": {},
                 type: 'define',
@@ -89,10 +67,8 @@ exports['insert-assign'] = function(test) {
             "type": "return",
             "line": 2,
             "id": 1,
-            dependsOn: [],
-            listeners: []
-        }
-    ];
+            dependsOn: []
+        };
     test.deepEqual(statement, e);
     test.done();
 };
@@ -113,8 +89,7 @@ exports['insert-no-table'] = function(test) {
 exports['insert-opaque'] = function(test) {
     var q = "insert into suppliers values ('24553')"
     var statement = compiler.compile(q);
-    var e = [
-        {
+    var e = {
             "type": "insert",
             "source": {
                 "name": "suppliers"
@@ -122,17 +97,15 @@ exports['insert-opaque'] = function(test) {
             "values": "24553",
             "line": 1,
             "id": 0
-        }
-    ];
-    test.deepEqual(statement, e);
+        };
+    test.deepEqual(statement.rhs, e);
     test.done();
 };
 
 exports['insert-multiparts'] = function(test) {
     var q = 'insert into mytable (name, salary) values ( "John Smith", 5) with parts "{parts[0]}", "{parts[4]}", "{parts[2]}"';
     var statement = compiler.compile(q);
-    var e = [
-        {
+    var e = {
             "type": "insert",
             "source": {
                 "name": "mytable"
@@ -158,16 +131,15 @@ exports['insert-multiparts'] = function(test) {
                 "{parts[2]}"
             ],
             "id": 0
-        }
-    ]
-    test.deepEqual(statement, e);
+        };
+    test.deepEqual(statement.rhs, e);
     test.done();
 };
 
 exports['insert-timeout'] = function(test) {
     var q = "insert into suppliers (supplier_id, supplier_name) values ('24553', 'IBM') timeout 10 minDelay 100 maxDelay 10000";
     var statement = compiler.compile(q);
-    var e = [{
+    var e = {
         "type": "insert",
         "source": {
             "name": "suppliers"
@@ -185,8 +157,8 @@ exports['insert-timeout'] = function(test) {
         maxDelay: 10000,
         "line": 1,
         "id": 0
-    }];
-    test.deepEqual(statement, e);
+    };
+    test.deepEqual(statement.rhs, e);
     test.done();
 };
 

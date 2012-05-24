@@ -19,25 +19,21 @@
 var compiler = require('../lib/compiler');
 
 exports['simple'] = function(test) {
-    var q = 'n = [["Gap","Addidas","Gravati2a"], ["Gap","Addidasf"], ["Gravati","Addis"]];\
+    var q = '-- Define an object\n\
+            n = [["Gap","Addidas","Gravati2a"], ["Gap","Addidasf"], ["Gravati","Addis"]];\
+            -- Return now\n\
             return n;';
     var compiled = compiler.compile(q);
-    var e = [ { object:
-         [ [ 'Gap', 'Addidas', 'Gravati2a' ],
-           [ 'Gap', 'Addidasf' ],
-           [ 'Gravati', 'Addis' ] ],
+    test.equals(compiled.type, 'return');
+    test.equals(compiled.comments[0].text, 'Return now');
+    test.equals(compiled.rhs.ref, 'n');
+    test.deepEqual(compiled.dependsOn[0],
+        { object: [['Gap', 'Addidas', 'Gravati2a'], ['Gap', 'Addidasf'], ['Gravati', 'Addis']],
         type: 'define',
-        line: 1,
+        line: 2,
         assign: 'n',
         id: 0,
-        dependsOn: [],
-        listeners: [] },
-      { type: 'return',
-        line: 1,
-        id: 1,
-        rhs: { ref: 'n' },
-        dependsOn: [],
-        listeners: [] } ]
-    test.deepEqual(compiled, e);
+        comments: [ { line: 1, type: 'comment', text: 'Define an object' } ],
+        dependsOn: []});
     test.done();
 };
