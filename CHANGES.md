@@ -1,3 +1,7 @@
+## May 25, 2012
+
+* Update the context with the udf filtered data
+
 ## May 22, 2012
 
 * Add fallback syntax to the language

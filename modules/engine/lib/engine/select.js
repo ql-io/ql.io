@@ -184,6 +184,10 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                         return selectEvent.end(err);
                     }
                     else {
+                        if(statement.assign) {
+                            opts.context[statement.assign] = results.body;
+                            opts.emitter.emit(statement.assign, results.body);
+                        }
                         return selectEvent.end(null, results);
                     }
                 });
@@ -272,10 +276,6 @@ function execInternal(opts, statement, cb, parentEvent) {
 
                 // Project
                 project.run('', statement, filtered, opts.context, function (projected) {
-                    if(statement.assign) {
-                        context[statement.assign] = projected;
-                        emitter.emit(statement.assign, projected);
-                    }
                     return apiTx.cb(null, {
                         headers: {
                             'content-type': 'application/json'
