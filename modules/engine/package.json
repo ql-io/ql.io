@@ -16,6 +16,7 @@
         "xml2json": "https://github.com/ql-io/node-xml2json/tarball/master",
         "ql.io-compiler": "",
         "ql.io-mutable-uri": "",
+        "ql.io-str-template": "",
         "ql.io-uri-template": "",
         "JSONPath": "0.9.0",
         "uri": "0.1.0",

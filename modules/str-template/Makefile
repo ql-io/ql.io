@@ -4,7 +4,6 @@ clean:
 	-rm -fr node_modules
 
 install:
-	npm link ql.io-str-template;\
 	npm install;\
 	npm link;
 
@@ -14,3 +13,4 @@ test: install
 
 test-part:
 	node_modules/.bin/nodeunit test --reporter junit --output ../../reports
+
