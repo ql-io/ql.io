@@ -288,5 +288,19 @@ module.exports = {
                 }
             })
         });
+    },
+
+    'filter-row': function(test) {
+        var script = 'u = require("./test/udfs/filter.js");\n\
+                      a = [1, 1, 2, 2, 3, 3, 4];\n\
+                      b = select * from a where u.filter();\n\
+                      return b';
+        engine.execute(script, function(emitter) {
+            emitter.on('end', function(err, results) {
+                test.deepEqual(results.body, [1,2,3,4]);
+                test.done();
+            });
+        })
+
     }
 }
