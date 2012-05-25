@@ -15,6 +15,7 @@
  */
 
 var ql = require('./peg/ql.js'),
+    strParser = require('ql.io-str-template')
     _ = require('underscore')
 
 'use strict'
@@ -48,6 +49,7 @@ function plan(compiled) {
     var symbols = {}, i, line;
     var ret, single, count = 0;
     var comments = [];
+    var creates = [];
     for(i = 0; i < compiled.length; i++) {
         line = compiled[i];
 
@@ -56,9 +58,6 @@ function plan(compiled) {
             comments.push(line);
             continue;
         }
-
-        // Keep track of the single statement case.
-        single = line;
 
         if(comments.length > 0) {
             // Assign comments now.
@@ -73,9 +72,14 @@ function plan(compiled) {
             else {
                 symbols[line.assign] = line;
             }
+            single = line;
         }
         else if(line.type === 'create') { // Makes sense when DDL is inline
             symbols[line.name] = line;
+            creates.push(line);
+        }
+        else {
+            single = line;
         }
         if(line.type !== 'comment' && line.type !== 'create' && line.type !== 'return') {
             count++;
@@ -97,9 +101,20 @@ function plan(compiled) {
         }
         else {
             // If there is no executable script, just return the compiled statements as they are.
-            ret = compiled;
+            ret = {
+                type: 'return',
+                line: 1,
+                id: 0,
+                rhs: {
+                    object: {},
+                    type: 'define',
+                    line: 1
+                },
+                comments: comments
+            };
         }
     }
+    ret.dependsOn = creates;
 
     // Start with the return statement and create the plan.
     walk(ret, symbols);
@@ -152,17 +167,31 @@ function walk(line, symbols) {
 // Introspection utils
 //
 function introspectString(v, symbols, dependsOn) {
-    if(v.indexOf('{') === 0 && v.indexOf('}') === v.length - 1) {
-        var refname = v.substring(1, v.length - 1);
-        var index = refname.indexOf('.');
-        if(index > 0) {
-            refname = refname.substring(0, index);
-        }
-        var dependency = symbols[refname];
-        if(dependency) {
-            dependsOn.push(dependency);
-            walk(dependency, symbols);
-        }
+    try {
+        var parsed = strParser.parse(v);
+        _.each(parsed.vars, function(refname) {
+            var index = refname.indexOf('.');
+            if(index > 0) {
+                refname = refname.substring(0, index);
+            }
+            var dependency = symbols[refname];
+            if(dependency) {
+                var contains = false;
+                for(var i = 0; i < dependsOn.length; i++) {
+                    contains = _.isEqual(dependsOn[i], dependency);
+                    if(contains) {
+                        break;
+                    }
+                }
+                if(!contains) {
+                    dependsOn.push(dependency);
+                    walk(dependency, symbols);
+                }
+            }
+        });
+    }
+    catch(e) {
+        // Ignore
     }
 }
 

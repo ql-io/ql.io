@@ -34,7 +34,7 @@ exports['simple'] = function(test) {
                 cache: {},
                 body: '' },
             id: 0 };
-    test.deepEqual(compiled.rhs, e);
+    test.deepEqual(compiled.dependsOn[0], e);
     test.done();
 };
 
@@ -79,7 +79,7 @@ exports['multiple actions'] = function(test) {
                 patch: 'shorten.js',
                 body: '' },
             id: 0 };
-    test.deepEqual(compiled.rhs, e);
+    test.deepEqual(compiled.dependsOn[0], e);
     test.done();
 };
 
@@ -104,7 +104,7 @@ create table ebay.trading.getmyebaybuying\
     using patch "getmyebaybuying.js"\
     using bodyTemplate "getmyebaybuying.xml.mu" type "application/xml"';
     var compiled = compiler.compile(script);
-    test.equals(compiled.rhs.select.body.type, 'application/xml');
+    test.equals(compiled.dependsOn[0].select.body.type, 'application/xml');
     test.done();
 };
 
@@ -131,7 +131,7 @@ create table ebay.trading.getmyebaybuying\n\
 
     try {
         var compiled = compiler.compile(script);
-        test.equals(compiled.rhs.select.body.type, 'application/xml;foo=bar');
+        test.equals(compiled.dependsOn[0].select.body.type, 'application/xml;foo=bar');
         test.done();
     }
     catch(e) {
@@ -162,7 +162,7 @@ create table ebay.trading.getmyebaybuying\n\
 
     try {
         var compiled = compiler.compile(script);
-        test.equals(compiled.rhs.select.body.type, 'application/x-www-form-urlencoded');
+        test.equals(compiled.dependsOn[0].select.body.type, 'application/x-www-form-urlencoded');
         test.done();
     }
     catch(e) {
@@ -174,10 +174,43 @@ exports['auth'] = function(test) {
     var script = 'create table ebay.finding.items on select get from "{config.tables.ebay.finding.items.url}" authenticate using "authmod"';
     try {
         var compiled = compiler.compile(script);
-        test.equals(compiled.rhs.select.auth, 'authmod');
+        test.equals(compiled.dependsOn[0].select.auth, 'authmod');
         test.done();
     }
     catch(e) {
         console.log(e.stack || e);
     }
+}
+
+exports['create-many'] = function(test) {
+    var script = 'create table one on select get from "url1"\n\
+                  create table two on select post to "url2"';
+    var compiled = compiler.compile(script);
+    test.deepEqual(compiled.dependsOn, [
+        { type: 'create',
+            name: 'one',
+            line: 1,
+            select: { method: 'get',
+                uri: 'url1',
+                defaults: {},
+                aliases: {},
+                headers: {},
+                resultSet: '',
+                cache: {},
+                body: '' },
+            id: 0 },
+        { type: 'create',
+            name: 'two',
+            line: 2,
+            select: { method: 'post',
+                uri: 'url2',
+                defaults: {},
+                aliases: {},
+                headers: {},
+                resultSet: '',
+                cache: {},
+                body: '' },
+            id: 1 }
+    ])
+    test.done();
 }

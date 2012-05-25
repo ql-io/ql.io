@@ -21,18 +21,55 @@ var compiler = require('../lib/compiler'),
 
 module.exports = {
     'define-dependency' : function(test) {
-        var script, cooked;
+        var script, plan;
         script = 'a = "a";\
                   b = "{a}";\
                   c = "{b}";\
                   return c;'
-        cooked = compiler.compile(script);
-        test.equals(cooked.dependsOn.length, 1);
-        test.equals(cooked.dependsOn[0].object, '{b}');
-        test.equals(cooked.dependsOn[0].dependsOn.length, 1);
-        test.equals(cooked.dependsOn[0].dependsOn[0].object, '{a}');
-        test.equals(cooked.dependsOn[0].dependsOn[0].dependsOn.length, 1);
-        test.equals(cooked.dependsOn[0].dependsOn[0].dependsOn[0].object, 'a');
+        plan = compiler.compile(script);
+        test.equals(plan.dependsOn.length, 1);
+        test.equals(plan.dependsOn[0].object, '{b}');
+        test.equals(plan.dependsOn[0].dependsOn.length, 1);
+        test.equals(plan.dependsOn[0].dependsOn[0].object, '{a}');
+        test.equals(plan.dependsOn[0].dependsOn[0].dependsOn.length, 1);
+        test.equals(plan.dependsOn[0].dependsOn[0].dependsOn[0].object, 'a');
+        test.done();
+    },
+
+    'str-template': function(test) {
+        var script = 'config = {\
+                  "p1": "v1",\
+                  "ua": "safari",\
+                  "safari": {\
+                     "apikey": "1234"\
+                   }\
+                };\
+                c = "{config.{config.ua}.apikey}";\
+                return c;';
+        var plan = compiler.compile(script);
+        var e = { type: 'return',
+          line: 1,
+          id: 2,
+          rhs: { ref: 'c' },
+          dependsOn:
+           [ { object: '{config.{config.ua}.apikey}',
+               type: 'define',
+               line: 1,
+               assign: 'c',
+               id: 1,
+               dependsOn:
+                [ { object: { p1: 'v1', ua: 'safari', safari: { apikey: '1234' } },
+                    type: 'define',
+                    line: 1,
+                    assign: 'config',
+                    id: 0,
+                    dependsOn: [] } ] } ] };
+        test.equals(plan.dependsOn.length, 1);
+        test.equals(plan.dependsOn[0].type, 'define');
+        test.equals(plan.dependsOn[0].object, '{config.{config.ua}.apikey}');
+        test.equals(plan.dependsOn[0].dependsOn.length, 1);
+        test.equals(plan.dependsOn[0].dependsOn[0].type, 'define');
+        test.deepEqual(plan.dependsOn[0].dependsOn[0].object, { p1: 'v1', ua: 'safari', safari: { apikey: '1234' } });
         test.done();
     }
 };
