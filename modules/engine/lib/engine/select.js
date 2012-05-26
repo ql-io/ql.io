@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright 2011 eBay Software Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -184,6 +184,10 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                         return selectEvent.end(err);
                     }
                     else {
+                        if(statement.assign) {
+                            opts.context[statement.assign] = results.body;
+                            opts.emitter.emit(statement.assign, results.body);
+                        }
                         return selectEvent.end(null, results);
                     }
                 });
@@ -196,15 +200,15 @@ exports.exec = function(opts, statement, parentEvent, cb) {
 // Execute a parsed select statement with no joins
 function execInternal(opts, statement, cb, parentEvent) {
     var tables = opts.tables, tempResources = opts.tempResources, context = opts.context,
-         request = opts.request, emitter = opts.emitter;
+        request = opts.request, emitter = opts.emitter;
 
     var selectExecTx  = opts.logEmitter.beginEvent({
-            parent: parentEvent,
-            name: 'select-exec',
-            message: {
-                line: statement.line
-            },
-            cb: cb});
+        parent: parentEvent,
+        name: 'select-exec',
+        message: {
+            line: statement.line
+        },
+        cb: cb});
 
     //
     // Pre-fill columns
@@ -272,10 +276,6 @@ function execInternal(opts, statement, cb, parentEvent) {
 
                 // Project
                 project.run('', statement, filtered, opts.context, function (projected) {
-                    if(statement.assign) {
-                        context[statement.assign] = projected;
-                        emitter.emit(statement.assign, projected);
-                    }
                     return apiTx.cb(null, {
                         headers: {
                             'content-type': 'application/json'
@@ -288,11 +288,11 @@ function execInternal(opts, statement, cb, parentEvent) {
                 // Get the resource
                 resource = tempResources[from.name] || tables[from.name];
                 apiTx = opts.logEmitter.beginEvent({
-                        parent: selectExecTx.event,
-                        type: 'table',
-                        name: from.name,
-                        message: {line: statement.line},
-                        cb: selectExecTx.cb});
+                    parent: selectExecTx.event,
+                    type: 'table',
+                    name: from.name,
+                    message: {line: statement.line},
+                    cb: selectExecTx.cb});
 
                 if(!resource) {
                     return apiTx.cb('No such table ' + from.name);

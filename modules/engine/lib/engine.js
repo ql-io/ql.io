@@ -30,6 +30,7 @@ var configLoader = require('./engine/config.js'),
     create = require('./engine/create.js'),
     select = require('./engine/select.js'),
     insert = require('./engine/insert.js'),
+    update = require('./engine/update.js'),
     delet = require('./engine/delet.js'),
     _util = require('./engine/util.js'),
     jsonfill = require('./engine/jsonfill.js'),
@@ -534,6 +535,9 @@ function _execOne(opts, statement, cb, parentEvent) {
         case 'insert' :
             insert.exec(opts, statement, parentEvent, cb);
             break;
+        case 'update' :
+            update.exec(opts, statement, parentEvent, cb);
+            break;
         case 'delete' :
             delet.exec(opts, statement, parentEvent, cb);
             break;
@@ -578,6 +582,9 @@ function _execOne(opts, statement, cb, parentEvent) {
             }
             else if(statement.rhs.type === 'insert') {
                 insert.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
+            }
+            else if(statement.rhs.type === 'update') {
+                update.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
             }
             else if(statement.rhs.type === 'delete') {
                 delet.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
