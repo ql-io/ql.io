@@ -18,7 +18,6 @@
 
 var jsonfill = require('./jsonfill.js'),
     _ = require('underscore'),
-    where = require('./where.js'),
     filter = require('./filter.js'),
     assert = require('assert');
 
