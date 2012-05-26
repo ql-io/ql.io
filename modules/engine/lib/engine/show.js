@@ -25,7 +25,7 @@ var _ = require('underscore'),
  * @param statement
  * @param cb
  */
-exports.exec = function(opts, statement, cb) {
+exports.exec = function(opts, statement, parentEvent, cb) {
     var arr = [], tables = opts.tables, tempResources = opts.tempResources,
         context = opts.context, params = opts.request.params || {};
 

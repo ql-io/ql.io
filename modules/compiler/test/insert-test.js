@@ -35,6 +35,7 @@ exports['insert'] = function(test) {
             "IBM"
         ],
         "line": 1,
+        dependsOn: [],
         "id": 0
     };
     test.deepEqual(statement.rhs, e);
@@ -96,6 +97,7 @@ exports['insert-opaque'] = function(test) {
             },
             "values": "24553",
             "line": 1,
+            dependsOn: [],
             "id": 0
         };
     test.deepEqual(statement.rhs, e);
@@ -130,6 +132,7 @@ exports['insert-multiparts'] = function(test) {
                 "{parts[4]}",
                 "{parts[2]}"
             ],
+            dependsOn: [],
             "id": 0
         };
     test.deepEqual(statement.rhs, e);
@@ -156,6 +159,7 @@ exports['insert-timeout'] = function(test) {
         minDelay: 100,
         maxDelay: 10000,
         "line": 1,
+        dependsOn: [],
         "id": 0
     };
     test.deepEqual(statement.rhs, e);

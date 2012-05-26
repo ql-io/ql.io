@@ -24,7 +24,8 @@ exports['show'] = function (test) {
     var e = {
         type: 'show',
         line: 1,
-        id: 0
+        id: 0,
+        dependsOn: []
     };
     test.deepEqual(statement.rhs, e);
     test.done();

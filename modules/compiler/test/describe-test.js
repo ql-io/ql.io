@@ -25,6 +25,7 @@ exports['describe'] = function (test) {
         type: 'describe',
         line: 1,
         source: {'name': 'foo' },
+        dependsOn: [],
         id: 0
     };
     test.deepEqual(statement.rhs, e);
@@ -38,6 +39,7 @@ exports['desc'] = function (test) {
         type: 'describe',
         line: 1,
         source: {'name': 'foo' },
+        dependsOn: [],
         id: 0
     };
     test.deepEqual(statement.rhs, e);

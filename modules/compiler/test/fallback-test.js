@@ -62,7 +62,7 @@ module.exports = {
     },
 
     'assign-select-obj': function(test) {
-        var q = "a = select * from a || 10.0;";
+        var q = "a = select * from A || 10.0;";
         var statement = compiler.compile(q);
         test.equal(statement.rhs.type, 'select');
         test.ok(statement.rhs.fallback);

@@ -27,7 +27,7 @@ var _ = require('underscore'),
  */
 var verbs = ["del", "get", "patch", "post", "put"];
 
-exports.exec = function(opts, statement, cb) {
+exports.exec = function(opts, statement, parentEvent, cb) {
 var arr = [], routes = opts.routes, context = opts.context, record, otherVerbs = [];
 
     assert.ok(opts.routes, 'Argument routes can not be undefined');

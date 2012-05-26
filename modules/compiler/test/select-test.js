@@ -30,6 +30,7 @@ module.exports = {
                 columns: {name: '*', type: 'column'},
                 whereCriteria: undefined,
                 id: 0,
+                dependsOn: [],
                 line: 1
             };
         test.deepEqual(statement.rhs, e);
@@ -53,7 +54,8 @@ module.exports = {
                 ],
                 whereCriteria: undefined,
                 id: 0,
-                line: 1
+                line: 1,
+                dependsOn: []
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -80,7 +82,8 @@ module.exports = {
                         value: 'cooper'
                     } }
                 ],
-                id: 0
+                id: 0,
+                dependsOn: []
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -107,7 +110,8 @@ module.exports = {
                         value: 'cooper'
                     } }
                 ],
-                id: 0
+                id: 0,
+                dependsOn: []
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -131,7 +135,8 @@ module.exports = {
                     }
                     }
                 ],
-                id: 0
+                id: 0,
+                dependsOn: []
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -230,6 +235,7 @@ module.exports = {
                     fromClause: [
                         { name: 'google.geocode', alias: 'g' }
                     ] },
+                dependsOn: [],
                 id: 0 };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -253,7 +259,8 @@ module.exports = {
                 ],
                 whereCriteria: undefined,
                 limit: 4,
-                id: 0
+                id: 0,
+                dependsOn: []
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -278,7 +285,8 @@ module.exports = {
                 whereCriteria: undefined,
                 limit: 4,
                 offset: 2,
-                id: 0
+                id: 0,
+                dependsOn: []
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -308,7 +316,8 @@ module.exports = {
                         "args": ""
                     }
                 ],
-                id: 0
+                id: 0,
+                dependsOn: []
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -355,7 +364,8 @@ module.exports = {
                         "args": ""
                     }
                 ],
-                id: 0
+                id: 0,
+                dependsOn: []
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -404,7 +414,8 @@ module.exports = {
                     {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
                 ],
                 whereCriteria: undefined,
-                id: 0
+                id: 0,
+                dependsOn: []
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -413,10 +424,9 @@ module.exports = {
     'comments': function(test) {
         var q = '-- hello';
         var statement = compiler.compile(q);
-        test.equals(statement.length, 1);
         q = '-- hello\n--hello again';
         statement = compiler.compile(q);
-        test.equals(statement.length, 2);
+        test.equals(statement.comments.length, 2);
         test.done();
     },
 
@@ -791,7 +801,8 @@ module.exports = {
                 ],
                 whereCriteria: undefined,
                 id: 0,
-                line: 1
+                line: 1,
+                dependsOn: []
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -909,7 +920,8 @@ module.exports = {
                 timeout: 10,
                 minDelay: 100,
                 maxDelay: 10000,
-                id: 0
+                id: 0,
+                dependsOn: []
             };
         test.deepEqual(statement.rhs, e);
         test.done();

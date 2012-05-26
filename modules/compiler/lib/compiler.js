@@ -15,6 +15,7 @@
  */
 
 var ql = require('./peg/ql.js'),
+    assert = require('assert'),
     strParser = require('ql.io-str-template')
     _ = require('underscore')
 
@@ -24,6 +25,8 @@ exports.version = require('../package.json').version;
 
 var cache = {};
 exports.compile = function(script) {
+    assert.ok(script, 'script is undefined');
+
     var compiled, cooked, cacheKey;
 
     cacheKey = script;
@@ -141,19 +144,23 @@ function walk(line, symbols) {
                     walk(dependency, symbols);
                 }
             }
-            else {
-                // A statement
+            else if(line.rhs) {
+                walk(line.rhs, symbols);
+            }
+            break;
+        case 'delete':
+            introspectFrom(line, [line.source], symbols);
+            line = introspectWhere(line, symbols);
+            if(line.fallback) {
+                walk(line.fallback, symbols);
             }
             break;
         case 'select':
-            introspectFrom(line, symbols);
+            introspectFrom(line, line.fromClause, symbols);
             if(line.joiner) {
-                introspectFrom(line.joiner, symbols, line);
+                introspectFrom(line.joiner, line.joiner.fromClause, symbols, line);
             }
-
-            // Find dependencies in where
             line = introspectWhere(line, symbols);
-
             if(line.fallback) {
                 walk(line.fallback, symbols);
             }
@@ -223,10 +230,10 @@ function introspectObject(obj, symbols, dependsOn) {
     }
 }
 
-function introspectFrom(line, symbols, parent) {
+function introspectFrom(line, froms, symbols, parent) {
     var j, from, refname, dependency;
-    for(j = 0; j < line.fromClause.length; j++) {
-        from = line.fromClause[j];
+    for(j = 0; j < froms.length; j++) {
+        from = froms[j];
         if(from.name.indexOf('{') === 0) {
             refname = from.name.substring(1, from.name.length - 1);
             dependency = symbols[refname];
@@ -294,7 +301,7 @@ function introspectWhere(line, symbols) {
                         }
                     }
                     else if(where.rhs.type === 'select') {
-                        introspectFrom(where.rhs, symbols, line);
+                        introspectFrom(where.rhs, where.rhs.fromClause, symbols, line);
                     }
                     break;
                 case '=' :

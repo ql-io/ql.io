@@ -26,7 +26,7 @@ var compiler = require('ql.io-compiler'),
     _ = require('underscore');
 
 exports.go = function(options) {
-    var statements, comments, table;
+    var table;
     var root = options.path;
     var name = options.name;
     var script = options.script;
@@ -40,25 +40,22 @@ exports.go = function(options) {
 
     // Compile the DDL and post process
     try {
-        statements = statement ? [statement] : compiler.compile(script);
-        comments = [];
-        _.each(statements, function(statement) {
-            switch(statement.type) {
-                case 'comment' :
-                    comments.push(statement.text);
-                    break;
-                case 'create' :
-                    table = new Table(options, comments, statement);
-                    comments = []; // Reset comments for later statements in the script
-                    cb(null, table);
-                    break;
-                default:
-                    logEmitter.emitWarning("Unsupported statement in " + root + name);
-            }
-        });
+        var plan = statement || compiler.compile(script);
+        walk(options, plan);
     }
     catch(e) {
+        console.log(e.stack || e)
         return cb(e);
     }
+}
+
+function walk(options, statement) {
+    if(statement.type === 'create') {
+        var table = new Table(options, statement.comments, statement);
+        options.cb(null, table);
+    }
+    _.each(statement.dependsOn, function(dependency) {
+        walk(options, dependency);
+    })
 }
 

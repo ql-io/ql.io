@@ -219,8 +219,8 @@ Engine.prototype.execute = function() {
                 data: 'Done'
             };
             if(cooked) {
-                last = _.last(cooked);
-                packet.line = last.line;
+//                last = _.last(cooked);
+                packet.line = cooked.line;
             }
             emitter.emit(eventTypes.SCRIPT_DONE, packet);
             if(results && requestId) {
@@ -254,68 +254,159 @@ Engine.prototype.execute = function() {
         }
     });
 
-    try {
-        if(cooked.length > 1) {
-            // Pass 3: Create the execution tree. The execution tree consists of forks and joins.
-            execState = {};
-            _.each(cooked, function(line) {
-                if(line.type !== 'comment') {
-                    execState[line.id.toString()] = {
-                        state: eventTypes.STATEMENT_WAITING,
-                        waits: line.dependsOn ? line.dependsOn.length : 0};
-                }
-            });
 
-            if (!_.isEmpty(execState)) {
-                // Sweep the statements till we're done.
-                var sweepCounter = 0;
-                try {
-                    sweep({
-                        cooked: cooked,
-                        execState: execState,
-                        sweepCounter: sweepCounter,
-                        tables: this.tables,
-                        routes: this.routes,
-                        settings: this.settings,
-                        config: this.config,
-                        xformers: this.xformers,
-                        serializers: this.serializers,
-                        tempResources: tempResources,
-                        context: context,
-                        request: request,
-                        logEmitter: this,
-                        emitter: emitter,
-                        start: start,
-                        cache: this.cache
-                    }, engineEvent);
-                }
-                catch (err) {
-                    return engineEvent.end(err);
-                }
+    //
+    // look for the return statement
+    //    	if not found return error
+    //    	if found, look for dependencies
+    //    		for each dependency, execute it with a listener
+    //    		once pending listeners are done, continue by returning
+    //
+    //    	for each statement, look for dependencies,
+    //    		for each dependency, execute it with a listener
+    //    		once pending listeners are done,
+    //    			execute the statement
+    //    			if fails, execute the fallback statement with a listener
+    //    			if success, continue by calling back
+
+    // Initialize the exec state
+    var execState = {};
+    function init(statement) {
+        execState[statement.id.toString()] = {
+            state: eventTypes.STATEMENT_WAITING,
+            listeners: []
+        };
+        _.each(statement.dependsOn, function(dependency) {
+            init(dependency);
+        })
+        if(statement.fallback) {
+            _.each(statement.fallback.dependsOn, function(dependency) {
+                init(dependency);
+            })
+        }
+    }
+    init(cooked);
+
+    //
+    // Start with the return statement
+    //
+    // For each statement
+    //      dep_count = {};
+    //      for each dependency
+    //          if state === waiting, fire it off, dep_count.id, with listener
+    //              on completion,
+    //                  delete dep_count.id;
+    //                  if dep_count ==== 0
+    //                      call the listener
+    //                  else
+    //                      nothing
+    //          if state === in_flight, dep_count++,
+    //              if already listening, nothing
+    //              if nor, add listener
+    //                  on completion same as above
+    //
+    function run(statement, fn) {
+        var deps = {};
+        _.each(statement.dependsOn, function(dependency) {
+            switch(execState[dependency.id.toString()].state) {
+                case eventTypes.STATEMENT_WAITING:
+                    deps[dependency.id.toString()] = dependency;
+                    run(dependency, function(err, results) {
+                        delete deps[dependency.id.toString()];
+//                        fn.call(null, err, results);
+                    })
+                    break;
+                case eventTypes.STATEMENT_IN_FLIGHT:
+                    // Already in progress.
+                    break;
             }
-        }
-        else {
-            execOne({
-                tables: this.tables,
-                routes: this.routes,
-                config: this.config,
-                settings: this.settings,
-                xformers: this.xformers,
-                serializers: this.serializers,
-                tempResources: tempResources,
-                context: context,
-                request: request,
-                emitter: emitter,
-                logEmitter: this,
-                cache: this.cache
-            }, cooked[0], function(err, results) {
-                return engineEvent.end(err, results);
-            }, engineEvent);
+        });
+        if(_.isEmpty(deps)) {
+            execOne({tables: that.tables,
+                     routes: that.routes,
+                     config: that.config,
+                     settings: that.settings,
+                     xformers: that.xformers,
+                     serializers: that.serializers,
+                     tempResources: tempResources,
+                     context: context,
+                     request: request,
+                     emitter: emitter,
+                     logEmitter: that,
+                     cache: that.cache
+                     },
+                statement, function(err, results) {
+                    fn.call(null, err, results);
+                }, engineEvent);
         }
     }
-    catch(err) {
-        return engineEvent.end(err);
-    }
+
+    run(cooked, function(err, results) {
+        return engineEvent.end(err, results);
+    });
+
+//    try {
+//        if(cooked.length > 1) {
+//            // Pass 3: Create the execution tree. The execution tree consists of forks and joins.
+//            execState = {};
+//            _.each(cooked, function(line) {
+//                if(line.type !== 'comment') {
+//                    execState[line.id.toString()] = {
+//                        state: eventTypes.STATEMENT_WAITING,
+//                        waits: line.dependsOn ? line.dependsOn.length : 0};
+//                }
+//            });
+//
+//            if (!_.isEmpty(execState)) {
+//                // Sweep the statements till we're done.
+//                var sweepCounter = 0;
+//                try {
+//                    sweep({
+//                        cooked: cooked,
+//                        execState: execState,
+//                        sweepCounter: sweepCounter,
+//                        tables: this.tables,
+//                        routes: this.routes,
+//                        settings: this.settings,
+//                        config: this.config,
+//                        xformers: this.xformers,
+//                        serializers: this.serializers,
+//                        tempResources: tempResources,
+//                        context: context,
+//                        request: request,
+//                        logEmitter: this,
+//                        emitter: emitter,
+//                        start: start,
+//                        cache: this.cache
+//                    }, engineEvent);
+//                }
+//                catch (err) {
+//                    return engineEvent.end(err);
+//                }
+//            }
+//        }
+//        else {
+//            execOne({
+//                tables: this.tables,
+//                routes: this.routes,
+//                config: this.config,
+//                settings: this.settings,
+//                xformers: this.xformers,
+//                serializers: this.serializers,
+//                tempResources: tempResources,
+//                context: context,
+//                request: request,
+//                emitter: emitter,
+//                logEmitter: this,
+//                cache: this.cache
+//            }, cooked[0], function(err, results) {
+//                return engineEvent.end(err, results);
+//            }, engineEvent);
+//        }
+//    }
+//    catch(err) {
+//        return engineEvent.end(err);
+//    }
 }
 
 /**
@@ -465,14 +556,14 @@ function execOne(opts, statement, cb, parentEvent) {
     }
 
     try {
-        _execOne(opts, statement, function(err, results) {
+        _execOne(opts, statement, parentEvent, function(err, results) {
             if(opts.emitter) {
                 packet.elapsed = Date.now() - start;
                 packet.type = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
                 opts.emitter.emit(packet.type, packet);
             }
             return cb(err, results);
-        }, parentEvent);
+        });
     }
     catch(e) {
         console.log(e.stack || e);
@@ -492,7 +583,7 @@ function execOne(opts, statement, cb, parentEvent) {
  * @param cb
  * @ignore
  */
-function _execOne(opts, statement, cb, parentEvent) {
+function _execOne(opts, statement, parentEvent, cb) {
     var obj;
     switch(statement.type) {
         case 'create' :
@@ -538,16 +629,16 @@ function _execOne(opts, statement, cb, parentEvent) {
             delet.exec(opts, statement, parentEvent, cb);
             break;
         case 'show' :
-            show.exec(opts, statement, cb);
+            show.exec(opts, statement, parentEvent, cb);
             break;
         case 'show routes' :
-            showRoutes.exec(opts,statement,cb);
+            showRoutes.exec(opts, statement, parentEvent, cb);
             break;
         case 'describe':
-            describe.exec(opts, statement, cb);
+            describe.exec(opts, statement, parentEvent, cb);
             break;
         case 'describe route':
-            describeRoute.exec(opts, statement, cb);
+            describeRoute.exec(opts, statement, parentEvent, cb);
             break;
         case 'return':
             //
@@ -573,16 +664,32 @@ function _execOne(opts, statement, cb, parentEvent) {
             }
 
             // lhs can be a reference to an object in the context or a JS object.
-            if(statement.rhs.type === 'select') {
-                select.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
-            }
-            else if(statement.rhs.type === 'insert') {
-                insert.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
-            }
-            else if(statement.rhs.type === 'delete') {
-                delet.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
-            }
-            else {
+            switch(statement.rhs.type) {
+                case 'create':
+                case 'select':
+                case 'insert':
+                case 'delete':
+                case 'show':
+                case 'show routes':
+                case 'describe':
+                case 'describe route':
+                    _execOne(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
+                    break;
+                default:
+//
+//            if(statement.rhs.type === 'select') {
+//                select.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
+//            }
+//            else if(statement.rhs.type === 'insert') {
+//                insert.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
+//            }
+//            else if(statement.rhs.type === 'describe') {
+//                describe.exec(opts, statement.rhs, cb);
+//            }
+//            else if(statement.rhs.type === 'delete') {
+//                delet.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
+//            }
+//            else {
                 var params = _util.prepareParams(opts.context,
                     opts.request.body,
                     opts.request.routeParams,
@@ -613,6 +720,7 @@ function _execOne(opts, statement, cb, parentEvent) {
                     headers: respHeaders
                 };
                 cb(undefined, ret);
+                    break;
             }
     }
 }
