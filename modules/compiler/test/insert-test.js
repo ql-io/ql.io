@@ -162,3 +162,36 @@ exports['insert-timeout'] = function(test) {
     test.done();
 };
 
+
+exports['insert-obj'] = function(test) {
+    var q = 'obj = {\n\
+                "p3" : "v3",\n\
+                "p4" : "v4"\n\
+             };\n\
+             updated = insert into obj (p5, p6) values ("v5", "v6");\n\
+             return updated;'
+
+    var plan = compiler.compile(q);
+    test.deepEqual(plan, { type: 'return',
+      line: 6,
+      id: 2,
+      rhs: { ref: 'updated' },
+      dependsOn:
+       [ { type: 'insert',
+           source: { name: '{obj}' },
+           values: [ 'v5', 'v6' ],
+           line: 5,
+           columns:
+            [ { type: 'column', name: 'p5' },
+              { type: 'column', name: 'p6' } ],
+           assign: 'updated',
+           id: 1,
+           dependsOn:
+            [ { object: { p3: 'v3', p4: 'v4' },
+                type: 'define',
+                line: 1,
+                assign: 'obj',
+                id: 0,
+                dependsOn: [] } ] } ] });
+    test.done();
+}
