@@ -214,3 +214,16 @@ exports['create-many'] = function(test) {
     ])
     test.done();
 }
+
+exports['create-deps'] = function(test) {
+    var script = "create table mytable\
+                    on select get from 'someuri';\n\
+                  resp = select * from mytable;\n\
+                  return '{resp.$..item}'";
+    var plan = compiler.compile(script);
+    test.equals(plan.dependsOn.length, 1);
+    test.equals(plan.dependsOn[0].type, 'select');
+    test.equals(plan.dependsOn[0].dependsOn.length, 1);
+    test.equals(plan.dependsOn[0].dependsOn[0].type, 'create');
+    test.done();
+}

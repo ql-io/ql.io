@@ -30,7 +30,6 @@ module.exports = {
                 columns: {name: '*', type: 'column'},
                 whereCriteria: undefined,
                 id: 0,
-                dependsOn: [],
                 line: 1
             };
         test.deepEqual(statement.rhs, e);
@@ -54,8 +53,7 @@ module.exports = {
                 ],
                 whereCriteria: undefined,
                 id: 0,
-                line: 1,
-                dependsOn: []
+                line: 1
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -82,8 +80,7 @@ module.exports = {
                         value: 'cooper'
                     } }
                 ],
-                id: 0,
-                dependsOn: []
+                id: 0
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -110,8 +107,7 @@ module.exports = {
                         value: 'cooper'
                     } }
                 ],
-                id: 0,
-                dependsOn: []
+                id: 0
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -135,8 +131,7 @@ module.exports = {
                     }
                     }
                 ],
-                id: 0,
-                dependsOn: []
+                id: 0
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -161,23 +156,23 @@ module.exports = {
     },
 
     'select-args': function(test) {
-        var q = "select * from a where a in (1, 2, '3') and foo('bar', '1', '2') and bar(1, 'baz', 2) and baz()";
+        var q = "u = require('u');select * from a where a in (1, 2, '3') and u.foo('bar', '1', '2') and u.bar(1, 'baz', 2) and u.baz()";
         var statement = compiler.compile(q);
         test.ok(statement.rhs.whereCriteria[0].operator, 'in');
         test.ok(statement.rhs.whereCriteria[0].lhs, 'a');
         test.ok(statement.rhs.whereCriteria[0].rhs.value, [1,2,'3']);
         test.ok(statement.rhs.whereCriteria[1].operator, 'udf');
-        test.ok(statement.rhs.whereCriteria[1].name, 'foo');
+        test.ok(statement.rhs.whereCriteria[1].name, 'u.foo');
         test.ok(statement.rhs.whereCriteria[1].args, [{"name": "bar", "type" : "literal"},
             {"name": "1", "type" : "literal"},
             {"name": "2", "type" : "literal"}]);
         test.ok(statement.rhs.whereCriteria[2].operator, 'udf');
-        test.ok(statement.rhs.whereCriteria[2].name, 'bar');
+        test.ok(statement.rhs.whereCriteria[2].name, 'u.bar');
         test.ok(statement.rhs.whereCriteria[1].args, [{"name": 1, "type" : "literal"},
             {"name": "baz", "type" : "literal"},
             {"name": 2, "type" : "literal"}]);
         test.ok(statement.rhs.whereCriteria[2].operator, 'udf');
-        test.ok(statement.rhs.whereCriteria[2].name, 'baz');
+        test.ok(statement.rhs.whereCriteria[2].name, 'u.baz');
         test.ok(statement.rhs.whereCriteria[2].args, '');
         test.done();
     },
@@ -235,7 +230,6 @@ module.exports = {
                     fromClause: [
                         { name: 'google.geocode', alias: 'g' }
                     ] },
-                dependsOn: [],
                 id: 0 };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -259,8 +253,7 @@ module.exports = {
                 ],
                 whereCriteria: undefined,
                 limit: 4,
-                id: 0,
-                dependsOn: []
+                id: 0
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -285,15 +278,14 @@ module.exports = {
                 whereCriteria: undefined,
                 limit: 4,
                 offset: 2,
-                id: 0,
-                dependsOn: []
+                id: 0
             };
         test.deepEqual(statement.rhs, e);
         test.done();
     },
 
     'udf': function(test) {
-        var q = 'select * from ebay.finditems where contains("mini cooper") and blendBy()';
+        var q = 'u = require("u");select * from ebay.finditems where u.contains("mini cooper") and u.blendBy()';
         var statement = compiler.compile(q);
         var e = {
                 "type": "select",
@@ -307,17 +299,16 @@ module.exports = {
                 "whereCriteria": [
                     {
                         "operator": "udf",
-                        "name": "contains",
+                        "name": "u.contains",
                         "args": [{ "type" : "literal", "value": "mini cooper"}]
                     },
                     {
                         "operator": "udf",
-                        "name": "blendBy",
+                        "name": "u.blendBy",
                         "args": ""
                     }
                 ],
-                id: 0,
-                dependsOn: []
+                id: 1
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -336,7 +327,7 @@ module.exports = {
     },
 
     'udf-args': function(test) {
-        var q = 'select * from patch.udf where p1("v1") and p2("2", "3") and p3()';
+        var q = 'u = require("u.js");select * from patch.udf where u.p1("v1") and u.p2("2", "3") and u.p3()';
         var statement = compiler.compile(q);
         var e = {
                 "type": "select",
@@ -350,22 +341,21 @@ module.exports = {
                 "whereCriteria": [
                     {
                         "operator": "udf",
-                        "name": "p1",
+                        "name": "u.p1",
                         "args": [{"value": "v1", "type": "literal"}]
                     },
                     {
                         "operator": "udf",
-                        "name": "p2",
+                        "name": "u.p2",
                         "args": [{"value": "2", "type": "literal"}, {"value": "3", "type": "literal"}],
                     },
                     {
                         "operator": "udf",
-                        "name": "p3",
+                        "name": "u.p3",
                         "args": ""
                     }
                 ],
-                id: 0,
-                dependsOn: []
+                id: 1
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -414,8 +404,7 @@ module.exports = {
                     {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
                 ],
                 whereCriteria: undefined,
-                id: 0,
-                dependsOn: []
+                id: 0
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -801,8 +790,7 @@ module.exports = {
                 ],
                 whereCriteria: undefined,
                 id: 0,
-                line: 1,
-                dependsOn: []
+                line: 1
             };
         test.deepEqual(statement.rhs, e);
         test.done();
@@ -920,8 +908,7 @@ module.exports = {
                 timeout: 10,
                 minDelay: 100,
                 maxDelay: 10000,
-                id: 0,
-                dependsOn: []
+                id: 0
             };
         test.deepEqual(statement.rhs, e);
         test.done();

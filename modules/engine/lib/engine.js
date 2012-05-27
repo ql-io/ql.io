@@ -239,6 +239,8 @@ Engine.prototype.execute = function() {
     try {
         // We don't cache here since the parser does the caching.
         cooked = route ? script : compiler.compile(script);
+//        var util = require('util');
+//        console.log(util.inspect(cooked, false, 10));
     }
     catch(err) {
         emitter.emit(eventTypes.SCRIPT_COMPILE_ERROR, {
@@ -274,11 +276,11 @@ Engine.prototype.execute = function() {
     function init(statement) {
         execState[statement.id.toString()] = {
             state: eventTypes.STATEMENT_WAITING,
-            listeners: []
+            deps: {}
         };
         _.each(statement.dependsOn, function(dependency) {
             init(dependency);
-        })
+        });
         if(statement.fallback) {
             _.each(statement.fallback.dependsOn, function(dependency) {
                 init(dependency);
@@ -306,14 +308,14 @@ Engine.prototype.execute = function() {
     //                  on completion same as above
     //
     function run(statement, fn) {
-        var deps = {};
         _.each(statement.dependsOn, function(dependency) {
             switch(execState[dependency.id.toString()].state) {
                 case eventTypes.STATEMENT_WAITING:
-                    deps[dependency.id.toString()] = dependency;
+                    execState[statement.id.toString()].deps[dependency.id.toString()] = dependency;
                     run(dependency, function(err, results) {
-                        delete deps[dependency.id.toString()];
-//                        fn.call(null, err, results);
+                        delete execState[statement.id.toString()].deps[dependency.id.toString()];
+                        execState[dependency.id.toString()].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
+                        run(statement, fn);
                     })
                     break;
                 case eventTypes.STATEMENT_IN_FLIGHT:
@@ -321,7 +323,7 @@ Engine.prototype.execute = function() {
                     break;
             }
         });
-        if(_.isEmpty(deps)) {
+        if(_.isEmpty(execState[statement.id.toString()].deps) && execState[statement.id.toString()].state !== eventTypes.STATEMENT_IN_FLIGHT) {
             execOne({tables: that.tables,
                      routes: that.routes,
                      config: that.config,
@@ -336,13 +338,17 @@ Engine.prototype.execute = function() {
                      cache: that.cache
                      },
                 statement, function(err, results) {
+                    console.log(err)
                     fn.call(null, err, results);
                 }, engineEvent);
         }
     }
 
+    var util = require('util');
+//    console.log(execState);
+//    console.log(util.inspect(cooked, false, 10));
     run(cooked, function(err, results) {
-        return engineEvent.end(err, results);
+        engineEvent.end(err, results);
     });
 
 //    try {

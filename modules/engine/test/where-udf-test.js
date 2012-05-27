@@ -20,6 +20,9 @@ var _ = require('underscore'),
 
 var engine = new Engine();
 
+process.on('uncaughtException', function(error) {
+    console.log(error.stack || error);
+});
 module.exports = {
     'missing-udf': function(test) {
         var script = 'a1 = [{"name": "Brand-A", "keys" : [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]},\
@@ -29,16 +32,13 @@ module.exports = {
         // Must fail
         engine.execute(script, function(emitter) {
             emitter.on('end', function(err, results) {
-                // FOR BACKWARDS COMPAT sake, we don't throw errors on missing UDFs.
                 if(err) {
-                    console.log(err.stack || err);
-                    test.ok(false);
-                    test.done();
+                    test.ok(true);
                 }
                 else {
-                    test.ok(true);
-                    test.done();
+                    test.ok(false);
                 }
+                test.done();
             })
         });
     },
@@ -54,15 +54,14 @@ module.exports = {
                 if(err) {
                     console.log(err.stack || err);
                     test.ok(false);
-                    test.done();
                 }
                 else {
                     test.equals(results.body[0][0], 'BRAND-A');
                     test.equals(results.body[1][0], 'BRAND-B');
                     test.equals(results.body[2][0], 'BRAND-C');
-                    test.done();
                 }
-            })
+            });
+            test.done();
         });
     },
 
@@ -301,6 +300,5 @@ module.exports = {
                 test.done();
             });
         })
-
     }
 }

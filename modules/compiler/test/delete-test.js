@@ -34,8 +34,7 @@ exports['delete'] = function (test) {
             }
         }],
         "line": 1,
-        "id": 0,
-        dependsOn: []
+        "id": 0
     };
     test.deepEqual(plan.rhs, e);
     test.done();
@@ -56,8 +55,7 @@ exports['delete-csv'] = function (test) {
             }
         }],
         line: 1,
-        id: 0,
-        dependsOn: []
+        id: 0
     };
     test.deepEqual(plan.rhs, e);
     test.done();
@@ -81,8 +79,7 @@ exports['delete-timeouts'] = function(test) {
             minDelay: 100,
             maxDelay: 10000,
             line: 1,
-            id: 0,
-            dependsOn: []
+            id: 0
         };
     test.deepEqual(plan.rhs, e);
     test.done();
@@ -106,16 +103,15 @@ exports['delete-from-obj'] = function(test) {
                     lhs: { type: 'column', name: 'a' },
                     rhs: { value: 'A' } }
             ],
-            line: 1,
-            dependsOn: [
-                { object: { a: 'A', b: 'B', c: 'C' },
-                    type: 'define',
-                    line: 1,
-                    assign: 'obj',
-                    id: 0,
-                    dependsOn: [] }
-            ] },
-        dependsOn: [] };
+            line: 1 },
+        dependsOn:  [
+            { object: { a: 'A', b: 'B', c: 'C' },
+                type: 'define',
+                line: 1,
+                assign: 'obj',
+                id: 0,
+                dependsOn: [] }
+        ] };
     test.deepEqual(plan, e);
     test.done();
 }

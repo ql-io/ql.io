@@ -20,34 +20,34 @@ var compiler = require('../lib/compiler');
 
 module.exports = {
     'star-udf-no-args': function(test) {
-        var q = 'select * from a1 where f1()';
+        var q = 'udfs = require("udf.js");select * from a1 where udfs.f1()';
         var c = compiler.compile(q);
         test.equal(c.rhs.columns.name, '*');
         test.equal(c.rhs.columns.type, 'column');
         test.equal(c.rhs.whereCriteria[0].operator, 'udf');
-        test.equal(c.rhs.whereCriteria[0].name, 'f1');
+        test.equal(c.rhs.whereCriteria[0].name, 'udfs.f1');
         test.equal(c.rhs.whereCriteria[0].args.length, 0);
         test.done();
     },
 
     'star-star-column-args': function(test) {
-        var q = 'select * from a1 where f1(name)';
+        var q = 'udfs = require("u.js");select * from a1 where udfs.f1(name)';
         var c = compiler.compile(q);
         test.equal(c.rhs.columns.name, '*');
         test.equal(c.rhs.columns.type, 'column');
         test.equal(c.rhs.whereCriteria[0].operator, 'udf');
-        test.equal(c.rhs.whereCriteria[0].name, 'f1');
+        test.equal(c.rhs.whereCriteria[0].name, 'udfs.f1');
         test.equal(c.rhs.whereCriteria[0].args.length, 1);
         test.done();
     },
 
     'star-literal-args': function(test) {
-        var q = 'select * from a1 where f1("name", "value")';
+        var q = 'udfs = require("udf.js");select * from a1 where udfs.f1("name", "value")';
         var c = compiler.compile(q);
         test.equal(c.rhs.columns.name, '*');
         test.equal(c.rhs.columns.type, 'column');
         test.equal(c.rhs.whereCriteria[0].operator, 'udf');
-        test.equal(c.rhs.whereCriteria[0].name, 'f1');
+        test.equal(c.rhs.whereCriteria[0].name, 'udfs.f1');
         test.equal(c.rhs.whereCriteria[0].args.length, 2);
         test.equal(c.rhs.whereCriteria[0].args[0].value, 'name');
         test.equal(c.rhs.whereCriteria[0].args[0].type, 'literal');
@@ -57,7 +57,7 @@ module.exports = {
     },
 
     'literal-args': function(test) {
-        var q = 'select name, keys from a1 where u.literalArgs("one", 2, 1.2345, false, true, {"name":"value"})';
+        var q = 'u = require("udf.js");select name, keys from a1 where u.literalArgs("one", 2, 1.2345, false, true, {"name":"value"})';
         var c = compiler.compile(q);
         test.equal(c.rhs.whereCriteria[0].operator, 'udf');
         test.equal(c.rhs.whereCriteria[0].name, 'u.literalArgs');
@@ -75,21 +75,21 @@ module.exports = {
     },
 
     'column-has-column-args': function(test) {
-        var q = 'select name, value from a1 where f1(name)';
+        var q = 'udfs = require("udf.js");select name, value from a1 where udfs.f1(name)';
         var c = compiler.compile(q);
         test.deepEqual(c.rhs.columns[0].name, 'name');
         test.deepEqual(c.rhs.columns[0].type, 'column');
         test.deepEqual(c.rhs.columns[1].name, 'value');
         test.deepEqual(c.rhs.columns[0].type, 'column');
         test.equal(c.rhs.whereCriteria[0].operator, 'udf');
-        test.equal(c.rhs.whereCriteria[0].name, 'f1');
+        test.equal(c.rhs.whereCriteria[0].name, 'udfs.f1');
         test.equal(c.rhs.whereCriteria[0].args[0].type, 'column');
         test.equal(c.rhs.whereCriteria[0].args[0].name, 'name');
         test.done();
     },
 
     'column-has-some-columns-args': function(test) {
-        var q = 'select name, value from a where f1(name, value, zip)';
+        var q = 'udfs = require("udf.js");select name, value from a where udfs.f1(name, value, zip)';
         var c = compiler.compile(q);
         test.equal(c.rhs.columns.length, 3);
         test.equal(c.rhs.columns[0].name, 'name');
@@ -102,7 +102,7 @@ module.exports = {
         test.equal(c.rhs.extras[0], 2);
 
         test.equal(c.rhs.whereCriteria[0].operator, 'udf');
-        test.equal(c.rhs.whereCriteria[0].name, 'f1');
+        test.equal(c.rhs.whereCriteria[0].name, 'udfs.f1');
         test.equal(c.rhs.whereCriteria[0].args.length, 3);
         test.equal(c.rhs.whereCriteria[0].args[0].type, 'column');
         test.equal(c.rhs.whereCriteria[0].args[0].name, 'name');
@@ -117,7 +117,7 @@ module.exports = {
     },
 
     'udf-with-join-column-args': function(test) {
-        var q = 'select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and f1(a1.name)';
+        var q = 'udfs = require("udf.js");select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.f1(a1.name)';
         var c = compiler.compile(q);
         test.equal(c.rhs.columns.length, 1);
         test.equal(c.rhs.columns[0].type, 'column');
@@ -130,7 +130,7 @@ module.exports = {
         test.equal(c.rhs.udfExtras[0], 1);
         test.equal(c.rhs.whereCriteria.length, 1);
         test.equal(c.rhs.whereCriteria[0].operator, 'udf');
-        test.equal(c.rhs.whereCriteria[0].name, 'f1');
+        test.equal(c.rhs.whereCriteria[0].name, 'udfs.f1');
         test.equal(c.rhs.whereCriteria[0].args.length, 1);
         test.equal(c.rhs.whereCriteria[0].args[0].type, 'column');
         test.equal(c.rhs.whereCriteria[0].args[0].name, 'a1.name');
@@ -138,7 +138,7 @@ module.exports = {
     },
 
     'udf-with-join-col-args-both': function(test) {
-        var q = 'select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and f1(a1.name, a2.some)';
+        var q = 'udfs = require("udf.js");select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.f1(a1.name, a2.some)';
         var c = compiler.compile(q);
         test.equal(c.rhs.columns.length, 1);
         test.equal(c.rhs.columns[0].type, 'column');
@@ -152,7 +152,7 @@ module.exports = {
         test.equal(c.rhs.udfExtras[1], 2);
         test.equal(c.rhs.whereCriteria.length, 1);
         test.equal(c.rhs.whereCriteria[0].operator, 'udf');
-        test.equal(c.rhs.whereCriteria[0].name, 'f1');
+        test.equal(c.rhs.whereCriteria[0].name, 'udfs.f1');
         test.equal(c.rhs.whereCriteria[0].args.length, 2);
         test.equal(c.rhs.whereCriteria[0].args[0].type, 'column');
         test.equal(c.rhs.whereCriteria[0].args[0].name, 'a1.name');
@@ -173,7 +173,7 @@ module.exports = {
     },
 
     'udf-with-join-literal-args': function(test) {
-        var q = 'select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and f1("{a1.$..name}")';
+        var q = 'udfs = require("udf.js");select a2.name from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.f1("{a1.$..name}")';
         var c = compiler.compile(q);
         test.equal(c.rhs.columns.length, 1);
         test.equal(c.rhs.columns[0].type, 'column');
@@ -184,7 +184,7 @@ module.exports = {
         test.equal(c.rhs.extras[0], 0);
         test.equal(c.rhs.whereCriteria.length, 1);
         test.equal(c.rhs.whereCriteria[0].operator, 'udf');
-        test.equal(c.rhs.whereCriteria[0].name, 'f1');
+        test.equal(c.rhs.whereCriteria[0].name, 'udfs.f1');
         test.equal(c.rhs.whereCriteria[0].args.length, 1);
         test.equal(c.rhs.whereCriteria[0].args[0].type, 'literal');
         test.equal(c.rhs.whereCriteria[0].args[0].value, '{a1.$..name}');
@@ -192,7 +192,7 @@ module.exports = {
     },
 
     'udf-with-join-col': function(test) {
-        var q = 'select a2.name, a2.details, a1.keys from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.matchKeys(a1.name)';
+        var q = 'udfs = require("udf.js");select a2.name, a2.details, a1.keys from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.matchKeys(a1.name)';
         var c = compiler.compile(q);
         test.equal(c.rhs.columns.length, 2);
         test.equal(c.rhs.columns[0].type, 'column');
@@ -221,7 +221,7 @@ module.exports = {
     },
 
     'udf-with-join-from-first-with-alias': function(test) {
-        var q = 'select a2.name as name, a2.details as details from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.matchKeys(a1.name, a1.keys)';
+        var q = 'udfs = require("udf.js");select a2.name as name, a2.details as details from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.matchKeys(a1.name, a1.keys)';
         var c = compiler.compile(q);
         test.equal(c.rhs.whereCriteria[0].operator, 'udf');
         test.equal(c.rhs.whereCriteria[0].name, 'udfs.matchKeys');
@@ -240,7 +240,7 @@ module.exports = {
     },
 
     'udf-with-join-from-second-with-alias': function(test) {
-        var q = 'select a2.name as name, a2.details as details from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.matchKeys(a2.name, a2.details)';
+        var q = 'udfs = require("udf.js");select a2.name as name, a2.details as details from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.matchKeys(a2.name, a2.details)';
         var c = compiler.compile(q);
         test.equal(c.rhs.whereCriteria[0].operator, 'udf');
         test.equal(c.rhs.whereCriteria[0].name, 'udfs.matchKeys');
@@ -259,7 +259,7 @@ module.exports = {
     },
 
     'udf-with-join-from-both-with-alias': function(test) {
-        var q = 'select a2.name as name, a2.details as details from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.matchKeys(a1.name, a1.keys, a2.name, a2.details)';
+        var q = 'udfs = require("udf.js");select a2.name as name, a2.details as details from a1 as a1, a2 as a2 where a1.name = a2.name and udfs.matchKeys(a1.name, a1.keys, a2.name, a2.details)';
         var c = compiler.compile(q);
         test.equal(c.rhs.whereCriteria[0].operator, 'udf');
         test.equal(c.rhs.whereCriteria[0].name, 'udfs.matchKeys');
@@ -275,6 +275,20 @@ module.exports = {
         test.equal(c.rhs.selected[1].from, 'joiner');
         test.equal(c.rhs.selected[0].name, 'name');
         test.equal(c.rhs.selected[1].name, 'details');
+        test.done();
+    },
+
+    'udf-require': function(test) {
+        var q = 'u = require("udf.js");\n\
+                 a1 = [{"name": "Brand-A", "keys" : [{ "name": "G1"},{"name": "G2"},{"name": "G3"}]},\n\
+                       {"name": "Brand-B", "keys" : [{ "name": "G1"},{"name": "G2"}]},\n\
+                       {"name": "Brand-C", "keys" : [{ "name": "G4"},{"name": "G2"}]}];\n\
+                 return select name, keys from a1 where u.toUpper()'
+        var c = compiler.compile(q);
+        test.equals(c.rhs.type, 'select');
+        test.equals(c.dependsOn.length, 2);
+        test.equals(c.dependsOn[0].type, 'define');
+        test.equals(c.dependsOn[1].name, 'require');
         test.done();
     }
 };
