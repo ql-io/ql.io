@@ -71,5 +71,14 @@ module.exports = {
         test.equals(plan.dependsOn[0].dependsOn[0].type, 'define');
         test.deepEqual(plan.dependsOn[0].dependsOn[0].object, { p1: 'v1', ua: 'safari', safari: { apikey: '1234' } });
         test.done();
+    },
+
+    'route-with-headers': function(test) {
+        var q = "name = \"hello\";return {} via route '/foo/bar' using method get using headers '{name}' = 'B', 'B' = 'C';";
+        var plan = compiler.compile(q);
+        test.equals(plan.dependsOn.length, 1);
+        test.equals(plan.dependsOn[0].type, 'define');
+        test.equals(plan.dependsOn[0].assign, 'name');
+        test.done();
     }
 };

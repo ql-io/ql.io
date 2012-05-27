@@ -156,6 +156,17 @@ function walk(line, symbols, creates) {
             else if(line.rhs) {
                 walk(line.rhs, symbols, creates);
             }
+
+            // Route
+            if(line.route) {
+                introspectString(line.route.path, symbols, creates, line.dependsOn);
+                if(line.route.headers) {
+                    _.each(line.route.headers, function(value, name) {
+                        introspectString(value, symbols, creates, line.dependsOn);
+                        introspectString(name, symbols, creates, line.dependsOn);
+                    })
+                }
+            }
             break;
         case 'delete':
             introspectFrom(line, [line.source], symbols, creates);
