@@ -29,7 +29,7 @@ module.exports = {
                             {"name": "Brand-B", "keys" : [{ "name": "G1"},{"name": "G2"}]},\
                             {"name": "Brand-C", "keys" : [{ "name": "G4"},{"name": "G2"}]}];\
                       return select a1.name, a1.keys from a1 where toUpper()';
-        // Must fail
+        // Must fail since the UDF is not defined
         engine.execute(script, function(emitter) {
             emitter.on('end', function(err, results) {
                 if(err) {
