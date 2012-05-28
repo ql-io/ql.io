@@ -128,6 +128,7 @@ function plan(compiled) {
         });
         delete ret.rhs.dependsOn;
     }
+
     _.each(creates, function(create) {
         ret.dependsOn.push(create);
     })
@@ -139,6 +140,7 @@ function plan(compiled) {
 function walk(line, symbols, creates) {
     var type = line.type, dependency;
     line.dependsOn = line.dependsOn || [];
+//    line.listeners = line.listeners || [];
     switch(type) {
         case 'define':
             introspectObject(line.object, symbols, creates, line.dependsOn);
@@ -233,11 +235,6 @@ function introspectString(v, symbols, creates, dependsOn) {
                 }
                 if(!contains) {
                     addDep(dependsOn, dependency, symbols, creates);
-//                    dependsOn.push(dependency);
-//                    if(dependency.type === 'create') {
-//                        delete creates[dependency.id.toString()];
-//                    }
-//                    walk(dependency, symbols, creates);
                 }
             }
         });
