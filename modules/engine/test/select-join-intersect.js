@@ -76,8 +76,8 @@ var cooked = {
                     result = result.body;
                     test.ok(_.isArray(result.List));
                     test.ok(_.isArray(result.List2));
-                    test.ok(result.List.length, 2);
-                    test.ok(result.List2.length, 1);
+                    test.equals(result.List.length, 2);
+                    test.equals(result.List2.length, 1);
             }
         }
     }
