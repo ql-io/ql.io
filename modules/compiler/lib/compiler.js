@@ -133,6 +133,16 @@ function plan(compiled) {
         ret.dependsOn.push(create);
     })
 
+    function rev(node) {
+        _.each(node.dependsOn, function(dependency) {
+            dependency.listeners = dependency.listeners || [];
+            dependency.listeners.push(node);
+            rev(dependency);
+        })
+    }
+
+    rev(ret);
+
     return ret;
 }
 
@@ -140,7 +150,6 @@ function plan(compiled) {
 function walk(line, symbols, creates) {
     var type = line.type, dependency;
     line.dependsOn = line.dependsOn || [];
-//    line.listeners = line.listeners || [];
     switch(type) {
         case 'define':
             introspectObject(line.object, symbols, creates, line.dependsOn);

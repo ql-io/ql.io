@@ -32,18 +32,17 @@ module.exports = {
             listener.assert(test);
             emitter.on('end', function (err, result) {
                 if(err) {
+                    console.log(err.stack || err);
                     test.fail('Error unexpected');
                     test.done();
                 }
                 else {
+                    console.log(result.body);
                     test.deepEqual({
-                        "p1": "v1",
-                        "p2": {
-                            "p3": "v3",
-                            "p4": "v4",
-                            "p5": "v5",
-                            "p6": "v6"
-                        }
+                        "p3": "v3",
+                        "p4": "v4",
+                        "p5": "v5",
+                        "p6": "v6"
                     }, result.body);
                     test.done();
                 }

@@ -383,7 +383,7 @@ module.exports = {
                 dependsOn: [],
                 line: 1
             };
-        test.deepEqual(statement.dependsOn[0], e);
+        test.equals(statement.dependsOn[0].assign, 'results');
         test.done();
     },
 

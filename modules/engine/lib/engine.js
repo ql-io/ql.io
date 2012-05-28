@@ -219,7 +219,6 @@ Engine.prototype.execute = function() {
                 data: 'Done'
             };
             if(cooked) {
-//                last = _.last(cooked);
                 packet.line = cooked.line;
             }
             emitter.emit(eventTypes.SCRIPT_DONE, packet);
@@ -239,8 +238,8 @@ Engine.prototype.execute = function() {
     try {
         // We don't cache here since the parser does the caching.
         cooked = route ? script : compiler.compile(script);
-//        var util = require('util');
-//        console.log(util.inspect(cooked, false, 10));
+        var util = require('util');
+        console.log(util.inspect(cooked, false, 10));
     }
     catch(err) {
         emitter.emit(eventTypes.SCRIPT_COMPILE_ERROR, {
@@ -256,25 +255,10 @@ Engine.prototype.execute = function() {
         }
     });
 
-
-    //
-    // look for the return statement
-    //    	if not found return error
-    //    	if found, look for dependencies
-    //    		for each dependency, execute it with a listener
-    //    		once pending listeners are done, continue by returning
-    //
-    //    	for each statement, look for dependencies,
-    //    		for each dependency, execute it with a listener
-    //    		once pending listeners are done,
-    //    			execute the statement
-    //    			if fails, execute the fallback statement with a listener
-    //    			if success, continue by calling back
-
     // Initialize the exec state
     var execState = {};
     function init(statement) {
-        execState[statement.id.toString()] = {
+        execState[statement.id] = {
             state: eventTypes.STATEMENT_WAITING,
             deps: {}
         };
@@ -289,41 +273,38 @@ Engine.prototype.execute = function() {
     }
     init(cooked);
 
-    //
-    // Start with the return statement
-    //
-    // For each statement
-    //      dep_count = {};
-    //      for each dependency
-    //          if state === waiting, fire it off, dep_count.id, with listener
-    //              on completion,
-    //                  delete dep_count.id;
-    //                  if dep_count ==== 0
-    //                      call the listener
-    //                  else
-    //                      nothing
-    //          if state === in_flight, dep_count++,
-    //              if already listening, nothing
-    //              if nor, add listener
-    //                  on completion same as above
-    //
     function run(statement, fn) {
         _.each(statement.dependsOn, function(dependency) {
-            switch(execState[dependency.id.toString()].state) {
-                case eventTypes.STATEMENT_WAITING:
-                    execState[statement.id.toString()].deps[dependency.id.toString()] = dependency;
-                    run(dependency, function(err, results) {
-                        delete execState[statement.id.toString()].deps[dependency.id.toString()];
-                        execState[dependency.id.toString()].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
-                        run(statement, fn);
+            if(execState[dependency.id].state === eventTypes.STATEMENT_WAITING) {
+                // Add a dependency.
+                execState[statement.id].deps[dependency.id] = dependency;
+
+                // Exec the dependency
+                run(dependency, function(err, results) {
+                    console.log('DONE ' + dependency.id);
+                    console.log(results.body);
+                    execState[dependency.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
+                    _.each(dependency.listeners, function(listener) {
+                        console.log('Deleting ' + dependency.id + ' from ' + listener.id);
+                        delete execState[listener.id].deps[dependency.id];
+                        run(listener, fn);
                     })
-                    break;
-                case eventTypes.STATEMENT_IN_FLIGHT:
-                    // Already in progress.
-                    break;
+                })
+            }
+            else if(execState[dependency.id].state === eventTypes.STATEMENT_IN_FLIGHT) {
+                execState[statement.id].deps[dependency.id] = dependency;
+            }
+            else { // Done
+                if(execState[statement.id].deps[dependency.id]) {
+                    console.log('**Deleting ' + dependency.id + ' from ' + statement.id);
+                    delete execState[statement.id].deps[dependency.id];
+                }
             }
         });
-        if(_.isEmpty(execState[statement.id.toString()].deps) && execState[statement.id.toString()].state !== eventTypes.STATEMENT_IN_FLIGHT) {
+        if(execState[statement.id].state === eventTypes.STATEMENT_WAITING &&  // Don't try if in-flight
+            _.isEmpty(execState[statement.id].deps)) {
+            execState[statement.id].state = eventTypes.STATEMENT_IN_FLIGHT;
+            console.log('starting ' + statement.id);
             execOne({tables: that.tables,
                      routes: that.routes,
                      config: that.config,
@@ -338,81 +319,18 @@ Engine.prototype.execute = function() {
                      cache: that.cache
                      },
                 statement, function(err, results) {
-                    console.log(err)
+                    console.log('ended ' + statement.id);
+                    execState[statement.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
                     fn.call(null, err, results);
                 }, engineEvent);
         }
     }
 
-    var util = require('util');
-//    console.log(execState);
-//    console.log(util.inspect(cooked, false, 10));
+    // Start with the return statement
     run(cooked, function(err, results) {
+        execState[cooked.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
         engineEvent.end(err, results);
     });
-
-//    try {
-//        if(cooked.length > 1) {
-//            // Pass 3: Create the execution tree. The execution tree consists of forks and joins.
-//            execState = {};
-//            _.each(cooked, function(line) {
-//                if(line.type !== 'comment') {
-//                    execState[line.id.toString()] = {
-//                        state: eventTypes.STATEMENT_WAITING,
-//                        waits: line.dependsOn ? line.dependsOn.length : 0};
-//                }
-//            });
-//
-//            if (!_.isEmpty(execState)) {
-//                // Sweep the statements till we're done.
-//                var sweepCounter = 0;
-//                try {
-//                    sweep({
-//                        cooked: cooked,
-//                        execState: execState,
-//                        sweepCounter: sweepCounter,
-//                        tables: this.tables,
-//                        routes: this.routes,
-//                        settings: this.settings,
-//                        config: this.config,
-//                        xformers: this.xformers,
-//                        serializers: this.serializers,
-//                        tempResources: tempResources,
-//                        context: context,
-//                        request: request,
-//                        logEmitter: this,
-//                        emitter: emitter,
-//                        start: start,
-//                        cache: this.cache
-//                    }, engineEvent);
-//                }
-//                catch (err) {
-//                    return engineEvent.end(err);
-//                }
-//            }
-//        }
-//        else {
-//            execOne({
-//                tables: this.tables,
-//                routes: this.routes,
-//                config: this.config,
-//                settings: this.settings,
-//                xformers: this.xformers,
-//                serializers: this.serializers,
-//                tempResources: tempResources,
-//                context: context,
-//                request: request,
-//                emitter: emitter,
-//                logEmitter: this,
-//                cache: this.cache
-//            }, cooked[0], function(err, results) {
-//                return engineEvent.end(err, results);
-//            }, engineEvent);
-//        }
-//    }
-//    catch(err) {
-//        return engineEvent.end(err);
-//    }
 }
 
 /**
@@ -474,83 +392,6 @@ Engine.prototype.use = function(type, xformer) {
     this.xformers[type] = xformer;
 }
 
-/**
- * This function recursively executes statements until the dependencies for the return statement
- * are met.
- *
- * Precondition: opts.cooked must have at least one executable statement
- *
- * @ignore
- * @param opts
- */
-function sweep(opts, parentEvent) {
-    if(opts.done) {
-        return;
-    }
-    opts.sweepCounter++;
-    var pending = 0, skip = false, last, state, id;
-    _.each(opts.cooked, function(line) {
-        if(line.type !== 'comment') {
-            id = line.id;
-            state = opts.execState[id];
-            if(state.state === eventTypes.STATEMENT_WAITING && state.waits == 0 && line.type !==
-                'return') {
-                pending++;
-                state.state = eventTypes.STATEMENT_IN_FLIGHT;
-                var step = function (line, state) {
-                    execOne(opts, line, function(err, result) {
-                        if(err) {
-                            // Skip the remaining statements and return error
-                            skip = true;
-                            return parentEvent.end(err);
-                        }
-                        opts.latest = line;
-                        opts.latestResult = result;
-
-                        state.state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
-                        pending--;
-                        _.each(line.listeners, function(listener) {
-                            --opts.execState[listener].waits;
-                        });
-
-                        sweep(opts, parentEvent);
-                    }, parentEvent);
-                }
-                // TODO: Execute only if there are dependencies
-                step(line, state);
-            }
-            else if(state.state == eventTypes.STATEMENT_IN_FLIGHT) {
-                // This line is in-flight.
-                pending++;
-            }
-            // remember the last executable statement
-            last = line;
-        }
-    });
-
-    state = opts.execState[last.id];
-    if(pending === 0 && state.waits > 0 && last.type === 'return') {
-        return parentEvent.end('Script has unmet dependencies. The return statement depends on one/more other ' +
-                'statement(s), but those are not in-progress.');
-    }
-    if(pending == 0 && state.waits == 0) {
-        if(last.type === 'return') {
-            if(state.state === eventTypes.STATEMENT_WAITING) {
-                opts.execState[last.id].state = eventTypes.STATEMENT_IN_FLIGHT;
-                execOne(opts, last, function(err, results) {
-                    opts.execState[last.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
-                    return parentEvent.end(err, results);
-                }, parentEvent);
-            }
-        }
-        // Single statement (sans create/comments) - return the last result
-        else {
-            opts.done = true;
-            return parentEvent.end(null, opts.latestResult);
-        }
-    }
-}
-
 function execOne(opts, statement, cb, parentEvent) {
     var packet = {
         line: statement.line,
@@ -590,6 +431,7 @@ function execOne(opts, statement, cb, parentEvent) {
  * @ignore
  */
 function _execOne(opts, statement, parentEvent, cb) {
+//    console.log(statement)
     var obj;
     switch(statement.type) {
         case 'create' :
@@ -682,20 +524,7 @@ function _execOne(opts, statement, parentEvent, cb) {
                     _execOne(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
                     break;
                 default:
-//
-//            if(statement.rhs.type === 'select') {
-//                select.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
-//            }
-//            else if(statement.rhs.type === 'insert') {
-//                insert.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
-//            }
-//            else if(statement.rhs.type === 'describe') {
-//                describe.exec(opts, statement.rhs, cb);
-//            }
-//            else if(statement.rhs.type === 'delete') {
-//                delet.exec(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
-//            }
-//            else {
+
                 var params = _util.prepareParams(opts.context,
                     opts.request.body,
                     opts.request.routeParams,

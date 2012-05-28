@@ -54,21 +54,20 @@ var cooked = {
                 )
             }
         ],
-        script: 'create table first on select get from "http://localhost:3000/"'+
-                'create table second on select get from "http://localhost:3026/";'+
-                'firstResponse = select * from first;'+
-                'be1 = select Errors from firstResponse;'+
-                'be2 = "{firstResponse.Errors}";'+
-                'secondResponse = select * from second;'+
-                'me1 = select Errors from secondResponse;'+
-                'me2 = "{secondResponse.Errors}";'+
-                'return { "be1" : "{be1}", "be2" : "{be2}", "me1" : "{me1}", "me2" : "{me2}" }',
+        script: 'create table first on select get from "http://localhost:3000/"\n\
+                 create table second on select get from "http://localhost:3026/";\n\
+                 firstResponse = select * from first;\n\
+                 be1 = select Errors from firstResponse;\n\
+                 be2 = "{firstResponse.Errors}";\n\
+                 secondResponse = select * from second;\n\
+                 me1 = select Errors from secondResponse;\n\
+                 me2 = "{secondResponse.Errors}";\n\
+                 return { "be1" : "{be1}", "be2" : "{be2}", "me1" : "{me1}", "me2" : "{me2}"}',
         udf: {
             test : function (test, err, result) {
                 if(err) {
                     console.log(err.stack || err);
                     test.ok(false, 'Grrr');
-
                 }
                 else {
                     result = result.body;
@@ -76,18 +75,13 @@ var cooked = {
                     test.ok(_.isUndefined(result.be1[0]));
                     test.ok(_.isUndefined(result.be2));
                     test.deepEqual(result.me1[0], result.me2);
-
                 }
             }
         }
-
     }
-
 }
 
 module.exports = require('ql-unit').init({
     cooked: cooked,
-    engine:new Engine({
-
-    })
+    engine:new Engine()
 });

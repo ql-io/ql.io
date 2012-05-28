@@ -172,26 +172,13 @@ exports['insert-obj'] = function(test) {
              return updated;'
 
     var plan = compiler.compile(q);
-    test.deepEqual(plan, { type: 'return',
-      line: 6,
-      id: 2,
-      rhs: { ref: 'updated' },
-      dependsOn:
-       [ { type: 'insert',
-           source: { name: '{obj}' },
-           values: [ 'v5', 'v6' ],
-           line: 5,
-           columns:
-            [ { type: 'column', name: 'p5' },
-              { type: 'column', name: 'p6' } ],
-           assign: 'updated',
-           id: 1,
-           dependsOn:
-            [ { object: { p3: 'v3', p4: 'v4' },
-                type: 'define',
-                line: 1,
-                assign: 'obj',
-                id: 0,
-                dependsOn: [] } ] } ] });
+    test.equals(plan.dependsOn[0].assign, 'updated');
+    test.equals(plan.dependsOn[0].listeners[0].type, 'return');
+    test.equals(plan.dependsOn[0].type, 'insert');
+    test.deepEqual(plan.dependsOn[0].columns, [ { type: 'column', name: 'p5' },
+                  { type: 'column', name: 'p6' } ]);
+    test.deepEqual(plan.dependsOn[0].values, ['v5', 'v6']);
+    test.equals(plan.dependsOn[0].dependsOn[0].assign, 'obj');
+    test.equals(plan.dependsOn[0].dependsOn[0].listeners[0].assign, 'updated');
     test.done();
 }

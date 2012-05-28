@@ -39,6 +39,7 @@ exports['show assign'] = function (test) {
       id: 1,
       rhs: { ref: 'tables' },
       dependsOn: [ { type: 'show', line: 1, assign: 'tables', id: 0, dependsOn: [] } ] };
-    test.deepEqual(statement, e);
+    test.equal(statement.dependsOn[0].assign, 'tables');
+    test.equal(statement.dependsOn[0].listeners[0].type, 'return');
     test.done();
 };

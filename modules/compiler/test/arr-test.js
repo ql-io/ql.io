@@ -27,13 +27,9 @@ exports['simple'] = function(test) {
     test.equals(compiled.type, 'return');
     test.equals(compiled.comments[0].text, 'Return now');
     test.equals(compiled.rhs.ref, 'n');
-    test.deepEqual(compiled.dependsOn[0],
-        { object: [['Gap', 'Addidas', 'Gravati2a'], ['Gap', 'Addidasf'], ['Gravati', 'Addis']],
-        type: 'define',
-        line: 2,
-        assign: 'n',
-        id: 0,
-        comments: [ { line: 1, type: 'comment', text: 'Define an object' } ],
-        dependsOn: []});
+    test.deepEqual(compiled.dependsOn[0].object,
+        [['Gap', 'Addidas', 'Gravati2a'], ['Gap', 'Addidasf'], ['Gravati', 'Addis']]);
+    test.equals(compiled.dependsOn[0].type, 'define');
+    test.equals(compiled.dependsOn[0].assign, 'n');
     test.done();
 };

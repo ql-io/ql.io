@@ -66,8 +66,7 @@ var cooked = {
             }
         ],
         script: 'create table plusxml on select get from "http://localhost:3000/";'+
-                'aResponse = select * from plusxml;'+
-                'return "{aResponse}";',
+                'return select * from plusxml;',
         udf: {
             test : function (test, err, result) {
                 if (err) {

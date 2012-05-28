@@ -93,26 +93,14 @@ exports['delete-from-obj'] = function(test) {
             }\
             return delete from obj where a = "A";';
     var plan = compiler.compile(q);
-    var e = { type: 'return',
-        line: 1,
-        id: 1,
-        rhs: { type: 'delete',
-            source: { name: '{obj}' },
-            whereCriteria: [
-                { operator: '=',
-                    lhs: { type: 'column', name: 'a' },
-                    rhs: { value: 'A' } }
-            ],
-            line: 1 },
-        dependsOn:  [
-            { object: { a: 'A', b: 'B', c: 'C' },
-                type: 'define',
-                line: 1,
-                assign: 'obj',
-                id: 0,
-                dependsOn: [] }
-        ] };
-    test.deepEqual(plan, e);
+    test.deepEqual(plan.rhs.source, {name: '{obj}'});
+    test.deepEqual(plan.rhs.whereCriteria,
+        [
+            { operator: '=',
+                lhs: { type: 'column', name: 'a' },
+                rhs: { value: 'A' } }
+        ]);
+    test.deepEqual(plan.dependsOn[0].object, { a: 'A', b: 'B', c: 'C' });
     test.done();
 }
 

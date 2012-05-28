@@ -28,32 +28,18 @@ module.exports = {
                       from a;\n\
                  return results;';
         var statement = compiler.compile(q);
-        var e = { type: 'return',
-          line: 5,
-          id: 2,
-          rhs: { ref: 'results' },
-          dependsOn:
-           [ { type: 'select',
-               line: 2,
-               fromClause: [ { name: '{a}' } ],
-               columns:
-                [ { type: 'column', name: 'title[0]' },
-                  { type: 'column', name: 'itemId[0]' },
-                  { type: 'column', name: 'primaryCategory[0].categoryName[0]' },
-                  { type: 'column', name: 'sellingStatus[0].currentPrice[0]' } ],
-               whereCriteria: undefined,
-               assign: 'results',
-               id: 1,
-               dependsOn:
-                [ { type: 'select',
-                    line: 1,
-                    fromClause: [ { name: 'foo' } ],
-                    columns: { name: '*', type: 'column' },
-                    whereCriteria: undefined,
-                    assign: 'a',
-                    id: 0,
-                    dependsOn: [] } ] } ] };
-        test.deepEqual(statement, e);
+        test.equals(statement.type, 'return');
+        test.equals(statement.rhs.ref, 'results');
+        test.equals(statement.dependsOn.length, 1);
+        test.equals(statement.dependsOn[0].assign, 'results');
+        test.equals(statement.dependsOn[0].type, 'select');
+        test.equals(statement.dependsOn[0].listeners.length, 1);
+        test.equals(statement.dependsOn[0].listeners[0].type, 'return');
+        test.equals(statement.dependsOn[0].dependsOn.length, 1);
+        test.equals(statement.dependsOn[0].dependsOn[0].assign, 'a');
+        test.equals(statement.dependsOn[0].dependsOn[0].type, 'select');
+        test.equals(statement.dependsOn[0].dependsOn[0].listeners.length, 1);
+        test.equals(statement.dependsOn[0].dependsOn[0].listeners[0].type, 'select');
         test.done();
     },
 
@@ -68,41 +54,14 @@ module.exports = {
                   return {\n\
                       "itemDetails" : "{watches}"\n\
                   };'
-
-        e = { type: 'return',
-          line: 6,
-          id: 5,
-          rhs: { object: { itemDetails: '{watches}' }, type: 'define', line: 6 },
-          dependsOn:
-           [ { type: 'select',
-               line: 5,
-               fromClause: [ { name: '{watchList}' } ],
-               columns: { name: '*', type: 'column' },
-               whereCriteria: undefined,
-               assign: 'watches',
-               id: 4,
-               dependsOn:
-                [ { type: 'select',
-                    line: 2,
-                    fromClause: [ { name: '{GetMyeBayBuyingResponse}' } ],
-                    columns:
-                     [ { type: 'column',
-                         name: 'GetMyeBayBuyingResponse.WatchList.ItemArray.Item' } ],
-                    whereCriteria: undefined,
-                    assign: 'watchList',
-                    id: 1,
-                    dependsOn:
-                     [ { type: 'select',
-                         line: 1,
-                         fromClause: [ { name: 'ebay.getmyebaybuying' } ],
-                         columns: { name: '*', type: 'column' },
-                         whereCriteria: undefined,
-                         assign: 'GetMyeBayBuyingResponse',
-                         id: 0,
-                         dependsOn: [] } ] } ] } ] };
-
         cooked = compiler.compile(script);
-        test.deepEqual(cooked, e);
+        test.equals(cooked.type, 'return');
+        test.equals(cooked.rhs.type, 'define');
+        test.equals(cooked.dependsOn[0].assign, 'watches');
+        test.equals(cooked.dependsOn[0].dependsOn[0].assign, 'watchList');
+        test.equals(cooked.dependsOn[0].dependsOn[0].listeners[0].assign, 'watches');
+        test.equals(cooked.dependsOn[0].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+        test.equals(cooked.dependsOn[0].dependsOn[0].dependsOn[0].listeners[0].assign, 'watchList');
         test.done();
     },
 
