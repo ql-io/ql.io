@@ -235,11 +235,10 @@ Engine.prototype.execute = function() {
         type: eventTypes.SCRIPT_ACK,
         data: 'Got it'
     });
+
     try {
         // We don't cache here since the parser does the caching.
         cooked = route ? script : compiler.compile(script);
-        var util = require('util');
-        console.log(util.inspect(cooked, false, 10));
     }
     catch(err) {
         emitter.emit(eventTypes.SCRIPT_COMPILE_ERROR, {
@@ -260,7 +259,8 @@ Engine.prototype.execute = function() {
     function init(statement) {
         execState[statement.id] = {
             state: eventTypes.STATEMENT_WAITING,
-            deps: {}
+            deps: {},
+            count: statement.dependsOn ? statement.dependsOn.length : 0
         };
         _.each(statement.dependsOn, function(dependency) {
             init(dependency);
@@ -273,38 +273,16 @@ Engine.prototype.execute = function() {
     }
     init(cooked);
 
-    function run(statement, fn) {
+    function sweep(statement, fn) {
         _.each(statement.dependsOn, function(dependency) {
             if(execState[dependency.id].state === eventTypes.STATEMENT_WAITING) {
-                // Add a dependency.
-                execState[statement.id].deps[dependency.id] = dependency;
-
                 // Exec the dependency
-                run(dependency, function(err, results) {
-                    console.log('DONE ' + dependency.id);
-                    console.log(results.body);
-                    execState[dependency.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
-                    _.each(dependency.listeners, function(listener) {
-                        console.log('Deleting ' + dependency.id + ' from ' + listener.id);
-                        delete execState[listener.id].deps[dependency.id];
-                        run(listener, fn);
-                    })
-                })
-            }
-            else if(execState[dependency.id].state === eventTypes.STATEMENT_IN_FLIGHT) {
-                execState[statement.id].deps[dependency.id] = dependency;
-            }
-            else { // Done
-                if(execState[statement.id].deps[dependency.id]) {
-                    console.log('**Deleting ' + dependency.id + ' from ' + statement.id);
-                    delete execState[statement.id].deps[dependency.id];
-                }
+                sweep(dependency)
             }
         });
         if(execState[statement.id].state === eventTypes.STATEMENT_WAITING &&  // Don't try if in-flight
-            _.isEmpty(execState[statement.id].deps)) {
+            execState[statement.id].count === 0) {
             execState[statement.id].state = eventTypes.STATEMENT_IN_FLIGHT;
-            console.log('starting ' + statement.id);
             execOne({tables: that.tables,
                      routes: that.routes,
                      config: that.config,
@@ -319,18 +297,26 @@ Engine.prototype.execute = function() {
                      cache: that.cache
                      },
                 statement, function(err, results) {
-                    console.log('ended ' + statement.id);
                     execState[statement.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
-                    fn.call(null, err, results);
+
+                    _.each(statement.listeners, function(listener) {
+                        execState[listener.id].count--;
+                        sweep(listener);
+                    });
+
+                    if(execState[statement.id].done) {
+                        execState[statement.id].done.call(null, err, results);
+                    }
                 }, engineEvent);
         }
     }
 
     // Start with the return statement
-    run(cooked, function(err, results) {
-        execState[cooked.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
-        engineEvent.end(err, results);
-    });
+    execState[cooked.id].done = function(err, results) {
+            execState[cooked.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
+            engineEvent.end(err, results);
+        };
+    sweep(cooked);
 }
 
 /**
@@ -431,7 +417,6 @@ function execOne(opts, statement, cb, parentEvent) {
  * @ignore
  */
 function _execOne(opts, statement, parentEvent, cb) {
-//    console.log(statement)
     var obj;
     switch(statement.type) {
         case 'create' :
