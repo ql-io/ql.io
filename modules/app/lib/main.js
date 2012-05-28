@@ -97,7 +97,6 @@ exports.exec = function() {
         },
         timeout: 300 * 1000 // Idle client socket timeout
     };
-    console.log(options);
     options.__proto__ = program;
 
     var cluster = new Cluster(options);
