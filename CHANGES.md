@@ -1,3 +1,7 @@
+## May 29, 2012
+
+* Explicit dependencies between modules.
+
 ## May 25, 2012
 
 * Update the context with the udf filtered data
