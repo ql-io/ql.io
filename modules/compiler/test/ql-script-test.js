@@ -57,11 +57,13 @@ module.exports = {
         cooked = compiler.compile(script);
         test.equals(cooked.type, 'return');
         test.equals(cooked.rhs.type, 'define');
-        test.equals(cooked.dependsOn[0].assign, 'watches');
-        test.equals(cooked.dependsOn[0].dependsOn[0].assign, 'watchList');
-        test.equals(cooked.dependsOn[0].dependsOn[0].listeners[0].assign, 'watches');
-        test.equals(cooked.dependsOn[0].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
-        test.equals(cooked.dependsOn[0].dependsOn[0].dependsOn[0].listeners[0].assign, 'watchList');
+        test.equals(cooked.dependsOn[0].assign, 'bidList'); // orphan
+        test.equals(cooked.dependsOn[1].assign, 'bestOfferList'); // orphan
+        test.equals(cooked.dependsOn[2].assign, 'watches');
+        test.equals(cooked.dependsOn[2].dependsOn[0].assign, 'watchList');
+        test.equals(cooked.dependsOn[2].dependsOn[0].listeners[0].assign, 'watches');
+        test.equals(cooked.dependsOn[2].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+        test.equals(cooked.dependsOn[2].dependsOn[0].dependsOn[0].listeners[0].assign, 'watchList');
         test.done();
     },
 
@@ -120,16 +122,17 @@ module.exports = {
                   };';
         try {
             cooked = compiler.compile(script);
-            test.equals(cooked.dependsOn.length, 1);
-            test.equals(cooked.dependsOn[0].dependsOn.length, 4);
-            test.equals(cooked.dependsOn[0].dependsOn[0].assign, 'watchList');
-            test.equals(cooked.dependsOn[0].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
-            test.equals(cooked.dependsOn[0].dependsOn[1].assign, 'bidList');
-            test.equals(cooked.dependsOn[0].dependsOn[1].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
-            test.equals(cooked.dependsOn[0].dependsOn[2].assign, 'bestOfferList');
-            test.equals(cooked.dependsOn[0].dependsOn[2].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
-            test.equals(cooked.dependsOn[0].dependsOn[3].assign, 'activeList');
-            test.equals(cooked.dependsOn[0].dependsOn[3].dependsOn[0].assign, 'GetMyeBaySellingResponse');
+            test.equals(cooked.dependsOn.length, 2);
+            test.equals(cooked.dependsOn[0].assign, 'watches');
+            test.equals(cooked.dependsOn[1].dependsOn.length, 4);
+            test.equals(cooked.dependsOn[1].dependsOn[0].assign, 'watchList');
+            test.equals(cooked.dependsOn[1].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+            test.equals(cooked.dependsOn[1].dependsOn[1].assign, 'bidList');
+            test.equals(cooked.dependsOn[1].dependsOn[1].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+            test.equals(cooked.dependsOn[1].dependsOn[2].assign, 'bestOfferList');
+            test.equals(cooked.dependsOn[1].dependsOn[2].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+            test.equals(cooked.dependsOn[1].dependsOn[3].assign, 'activeList');
+            test.equals(cooked.dependsOn[1].dependsOn[3].dependsOn[0].assign, 'GetMyeBaySellingResponse');
             test.done();
         }
         catch(e) {

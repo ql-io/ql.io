@@ -400,7 +400,6 @@ var cooked = {
         ],
         script: 'create table first on select get from "http://localhost:3000"'+
                 'create table second on select get from "http://localhost:3026"'+
-                'Resp1 = select ItemID from first '+
                 'return select Location from second where ItemID in (select ItemID from first)',
 
         udf: {

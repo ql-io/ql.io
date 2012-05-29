@@ -57,16 +57,10 @@ exports['describe-no-table'] = function(test) {
     }
 };
 
-// In this test, describe won't get executed
 exports['describe-assign'] = function (test) {
     var q = "des = describe foo; return {};";
     var statement = compiler.compile(q);
-    var e = { type: 'return',
-      line: 1,
-      id: 1,
-      rhs: { object: {}, type: 'define', line: 1 },
-      dependsOn: [] };
-    test.deepEqual(statement, e);
+    test.equal(statement.dependsOn[0].assign, 'des');
     test.done();
 };
 

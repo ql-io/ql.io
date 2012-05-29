@@ -314,11 +314,9 @@ Engine.prototype.execute = function() {
                         sweep(listener);
                     });
 
+                    execState[statement.id]
                     if(execState[statement.id].done) {
                         execState[statement.id].done.call(null, err, results);
-                    }
-                    else if(err) {
-                        // Bubble up and exit the
                     }
                 }, engineEvent);
         }

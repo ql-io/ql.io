@@ -58,18 +58,12 @@ exports['mismatch-count'] = function(test) {
 exports['insert-assign'] = function(test) {
     var q = "a = insert into foo (a, b, c) values ('a', 'b', 'c'); \nreturn {};";
     var statement = compiler.compile(q);
-    var e = {
-            rhs: {
+    test.deepEqual(statement.rhs, {
                 "object": {},
                 type: 'define',
                 line: 2
-            },
-            "type": "return",
-            "line": 2,
-            "id": 1,
-            dependsOn: []
-        };
-    test.deepEqual(statement, e);
+            });
+    test.equal(statement.dependsOn[0].assign, 'a');
     test.done();
 };
 

@@ -118,10 +118,9 @@ function plan(compiled) {
             };
         }
     }
-    var util = require('util');
+
     // Start with the return statement and create the plan.
     walk(ret, symbols, creates);
-
     if(ret.rhs) {
         _.each(ret.rhs.dependsOn, function(dependency) {
             ret.dependsOn.push(dependency);
@@ -129,22 +128,56 @@ function plan(compiled) {
         delete ret.rhs.dependsOn;
     }
 
-    _.each(creates, function(create) {
-        ret.dependsOn.push(create);
-    })
-
+    // Reverse links from dependencies and pickup orphans
+    // TODO: no extra walk necessary
+    var used = [];
     function rev(node) {
+        used.push(node.id);
         _.each(node.dependsOn, function(dependency) {
             dependency.listeners = dependency.listeners || [];
             dependency.listeners.push(node);
+            used.push(dependency.id);
             rev(dependency);
-        })
+        });
+        if(node.fallback) {
+            _.each(node.fallback.dependsOn, function(dependency) {
+                dependency.listeners = dependency.listeners || [];
+                dependency.listeners.push(node);
+                used.push(dependency.id);
+                rev(dependency);
+            })
+        }
     }
-
     rev(ret);
+    rev(ret.rhs);
+
+    // Insert all orphans at the beginning of dep arr. Orphans occur when depednencies are based on
+    // body templates but the language has no way of knowing such dependencies.
+    // Orphans include create table statements.
+    var orphans = [];
+    creates = [];
+    _.each(compiled, function(line) {
+        if(line.type !== 'return' && used.indexOf(line.id) === -1) {
+            if(line.type === 'create') {
+                creates.push(line);
+            }
+            else {
+                orphans.push(line);
+            }
+            line.listeners = line.listeners || [];
+            line.listeners.push(ret);
+        }
+    });
+    // Insert creates before orphans.
+    ret.dependsOn = orphans.concat(ret.dependsOn);
+    ret.dependsOn = creates.concat(ret.dependsOn);
 
     return ret;
 }
+
+//
+// TODO: why creates arr!
+//
 
 // Recursively walk up from the return statement to create the dependency tree.
 function walk(line, symbols, creates) {
@@ -215,9 +248,6 @@ function addDep(dependsOn, dependency, symbols, creates) {
     }
     if(!contains) {
         dependsOn.push(dependency);
-        if(dependency.type === 'create') {
-            delete creates[dependency.id.toString()];
-        }
         walk(dependency, symbols, creates);
     }
 }
