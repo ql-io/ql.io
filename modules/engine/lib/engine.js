@@ -273,7 +273,11 @@ Engine.prototype.execute = function() {
     }
     init(cooked);
 
+    var skip = false;
     function sweep(statement, fn) {
+        if(skip) {
+            return;
+        }
         _.each(statement.dependsOn, function(dependency) {
             if(execState[dependency.id].state === eventTypes.STATEMENT_WAITING) {
                 // Exec the dependency
@@ -297,6 +301,12 @@ Engine.prototype.execute = function() {
                      cache: that.cache
                      },
                 statement, function(err, results) {
+                    if(err) {
+                        // Skip the remaining statements and return error
+                        skip = true;
+                        return engineEvent.end(err);
+                    }
+
                     execState[statement.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
 
                     _.each(statement.listeners, function(listener) {
@@ -306,6 +316,9 @@ Engine.prototype.execute = function() {
 
                     if(execState[statement.id].done) {
                         execState[statement.id].done.call(null, err, results);
+                    }
+                    else if(err) {
+                        // Bubble up and exit the
                     }
                 }, engineEvent);
         }
