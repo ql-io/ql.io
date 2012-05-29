@@ -120,7 +120,7 @@ function plan(compiled) {
     }
 
     // Start with the return statement and create the plan.
-    walk(ret, symbols, creates);
+    walk(ret, symbols);
     if(ret.rhs) {
         _.each(ret.rhs.dependsOn, function(dependency) {
             ret.dependsOn.push(dependency);
@@ -175,70 +175,66 @@ function plan(compiled) {
     return ret;
 }
 
-//
-// TODO: why creates arr!
-//
-
 // Recursively walk up from the return statement to create the dependency tree.
-function walk(line, symbols, creates) {
+function walk(line, symbols) {
     var type = line.type, dependency;
     line.dependsOn = line.dependsOn || [];
     switch(type) {
         case 'define':
-            introspectObject(line.object, symbols, creates, line.dependsOn);
+            introspectObject(line.object, symbols, line.dependsOn);
             break;
         case 'return':
             if(line.rhs.type === 'define') {
-                introspectObject(line.rhs.object, symbols, creates, line.dependsOn);
+                introspectObject(line.rhs.object, symbols, line.dependsOn);
             }
             else if(line.rhs.ref) {
                 dependency = symbols[line.rhs.ref];
                 if(dependency) {
-                    addDep(line.dependsOn, dependency, symbols, creates);
+                    addDep(line.dependsOn, dependency, symbols);
                 }
             }
             else if(line.rhs) {
-                walk(line.rhs, symbols, creates);
+                walk(line.rhs, symbols);
             }
 
             // Route
             if(line.route) {
-                introspectString(line.route.path, symbols, creates, line.dependsOn);
+                introspectString(line.route.path, symbols, line.dependsOn);
                 if(line.route.headers) {
                     _.each(line.route.headers, function(value, name) {
-                        introspectString(value, symbols, creates, line.dependsOn);
-                        introspectString(name, symbols, creates, line.dependsOn);
+                        introspectString(value, symbols, line.dependsOn);
+                        introspectString(name, symbols, line.dependsOn);
                     })
                 }
             }
             break;
         case 'delete':
-            introspectFrom(line, [line.source], symbols, creates);
+            introspectFrom(line, [line.source], symbols);
             line = introspectWhere(line, symbols);
             if(line.fallback) {
-                walk(line.fallback, symbols, creates);
+                walk(line.fallback, symbols);
             }
             break;
         case 'insert':
-            introspectFrom(line, [line.source], symbols, creates);
+            introspectFrom(line, [line.source], symbols);
             if(line.fallback) {
-                walk(line.fallback, symbols, creates);
+                walk(line.fallback, symbols);
             }
             break;
         case 'select':
-            introspectFrom(line, line.fromClause, symbols, creates);
+            introspectFrom(line, line.fromClause, symbols);
             if(line.joiner) {
-                introspectFrom(line.joiner, line.joiner.fromClause, symbols, creates, line);
+                introspectFrom(line.joiner, line.joiner.fromClause, symbols, line);
             }
-            line = introspectWhere(line, symbols, creates);
+            line = introspectWhere(line, symbols);
             if(line.fallback) {
-                walk(line.fallback, symbols, creates);
+                walk(line.fallback, symbols);
             }
             break;
     }
 }
 
-function addDep(dependsOn, dependency, symbols, creates) {
+function addDep(dependsOn, dependency, symbols) {
     var contains = false;
     for(var i = 0; i < dependsOn.length; i++) {
         contains = _.isEqual(dependsOn[i], dependency);
@@ -248,14 +244,14 @@ function addDep(dependsOn, dependency, symbols, creates) {
     }
     if(!contains) {
         dependsOn.push(dependency);
-        walk(dependency, symbols, creates);
+        walk(dependency, symbols);
     }
 }
 
 //
 // Introspection utils
 //
-function introspectString(v, symbols, creates, dependsOn) {
+function introspectString(v, symbols, dependsOn) {
     try {
         var parsed = strParser.parse(v);
         _.each(parsed.vars, function(refname) {
@@ -273,7 +269,7 @@ function introspectString(v, symbols, creates, dependsOn) {
                     }
                 }
                 if(!contains) {
-                    addDep(dependsOn, dependency, symbols, creates);
+                    addDep(dependsOn, dependency, symbols);
                 }
             }
         });
@@ -283,35 +279,35 @@ function introspectString(v, symbols, creates, dependsOn) {
     }
 }
 
-function introspectObject(obj, symbols, creates, dependsOn) {
+function introspectObject(obj, symbols, dependsOn) {
     if(_.isString(obj)) {
-        introspectString(obj, symbols, creates, dependsOn);
+        introspectString(obj, symbols, dependsOn);
     }
     else if(_.isArray(obj)) {
         _.each(obj, function(v) {
-            introspectObject(v, symbols, creates, dependsOn);
+            introspectObject(v, symbols, dependsOn);
         });
     }
     else if(_.isObject(obj)) {
         _.each(obj, function(v, n) {
             if(_.isString(v)) {
-                introspectString(v, symbols, creates, dependsOn);
+                introspectString(v, symbols, dependsOn);
             }
             else if(_.isArray(v)) {
                 var arr = [];
                 _.each(v, function(vi) {
-                    introspectObject(vi, symbols, creates, dependsOn);
+                    introspectObject(vi, symbols, dependsOn);
                 });
                 ret[n] = arr;
             }
             else {
-                introspectObject(v, symbols, creates, dependsOn);
+                introspectObject(v, symbols, dependsOn);
             }
         });
     }
 }
 
-function introspectFrom(line, froms, symbols, creates, parent) {
+function introspectFrom(line, froms, symbols, parent) {
     var j, from, refname, dependency;
     for(j = 0; j < froms.length; j++) {
         from = froms[j];
@@ -324,10 +320,10 @@ function introspectFrom(line, froms, symbols, creates, parent) {
                 }
                 else {
                     if(parent) {
-                        addDep(parent.dependsOn, dependency, symbols, creates);
+                        addDep(parent.dependsOn, dependency, symbols);
                     }
                     else {
-                        addDep(line.dependsOn, dependency, symbols, creates);
+                        addDep(line.dependsOn, dependency, symbols);
                     }
                 }
             }
@@ -341,10 +337,10 @@ function introspectFrom(line, froms, symbols, creates, parent) {
                 }
                 else {
                     if(parent) {
-                        addDep(parent.dependsOn, dependency, symbols, creates);
+                        addDep(parent.dependsOn, dependency, symbols);
                     }
                     else {
-                        addDep(line.dependsOn, dependency, symbols, creates);
+                        addDep(line.dependsOn, dependency, symbols);
                     }
                 }
             }
@@ -352,7 +348,7 @@ function introspectFrom(line, froms, symbols, creates, parent) {
     }
 }
 
-function introspectWhere(line, symbols, creates) {
+function introspectWhere(line, symbols) {
     var j, where, k, ref, refname, index, dependency;
     if(line.whereCriteria) {
         for(j = 0; j < line.whereCriteria.length; j++) {
@@ -373,13 +369,13 @@ function introspectWhere(line, symbols, creates) {
                                     throw new this.SyntaxError('Circular reference ' + line.assign);
                                 }
                                 else {
-                                    addDep(line.dependsOn, dependency, symbols, creates);
+                                    addDep(line.dependsOn, dependency, symbols);
                                 }
                             }
                         }
                     }
                     else if(where.rhs.type === 'select') {
-                        introspectFrom(where.rhs, where.rhs.fromClause, symbols, creates, line);
+                        introspectFrom(where.rhs, where.rhs.fromClause, symbols, line);
                     }
                     break;
                 case '=' :
@@ -396,7 +392,7 @@ function introspectWhere(line, symbols, creates) {
                                 throw new this.SyntaxError('Circular reference ' + line.assign);
                             }
                             else {
-                                addDep(line.dependsOn, dependency, symbols, creates);
+                                addDep(line.dependsOn, dependency, symbols);
                             }
                         }
                     }
@@ -413,7 +409,7 @@ function introspectWhere(line, symbols, creates) {
                             throw new this.SyntaxError('Circular reference ' + line.assign);
                         }
                         else {
-                            addDep(line.dependsOn, dependency, symbols, creates);
+                            addDep(line.dependsOn, dependency, symbols);
                         }
                     }
                     else {

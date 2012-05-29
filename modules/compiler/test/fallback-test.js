@@ -67,6 +67,7 @@ module.exports = {
         test.equal(statement.rhs.type, 'select');
         test.ok(statement.rhs.fallback);
         test.equal(statement.rhs.fallback.object, 10);
+        test.equal(statement.rhs.fallback.assign, statement.rhs.assign);
         test.done();
     },
 
@@ -86,6 +87,17 @@ module.exports = {
         test.equal(statement.dependsOn[0].fallback.fromClause[0].name, '{b}');
         test.equal(statement.dependsOn[0].fallback.dependsOn.length, 1);
         test.equal(statement.dependsOn[0].fallback.dependsOn[0].fromClause[0].name, 'B');
+        test.equal(statement.rhs.ref, statement.dependsOn[0].fallback.assign)
+        test.done();
+    },
+
+    'assign-chaining': function(test) {
+        var q = "a = 10 || 20 || 30 || 40";
+        var statement = compiler.compile(q);
+        test.equal(statement.rhs.assign, 'a');
+        test.equal(statement.rhs.fallback.assign, 'a');
+        test.equal(statement.rhs.fallback.fallback.assign, 'a');
+        test.equal(statement.rhs.fallback.fallback.fallback.assign, 'a');
         test.done();
     }
 };

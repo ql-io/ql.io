@@ -499,6 +499,11 @@ module.exports = (function(){
             if(a) {
                 s.assign = a.assign;
                 s.line = a.line;
+                var next = s.fallback;
+                while(next) {
+                    next.assign = s.assign;
+                    next = next.fallback;
+                }
             }
 
             // Add LHS to the symbol table
