@@ -265,10 +265,9 @@ Engine.prototype.execute = function() {
         _.each(statement.dependsOn, function(dependency) {
             init(dependency);
         });
-        if(statement.fallback) {
-            _.each(statement.fallback.dependsOn, function(dependency) {
-                init(dependency);
-            })
+        var fallback = statement.rhs ? statement.rhs.fallback : statement.fallback;
+        if(fallback) {
+            init(fallback);
         }
     }
     init(cooked);
@@ -314,7 +313,6 @@ Engine.prototype.execute = function() {
                         sweep(listener);
                     });
 
-                    execState[statement.id]
                     if(execState[statement.id].done) {
                         execState[statement.id].done.call(null, err, results);
                     }
@@ -322,11 +320,19 @@ Engine.prototype.execute = function() {
         }
     }
 
+    var fnDone = function(err, results) {
+        execState[cooked.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
+        engineEvent.end(err, results);
+    }
+
     // Start with the return statement
-    execState[cooked.id].done = function(err, results) {
-            execState[cooked.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
-            engineEvent.end(err, results);
-        };
+    execState[cooked.id].done = fnDone;
+    var next = cooked.rhs ? cooked.rhs.fallback : cooked.fallback;
+    while(next) {
+        execState[next.id].done = fnDone;
+        next = next.fallback;
+    }
+
     sweep(cooked);
 }
 
@@ -551,7 +557,7 @@ function _execOne(opts, statement, parentEvent, cb) {
                     headers: respHeaders
                 };
                 cb(undefined, ret);
-                    break;
+                break;
             }
     }
 }

@@ -501,6 +501,7 @@ module.exports = (function(){
                 s.line = a.line;
                 var next = s.fallback;
                 while(next) {
+                    next.id = id++;
                     next.assign = s.assign;
                     next = next.fallback;
                 }
