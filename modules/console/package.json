@@ -28,7 +28,7 @@
         "xml2json": "0.2.4",
         "connect-assetmanager" : "0.0.26",
         "connect-assetmanager-handlers" : "0.0.18",
-        "ql.io-compiler": "0.6.3"
+        "ql.io-compiler": "0.6.2"
     },
     "devDependencies": {
         "nodeunit": "0.7.4",
