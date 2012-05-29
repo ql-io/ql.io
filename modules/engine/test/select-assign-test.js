@@ -125,7 +125,7 @@ return {"result" : "{fields}"};\
     'script-missing-define' : function(test) {
         var q;
         q = 'fields = select addresses[0].street, addresses[1].city, name.last from data;\
-             return {"result" : "{fields}"};'
+return {"result" : "{fields}"};'
         engine.exec(q, function(err, result) {
             if(err) {
                 test.ok(true, 'Failed as expected');
