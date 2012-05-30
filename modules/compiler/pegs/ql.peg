@@ -473,7 +473,7 @@ CreateStatement = 'create' insig 'table' insig s:NonAliasSource insig v:Verb* {
 
 // update table statement
 // hongcheng
-UpdateStatement = 'update' insig s:Source insig sc:SetClause insig wc:WhereClause {
+UpdateStatement = 'update' insig s:Source insig sc:SetClause insig wc:WhereClause? {
     return {
         type: 'update',
         source: s,

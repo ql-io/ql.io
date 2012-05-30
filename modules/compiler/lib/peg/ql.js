@@ -906,6 +906,7 @@ module.exports = (function(){
                                     result5 = parse_insig();
                                     if (result5 !== null) {
                                         result6 = parse_WhereClause();
+                                        result6 = result6 !== null ? result6 : "";
                                         if (result6 !== null) {
                                             result0 = [result0, result1, result2, result3, result4, result5, result6];
                                         } else {
