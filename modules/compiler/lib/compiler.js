@@ -136,16 +136,15 @@ function plan(compiled) {
         _.each(node.dependsOn, function(dependency) {
             dependency.listeners = dependency.listeners || [];
             dependency.listeners.push(node);
+            if(dependency.fallback) {
+                dependency.fallback.listeners = dependency.fallback.listeners || [];
+                dependency.fallback.listeners.push(node);
+            }
             used.push(dependency.id);
             rev(dependency);
         });
         if(node.fallback) {
-            _.each(node.fallback.dependsOn, function(dependency) {
-                dependency.listeners = dependency.listeners || [];
-                dependency.listeners.push(node);
-                used.push(dependency.id);
-                rev(dependency);
-            })
+            rev(node.fallback);
         }
     }
     rev(ret);

@@ -1063,7 +1063,8 @@ RetRef = o:Word {
         throw new this.SyntaxError("Line " + line + ": Unresolved symbol '" + o + "'");
     }
     return {
-        ref: o
+        ref: o,
+        type: 'ref'
     }
 }
 

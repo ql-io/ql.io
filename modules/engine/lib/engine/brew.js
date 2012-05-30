@@ -26,13 +26,10 @@ var compiler = require('ql.io-compiler'),
     _ = require('underscore');
 
 exports.go = function(options) {
-    var table;
     var root = options.path;
-    var name = options.name;
     var script = options.script;
     var statement = options.statement;
     var cb = options.cb;
-    var logEmitter = options.logEmitter;
 
     assert.ok(root, 'Root directory is undefined');
     assert.ok(script || statement, 'Script is undefined');

@@ -22,9 +22,11 @@ var engine = new Engine();
 
 module.exports = {
     'fallback-numbers': function(test) {
-        var q = "return select * from foo || 100";
+        var q = "return select * from foo ";
         engine.execute(q, function(emitter) {
             emitter.on('end', function(err, results) {
+                console.log(err);
+                console.log(results);
                 test.done();
             });
         });

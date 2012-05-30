@@ -301,6 +301,10 @@ Engine.prototype.execute = function() {
                      },
                 statement, function(err, results) {
                     if(err) {
+                        var fallback = statement.rhs ? statement.rhs.fallback : statement.fallback;
+                        if(fallback) {
+                            return sweep(fallback);
+                        }
                         // Skip the remaining statements and return error
                         skip = true;
                         return engineEvent.end(err);
@@ -434,13 +438,13 @@ function execOne(opts, statement, cb, parentEvent) {
  * @ignore
  */
 function _execOne(opts, statement, parentEvent, cb) {
-    var obj;
+    var obj, params, args;
     switch(statement.type) {
         case 'create' :
             create.exec(opts, statement, parentEvent, cb);
             break;
         case 'define' :
-            var params = _util.prepareParams(opts.context,
+            params = _util.prepareParams(opts.context,
                     opts.request.body,
                     opts.request.routeParams,
                     opts.request.params,
@@ -452,7 +456,7 @@ function _execOne(opts, statement, parentEvent, cb) {
                 obj = jsonfill.fill(statement.object, params);
             }
             else if(statement.udf) {
-                var args = [];
+                args = [];
                 _.each(_.pluck(statement.args, 'value'), function(arg) {
                     args.push(jsonfill.lookup(arg, opts.context));
                 });
@@ -467,7 +471,11 @@ function _execOne(opts, statement, parentEvent, cb) {
 
             opts.context[statement.assign] = obj;
             opts.emitter.emit(statement.assign, obj)
-            cb(undefined, opts.context);
+            var ret = {
+                body: obj,
+                headers: {}
+            };
+            cb(null, ret);
             break;
         case 'select' :
             select.exec(opts, statement, parentEvent, cb);
@@ -490,16 +498,24 @@ function _execOne(opts, statement, parentEvent, cb) {
         case 'describe route':
             describeRoute.exec(opts, statement, parentEvent, cb);
             break;
+        case 'ref':
+            obj = opts.context[statement.ref];
+            if(_.isNull(obj)) {
+                cb('Unresolved reference in return');
+            }
+            if(statement.hasOwnProperty('object')) {
+                obj = jsonfill.fill(statement.object, params);
+            }
+            cb(null, {
+                body: obj,
+                headers: {}
+            });
+            break;
         case 'return':
-            //
-            // TODO: This code needs to refactored when the result is a statement, along with
-            // selects in  'in' clauses. Such statements should be scheduled sooner. What we have
-            // here below is sub-optimal.
-
             // If the return is via a route, process any headers from 'using headers' clause
             var respHeaders = {};
             if(statement.route && statement.route.headers) {
-                var params = _util.prepareParams(opts.context,
+                params = _util.prepareParams(opts.context,
                     opts.request.body,
                     opts.request.routeParams,
                     opts.request.params,
@@ -512,6 +528,7 @@ function _execOne(opts, statement, parentEvent, cb) {
                     respHeaders[_name] = jsonfill.fill(value, params);
                 });
             }
+            respHeaders['content-type'] = 'application/json';
 
             // lhs can be a reference to an object in the context or a JS object.
             switch(statement.rhs.type) {
@@ -522,42 +539,11 @@ function _execOne(opts, statement, parentEvent, cb) {
                 case 'show':
                 case 'show routes':
                 case 'describe':
+                case 'ref':
+                case 'define':
                 case 'describe route':
                     _execOne(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
                     break;
-                default:
-
-                var params = _util.prepareParams(opts.context,
-                    opts.request.body,
-                    opts.request.routeParams,
-                    opts.request.params,
-                    opts.request.headers,
-                    opts.request.connection,
-                    {config: opts.config});
-                if(statement.rhs.ref) {
-                    obj = opts.context[statement.rhs.ref];
-                    if(_.isNull(obj)) {
-                        cb('Unresolved reference in return');
-                    }
-                }
-                if(statement.rhs.hasOwnProperty('object')) {
-                    obj = jsonfill.fill(statement.rhs.object, params);
-                }
-                else if(statement.rhs.udf) {
-                    var args = [];
-                    _.each(_.pluck(statement.rhs.args, 'value'), function(arg) {
-                        args.push(jsonfill.lookup(arg, opts.context));
-                    });
-                    obj = require('./udfs/standard.js')[statement.rhs.udf].apply(null, args);
-                }
-
-                respHeaders['content-type'] = 'application/json';
-                var ret = {
-                    body: obj,
-                    headers: respHeaders
-                };
-                cb(undefined, ret);
-                break;
             }
     }
 }

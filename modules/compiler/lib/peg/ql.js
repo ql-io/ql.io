@@ -5525,7 +5525,8 @@ module.exports = (function(){
                 throw new this.SyntaxError("Line " + line + ": Unresolved symbol '" + o + "'");
             }
             return {
-                ref: o
+                ref: o,
+                type: 'ref'
             }
         })(pos0.offset, pos0.line, pos0.column, result0);
         }

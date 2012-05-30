@@ -2,14 +2,14 @@
     "author": "ql.io",
     "description": "A small URI template processor for ql.io.",
     "name": "ql.io-uri-template",
-    "version": "0.6.0",
+    "version": "0.6.2",
     "repository": {
         "type": "git",
         "url": "https://github.com/ql-io/ql.io"
     },
     "main": "lib/uri-template.js",
     "engines": {
-        "node":"> 0.6.0"
+        "node":"> 0.6.2"
     },
     "dependencies": {
     },

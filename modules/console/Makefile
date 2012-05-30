@@ -8,8 +8,10 @@ install:
 	mkdir logs;\
 	npm link ql.io-engine;\
 	npm link ql.io-compiler;\
+	npm link ql.io-mutable-uri;\
 	npm install;\
 	npm link; \
+
 
 .PHONY : test
 test: install
