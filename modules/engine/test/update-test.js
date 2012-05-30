@@ -20,7 +20,7 @@ var Engine = require('../lib/engine'),
     util = require('util');
 
 module.exports = {
-    'naive': function (test) {
+    'naive where equal': function (test) {
         var server = http.createServer(function (req, res) {
             res.writeHead(200, {
                 'Content-Type': 'application/json'
@@ -39,7 +39,7 @@ module.exports = {
                 config: __dirname + '/config/dev.json'
             });
             var listener = new Listener(engine);
-            var q = 'update ebay.trading.SetUserNotes set Action = "AddOrUpdate", NoteText = "For Fredegonde\' birthday" where ItemID in (select itemId from ebay.finding.items where keywords = wii)';
+            var q = 'update ebay.trading.SetUserNotes set Action = "AddOrUpdate", NoteText = "For Fredegonde\' birthday" where ItemID = 110099002755';
             engine.execute(q, function (emitter) {
                 emitter.on('end', function (err, result) {
                     listener.assert(test);
