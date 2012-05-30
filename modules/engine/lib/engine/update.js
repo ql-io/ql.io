@@ -17,8 +17,10 @@
 'use strict';
 
 var jsonfill = require('./jsonfill.js'),
+    jsonPath = require('JSONPath'),
     _ = require('underscore'),
     filter = require('./filter.js'),
+    where = require('./where.js'),
     assert = require('assert');
 
 exports.exec = function(opts, statement, parentEvent, cb) {
@@ -58,9 +60,9 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         // find matching rows
         var filtered = filter.filter(resource, statement, context, statement.source);
         _.each(filtered, function(r){
-            var keys = _.intersection(_.keys(r), _.keys(values));
+            var keys = _.keys(values);
             _.each(keys, function(key){
-                r[key] = values[key];
+                jsonfill.overwrite(key, r, values[key]);
             })
         })
         return updateTx.cb(undefined, resource);

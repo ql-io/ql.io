@@ -23,7 +23,7 @@ var _ = require('underscore'),
     util = require('util');
 
 module.exports = {
-    'assign events': function (test) {
+    'naive': function (test) {
         var engine = new Engine({
         });
         var script = fs.readFileSync(__dirname + '/mock/update-obj.ql', 'UTF-8');
@@ -37,6 +37,38 @@ module.exports = {
                 }
                 else {
                     test.deepEqual([ { name: 'John', age: 34 }, { name: 'Mary', age: 99 } ], result.body);
+                    test.done();
+                }
+            });
+        });
+    },
+    'nested': function (test) {
+        var engine = new Engine({
+        });
+        var script = fs.readFileSync(__dirname + '/mock/update-nested.ql', 'UTF-8');
+        var listener = new Listener(engine);
+        engine.execute(script, function (emitter) {
+            listener.assert(test);
+            emitter.on('end', function (err, result) {
+                if(err) {
+                    test.fail('Error unexpected');
+                    test.done();
+                }
+                else {
+                    test.deepEqual([
+                        {
+                            "id" : 1,
+                            "prop" : {
+                                "id" : 3
+                            }
+                        },
+                        {
+                            "id" : 2,
+                            "prop" : {
+                                "id" : 100002
+                            }
+                        }
+                    ], result.body);
                     test.done();
                 }
             });

@@ -20,7 +20,7 @@ var Engine = require('../lib/engine'),
     util = require('util');
 
 module.exports = {
-    'insert into': function (test) {
+    'naive': function (test) {
         var server = http.createServer(function (req, res) {
             res.writeHead(200, {
                 'Content-Type': 'application/json'
@@ -35,10 +35,49 @@ module.exports = {
         server.listen(3000, function () {
             // Do the test here.
             var engine = new Engine({
-                tables: __dirname + '/update'
+                tables: __dirname + '/tables',
+                config: __dirname + '/config/dev.json'
             });
             var listener = new Listener(engine);
-            engine.execute('update ebay.trading.SetUserNotes set Action = "AddOrUpdate", NoteText = "For Fredegonde\' birthday" where ItemID = 110099002755', function (emitter) {
+            var q = 'update ebay.trading.SetUserNotes set Action = "AddOrUpdate", NoteText = "For Fredegonde\' birthday" where ItemID in (select itemId from ebay.finding.items where keywords = wii)';
+            engine.execute(q, function (emitter) {
+                emitter.on('end', function (err, result) {
+                    listener.assert(test);
+                    if(err) {
+                        console.log(err.stack || util.inspect(err, false, 10));
+                        test.fail('got error');
+                        test.done();
+                    }
+                    else {
+                        test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                        test.equals(result.body.Ack, 'Success');
+                        test.done();
+                    }
+                    server.close();
+                });
+            });
+        });
+    },
+    'where in': function (test) {
+        var server = http.createServer(function (req, res) {
+            res.writeHead(200, {
+                'Content-Type': 'application/json'
+            });
+            util.pump(req, res, function (e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+                tables: __dirname + '/tables',
+                config: __dirname + '/config/dev.json'
+            });
+            var listener = new Listener(engine);var q = 'update ebay.trading.SetUserNotes set Action = "AddOrUpdate", NoteText = "For Fredegonde\' birthday" where ItemID in (110099002755)';
+            engine.execute(q, function (emitter) {
                 emitter.on('end', function (err, result) {
                     listener.assert(test);
                     if(err) {
