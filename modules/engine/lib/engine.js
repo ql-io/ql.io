@@ -273,14 +273,14 @@ Engine.prototype.execute = function() {
     init(cooked);
 
     var skip = false;
-    function sweep(statement, fn) {
+    function sweep(statement) {
         if(skip) {
             return;
         }
         _.each(statement.dependsOn, function(dependency) {
             if(execState[dependency.id].state === eventTypes.STATEMENT_WAITING) {
                 // Exec the dependency
-                sweep(dependency)
+                sweep(dependency);
             }
         });
         if(execState[statement.id].state === eventTypes.STATEMENT_WAITING &&  // Don't try if in-flight
@@ -299,7 +299,7 @@ Engine.prototype.execute = function() {
                      logEmitter: that,
                      cache: that.cache
                      },
-                statement, function(err, results) {
+                statement.rhs || statement, function(err, results) {
                     if(err) {
                         var fallback = statement.rhs ? statement.rhs.fallback : statement.fallback;
                         if(fallback) {
@@ -326,7 +326,33 @@ Engine.prototype.execute = function() {
 
     var fnDone = function(err, results) {
         execState[cooked.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
-        engineEvent.end(err, results);
+
+        var respHeaders = {};
+        var params;
+        if(results) {
+            if(cooked.route && cooked.route.headers) {
+                params = _util.prepareParams(context,
+                    request.body,
+                    request.routeParams,
+                    request.params,
+                    request.headers,
+                    request.connection,
+                    {config: that.config});
+                _.each(cooked.route.headers, function (value, name) {
+                    // Fill name and value
+                    var _name = jsonfill.fill(name, params);
+                    respHeaders[_name] = jsonfill.fill(value, params);
+                });
+            }
+            respHeaders['content-type'] = 'application/json';
+            _.each(respHeaders, function(value, name) {
+               results.headers[name] = value;
+            });
+            engineEvent.end(null, results);
+        }
+        else {
+            engineEvent.end(err);
+        }
     }
 
     // Start with the return statement
@@ -511,54 +537,6 @@ function _execOne(opts, statement, parentEvent, cb) {
                 headers: {}
             });
             break;
-        case 'return':
-            // If the return is via a route, process any headers from 'using headers' clause
-            var respHeaders = {};
-            if(statement.route && statement.route.headers) {
-                params = _util.prepareParams(opts.context,
-                    opts.request.body,
-                    opts.request.routeParams,
-                    opts.request.params,
-                    opts.request.headers,
-                    opts.request.connection,
-                    {config: opts.config});
-                _.each(statement.route.headers, function(value, name) {
-                    // Fill name and value
-                    var _name = jsonfill.fill(name, params);
-                    respHeaders[_name] = jsonfill.fill(value, params);
-                });
-            }
-            respHeaders['content-type'] = 'application/json';
-
-            // lhs can be a reference to an object in the context or a JS object.
-            switch(statement.rhs.type) {
-                case 'create':
-                case 'select':
-                case 'insert':
-                case 'delete':
-                case 'show':
-                case 'show routes':
-                case 'describe':
-                case 'ref':
-                case 'define':
-                case 'describe route':
-                    _execOne(opts, statement.rhs, parentEvent, _routeRespHeaders(respHeaders, cb));
-                    break;
-            }
-    }
-}
-
-function _routeRespHeaders(respHeaders, cb) {
-    return function(err, res) {
-        if(err) {
-            cb(err);
-        }
-        else {
-            _.each(respHeaders, function(value, name) {
-                res.headers[name] = value;
-            });
-            cb(undefined, res);
-        }
     }
 }
 

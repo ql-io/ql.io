@@ -37,7 +37,6 @@ module.exports = {
                     test.done();
                 }
                 else {
-                    console.log(result.body);
                     test.deepEqual({
                         "p3": "v3",
                         "p4": "v4",

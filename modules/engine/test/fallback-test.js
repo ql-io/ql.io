@@ -21,12 +21,31 @@ var Engine = require('../lib/engine');
 var engine = new Engine();
 
 module.exports = {
-    'fallback-numbers': function(test) {
-        var q = "return select * from foo ";
+    'fallback-number': function(test) {
+        var q = "return select * from foo || 10 ";
         engine.execute(q, function(emitter) {
             emitter.on('end', function(err, results) {
-                console.log(err);
-                console.log(results);
+                test.equals(results.body, 10);
+                test.done();
+            });
+        });
+    },
+
+    'fallback-obj': function(test) {
+        var q = "return select * from foo || {'message': 'fallback'}";
+        engine.execute(q, function(emitter) {
+            emitter.on('end', function (err, results) {
+                test.equals(results.body.message, 'fallback');
+                test.done();
+            });
+        });
+    },
+
+    'fallback-ref': function (test) {
+        var q = "a = {'message': 'fallback'}; return select * from foo || a";
+        engine.execute(q, function (emitter) {
+            emitter.on('end', function (err, results) {
+                test.equals(results.body.message, 'fallback');
                 test.done();
             });
         });
