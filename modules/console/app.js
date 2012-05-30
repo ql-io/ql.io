@@ -257,7 +257,11 @@ var Console = module.exports = function(opts, cb) {
                     .filter(function (verbRouteVariant){var defaultKeys = _.chain(verbRouteVariant.query)
                             .keys()
                             .filter(function(k){
-                                return _.has(verbRouteVariant.routeInfo.defaults, verbRouteVariant.query[k]);
+                                var querykey = verbRouteVariant.query[k];
+                                if (querykey.indexOf('^') != -1) {
+                                    querykey = querykey.substr(1);
+                                }
+                                return _.has(verbRouteVariant.routeInfo.defaults, querykey);
                             })
                             .value();
                         // missed query params that are neither defaults nor user provided
@@ -300,6 +304,9 @@ var Console = module.exports = function(opts, cb) {
 
                 // collect default query params if needed
                 _.each(route.routeInfo.defaults, function(defaultValue, queryParam) {
+                    if (queryParam.indexOf('^') != -1){
+                        queryParam = queryParam.substr(1);
+                    }
                     holder.routeParams[queryParam] = defaultValue;
                 });
                 var keys = _.keys(req.params);
@@ -309,6 +316,9 @@ var Console = module.exports = function(opts, cb) {
 
                 _.each(route.query, function(queryParam, paramName) {
                     if (holder.params[paramName]) {
+                        if (queryParam.indexOf('^') != -1){
+                            queryParam = queryParam.substr(1);
+                        }
                         holder.routeParams[queryParam] = holder.params[paramName];
                     }
                     else if (!holder.routeParams[queryParam]) {

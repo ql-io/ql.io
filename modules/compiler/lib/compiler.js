@@ -47,6 +47,7 @@ exports.compile = function(script) {
 function cook(compiled) {
     // Pass 0: One line - no need for cooking
     if(compiled.length === 1) {
+        introspect(compiled[0], [], {});
         return compiled;
     }
 
@@ -99,6 +100,20 @@ function cook(compiled) {
 }
 
 // Introspect a statement for dependencies
+function introspectSelect(line, symbols, parent) {
+    // Find dependencies from fromClause
+    findFrom(line, symbols, parent);
+
+    // Find dependencies from the joiner's fromClause
+    if (line.joiner) {
+        findFrom(line.joiner, symbols, line);
+        line.joiner = introspectWhere(line.joiner, symbols);
+    }
+
+    // Find dependencies in where
+    line = introspectWhere(line, symbols);
+    return line;
+}
 function introspect(line, cooked, symbols) {
     var type = line.type, index, j, k, ref, refname, dependency, where;
     switch(type) {
@@ -120,16 +135,7 @@ function introspect(line, cooked, symbols) {
             cooked.push(line);
             break;
         case 'select' :
-            // Find dependencies from fromClause
-            findFrom(line, symbols);
-
-            // Find dependencies from the joiner's fromClause
-            if(line.joiner) {
-                findFrom(line.joiner, symbols, line);
-            }
-
-            // Find dependencies in where
-            line = introspectWhere(line, symbols);
+            line = introspectSelect(line, symbols);
             cooked.push(line);
             break;
         case 'return' :
@@ -139,9 +145,14 @@ function introspect(line, cooked, symbols) {
             else if(line.rhs.type === 'ref') {
                 dependency = symbols[refname];
                 if(dependency) {
-                    line.dependsOn.push(dependency.id);
-                    dependency.listeners.push(id);
+                    pushIfNotUndefined(line.dependsOn,dependency.id);
+                    pushIfNotUndefined(dependency.listeners,id);
                 }
+            }
+            else if(line.rhs.type === 'select') {
+                line.rhs.dependsOn = [];
+                line.rhs.listeners = [];
+                introspectSelect(line.rhs, symbols)
             }
             else {
                 // A statement
@@ -162,8 +173,8 @@ function introspectString(v, refname, index, dependency, symbols, dependsOn, id)
         }
         dependency = symbols[refname];
         if(dependency) {
-            dependsOn.push(dependency.id);
-            dependency.listeners.push(id);
+            pushIfNotUndefined(dependsOn,dependency.id);
+            pushIfNotUndefined(dependency.listeners,id);
         }
     }
 }
@@ -197,6 +208,12 @@ function introspectObject(obj, symbols, dependsOn, id) {
     }
 }
 
+function pushIfNotUndefined(list,id){
+    if(_.isArray(list) && id != undefined){
+        list.push(id);
+    }
+}
+
 // Find dependencies from from clause
 // When the line is a joiner, we need to wire the dependencies with the parent and not the joiner.
 function findFrom(line, symbols, parent) {
@@ -208,12 +225,12 @@ function findFrom(line, symbols, parent) {
             dependency = symbols[refname];
             if(dependency) {
                 if(parent) {
-                    parent.dependsOn.push(dependency.id);
-                    dependency.listeners.push(parent.id);
+                    pushIfNotUndefined(parent.dependsOn,dependency.id);
+                    pushIfNotUndefined(dependency.listeners,parent.id);
                 }
                 else {
-                    line.dependsOn.push(dependency.id);
-                    dependency.listeners.push(line.id);
+                    pushIfNotUndefined(line.dependsOn,dependency.id);
+                    pushIfNotUndefined(dependency.listeners,line.id);
                 }
             }
         }
@@ -222,12 +239,12 @@ function findFrom(line, symbols, parent) {
             dependency = symbols[refname];
             if(dependency) {
                 if(parent) {
-                    parent.dependsOn.push(dependency.id);
-                    dependency.listeners.push(parent.id);
+                    pushIfNotUndefined(parent.dependsOn,dependency.id);
+                    pushIfNotUndefined(dependency.listeners,parent.id);
                 }
                 else {
-                    line.dependsOn.push(dependency.id);
-                    dependency.listeners.push(line.id);
+                    pushIfNotUndefined(line.dependsOn,dependency.id);
+                    pushIfNotUndefined(dependency.listeners,line.id);
                 }
             }
         }
@@ -246,35 +263,51 @@ function introspectWhere(line, symbols) {
                         for(k = 0; k < where.rhs.value.length; k++) {
                             ref = where.rhs.value[k];
                             if(_.isString(ref) && ref.indexOf('{') === 0) {
-                                refname = ref.substring(1, ref.length - 1);
+                                if(ref.indexOf('{^') == 0) {
+                                    refname = ref.substring(2, ref.length - 1);
+                                    line.preRequisites = line.preRequisites || [];
+                                    line.preRequisites.push(refname);
+                                    where.rhs.value[k] = where.rhs.value[k].replace('{^','{');
+                                }
+                                else {
+                                    refname = ref.substring(1, ref.length - 1);
+                                }
                                 index = refname.indexOf('.');
                                 if(index > 0) {
                                     refname = refname.substring(0, index);
                                 }
                                 dependency = symbols[refname];
                                 if(dependency) {
-                                    line.dependsOn.push(dependency.id);
-                                    dependency.listeners.push(line.id);
+                                    pushIfNotUndefined(line.dependsOn,dependency.id);
+                                    pushIfNotUndefined(dependency.listeners,line.id);
                                 }
                             }
                         }
                     }
                     else if(where.rhs.type === 'select') {
-                        findFrom(where.rhs, symbols, line);
+                        where.rhs = introspectSelect(where.rhs, symbols, line);
                     }
                     break;
                 case '=' :
                     ref = where.rhs.value;
                     if(_.isString(ref) && ref.indexOf('{') === 0) {
-                        refname = ref.substring(1, ref.length - 1);
+                        if(ref.indexOf('{^') == 0) {
+                            refname = ref.substring(2, ref.length - 1);
+                            line.preRequisites = line.preRequisites || [];
+                            line.preRequisites.push(refname);
+                            where.rhs.value = where.rhs.value.replace('{^','{');
+                        }
+                        else {
+                            refname = ref.substring(1, ref.length - 1);
+                        }
                         index = refname.indexOf('.');
                         if(index > 0) {
                             refname = refname.substring(0, index);
                         }
                         dependency = symbols[refname];
                         if(dependency) {
-                            line.dependsOn.push(dependency.id);
-                            dependency.listeners.push(line.id);
+                            pushIfNotUndefined(line.dependsOn,dependency.id);
+                            pushIfNotUndefined(dependency.listeners,line.id);
                         }
                     }
                     break;
