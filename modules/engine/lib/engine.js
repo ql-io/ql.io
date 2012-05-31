@@ -484,6 +484,24 @@ function execOne(opts, statement, cb, parentEvent) {
         return cb(e);
     }
 }
+function preReqNotFound(statement, opts, parentEvent) {
+    return (statement.preRequisites || []).length > 0 && !_.all(statement.preRequisites, function (aVar) {
+        var found = opts.context[aVar] != undefined && opts.context[aVar] != null;
+        if (!found) {
+            opts.logEmitter.emitWarning(parentEvent, "Required parameter not found in context: " + aVar);
+        }
+        return found;
+    });
+}
+
+function nullBody(cb) {
+    return cb(null, {
+        headers:{
+            'content-type':'application/json'
+        },
+        body:null
+    });
+}
 /**
  * Exec one statement
  *
@@ -494,6 +512,12 @@ function execOne(opts, statement, cb, parentEvent) {
  */
 function _execOne(opts, statement, cb, parentEvent) {
     var obj;
+
+    // first check for preRequisites ... otherwise return null
+    if( preReqNotFound(statement, opts, parentEvent)){
+        return nullBody(cb);
+    }
+
     switch(statement.type) {
         case 'create' :
             create.exec(opts, statement, parentEvent, cb);
@@ -570,6 +594,10 @@ function _execOne(opts, statement, cb, parentEvent) {
                     var _name = jsonfill.fill(name, params);
                     respHeaders[_name] = jsonfill.fill(value, params);
                 });
+            }
+
+            if( preReqNotFound(statement.rhs, opts, parentEvent)){
+                return nullBody(_routeRespHeaders(respHeaders, cb));
             }
 
             // lhs can be a reference to an object in the context or a JS object.
