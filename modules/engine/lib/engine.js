@@ -45,7 +45,7 @@ var configLoader = require('./engine/config.js'),
 exports.version = require('../package.json').version;
 
 process.on('uncaughtException', function(error) {
-    winston.error(error);
+    console.log(error.stack || error);
 })
 
 /**
@@ -329,7 +329,10 @@ Engine.prototype.execute = function() {
 
         var respHeaders = {};
         var params;
-        if(results) {
+        if(err) {
+            engineEvent.end(err);
+        }
+        else {
             if(cooked.route && cooked.route.headers) {
                 params = _util.prepareParams(context,
                     request.body,
@@ -349,9 +352,6 @@ Engine.prototype.execute = function() {
                results.headers[name] = value;
             });
             engineEvent.end(null, results);
-        }
-        else {
-            engineEvent.end(err);
         }
     }
 
@@ -464,6 +464,12 @@ function execOne(opts, statement, cb, parentEvent) {
  * @ignore
  */
 function _execOne(opts, statement, parentEvent, cb) {
+    if(preReqNotFound(statement, opts, parentEvent)) {
+        return nullBody(cb);
+    }
+
+//    console.log(util.inspect(statement, false, 10));
+
     var obj, params, args;
     switch(statement.type) {
         case 'create' :
@@ -538,6 +544,25 @@ function _execOne(opts, statement, parentEvent, cb) {
             });
             break;
     }
+}
+
+function preReqNotFound(statement, opts, parentEvent) {
+    return (statement.preRequisites || []).length > 0 && !_.all(statement.preRequisites, function (aVar) {
+        var found = opts.context[aVar] != undefined && opts.context[aVar] != null;
+        if (!found) {
+            opts.logEmitter.emitWarning(parentEvent, "Required parameter not found in context: " + aVar);
+        }
+        return found;
+    });
+}
+
+function nullBody(cb) {
+    return cb(null, {
+        headers:{
+            'content-type':'application/json'
+        },
+        body: null
+    });
 }
 
 // Export event types

@@ -222,10 +222,11 @@ function walk(line, symbols) {
             break;
         case 'select':
             introspectFrom(line, line.fromClause, symbols);
+            introspectWhere(line, symbols);
             if(line.joiner) {
                 introspectFrom(line.joiner, line.joiner.fromClause, symbols, line);
+                introspectWhere(line.joiner, symbols, line);
             }
-            line = introspectWhere(line, symbols);
             if(line.fallback) {
                 walk(line.fallback, symbols);
             }
@@ -347,8 +348,9 @@ function introspectFrom(line, froms, symbols, parent) {
     }
 }
 
-function introspectWhere(line, symbols) {
+function introspectWhere(line, symbols, parent) {
     var j, where, k, ref, refname, index, dependency;
+    line.dependsOn = line.dependsOn || [];
     if(line.whereCriteria) {
         for(j = 0; j < line.whereCriteria.length; j++) {
             where = line.whereCriteria[j];
@@ -358,7 +360,16 @@ function introspectWhere(line, symbols) {
                         for(k = 0; k < where.rhs.value.length; k++) {
                             ref = where.rhs.value[k];
                             if(_.isString(ref) && ref.indexOf('{') === 0) {
-                                refname = ref.substring(1, ref.length - 1);
+                                if(ref.indexOf('{^') == 0) {
+                                    refname = ref.substring(2, ref.length - 1);
+                                    var to = parent || line;
+                                    to.preRequisites = to.preRequisites || [];
+                                 	to.preRequisites.push(refname);
+                                 	where.rhs.value[k] = where.rhs.value[k].replace('{^','{');
+                                }
+                                else {
+                                    refname = ref.substring(1, ref.length - 1);
+                                }
                                 index = refname.indexOf('.');
                                 if(index > 0) {
                                     refname = refname.substring(0, index);
@@ -367,7 +378,7 @@ function introspectWhere(line, symbols) {
                                 if(line.assign === refname) {
                                     throw new this.SyntaxError('Circular reference ' + line.assign);
                                 }
-                                else {
+                                else if(dependency) {
                                     addDep(line.dependsOn, dependency, symbols);
                                 }
                             }
@@ -375,12 +386,22 @@ function introspectWhere(line, symbols) {
                     }
                     else if(where.rhs.type === 'select') {
                         introspectFrom(where.rhs, where.rhs.fromClause, symbols, line);
+                        introspectWhere(where.rhs, symbols, parent || line);
                     }
                     break;
                 case '=' :
                     ref = where.rhs.value;
                     if(_.isString(ref) && ref.indexOf('{') === 0) {
-                        refname = ref.substring(1, ref.length - 1);
+                        if(ref.indexOf('{^') == 0) {
+                            refname = ref.substring(2, ref.length - 1);
+                            var to = parent || line;
+                            to.preRequisites = to.preRequisites || [];
+                         	to.preRequisites.push(refname);
+                         	where.rhs.value = where.rhs.value.replace('{^','{');
+                        }
+                        else {
+                            refname = ref.substring(1, ref.length - 1);
+                        }
                         index = refname.indexOf('.');
                         if(index > 0) {
                             refname = refname.substring(0, index);

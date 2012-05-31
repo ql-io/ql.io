@@ -88,7 +88,6 @@ var cooked = {
                     test.fail('got error: ' + err.stack || err);
                 }
                 else {
-                    console.log(result.body);
                     test.ok(_.isObject(result.body), 'expected an object');
                     test.ok(_.isArray(result.body.mi1));
                     test.ok(_.isArray(result.body.mi2_1));

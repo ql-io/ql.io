@@ -210,7 +210,8 @@ module.exports = {
                                 { operator: '=',
                                     lhs: { type: 'column', name: 'keywords' },
                                     rhs: { value: 'mini' } }
-                            ] } }
+                            ],
+                            dependsOn: [] } }
                 ],
                 fromClause: [
                     { name: 'ebay.item', alias: 'e' }
@@ -229,7 +230,8 @@ module.exports = {
                     ],
                     fromClause: [
                         { name: 'google.geocode', alias: 'g' }
-                    ] },
+                    ],
+                    dependsOn: [] },
                 id: 0 };
         test.deepEqual(statement.rhs, e);
         test.done();
