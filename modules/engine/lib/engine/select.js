@@ -210,22 +210,6 @@ function execInternal(opts, statement, cb, parentEvent) {
             },
             cb: cb});
 
-    // first check for preRequisites ... otherwise return null
-    if( (statement.preRequisites || []).length > 0 && !_.all(statement.preRequisites, function(aVar){
-        var found = context[aVar] != undefined && context[aVar] != null;
-        if(!found) {
-            opts.logEmitter.emitWarning(selectExecTx.event,"Required parameter not found in context: " + aVar);
-        }
-        return found;
-    })){
-        return selectExecTx.cb(null, {
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: null
-        });
-    }
-
     //
     // Pre-fill columns
     var prefill = function(column) {
