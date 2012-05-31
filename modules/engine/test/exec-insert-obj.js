@@ -41,8 +41,7 @@ module.exports = {
                         "p2": {
                             "p3": "v3",
                             "p4": "v4",
-                            "p7" : {
-                                "p5": "v5"},
+                            "p5": "v5",
                             "p6": "v6"
                         }
                     }, result.body);

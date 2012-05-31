@@ -57,8 +57,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             values[statement.columns[i].name] = jsonfill.lookup(value, context);
         });
         _.each(values, function(val, key) {
-            jsonfill.overwrite(key, resource, val);
-            //resource[key] = val;
+            resource[key] = val;
         });
         return insertTx.cb(undefined, resource);
     }
