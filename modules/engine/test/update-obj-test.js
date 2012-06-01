@@ -67,6 +67,12 @@ module.exports = {
                             "prop" : {
                                 "id" : 100002
                             }
+                        },
+                        {
+                            "id" : 3,
+                            "prop" : {
+                                "id" : 3
+                            }
                         }
                     ], result.body);
                     test.done();
