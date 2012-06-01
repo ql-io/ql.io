@@ -125,6 +125,9 @@ function introspect(line, cooked, symbols) {
         case 'insert' :
             cooked.push(line);
             break;
+        case 'update' :
+            cooked.push(line);
+            break;
         case 'define' :
             introspectObject(line.object, symbols, line.dependsOn, line.id);
             cooked.push(line);

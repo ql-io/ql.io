@@ -25,6 +25,7 @@ exports.fill = fill;
 exports.project = project;
 exports.lookup = lookup;
 exports.unwrap = unwrap;
+exports.overwrite = overwrite;
 
 function fill(obj, bag) {
     var ret = _.isArray(obj) ? [] : {};
@@ -107,6 +108,22 @@ function lookup(key, bag) {
         obj = bag[key];
     }
     return obj;
+}
+
+function overwrite(key, bag, val) {
+    if (key.indexOf('.') == -1){
+        bag[key] = val;
+        return;
+    }
+    // allow the last key to be new, so need to check all keys except last
+    var lastdot = key.lastIndexOf('.');
+    var keyparent = key.substr(0, lastdot);
+    var dest = key.substr(lastdot+1);
+    var path = jsonPath.eval(bag, keyparent, {sandbox: bag, resultType:"PATH"}).toString();
+    assert.ok(path.length > 0);
+    path = path.replace('$', 'bag');
+    var evalstring = path + "['"+dest+"'] = val";
+    eval(evalstring);
 }
 
 function projectOne(name, items, bag) {

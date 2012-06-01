@@ -440,7 +440,7 @@ CallUdf = u:UDF {
 }
 
 Statement = SelectStatement / ShowRoutesStatement / ShowStatement / DescribeRouteStatement /
-            DescribeStatement / InsertStatement / DeleteStatement / CreateStatement
+            DescribeStatement / InsertStatement / DeleteStatement / CreateStatement / UpdateStatement
 
 Output = insig w:Word insig '=' insig {
     return {
@@ -469,6 +469,17 @@ CreateStatement = 'create' insig 'table' insig s:NonAliasSource insig v:Verb* {
         delete v[i].type;
     }
     return s;
+}
+
+// update table statement
+// hongcheng
+UpdateStatement = 'update' insig s:Source insig sc:SetClause insig wc:WhereClause? {
+    return {
+        type: 'update',
+        source: s,
+        setCriteria: sc,
+        whereCriteria: wc
+    }
 }
 
 Type = 'select' / 'insert' / 'delete' / 'update'
@@ -841,6 +852,24 @@ MinDelay = 'minDelay'i insig n:Digits {
 // MaxDelay
 MaxDelay = 'maxDelay'i insig n:Digits {
     return n;
+}
+
+SetClause = 'set' insig s:SetCriteria {
+    return s;
+}
+
+SetCriteria = c:EqCond carr:(CommaEqCond)* {
+    var ret = {};
+    ret[c.lhs.name] = c.rhs.value;
+    for (var i = 0; i < carr.length; i++){
+        var temp = carr[i];
+        ret[temp.lhs.name] = temp.rhs.value;
+    }
+    return ret;
+}
+
+CommaEqCond = insig Comma insig c:EqCond {
+    return c;
 }
 
 WhereCriteria = c:Cond carr:(AndCond)* {
