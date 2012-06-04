@@ -5,6 +5,7 @@ clean:
 
 install:
 	npm link ql.io-mutable-uri;\
+	npm link ql.io-str-template;\
 	npm link ql.io-uri-template;\
 	npm link ql.io-compiler;\
 	npm install;\

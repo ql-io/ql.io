@@ -18,7 +18,7 @@
 
 var _ = require('underscore'),
     jsonPath = require('JSONPath'),
-    strTemplate = require('./peg/str-template.js'),
+    strTemplate = require('ql.io-str-template'),
     assert = require('assert');
 
 exports.fill = fill;

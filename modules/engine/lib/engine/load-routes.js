@@ -81,7 +81,8 @@ function loadInternal(path, prefix, logEmitter, routes, tablesInfo) {
              */
             try {
                 cooked = compiler.compile(script);
-                tables = findTables(cooked);
+                tables = findTables(cooked.rhs);
+                tables = tables.concat(findTables(cooked));
                 info = getRouteInfo(cooked);
             }
             catch(e) {
@@ -91,9 +92,7 @@ function loadInternal(path, prefix, logEmitter, routes, tablesInfo) {
             }
             if (cooked &&
                 // get statement return
-                (typeReturn = _.detect(cooked, function(statement) {
-                    return statement.type == 'return'
-                })) &&
+                (typeReturn = cooked) &&
                 typeReturn.route && typeReturn.route.path && typeReturn.route.path.value &&
                 (pieces = url.parse(typeReturn.route.path.value, true, false)) &&
                 pieces.pathname
@@ -153,32 +152,17 @@ function loadInternal(path, prefix, logEmitter, routes, tablesInfo) {
 // all comment lines prior to Return statement
 function getRouteInfo(cooked){
     var info = [];
-    _.each(cooked, function(line, index){
-        if(line.type === 'return'){
-            for(var i = index -1; i > -1; i--){
-                if(cooked[i].type === 'comment'){
-                    info.unshift(cooked[i].text);
-                }
-            }
-        }
+    _.each(cooked.comments, function(comment) {
+        info.unshift(comment.text);
     });
     return info;
 }
 
-function findTables(cooked) {
+function findTables(statement) {
     var tables = [];
-    _.each(cooked, function(row) {
-        switch(row.type) {
-            case 'return' :
-                if(row.rhs.type) {
-                    tables = tables.concat(findTablesFromStatement(row.rhs));
-                }
-                break;
-            case 'comment' :
-                break;
-            default:
-                tables = tables.concat(findTablesFromStatement(row));
-        }
+    tables = tables.concat(findTablesFromStatement(statement));
+    _.each(statement.dependsOn, function(dependency) {
+        tables = tables.concat(findTables(dependency))
     });
     return tables;
 }

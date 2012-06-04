@@ -59,6 +59,8 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         _.each(values, function(val, key) {
             resource[key] = val;
         });
+        context[statement.assign] = resource;
+        opts.emitter.emit(statement.assign, resource);
         return insertTx.cb(undefined, resource);
     }
     else {
@@ -71,16 +73,18 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         if(!verb) {
             return insertTx.cb('Table ' + statement.source.name + ' does not support insert');
         }
-        if (statement.columns){
+        if(statement.columns){
             _.each(statement.values, function(value, i) {
                 values[statement.columns[i].name] = jsonfill.lookup(value, context);
             });
-        }else{
+        }
+        else{
             //assert.ok(statement.values.length > 0, 'statement value should have only one item for opaque param.');
             if (statement.values){
                 // user specified values in console
                 verb.opaque = statement.values;
-            }else{
+            }
+            else{
                 //default opaque value is at req.body
                 verb.opaque = context;
             }

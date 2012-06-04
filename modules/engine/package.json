@@ -1,7 +1,7 @@
 {
     "author": "ql.io",
     "name": "ql.io-engine",
-    "version": "0.6.3",
+    "version": "0.6.4",
     "repository": {
         "type": "git",
         "url": "https://github.com/ql-io/ql.io"
@@ -14,9 +14,10 @@
         "winston": "0.5.11",
         "underscore": "1.3.3",
         "xml2json": "https://github.com/ql-io/node-xml2json/tarball/master",
-        "ql.io-compiler": "0.6.2",
+        "ql.io-compiler": "0.6.3",
         "ql.io-mutable-uri": "0.6.3",
         "ql.io-uri-template": "0.6.2",
+        "ql.io-str-template": "0.6.0",
         "JSONPath": "0.9.0",
         "uri": "0.1.0",
         "headers": "0.9.6",

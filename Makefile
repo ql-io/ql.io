@@ -1,4 +1,4 @@
-MODULES	= modules/uri-template modules/mutable-uri modules/compiler modules/engine \
+MODULES	= modules/uri-template modules/str-template modules/mutable-uri modules/compiler modules/engine \
           modules/console modules/app modules/mem-cache-local
 
 DIRS	= $(MODULES)

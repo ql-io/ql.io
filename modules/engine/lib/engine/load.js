@@ -73,14 +73,15 @@ function loadInternal(path, prefix, logEmitter, config, tables) {
                     script: script,
                     logEmitter: logEmitter,
                     cb: function(err, table) {
-                            if(err) {
-                                logEmitter.emitError(err);
-                            } else {
-                                assert.ok(table, 'table should not be null');
-                                tables[table.name] = table;
-                            }
+                        if(err) {
+                            logEmitter.emitError(err);
                         }
-                    });
+                        else {
+                            assert.ok(table, 'table should not be null');
+                            tables[table.name] = table;
+                        }
+                    }
+                });
             }
     });
 }

@@ -24,9 +24,9 @@ module.exports = {
                   e.itemId in (select itemId from ebay.finding.items where keywords = "mini")\
                   and e.Location = g.address';
         var cooked = compiler.compile(q);
-        test.equals(cooked[0].joiner.whereCriteria[0].rhs.type, 'alias');
-        test.equals(cooked[0].joiner.whereCriteria[0].rhs.value, 'e.Location');
-        test.equals(cooked[0].joiner.whereCriteria[0].rhs.joiningColumn, 'loc');
+        test.equals(cooked.rhs.joiner.whereCriteria[0].rhs.type, 'alias');
+        test.equals(cooked.rhs.joiner.whereCriteria[0].rhs.value, 'e.Location');
+        test.equals(cooked.rhs.joiner.whereCriteria[0].rhs.joiningColumn, 'loc');
         test.done();
     },
 
@@ -38,7 +38,7 @@ module.exports = {
         	        s.inventoryCountResponse as count\
                     from details as d, stats as s where s.productId = d.ProductID[0].Value;';
         var cooked = compiler.compile(q);
-        var statement = cooked[3].rhs;
+        var statement = cooked.rhs;
         test.equals(statement.joiner.whereCriteria[0].rhs.type, 'alias');
         test.equals(statement.joiner.whereCriteria[0].rhs.value, 'd.ProductID[0].Value');
         test.equals(statement.joiner.whereCriteria[0].rhs.joiningColumn, 'id');
