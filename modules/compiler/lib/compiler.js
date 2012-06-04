@@ -163,7 +163,6 @@ function plan(compiled) {
             line.listeners = line.listeners || [];
             line.listeners.push(ret);
             if(line.fallback) {
-//                walk(line.fallback, symbols);
                 line.fallback.listeners = line.listeners;
             }
         }
@@ -190,10 +189,6 @@ function walk(line, symbols) {
             introspectObject(line.object, symbols, line.dependsOn);
             break;
         case 'return':
-//            if(line.rhs.type === 'define') {
-//                introspectObject(line.rhs.object, symbols, line.dependsOn);
-//            }
-//            else if(line.rhs.ref) {
             if(line.rhs.ref) {
                 dependency = symbols[line.rhs.ref];
                 if(dependency) {
@@ -203,9 +198,6 @@ function walk(line, symbols) {
             else {
                 walk(line.rhs, symbols);
             }
-//            if(line.rhs.fallback) {
-//                walk(line.rhs.fallback, symbols);
-//            }
 
             if(line.fallback) {
                 walk(line.fallback, symbols);
