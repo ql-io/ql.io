@@ -5408,9 +5408,12 @@ module.exports = (function(){
             var ret = {
                 type: 'return',
                 line: re.line,
-                id: id,
+                id: id++,
                 rhs: o
             };
+            if(!o.hasOwnProperty(id)) {
+                o.id = id++;
+            }
             if(r) {
                 ret.route = r;
             }
@@ -5503,6 +5506,9 @@ module.exports = (function(){
           result0 = (function(offset, line, column, s1, s2) {
             if(s2) {
                 s1.fallback = s2;
+                if(!s2.hasOwnProperty('id')) {
+                    s2.id = id++;
+                }
             }
             return s1;
         })(pos0.offset, pos0.line, pos0.column, result0[0], result0[2]);

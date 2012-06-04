@@ -287,8 +287,13 @@ module.exports = {
         var c = compiler.compile(q);
         test.equals(c.rhs.type, 'select');
         test.equals(c.dependsOn.length, 2);
-        test.equals(c.dependsOn[0].type, 'define');
+        test.equals(c.dependsOn[1].type, 'define');
         test.equals(c.dependsOn[1].name, 'require');
+        test.equals(c.dependsOn[1].udf, 'require');
+        test.equals(c.dependsOn[0].type, 'define');
+        test.equals(c.dependsOn[0].assign, 'a1');
+        test.equals(c.dependsOn[0].type, 'define');
+
         test.done();
     }
 };

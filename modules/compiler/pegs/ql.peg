@@ -436,6 +436,7 @@ Fallback = s1:StatementOrObject insig
 }
 
 // A statement or object
+// TODO: This should support object references similar to return statements
 StatementOrObject = Statement / Value / CallUdf
 
 CallUdf = u:UDF {
@@ -1039,9 +1040,12 @@ Return = re:Ret insig o:RetFallback insig r:Route? insig ';'? {
     var ret = {
         type: 'return',
         line: re.line,
-        id: id,
+        id: id++,
         rhs: o
     };
+    if(!o.hasOwnProperty(id)) {
+        o.id = id++;
+    }
     if(r) {
         ret.route = r;
     }
@@ -1054,6 +1058,9 @@ RetFallback = s1:RetVal insig
     s2:(('||' insig f:RetFallback) { return f; })? {
     if(s2) {
         s1.fallback = s2;
+        if(!s2.hasOwnProperty('id')) {
+            s2.id = id++;
+        }
     }
     return s1;
 }

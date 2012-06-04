@@ -136,15 +136,12 @@ function plan(compiled) {
         _.each(node.dependsOn, function(dependency) {
             dependency.listeners = dependency.listeners || [];
             dependency.listeners.push(node);
-            if(dependency.fallback) {
-                dependency.fallback.listeners = dependency.fallback.listeners || [];
-                dependency.fallback.listeners.push(node);
-            }
             used.push(dependency.id);
             rev(dependency);
         });
         if(node.fallback) {
             rev(node.fallback);
+            node.fallback.listeners = node.listeners;
         }
     }
     rev(ret);
@@ -156,7 +153,7 @@ function plan(compiled) {
     var orphans = [];
     creates = [];
     _.each(compiled, function(line) {
-        if(line.type !== 'return' && used.indexOf(line.id) === -1) {
+        if(line.type !== 'comment' && line.type !== 'return' && used.indexOf(line.id) === -1) {
             if(line.type === 'create') {
                 creates.push(line);
             }
@@ -165,6 +162,10 @@ function plan(compiled) {
             }
             line.listeners = line.listeners || [];
             line.listeners.push(ret);
+            if(line.fallback) {
+//                walk(line.fallback, symbols);
+                line.fallback.listeners = line.listeners;
+            }
         }
     });
     // Insert creates before orphans.
@@ -179,21 +180,35 @@ function walk(line, symbols) {
     var type = line.type, dependency;
     line.dependsOn = line.dependsOn || [];
     switch(type) {
+        case 'ref':
+            dependency = symbols[line.ref];
+            if(dependency) {
+                addDep(line.dependsOn, dependency, symbols);
+            }
+            break;
         case 'define':
             introspectObject(line.object, symbols, line.dependsOn);
             break;
         case 'return':
-            if(line.rhs.type === 'define') {
-                introspectObject(line.rhs.object, symbols, line.dependsOn);
-            }
-            else if(line.rhs.ref) {
+//            if(line.rhs.type === 'define') {
+//                introspectObject(line.rhs.object, symbols, line.dependsOn);
+//            }
+//            else if(line.rhs.ref) {
+            if(line.rhs.ref) {
                 dependency = symbols[line.rhs.ref];
                 if(dependency) {
                     addDep(line.dependsOn, dependency, symbols);
                 }
             }
-            else if(line.rhs) {
+            else {
                 walk(line.rhs, symbols);
+            }
+//            if(line.rhs.fallback) {
+//                walk(line.rhs.fallback, symbols);
+//            }
+
+            if(line.fallback) {
+                walk(line.fallback, symbols);
             }
 
             // Route

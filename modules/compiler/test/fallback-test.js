@@ -99,5 +99,43 @@ module.exports = {
         test.equal(statement.rhs.fallback.fallback.assign, 'a');
         test.equal(statement.rhs.fallback.fallback.fallback.assign, 'a');
         test.done();
+    },
+
+    'dep-orhpahs': function(test) {
+        var q = "data = [\
+                        {'name' : 'foo'},\
+                        {'name' : 'bar'},\
+                        {'name' : 'baz'}];\
+                     a = select name from data;\n\
+                     b = select * from t1 where name in '{data.name}' || '{a}';\n\
+                     return select * from t2 || a";
+        var plan = compiler.compile(q);
+        test.equals(plan.rhs.type, 'select');
+        test.equals(plan.rhs.fallback.type, 'ref');
+        test.equals(plan.rhs.fallback.ref, 'a');
+        test.equals(plan.rhs.fallback.dependsOn.length, 1);
+        test.equals(plan.rhs.fallback.dependsOn[0].type, 'select');
+        test.equals(plan.rhs.fallback.dependsOn[0].assign, 'a');
+        test.equals(plan.rhs.fallback.dependsOn[0].dependsOn.length, 1);
+        test.equals(plan.rhs.fallback.dependsOn[0].dependsOn[0].type, 'define');
+        test.equals(plan.rhs.fallback.dependsOn[0].dependsOn[0].assign, 'data');
+        test.equals(plan.dependsOn.length, 1);
+        test.equals(plan.dependsOn[0].type, 'select');
+        test.equals(plan.dependsOn[0].assign, 'b');
+        test.equals(plan.rhs.fallback.dependsOn.length, 1);
+        test.equals(plan.rhs.fallback.dependsOn[0].type, 'select');
+        test.equals(plan.rhs.fallback.dependsOn[0].assign, 'a');
+
+        test.done();
+    },
+
+    'fallback-ref': function(test) {
+        var q = "a = {'message': 'fallback'}; return select * from foo || a";
+        var plan = compiler.compile(q);
+        test.equal(plan.dependsOn.length, 0);
+        test.equal(plan.rhs.fallback.dependsOn.length, 1);
+        test.equal(plan.rhs.fallback.dependsOn[0].type, 'define');
+        test.equal(plan.rhs.fallback.dependsOn[0].assign, 'a');
+        test.done();
     }
 };

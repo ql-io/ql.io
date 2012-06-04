@@ -44,9 +44,7 @@ module.exports = {
     },
 
     'select-dependencies-from': function(test) {
-        var script, cooked, e;
-
-        script = 'GetMyeBayBuyingResponse = select * from ebay.getmyebaybuying;\n\
+        var script = 'GetMyeBayBuyingResponse = select * from ebay.getmyebaybuying;\n\
                   watchList = select GetMyeBayBuyingResponse.WatchList.ItemArray.Item from GetMyeBayBuyingResponse;\n\
                   bidList = select GetMyeBayBuyingResponse.BidList.ItemArray.Item from GetMyeBayBuyingResponse;\n\
                   bestOfferList = select GetMyeBayBuyingResponse.BestOfferList.ItemArray.Item from GetMyeBayBuyingResponse;\n\
@@ -54,55 +52,51 @@ module.exports = {
                   return {\n\
                       "itemDetails" : "{watches}"\n\
                   };'
-        cooked = compiler.compile(script);
-        test.equals(cooked.type, 'return');
-        test.equals(cooked.rhs.type, 'define');
-        test.equals(cooked.dependsOn[0].assign, 'bidList'); // orphan
-        test.equals(cooked.dependsOn[1].assign, 'bestOfferList'); // orphan
-        test.equals(cooked.dependsOn[2].assign, 'watches');
-        test.equals(cooked.dependsOn[2].dependsOn[0].assign, 'watchList');
-        test.equals(cooked.dependsOn[2].dependsOn[0].listeners[0].assign, 'watches');
-        test.equals(cooked.dependsOn[2].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
-        test.equals(cooked.dependsOn[2].dependsOn[0].dependsOn[0].listeners[0].assign, 'watchList');
+        var plan = compiler.compile(script);
+        test.equals(plan.type, 'return');
+        test.equals(plan.rhs.type, 'define');
+        test.equals(plan.dependsOn[0].assign, 'bidList'); // orphan
+        test.equals(plan.dependsOn[1].assign, 'bestOfferList'); // orphan
+        test.equals(plan.dependsOn[2].assign, 'watches');
+        test.equals(plan.dependsOn[2].dependsOn[0].assign, 'watchList');
+        test.equals(plan.dependsOn[2].dependsOn[0].listeners[0].assign, 'watches');
+        test.equals(plan.dependsOn[2].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+        test.equals(plan.dependsOn[2].dependsOn[0].dependsOn[0].listeners[0].assign, 'watchList');
         test.done();
     },
 
     'select-dependencies-where-in': function(test) {
-        var script, cooked, e;
-        script = 'GetMyeBayBuyingResponse = select * from ebay.getmyebaybuying;\
+        var script = 'GetMyeBayBuyingResponse = select * from ebay.getmyebaybuying;\
                   watchList = select GetMyeBayBuyingResponse.WatchList.ItemArray.Item from GetMyeBayBuyingResponse;\
                   itemDetails = select * from ebay.multipleitems where itemId in "{watchList.ItemID.text.$}";\
                   return {\
                     "itemDetails" : "{itemDetails}"\
                   };'
 
-        cooked = compiler.compile(script);
-        test.equals(cooked.dependsOn[0].assign, 'itemDetails');
-        test.equals(cooked.dependsOn[0].dependsOn[0].assign, 'watchList');
-        test.equals(cooked.dependsOn[0].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+        var plan = compiler.compile(script);
+        test.equals(plan.dependsOn[0].assign, 'itemDetails');
+        test.equals(plan.dependsOn[0].dependsOn[0].assign, 'watchList');
+        test.equals(plan.dependsOn[0].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
         test.done();
     },
 
     'select-dependencies-where-eq': function(test) {
-        var script, cooked, e;
-        script = 'GetMyeBayBuyingResponse = select * from ebay.getmyebaybuying;\
+        var script = 'GetMyeBayBuyingResponse = select * from ebay.getmyebaybuying;\
                   watchList = select GetMyeBayBuyingResponse.WatchList.ItemArray.Item from GetMyeBayBuyingResponse;\
                   itemDetails = select * from ebay.multipleitems where itemId = "{watchList.ItemID.text.$}";\
                   return {\
                     "itemDetails" : "{itemDetails}"\
                   };'
 
-        cooked = compiler.compile(script);
-        test.equals(cooked.dependsOn[0].assign, 'itemDetails');
-        test.equals(cooked.dependsOn[0].dependsOn[0].assign, 'watchList');
-        test.equals(cooked.dependsOn[0].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+        var plan = compiler.compile(script);
+        test.equals(plan.dependsOn[0].assign, 'itemDetails');
+        test.equals(plan.dependsOn[0].dependsOn[0].assign, 'watchList');
+        test.equals(plan.dependsOn[0].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
         test.done();
     },
 
     'select-dependencies-where-eq-complex': function(test) {
-        var script, cooked, e;
-
-        script = '-- Get myeBayBuying\n\
+        var script = '-- Get myeBayBuying\n\
                   GetMyeBayBuyingResponse = select * from ebay.getmyebaybuying;\
                   -- Get myeBaySelling\n\
                   GetMyeBaySellingResponse = select * from ebay.getmyebayselling;\
@@ -121,18 +115,18 @@ module.exports = {
                     "itemDetails" : "{itemDetails}"\
                   };';
         try {
-            cooked = compiler.compile(script);
-            test.equals(cooked.dependsOn.length, 2);
-            test.equals(cooked.dependsOn[0].assign, 'watches');
-            test.equals(cooked.dependsOn[1].dependsOn.length, 4);
-            test.equals(cooked.dependsOn[1].dependsOn[0].assign, 'watchList');
-            test.equals(cooked.dependsOn[1].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
-            test.equals(cooked.dependsOn[1].dependsOn[1].assign, 'bidList');
-            test.equals(cooked.dependsOn[1].dependsOn[1].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
-            test.equals(cooked.dependsOn[1].dependsOn[2].assign, 'bestOfferList');
-            test.equals(cooked.dependsOn[1].dependsOn[2].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
-            test.equals(cooked.dependsOn[1].dependsOn[3].assign, 'activeList');
-            test.equals(cooked.dependsOn[1].dependsOn[3].dependsOn[0].assign, 'GetMyeBaySellingResponse');
+            var plan = compiler.compile(script);
+            test.equals(plan.dependsOn.length, 2);
+            test.equals(plan.dependsOn[0].assign, 'watches');
+            test.equals(plan.dependsOn[1].dependsOn.length, 4);
+            test.equals(plan.dependsOn[1].dependsOn[0].assign, 'watchList');
+            test.equals(plan.dependsOn[1].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+            test.equals(plan.dependsOn[1].dependsOn[1].assign, 'bidList');
+            test.equals(plan.dependsOn[1].dependsOn[1].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+            test.equals(plan.dependsOn[1].dependsOn[2].assign, 'bestOfferList');
+            test.equals(plan.dependsOn[1].dependsOn[2].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+            test.equals(plan.dependsOn[1].dependsOn[3].assign, 'activeList');
+            test.equals(plan.dependsOn[1].dependsOn[3].dependsOn[0].assign, 'GetMyeBaySellingResponse');
             test.done();
         }
         catch(e) {
@@ -144,19 +138,17 @@ module.exports = {
     },
 
     'select-dependencies-in-clause': function(test) {
-        var script, cooked, e;
-
-        script = 'ipads = select itemId[0] from ebay.finding.items where keywords = "ipad" limit 10;\n\
+        var script = 'ipads = select itemId[0] from ebay.finding.items where keywords = "ipad" limit 10;\n\
                   details = select * from ebay.item where itemId in (select itemId[0] from ipads);\n\
                   return {\n\
                     "ipads" : "{details}"\n\
                   };'
         try {
-            cooked = compiler.compile(script);
-            test.equals(cooked.dependsOn.length, 1);
-            test.equals(cooked.dependsOn[0].type, 'select');
-            test.equals(cooked.dependsOn[0].dependsOn.length, 1);
-            test.equals(cooked.dependsOn[0].dependsOn[0].type, 'select');
+            var plan = compiler.compile(script);
+            test.equals(plan.dependsOn.length, 1);
+            test.equals(plan.dependsOn[0].type, 'select');
+            test.equals(plan.dependsOn[0].dependsOn.length, 1);
+            test.equals(plan.dependsOn[0].dependsOn[0].type, 'select');
             test.done();
         }
         catch(e) {
@@ -167,8 +159,7 @@ module.exports = {
     },
 
     'script-define' : function(test) {
-        var script, cooked;
-        script = 'data = {\
+        var script = 'data = {\
                 "name" : {\
                     "first" : "Hello",\
                     "last" : "World"\
@@ -187,12 +178,12 @@ fields = select addresses[0].street, addresses[1].city, name.last from data;\
 return {"result" : "{fields}"};\
 '
         try {
-            cooked = compiler.compile(script);
-            test.equals(cooked.type, 'return');
-            test.equals(cooked.dependsOn.length, 1);
-            test.equals(cooked.dependsOn[0].type, 'select')
-            test.equals(cooked.dependsOn[0].dependsOn.length, 1);
-            test.equals(cooked.dependsOn[0].dependsOn[0].type, 'define');
+            var plan = compiler.compile(script);
+            test.equals(plan.type, 'return');
+            test.equals(plan.dependsOn.length, 1);
+            test.equals(plan.dependsOn[0].type, 'select')
+            test.equals(plan.dependsOn[0].dependsOn.length, 1);
+            test.equals(plan.dependsOn[0].dependsOn[0].type, 'define');
             test.done();
         }
         catch(e) {
@@ -205,10 +196,9 @@ return {"result" : "{fields}"};\
         var script = 'foo = select * from fool;\n\
                       return foo;\n\
                       -- a comment';
-        var cooked;
         try {
-            cooked = compiler.compile(script);
-            test.equals(cooked.rhs.ref, 'foo');
+            var plan = compiler.compile(script);
+            test.equals(plan.rhs.ref, 'foo');
             test.done();
         }
         catch(e) {
@@ -227,10 +217,9 @@ return {"result" : "{fields}"};\
         -- a comment\n\
         \n\
         ';
-        var cooked;
         try {
-            cooked = compiler.compile(script);
-            test.equals(cooked.rhs.ref, 'foo');
+            var plan = compiler.compile(script);
+            test.equals(plan.rhs.ref, 'foo');
             test.done();
         }
         catch(e) {
@@ -252,12 +241,12 @@ return {"result" : "{fields}"};\
         i = 1e-1;\n\
         j = 1.0e-1;\n\
         return ["{a}","{b}","{c}","{d}","{e}","{f}","{g}","{h}","{i}","{j}"]';
-        var cooked;
+        var plan;
         var res = [1, 1, -1, 1.234, -1.234, 1, 10, 10, 0.1, 0.01];
-        cooked = compiler.compile(script);
+        plan = compiler.compile(script);
         for(var i = 0; i < i.length; i++) {
-            test.equals(cooked.dependsOn[i], 'define');
-            test.equals(cooked.dependsOn[i].object, res[i]);
+            test.equals(plan.dependsOn[i], 'define');
+            test.equals(plan.dependsOn[i].object, res[i]);
         }
         test.done();
     },
@@ -265,9 +254,9 @@ return {"result" : "{fields}"};\
     'null-val': function(test) {
         var script = 'a = null';
         try {
-            var cooked = compiler.compile(script);
-            test.ok(cooked.rhs.object === null);
-            test.equals(cooked.rhs.assign, 'a');
+            var plan = compiler.compile(script);
+            test.ok(plan.rhs.object === null);
+            test.equals(plan.rhs.assign, 'a');
             test.done()
         }
         catch(e) {
@@ -280,8 +269,8 @@ return {"result" : "{fields}"};\
     'escaped-quotes': function(test) {
         var script = 'a = "Hello\\"World"';
         try {
-            var cooked = compiler.compile(script);
-            test.equals(cooked.rhs.object, "Hello\"World");
+            var plan = compiler.compile(script);
+            test.equals(plan.rhs.object, "Hello\"World");
             test.done()
         }
         catch(e) {
@@ -294,8 +283,8 @@ return {"result" : "{fields}"};\
     'escaped-apos': function(test) {
         var script = "a = 'Hello\\'World'";
         try {
-            var cooked = compiler.compile(script);
-            test.equals(cooked.rhs.object, 'Hello\'World');
+            var plan = compiler.compile(script);
+            test.equals(plan.rhs.object, 'Hello\'World');
             test.done()
         }
         catch(e) {
@@ -307,18 +296,17 @@ return {"result" : "{fields}"};\
 
     'indexed-prop-ref': function(test) {
         var script = "select 'b-1', 'b-3'['c-1'] from a;";
-        var cooked = compiler.compile(script);
-        test.equals(cooked.rhs.columns[0].name, 'b-1');
-        test.equals(cooked.rhs.columns[1].name, 'b-3[c-1]');
+        var plan = compiler.compile(script);
+        test.equals(plan.rhs.columns[0].name, 'b-1');
+        test.equals(plan.rhs.columns[1].name, 'b-3[c-1]');
         test.done();
     },
 
     'circular-ref': function(test) {
         var script = 'foo = select * from foo;\n\
                       return foo;';
-        var cooked;
         try {
-            cooked = compiler.compile(script);
+            compiler.compile(script);
             test.ok(false, 'Not failed on circular ref');
             test.done();
         }

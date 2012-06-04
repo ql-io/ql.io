@@ -20,7 +20,7 @@ var compiler = require('../lib/compiler');
 
 exports['insert'] = function(test) {
     var q = "insert into suppliers (supplier_id, supplier_name) values ('24553', 'IBM')";
-    var statement = compiler.compile(q);
+    var plan = compiler.compile(q);
     var e = {
         "type": "insert",
         "source": {
@@ -37,15 +37,14 @@ exports['insert'] = function(test) {
         "line": 1,
         "id": 0
     };
-    test.deepEqual(statement.rhs, e);
+    test.deepEqual(plan.rhs, e);
     test.done();
 };
 
 exports['mismatch-count'] = function(test) {
     var q = "insert into ebay.internal.shorturi (longUri, duration) values ('http://desc.shop.ebay.in/helloworld', '1', '2')";
-    var statement;
     try {
-        statement = compiler.compile(q);
+        var plan = compiler.compile(q);
         test.ok(false, 'Did not fail.');
         test.done();
     }
@@ -57,13 +56,14 @@ exports['mismatch-count'] = function(test) {
 
 exports['insert-assign'] = function(test) {
     var q = "a = insert into foo (a, b, c) values ('a', 'b', 'c'); \nreturn {};";
-    var statement = compiler.compile(q);
-    test.deepEqual(statement.rhs, {
+    var plan = compiler.compile(q);
+    test.deepEqual(plan.rhs, {
                 "object": {},
                 type: 'define',
-                line: 2
+                line: 2,
+                id: 2
             });
-    test.equal(statement.dependsOn[0].assign, 'a');
+    test.equal(plan.dependsOn[0].assign, 'a');
     test.done();
 };
 
@@ -82,7 +82,7 @@ exports['insert-no-table'] = function(test) {
 
 exports['insert-opaque'] = function(test) {
     var q = "insert into suppliers values ('24553')"
-    var statement = compiler.compile(q);
+    var plan = compiler.compile(q);
     var e = {
             "type": "insert",
             "source": {
@@ -92,13 +92,13 @@ exports['insert-opaque'] = function(test) {
             "line": 1,
             "id": 0
         };
-    test.deepEqual(statement.rhs, e);
+    test.deepEqual(plan.rhs, e);
     test.done();
 };
 
 exports['insert-multiparts'] = function(test) {
     var q = 'insert into mytable (name, salary) values ( "John Smith", 5) with parts "{parts[0]}", "{parts[4]}", "{parts[2]}"';
-    var statement = compiler.compile(q);
+    var plan = compiler.compile(q);
     var e = {
             "type": "insert",
             "source": {
@@ -126,13 +126,13 @@ exports['insert-multiparts'] = function(test) {
             ],
             "id": 0
         };
-    test.deepEqual(statement.rhs, e);
+    test.deepEqual(plan.rhs, e);
     test.done();
 };
 
 exports['insert-timeout'] = function(test) {
     var q = "insert into suppliers (supplier_id, supplier_name) values ('24553', 'IBM') timeout 10 minDelay 100 maxDelay 10000";
-    var statement = compiler.compile(q);
+    var plan = compiler.compile(q);
     var e = {
         "type": "insert",
         "source": {
@@ -152,7 +152,7 @@ exports['insert-timeout'] = function(test) {
         "line": 1,
         "id": 0
     };
-    test.deepEqual(statement.rhs, e);
+    test.deepEqual(plan.rhs, e);
     test.done();
 };
 

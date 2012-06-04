@@ -172,8 +172,8 @@ util.inherits(Engine, LogEmitter);
 Engine.prototype.execute = function() {
     var script, opts, func;
 
-    var route, context, cooked, execState, parentEvent,
-        request, start = Date.now(), tempResources = {}, last, packet, requestId = '', that = this;
+    var route, context, plan, parentEvent,
+        request, start = Date.now(), tempResources = {}, packet, requestId = '', that = this;
 
     if(arguments.length === 2) {
         script = arguments[0];
@@ -218,8 +218,8 @@ Engine.prototype.execute = function() {
                 elapsed: Date.now() - start,
                 data: 'Done'
             };
-            if(cooked) {
-                packet.line = cooked.line;
+            if(plan) {
+                packet.line = plan.line;
             }
             emitter.emit(eventTypes.SCRIPT_DONE, packet);
             if(results && requestId) {
@@ -238,7 +238,7 @@ Engine.prototype.execute = function() {
 
     try {
         // We don't cache here since the parser does the caching.
-        cooked = route ? script : compiler.compile(script);
+        plan = route ? script : compiler.compile(script);
     }
     catch(err) {
         emitter.emit(eventTypes.SCRIPT_COMPILE_ERROR, {
@@ -270,7 +270,8 @@ Engine.prototype.execute = function() {
             init(fallback);
         }
     }
-    init(cooked);
+    init(plan);
+    init(plan.rhs);
 
     var skip = false;
     function sweep(statement) {
@@ -283,6 +284,15 @@ Engine.prototype.execute = function() {
                 sweep(dependency);
             }
         });
+        if(statement.rhs) {
+            _.each(statement.rhs.dependsOn, function(dependency) {
+                if(execState[dependency.id].state === eventTypes.STATEMENT_WAITING) {
+                    // Exec the dependency
+                    sweep(dependency);
+                }
+            });
+        }
+
         if(execState[statement.id].state === eventTypes.STATEMENT_WAITING &&  // Don't try if in-flight
             execState[statement.id].count === 0) {
             execState[statement.id].state = eventTypes.STATEMENT_IN_FLIGHT;
@@ -305,9 +315,11 @@ Engine.prototype.execute = function() {
                         if(fallback) {
                             return sweep(fallback);
                         }
-                        // Skip the remaining statements and return error
-                        skip = true;
-                        return engineEvent.end(err);
+                        else {
+                            // Skip the remaining statements and return error
+                            skip = true;
+                            return engineEvent.end(err);
+                        }
                     }
 
                     execState[statement.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
@@ -325,7 +337,7 @@ Engine.prototype.execute = function() {
     }
 
     var fnDone = function(err, results) {
-        execState[cooked.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
+        execState[plan.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
 
         var respHeaders = {};
         var params;
@@ -333,7 +345,7 @@ Engine.prototype.execute = function() {
             engineEvent.end(err);
         }
         else {
-            if(cooked.route && cooked.route.headers) {
+            if(plan.route && plan.route.headers) {
                 params = _util.prepareParams(context,
                     request.body,
                     request.routeParams,
@@ -341,7 +353,7 @@ Engine.prototype.execute = function() {
                     request.headers,
                     request.connection,
                     {config: that.config});
-                _.each(cooked.route.headers, function (value, name) {
+                _.each(plan.route.headers, function (value, name) {
                     // Fill name and value
                     var _name = jsonfill.fill(name, params);
                     respHeaders[_name] = jsonfill.fill(value, params);
@@ -356,14 +368,14 @@ Engine.prototype.execute = function() {
     }
 
     // Start with the return statement
-    execState[cooked.id].done = fnDone;
-    var next = cooked.rhs ? cooked.rhs.fallback : cooked.fallback;
+    execState[plan.id].done = fnDone;
+    var next = plan.rhs ? plan.rhs.fallback : plan.fallback;
     while(next) {
         execState[next.id].done = fnDone;
         next = next.fallback;
     }
 
-    sweep(cooked);
+    sweep(plan);
 }
 
 /**
@@ -467,8 +479,6 @@ function _execOne(opts, statement, parentEvent, cb) {
     if(preReqNotFound(statement, opts, parentEvent)) {
         return nullBody(cb);
     }
-
-//    console.log(util.inspect(statement, false, 10));
 
     var obj, params, args;
     switch(statement.type) {

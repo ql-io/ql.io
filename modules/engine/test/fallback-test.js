@@ -49,5 +49,27 @@ module.exports = {
                 test.done();
             });
         });
+    },
+
+    'select-fallback-main-dep': function (test) {
+        // If foo's fallback depends on both a and b, what happens when a is completed?
+        var q = "data = [\
+                        {'name' : 'foo'},\
+                        {'name' : 'bar'},\
+                        {'name' : 'baz'}];\
+                     a = select name from data;\n\
+                     b = select * from t1 where name in '{data.name}' || '{a}';\n\
+                     return select * from t2 || a";
+        engine.execute(q, function (emitter) {
+            var counter = 0;
+            emitter.on('a', function () {
+                counter++;
+            });
+            emitter.on('end', function (err, results) {
+                test.equal(counter, 1);
+                test.deepEqual(results.body, ['foo', 'bar', 'baz'])
+                test.done();
+            })
+        })
     }
 };
