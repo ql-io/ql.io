@@ -22,7 +22,7 @@ var assert = require('assert'),
     headers = require('headers'),
     async = require('async'),
     MutableURI = require('ql.io-mutable-uri'),
-    strTemplate = require('../peg/str-template.js'),
+    strTemplate = require('ql.io-str-template'),
     uriTemplate = require('ql.io-uri-template'),
     fs = require('fs'),
     normalize = require('path').normalize,
@@ -46,7 +46,6 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
         return true;
     };
     this['patch uri'] = function(args) { return args.uri; };
-    this['udf'] = function() {};
     this['patch headers'] = function(args) { return args.headers; };
     this['body template'] = function() {};
     this['patch body'] = function(args) { return args.body; };
@@ -118,24 +117,6 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
                 }
             }
         }
-    };
-
-    this.invokeUdf = function(statement, resource, holder) {
-        var self = this;
-        _.each(statement.whereCriteria, function (c) {
-            if(c.operator === 'udf') {
-                var funcs = self.udf();
-                if(funcs[c.name]) {
-                    var args = _.pluck(c.args, 'value');
-                    holder[c.name] = funcs[c.name].apply(self, args);
-                }
-                else {
-                    throw {
-                        message: 'udf ' + c.name + ' not defined'
-                    };
-                }
-            }
-        });
     };
 
     this.uris = function(args, params) {
@@ -318,14 +299,6 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
         }
         catch(e) {
             return args.callback(e);
-        }
-
-        // Invoke UDFs - defined by monkey patch
-        try {
-            args.resource.invokeUdf(args.statement, args.resource, params);
-        }
-        catch(e) {
-            return args.callback(e.stack || e);
         }
 
         var resourceUri;

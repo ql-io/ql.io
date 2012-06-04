@@ -36,9 +36,9 @@ var Table = module.exports = function(opts, comments, statement) {
     };
     var self = this;
     self.comments = '';
-    if(comments.length > 0) {
+    if(comments && comments.length > 0) {
         _.each(comments, function(comment) {
-            self.comments += markdown.markdown.toHTML(comment);
+            self.comments += markdown.markdown.toHTML(comment.text);
         });
     }
 

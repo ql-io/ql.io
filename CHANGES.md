@@ -1,3 +1,8 @@
+## June 4, 2012
+
+* Update versions
+* Push fallback and optional params
+
 ## May 29, 2012
 
 * Explicit dependencies between modules.

@@ -45,7 +45,7 @@ module.exports = {
                 test.fail("Unexpected failure");
             }
             else {
-                test.deepEqual(result, { headers: { 'content-type': 'application/json' }, body: null });
+                test.deepEqual(result, { headers: { 'content-type': 'application/json' }, body: null});
             }
             test.done();
         });
@@ -121,8 +121,7 @@ module.exports = {
                 }
                 else {
                     test.equals(list.headers['content-type'], 'application/json', 'JSON expected');
-                    test.deepEqual(list.body.length, 0);
-                    test.deepEqual(list.body, []);
+                    test.equal(list.body, null);
                     test.done();
                 }
             });
@@ -138,6 +137,7 @@ module.exports = {
             emitter.on('end', function (err, list) {
                 listener.assert(test);
                 if(err) {
+                    console.log(err.stack || err);
                     test.fail('got error: ' + err.stack || err);
                     test.done();
                 }

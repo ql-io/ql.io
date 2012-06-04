@@ -20,8 +20,8 @@ var compiler = require('../lib/compiler');
 
 exports['insert'] = function(test) {
     var q = "insert into suppliers (supplier_id, supplier_name) values ('24553', 'IBM')";
-    var statement = compiler.compile(q);
-    var e = [{
+    var plan = compiler.compile(q);
+    var e = {
         "type": "insert",
         "source": {
             "name": "suppliers"
@@ -36,16 +36,15 @@ exports['insert'] = function(test) {
         ],
         "line": 1,
         "id": 0
-    }];
-    test.deepEqual(statement, e);
+    };
+    test.deepEqual(plan.rhs, e);
     test.done();
 };
 
 exports['mismatch-count'] = function(test) {
     var q = "insert into ebay.internal.shorturi (longUri, duration) values ('http://desc.shop.ebay.in/helloworld', '1', '2')";
-    var statement;
     try {
-        statement = compiler.compile(q);
+        var plan = compiler.compile(q);
         test.ok(false, 'Did not fail.');
         test.done();
     }
@@ -57,43 +56,14 @@ exports['mismatch-count'] = function(test) {
 
 exports['insert-assign'] = function(test) {
     var q = "a = insert into foo (a, b, c) values ('a', 'b', 'c'); \nreturn {};";
-    var statement = compiler.compile(q);
-    var e = [
-        {
-            "type": "insert",
-            "source": {
-                "name": "foo"
-            },
-            "columns": [
-                {name: "a",type: 'column'},
-                {name: "b",type: 'column'},
-                {name: "c",type: 'column'}
-            ],
-            "values": [
-                "a",
-                "b",
-                "c"
-            ],
-            "line": 1,
-            "assign": "a",
-            "id": 0,
-            dependsOn: [],
-            listeners: []
-        },
-        {
-            rhs: {
+    var plan = compiler.compile(q);
+    test.deepEqual(plan.rhs, {
                 "object": {},
                 type: 'define',
-                line: 2
-            },
-            "type": "return",
-            "line": 2,
-            "id": 1,
-            dependsOn: [],
-            listeners: []
-        }
-    ];
-    test.deepEqual(statement, e);
+                line: 2,
+                id: 2
+            });
+    test.equal(plan.dependsOn[0].assign, 'a');
     test.done();
 };
 
@@ -112,9 +82,8 @@ exports['insert-no-table'] = function(test) {
 
 exports['insert-opaque'] = function(test) {
     var q = "insert into suppliers values ('24553')"
-    var statement = compiler.compile(q);
-    var e = [
-        {
+    var plan = compiler.compile(q);
+    var e = {
             "type": "insert",
             "source": {
                 "name": "suppliers"
@@ -122,17 +91,15 @@ exports['insert-opaque'] = function(test) {
             "values": "24553",
             "line": 1,
             "id": 0
-        }
-    ];
-    test.deepEqual(statement, e);
+        };
+    test.deepEqual(plan.rhs, e);
     test.done();
 };
 
 exports['insert-multiparts'] = function(test) {
     var q = 'insert into mytable (name, salary) values ( "John Smith", 5) with parts "{parts[0]}", "{parts[4]}", "{parts[2]}"';
-    var statement = compiler.compile(q);
-    var e = [
-        {
+    var plan = compiler.compile(q);
+    var e = {
             "type": "insert",
             "source": {
                 "name": "mytable"
@@ -158,16 +125,15 @@ exports['insert-multiparts'] = function(test) {
                 "{parts[2]}"
             ],
             "id": 0
-        }
-    ]
-    test.deepEqual(statement, e);
+        };
+    test.deepEqual(plan.rhs, e);
     test.done();
 };
 
 exports['insert-timeout'] = function(test) {
     var q = "insert into suppliers (supplier_id, supplier_name) values ('24553', 'IBM') timeout 10 minDelay 100 maxDelay 10000";
-    var statement = compiler.compile(q);
-    var e = [{
+    var plan = compiler.compile(q);
+    var e = {
         "type": "insert",
         "source": {
             "name": "suppliers"
@@ -185,8 +151,28 @@ exports['insert-timeout'] = function(test) {
         maxDelay: 10000,
         "line": 1,
         "id": 0
-    }];
-    test.deepEqual(statement, e);
+    };
+    test.deepEqual(plan.rhs, e);
     test.done();
 };
 
+
+exports['insert-obj'] = function(test) {
+    var q = 'obj = {\n\
+                "p3" : "v3",\n\
+                "p4" : "v4"\n\
+             };\n\
+             updated = insert into obj (p5, p6) values ("v5", "v6");\n\
+             return updated;'
+
+    var plan = compiler.compile(q);
+    test.equals(plan.dependsOn[0].assign, 'updated');
+    test.equals(plan.dependsOn[0].listeners[0].type, 'return');
+    test.equals(plan.dependsOn[0].type, 'insert');
+    test.deepEqual(plan.dependsOn[0].columns, [ { type: 'column', name: 'p5' },
+                  { type: 'column', name: 'p6' } ]);
+    test.deepEqual(plan.dependsOn[0].values, ['v5', 'v6']);
+    test.equals(plan.dependsOn[0].dependsOn[0].assign, 'obj');
+    test.equals(plan.dependsOn[0].dependsOn[0].listeners[0].assign, 'updated');
+    test.done();
+}

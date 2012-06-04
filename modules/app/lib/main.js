@@ -28,6 +28,7 @@ var Cluster = require('cluster2'),
 // Trap all uncaught exception here.
 process.on('uncaughtException', function(error) {
     // TODO: Report to logger
+    console.log('Uncaught error');
     console.log(error.stack || error);
 });
 

@@ -24,7 +24,7 @@ var _ = require('underscore'),
  * @param statement
  * @param cb
  */
-exports.exec = function(opts, statement, cb) {
+exports.exec = function(opts, statement, parentEvent, cb) {
     var arr = [], routes = opts.routes, context = opts.context;
 
     assert.ok(opts.routes, 'Argument routes can not be undefined');

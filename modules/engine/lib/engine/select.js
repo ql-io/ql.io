@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright 2011 eBay Software Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ var filter = require('./filter.js'),
     where = require('./where.js'),
     project = require('./project.js'),
     udf = require('./udf.js'),
-    strTemplate = require('./peg/str-template.js'),
+    strTemplate = require('ql.io-str-template'),
     _ = require('underscore'),
     async = require('async'),
     assert = require('assert');
@@ -47,7 +47,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
     // Run select on the main statement first. If there is a joiner, run the joiner after the
     // main statement completes, and merge the results.
     //
-    execInternal(opts, statement, function(err, results) {
+    execInternal(opts, statement, selectEvent.event, function(err, results) {
         if(err) {
             return selectEvent.end(err, results);
         }
@@ -60,8 +60,9 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             funcs = [];
             var maxRequests = _util.getMaxRequests(opts.config, opts.logEmitter), maxNestedRequestsExceeded = false;
             _.each(results.body, function(row) {
-                // Clone the joiner since we are going to modify it
-                cloned = clone(statement.joiner);
+                // Clone the whereClause since we are going to modify it
+                cloned = _.clone(statement.joiner);
+                cloned.whereCriteria = clone(cloned.whereCriteria);
 
                 // Set the join field on the joiner statement.
                 cloned.whereCriteria[0].rhs.value = (_.isArray(row) || _.isObject(row)) ? row[joiningColumn] : row;
@@ -75,14 +76,14 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 // Prepare joiners - this an n-ary - once per row on the main
                 funcs.push(function(s) {
                     return function(callback) {
-                        execInternal(opts, s, function(e, r) {
+                        execInternal(opts, s, selectEvent.event, function(e, r) {
                             if(e) {
                                 callback(e);
                             }
                             else {
                                 callback(null, r.body);
                             }
-                        }, selectEvent.event);
+                        });
                     };
                 }(cloned));
             });
@@ -193,12 +194,12 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 });
             }
         }
-    }, selectEvent.event);
+    });
 };
 
 //
 // Execute a parsed select statement with no joins
-function execInternal(opts, statement, cb, parentEvent) {
+function execInternal(opts, statement, parentEvent, cb) {
     var tables = opts.tables, tempResources = opts.tempResources, context = opts.context,
          request = opts.request, emitter = opts.emitter;
 

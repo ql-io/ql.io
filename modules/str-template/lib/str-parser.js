@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-var assert = require('assert');
+var strTemplate = require('./str-template.js');
 
-exports['udf'] = function() {
-    return {
-        'p1' : function(v1) {
-            return v1
-        },
-        'p2' : function(a, b) {
-            return Number(a) + Number(b);
-        }
-    };
-};
+'use strict'
 
-exports['patch uri'] = function(args) {
-    assert(typeof args.log === 'function');
-    args.uri.removeParam('p1');
-    args.uri.addParam('P1', args.params.p1);
-    args.uri.removeParam('p2');
-    args.uri.addParam('P2', args.params.p2);
-    return args.uri;
+var cache = {};
+exports.parse = function(template) {
+    var parsed = cache[template];
+    if(parsed) {
+        return parsed;
+    }
+
+    parsed = strTemplate.parse(template);
+    cache[template] = parsed;
+    return parsed;
 }
