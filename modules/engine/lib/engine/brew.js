@@ -41,8 +41,12 @@ exports.go = function(options) {
         walk(options, plan);
     }
     catch(e) {
+        console.log('Error loading ' + options.path + options.name + '.ql');
         console.log(e.stack || e)
-        return cb(e);
+        return cb({
+            message: 'Error loading ' + options.path + options.name + '.ql',
+            cause: e
+        });
     }
 }
 
