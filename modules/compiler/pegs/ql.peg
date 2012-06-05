@@ -456,13 +456,25 @@ Output = insig w:Word insig '=' insig {
     }
 }
 
-Comment = '--' sp c:[\u0020-\uffff]* crlf? {
+Comment = LineComment / BlockComment
+
+LineComment = '--' sp c:(!crlf SourceCharacter)* insig {
     return {
         line: line,
         type: 'comment',
-        text: c.join('')
+        text: append(c)
     }
 }
+
+BlockComment = ('/**' / '/*') sp c:(!"*/" SourceCharacter)* sp "*/" insig {
+    return {
+        line: line,
+        type: 'comment',
+        text: append(c)
+    }
+}
+
+SourceCharacter = .
 
 // create table statement
 CreateStatement = 'create' insig 'table' insig s:NonAliasSource insig v:Verb* {
@@ -1175,9 +1187,7 @@ sp = ([\x09]/[\x20])*{
   return ''
 }
 
-crlf = c:[\x0d\x0a] {
-  return c;
-}
+crlf = [\n\r\u2028\u2029]
 
 //
 // JSONPath
