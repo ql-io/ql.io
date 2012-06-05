@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-exports['udf'] = function() {
-    return {
-        'p1' : function(v1) {
-            return v1
-        },
-        'p2' : function(a, b) {
-            return Number(a) + Number(b);
-        }
-    };
-};
+var util = require('util'),
+    _ = require('underscore');
 
+exports.filter = function() {
+    this.row = _.uniq(this.row);
+    return this.next(null, this.row);
+}

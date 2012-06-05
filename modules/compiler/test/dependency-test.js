@@ -21,27 +21,26 @@ var compiler = require('../lib/compiler'),
 
 module.exports = {
     'define-dependency' : function(test) {
-        var script, cooked;
+        var script, plan;
         script = 'a = "a";\
                   b = "{a}";\
                   c = "{b}";\
                   return c;'
-        try {
-            cooked = compiler.compile(script);
-            test.equals(cooked[0].listeners.length, 1);
-            test.equals(cooked[0].listeners[0], 1);
-            test.equals(cooked[1].dependsOn.length, 1);
-            test.equals(cooked[1].dependsOn[0], 0);
-            test.equals(cooked[1].listeners.length, 1);
-            test.equals(cooked[1].listeners[0], 2);
-            test.equals(cooked[2].dependsOn.length, 1);
-            test.equals(cooked[2].dependsOn[0], 1);
-            test.done();
-        }
-        catch(e) {
-            console.log(e.stack || e);
-            test.fail(e);
-            test.done();
-        }
+        plan = compiler.compile(script);
+        test.equals(plan.dependsOn.length, 1);
+        test.equals(plan.dependsOn[0].object, '{b}');
+        test.equals(plan.dependsOn[0].dependsOn.length, 1);
+        test.equals(plan.dependsOn[0].dependsOn[0].object, '{a}');
+        test.equals(plan.dependsOn[0].dependsOn[0].dependsOn.length, 1);
+        test.equals(plan.dependsOn[0].dependsOn[0].dependsOn[0].object, 'a');
+        test.done();
+    },
+
+    'orphans-negative': function(test) {
+        var q = 'show routes';
+        var plan = compiler.compile(q);
+        test.equals(plan.rhs.type, 'show routes');
+        test.equals(plan.dependsOn.length, 0);
+        test.done();
     }
 };

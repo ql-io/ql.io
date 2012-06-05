@@ -112,6 +112,20 @@
         }
         return str;
     }
+    function vars(stream) {
+        var arr = [];
+        for(var i = 0; i < stream.length; i++) {
+            var ele = stream[i];
+            if(ele.constructor !== String) {
+                if(ele.variable.constructor == Array) {
+                    // Case of nested token - only single valued for now
+                    arr = arr.concat(vars(ele.variable));
+                }
+                arr.push(ele.str);
+            }
+        }
+        return arr;
+    }
 }
 
 start = template
@@ -133,6 +147,7 @@ template = c:( expression / literal )* {
         format: function(bag, keep) {
             return _format('', o, bag, keep);
         },
+        vars: vars(o),
         stream: o
     }
 }

@@ -4,6 +4,7 @@ clean:
 	-rm -fr node_modules
 
 install:
+	npm link ql.io-str-template;\
 	npm install;\
 	npm link;
 

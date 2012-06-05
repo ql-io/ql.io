@@ -21,22 +21,16 @@ var compiler = require('../lib/compiler');
 exports['simple'] = function(test) {
     var q = "create table twitter.public on select get from 'http://twitter.com/statuses/public_timeline.{^format}'  using defaults format = 'json'";
     var compiled = compiler.compile(q);
-    var e = [
-        { type: 'create',
-            name: 'twitter.public',
-            line: 1,
-            select:
-            { method: 'get',
-                uri: 'http://twitter.com/statuses/public_timeline.{^format}',
-                defaults: { format: 'json' },
-                aliases: {},
-                headers: {},
-                resultSet: '',
-                cache: {},
-                body: '' },
-            id: 0 }
-    ];
-    test.deepEqual(compiled, e);
+    test.equal(compiled.dependsOn[0].type, 'create');
+    test.equal(compiled.dependsOn[0].name, 'twitter.public');
+    test.deepEqual(compiled.dependsOn[0].select, { method: 'get',
+                    uri: 'http://twitter.com/statuses/public_timeline.{^format}',
+                    defaults: { format: 'json' },
+                    aliases: {},
+                    headers: {},
+                    resultSet: '',
+                    cache: {},
+                    body: '' });
     test.done();
 };
 
@@ -51,39 +45,31 @@ exports['multiple actions'] = function(test) {
             using patch "shorten.js"\
             resultset "data.expand"';
     var compiled = compiler.compile(q);
-    var e = [
-        { type: 'create',
-            name: 'bitly.shorten',
-            line: 1,
-            insert:
-            { method: 'get',
-                uri: 'http://api.bitly.com/v3/shorten?login={^login}&apiKey={^apikey}&longUrl={^longUrl}&format={format}',
-                defaults:
-                { apikey: '{config.tables.bitly.shorten.apikey}',
-                    login: '{config.tables.bitly.shorten.login}',
-                    format: 'json' },
-                aliases: {},
-                headers: {},
-                resultSet: 'data.url',
-                cache: {},
-                patch: 'shorten.js',
-                body: '' },
-            select:
-            { method: 'get',
-                uri: 'http://api.bitly.com/v3/expand?login={^login}&apiKey={^apikey}&shortUrl={^shortUrl}&format={format}',
-                defaults:
-                { apikey: '{config.tables.bitly.shorten.apikey}',
-                    login: '{config.tables.bitly.shorten.login}',
-                    format: 'json' },
-                aliases: {},
-                headers: {},
-                resultSet: 'data.expand',
-                cache: {},
-                patch: 'shorten.js',
-                body: '' },
-            id: 0 }
-    ];
-    test.deepEqual(compiled, e);
+    test.deepEqual(compiled.dependsOn[0].name, 'bitly.shorten');
+    test.deepEqual(compiled.dependsOn[0].insert, { method: 'get',
+                    uri: 'http://api.bitly.com/v3/shorten?login={^login}&apiKey={^apikey}&longUrl={^longUrl}&format={format}',
+                    defaults:
+                    { apikey: '{config.tables.bitly.shorten.apikey}',
+                        login: '{config.tables.bitly.shorten.login}',
+                        format: 'json' },
+                    aliases: {},
+                    headers: {},
+                    resultSet: 'data.url',
+                    cache: {},
+                    patch: 'shorten.js',
+                    body: '' });
+    test.deepEqual(compiled.dependsOn[0].select, { method: 'get',
+                    uri: 'http://api.bitly.com/v3/expand?login={^login}&apiKey={^apikey}&shortUrl={^shortUrl}&format={format}',
+                    defaults:
+                    { apikey: '{config.tables.bitly.shorten.apikey}',
+                        login: '{config.tables.bitly.shorten.login}',
+                        format: 'json' },
+                    aliases: {},
+                    headers: {},
+                    resultSet: 'data.expand',
+                    cache: {},
+                    patch: 'shorten.js',
+                    body: '' });
     test.done();
 };
 
@@ -108,9 +94,7 @@ create table ebay.trading.getmyebaybuying\
     using patch "getmyebaybuying.js"\
     using bodyTemplate "getmyebaybuying.xml.mu" type "application/xml"';
     var compiled = compiler.compile(script);
-    test.ok(compiled[0]);
-    test.ok(compiled[1]);
-    test.equals(compiled[1].select.body.type, 'application/xml');
+    test.equals(compiled.dependsOn[0].select.body.type, 'application/xml');
     test.done();
 };
 
@@ -137,9 +121,7 @@ create table ebay.trading.getmyebaybuying\n\
 
     try {
         var compiled = compiler.compile(script);
-        test.ok(compiled[0]);
-        test.ok(compiled[1]);
-        test.equals(compiled[1].select.body.type, 'application/xml;foo=bar');
+        test.equals(compiled.dependsOn[0].select.body.type, 'application/xml;foo=bar');
         test.done();
     }
     catch(e) {
@@ -170,9 +152,7 @@ create table ebay.trading.getmyebaybuying\n\
 
     try {
         var compiled = compiler.compile(script);
-        test.ok(compiled[0]);
-        test.ok(compiled[1]);
-        test.equals(compiled[1].select.body.type, 'application/x-www-form-urlencoded');
+        test.equals(compiled.dependsOn[0].select.body.type, 'application/x-www-form-urlencoded');
         test.done();
     }
     catch(e) {
@@ -184,12 +164,48 @@ exports['auth'] = function(test) {
     var script = 'create table ebay.finding.items on select get from "{config.tables.ebay.finding.items.url}" authenticate using "authmod"';
     try {
         var compiled = compiler.compile(script);
-        test.ok(compiled[0]);
-        test.ok(compiled[0].select);
-        test.equals(compiled[0].select.auth, 'authmod');
+        test.equals(compiled.dependsOn[0].select.auth, 'authmod');
         test.done();
     }
     catch(e) {
         console.log(e.stack || e);
     }
+}
+
+exports['create-many'] = function(test) {
+    var script = 'create table one on select get from "url1"\n\
+                  create table two on select post to "url2"';
+    var compiled = compiler.compile(script);
+
+    test.deepEqual(compiled.dependsOn[0].select, { method: 'get',
+                uri: 'url1',
+                defaults: {},
+                aliases: {},
+                headers: {},
+                resultSet: '',
+                cache: {},
+                body: '' });
+
+    test.deepEqual(compiled.dependsOn[1].select, { method: 'post',
+                uri: 'url2',
+                defaults: {},
+                aliases: {},
+                headers: {},
+                resultSet: '',
+                cache: {},
+                body: '' });
+    test.done();
+}
+
+exports['create-deps'] = function(test) {
+    var script = "create table mytable\
+                    on select get from 'someuri';\n\
+                  resp = select * from mytable;\n\
+                  return '{resp.$..item}'";
+    var plan = compiler.compile(script);
+    test.equals(plan.dependsOn.length, 1);
+    test.equals(plan.dependsOn[0].type, 'select');
+    test.equals(plan.dependsOn[0].dependsOn.length, 1);
+    test.equals(plan.dependsOn[0].dependsOn[0].type, 'create');
+    test.done();
 }

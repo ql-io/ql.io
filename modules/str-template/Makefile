@@ -2,20 +2,15 @@ all: clean install test
 
 clean:
 	-rm -fr node_modules
-	-rm -fr logs
 
 install:
-	mkdir logs;\
-	npm link ql.io-engine;\
-	npm link ql.io-compiler;\
-	npm link ql.io-mutable-uri;\
 	npm install;\
-	npm link; \
-
+	npm link;
 
 .PHONY : test
 test: install
-	node_modules/.bin/nodeunit test;
+	node_modules/.bin/nodeunit test
 
 test-part:
 	node_modules/.bin/nodeunit test --reporter junit --output ../../reports
+

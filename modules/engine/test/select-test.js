@@ -66,19 +66,19 @@ var cooked = {
                 status: 200,
                 type: "application",
                 subType: "json",
-                payload: JSON.stringify({'message' : 'ok'})
+                payload: JSON.stringify({'message' : 'hello'})
             }
         ],
-        script: 'create table finditems on select get from "http://localhost:3026" '+
-                'resultset "findItemsByKeywordsResponse"; ',
+        script: 'create table haha on select get from "http://localhost:3026"; select * from haha;',
 
         udf: {
             test : function (test, err, result) {
                 if(err) {
+                    console.log(err.stack || err);
                     test.ok(false,'got error: ' + err.stack || err);
                 }
                 else {
-                    test.ok((result.body), { message: 'ok' });
+                    test.ok((result.body), { message: 'haha' });
                 }
             }
         }
@@ -400,7 +400,6 @@ var cooked = {
         ],
         script: 'create table first on select get from "http://localhost:3000"'+
                 'create table second on select get from "http://localhost:3026"'+
-                'Resp1 = select ItemID from first '+
                 'return select Location from second where ItemID in (select ItemID from first)',
 
         udf: {

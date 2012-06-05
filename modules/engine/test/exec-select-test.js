@@ -56,7 +56,7 @@ module.exports = {
                   --blah \n     \
                   -- blah";
         engine.exec(q, function(err, list) {
-            test.fail('nothing to execute and return');
+            test.ok(list.body, {});
         });
         test.ok(true);
         test.done();

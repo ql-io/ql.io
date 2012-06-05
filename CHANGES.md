@@ -1,3 +1,16 @@
+## June 4, 2012
+
+* Update versions
+* Push fallback and optional params
+
+## May 29, 2012
+
+* Explicit dependencies between modules.
+
+## May 25, 2012
+
+* Update the context with the udf filtered data
+
 ## May 22, 2012
 
 * Add fallback syntax to the language

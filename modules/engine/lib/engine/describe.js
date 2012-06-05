@@ -26,7 +26,7 @@ var assert = require('assert'),
  * @param cb
  */
 var cache = {};
-exports.exec = function(opts, statement, cb) {
+exports.exec = function(opts, statement, parentEvent, cb) {
 
     assert.ok(opts.tables, 'Argument tables can not be undefined');
     assert.ok(statement, 'Argument statement can not be undefined');

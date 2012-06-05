@@ -16,8 +16,7 @@
 
 "use strict";
 
-var strTemplate = require('../lib/engine/peg/str-template'),
-    _ = require('underscore');
+var strTemplate = require('../lib/str-parser');
 
 module.exports = {
     'notoken': function(test) {

@@ -22,8 +22,7 @@ module.exports = {
     'select-star': function(test) {
         var q = "select * from foo";
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e = {
                 type: 'select',
                 fromClause: [
                     {'name': 'foo' }
@@ -32,9 +31,8 @@ module.exports = {
                 whereCriteria: undefined,
                 id: 0,
                 line: 1
-            }
-        ];
-        test.deepEqual(statement, e);
+            };
+        test.deepEqual(statement.rhs, e);
         test.done();
     },
 
@@ -42,8 +40,7 @@ module.exports = {
         var q = 'select title[0], itemId[0], primaryCategory[0].categoryName[0], ' +
             'sellingStatus[0].currentPrice[0] from ebay.finding.items';
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e = {
                 type: 'select',
                 fromClause: [
                     {'name': 'ebay.finding.items' }
@@ -57,9 +54,8 @@ module.exports = {
                 whereCriteria: undefined,
                 id: 0,
                 line: 1
-            }
-        ];
-        test.deepEqual(statement, e);
+            };
+        test.deepEqual(statement.rhs, e);
         test.done();
     },
 
@@ -67,8 +63,7 @@ module.exports = {
         var q = 'select title[0], itemId[0], primaryCategory[0].categoryName[0], ' +
             'sellingStatus[0].currentPrice[0] from ebay.finding.items where keywords="cooper"';
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e = {
                 type: 'select',
                 line: 1,
                 fromClause: [
@@ -86,9 +81,8 @@ module.exports = {
                     } }
                 ],
                 id: 0
-            }
-        ];
-        test.deepEqual(statement, e);
+            };
+        test.deepEqual(statement.rhs, e);
         test.done();
     },
 
@@ -96,8 +90,7 @@ module.exports = {
         var q = 'select e.title[0], e.itemId[0], e.primaryCategory[0].categoryName[0], ' +
             'e.sellingStatus[0].currentPrice[0] from ebay.finding.items as e where keywords="cooper"';
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e = {
                 type: 'select',
                 line: 1,
                 fromClause: [
@@ -115,17 +108,15 @@ module.exports = {
                     } }
                 ],
                 id: 0
-            }
-        ];
-        test.deepEqual(statement, e);
+            };
+        test.deepEqual(statement.rhs, e);
         test.done();
     },
 
     'select-in-csv': function(test) {
         var q = "select ViewItemURLForNaturalSearch from ebay.item where itemId in ('180652013910','120711247507')";
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e = {
                 type: 'select',
                 line: 1,
                 fromClause: [
@@ -141,52 +132,48 @@ module.exports = {
                     }
                 ],
                 id: 0
-            }
-        ];
-        test.deepEqual(statement, e);
+            };
+        test.deepEqual(statement.rhs, e);
         test.done();
     },
 
     'select-in-csv-numbers': function (test) {
         var q = "select * from a where a in (1, 2, '3')";
         var statement = compiler.compile(q);
-        test.ok(statement.length, 1);
-        test.ok(statement[0].whereCriteria[0].operator, 'in');
-        test.ok(statement[0].whereCriteria[0].lhs, 'a');
-        test.ok(statement[0].whereCriteria[0].rhs.value, [1,2,'3']);
+        test.ok(statement.rhs.whereCriteria[0].operator, 'in');
+        test.ok(statement.rhs.whereCriteria[0].lhs, 'a');
+        test.ok(statement.rhs.whereCriteria[0].rhs.value, [1,2,'3']);
         test.done();
     },
 
     'select-in-csv-numbers-2': function (test) {
         var q = "select * from a where a in ('1', 2, '3')";
         var statement = compiler.compile(q);
-        test.ok(statement.length, 1);
-        test.ok(statement[0].whereCriteria[0].operator, 'in');
-        test.ok(statement[0].whereCriteria[0].lhs, 'a');
-        test.ok(statement[0].whereCriteria[0].rhs.value, ['1',2,'3']);
+        test.ok(statement.rhs.whereCriteria[0].operator, 'in');
+        test.ok(statement.rhs.whereCriteria[0].lhs, 'a');
+        test.ok(statement.rhs.whereCriteria[0].rhs.value, ['1',2,'3']);
         test.done();
     },
 
     'select-args': function(test) {
-        var q = "select * from a where a in (1, 2, '3') and foo('bar', '1', '2') and bar(1, 'baz', 2) and baz()";
+        var q = "u = require('u');select * from a where a in (1, 2, '3') and u.foo('bar', '1', '2') and u.bar(1, 'baz', 2) and u.baz()";
         var statement = compiler.compile(q);
-        test.ok(statement.length, 1);
-        test.ok(statement[0].whereCriteria[0].operator, 'in');
-        test.ok(statement[0].whereCriteria[0].lhs, 'a');
-        test.ok(statement[0].whereCriteria[0].rhs.value, [1,2,'3']);
-        test.ok(statement[0].whereCriteria[1].operator, 'udf');
-        test.ok(statement[0].whereCriteria[1].name, 'foo');
-        test.ok(statement[0].whereCriteria[1].args, [{"name": "bar", "type" : "literal"},
+        test.ok(statement.rhs.whereCriteria[0].operator, 'in');
+        test.ok(statement.rhs.whereCriteria[0].lhs, 'a');
+        test.ok(statement.rhs.whereCriteria[0].rhs.value, [1,2,'3']);
+        test.ok(statement.rhs.whereCriteria[1].operator, 'udf');
+        test.ok(statement.rhs.whereCriteria[1].name, 'u.foo');
+        test.ok(statement.rhs.whereCriteria[1].args, [{"name": "bar", "type" : "literal"},
             {"name": "1", "type" : "literal"},
             {"name": "2", "type" : "literal"}]);
-        test.ok(statement[0].whereCriteria[2].operator, 'udf');
-        test.ok(statement[0].whereCriteria[2].name, 'bar');
-        test.ok(statement[0].whereCriteria[1].args, [{"name": 1, "type" : "literal"},
+        test.ok(statement.rhs.whereCriteria[2].operator, 'udf');
+        test.ok(statement.rhs.whereCriteria[2].name, 'u.bar');
+        test.ok(statement.rhs.whereCriteria[1].args, [{"name": 1, "type" : "literal"},
             {"name": "baz", "type" : "literal"},
             {"name": 2, "type" : "literal"}]);
-        test.ok(statement[0].whereCriteria[2].operator, 'udf');
-        test.ok(statement[0].whereCriteria[2].name, 'baz');
-        test.ok(statement[0].whereCriteria[2].args, '');
+        test.ok(statement.rhs.whereCriteria[2].operator, 'udf');
+        test.ok(statement.rhs.whereCriteria[2].name, 'u.baz');
+        test.ok(statement.rhs.whereCriteria[2].args, '');
         test.done();
     },
 
@@ -194,8 +181,7 @@ module.exports = {
         var q = "select e.Title, e.ItemID, g.geometry.location from ebay.item as e, google.geocode as g where e.itemId in \
             (select itemId from ebay.finding.items where keywords = 'mini') and g.address = e.Location"
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e = {
                 "type": "select",
                 "line": 1,
                 "columns": [
@@ -224,7 +210,8 @@ module.exports = {
                                 { operator: '=',
                                     lhs: { type: 'column', name: 'keywords' },
                                     rhs: { value: 'mini' } }
-                            ] } }
+                            ],
+                            dependsOn: [] } }
                 ],
                 fromClause: [
                     { name: 'ebay.item', alias: 'e' }
@@ -243,10 +230,10 @@ module.exports = {
                     ],
                     fromClause: [
                         { name: 'google.geocode', alias: 'g' }
-                    ] },
-                id: 0 }
-        ];
-        test.deepEqual(statement, e);
+                    ],
+                    dependsOn: [] },
+                id: 0 };
+        test.deepEqual(statement.rhs, e);
         test.done();
     },
 
@@ -254,8 +241,7 @@ module.exports = {
         var q = 'select title[0], itemId[0], primaryCategory[0].categoryName[0], ' +
             'sellingStatus[0].currentPrice[0] from ebay.finding.items limit 4';
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e = {
                 type: 'select',
                 line: 1,
                 fromClause: [
@@ -270,9 +256,8 @@ module.exports = {
                 whereCriteria: undefined,
                 limit: 4,
                 id: 0
-            }
-        ];
-        test.deepEqual(statement, e);
+            };
+        test.deepEqual(statement.rhs, e);
         test.done();
     },
 
@@ -280,8 +265,7 @@ module.exports = {
         var q = 'select title[0], itemId[0], primaryCategory[0].categoryName[0], ' +
             'sellingStatus[0].currentPrice[0] from ebay.finding.items limit 4 offset 2';
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e = {
                 type: 'select',
                 line: 1,
                 fromClause: [
@@ -297,17 +281,15 @@ module.exports = {
                 limit: 4,
                 offset: 2,
                 id: 0
-            }
-        ];
-        test.deepEqual(statement, e);
+            };
+        test.deepEqual(statement.rhs, e);
         test.done();
     },
 
     'udf': function(test) {
-        var q = 'select * from ebay.finditems where contains("mini cooper") and blendBy()';
+        var q = 'u = require("u");select * from ebay.finditems where u.contains("mini cooper") and u.blendBy()';
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e = {
                 "type": "select",
                 "line": 1,
                 "fromClause": [
@@ -319,19 +301,18 @@ module.exports = {
                 "whereCriteria": [
                     {
                         "operator": "udf",
-                        "name": "contains",
+                        "name": "u.contains",
                         "args": [{ "type" : "literal", "value": "mini cooper"}]
                     },
                     {
                         "operator": "udf",
-                        "name": "blendBy",
+                        "name": "u.blendBy",
                         "args": ""
                     }
                 ],
-                id: 0
-            }
-        ];
-        test.deepEqual(statement, e);
+                id: 1
+            };
+        test.deepEqual(statement.rhs, e);
         test.done();
     },
 
@@ -348,10 +329,9 @@ module.exports = {
     },
 
     'udf-args': function(test) {
-        var q = 'select * from patch.udf where p1("v1") and p2("2", "3") and p3()';
+        var q = 'u = require("u.js");select * from patch.udf where u.p1("v1") and u.p2("2", "3") and u.p3()';
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e = {
                 "type": "select",
                 "line": 1,
                 "fromClause": [
@@ -363,34 +343,32 @@ module.exports = {
                 "whereCriteria": [
                     {
                         "operator": "udf",
-                        "name": "p1",
+                        "name": "u.p1",
                         "args": [{"value": "v1", "type": "literal"}]
                     },
                     {
                         "operator": "udf",
-                        "name": "p2",
+                        "name": "u.p2",
                         "args": [{"value": "2", "type": "literal"}, {"value": "3", "type": "literal"}],
                     },
                     {
                         "operator": "udf",
-                        "name": "p3",
+                        "name": "u.p3",
                         "args": ""
                     }
                 ],
-                id: 0
-            }
-        ];
-        test.deepEqual(statement, e);
+                id: 1
+            };
+        test.deepEqual(statement.rhs, e);
         test.done();
     },
 
 
     'select-assign': function(test) {
         var q = 'results = select title[0], itemId[0], primaryCategory[0].categoryName[0], ' +
-            'sellingStatus[0].currentPrice[0] from ebay.finding.items; return {};';
+            'sellingStatus[0].currentPrice[0] from ebay.finding.items; return results;';
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e = {
                 type: 'select',
                 fromClause: [
                     {'name': 'ebay.finding.items' }
@@ -405,23 +383,9 @@ module.exports = {
                 assign: 'results',
                 id: 0,
                 dependsOn: [],
-                listeners: [],
                 line: 1
-            },
-            {
-                type: 'return',
-                rhs: {
-                    object : {},
-                    type: 'define',
-                    line: 1
-                },
-                id: 1,
-                dependsOn: [],
-                listeners: [],
-                line: 1
-            }
-        ];
-        test.deepEqual(statement, e);
+            };
+        test.equals(statement.dependsOn[0].assign, 'results');
         test.done();
     },
 
@@ -429,8 +393,7 @@ module.exports = {
         var q = 'select title[0], \nitemId[0], primaryCategory[0].categoryName[0], ' +
             'sellingStatus[0].currentPrice[0] \nfrom ebay.finding.items';
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e ={
                 type: 'select',
                 line: 1,
                 fromClause: [
@@ -444,49 +407,30 @@ module.exports = {
                 ],
                 whereCriteria: undefined,
                 id: 0
-            }
-        ];
-        test.deepEqual(statement, e);
+            };
+        test.deepEqual(statement.rhs, e);
         test.done();
     },
 
     'comments': function(test) {
         var q = '-- hello';
         var statement = compiler.compile(q);
-        test.equals(statement.length, 1);
         q = '-- hello\n--hello again';
         statement = compiler.compile(q);
-        test.equals(statement.length, 2);
+        test.equals(statement.comments.length, 2);
         test.done();
     },
 
     'comment-single': function(test) {
         var q = '-- hello\nselect * from foo';
         var statement = compiler.compile(q);
-        var e = [
-            { line: 1,
-                type: 'comment',
-                text: 'hello',
-                dependsOn: [],
-                listeners: [] },
-            { type: 'select',
-                line: 2,
-                fromClause: [
-                    { name: 'foo' }
-                ],
-                columns: {name: '*', type: 'column'},
-                whereCriteria: undefined,
-                id: 0,
-                dependsOn: [],
-                listeners: [] }
-        ];
-        test.deepEqual(statement, e);
+        test.equal(statement.rhs.comments[0].text, 'hello');
         test.done();
     },
 
     'join-columns': function(test) {
         var q = 'select d.ItemId, w.ItemID, d.Title from watchList as w, itemDetails as d where w.ItemID = d.ItemId';
-        var statement = compiler.compile(q)[0];
+        var statement = compiler.compile(q).rhs;
         test.equals(statement.columns.length, 1, 'Expecting one column, but found ' +
             statement.columns.length);
         test.equals(statement.columns[0].name, 'w.ItemID');
@@ -522,16 +466,16 @@ module.exports = {
         var q = 'select p.StockPhotoURL, p.Title, ps.buyBoxPriceResponse, ps.inventoryCountResponse from products as p, prodstats as ps where ps.productid = p.ProductID[0].Value';
         try {
             var cooked = compiler.compile(q);
-            test.equal(cooked[0].type, 'select');
-            test.equal(cooked[0].joiner.type, 'select');
-            test.equal(cooked[0].joiner.whereCriteria[0].lhs.name, 'ps.productid');
-            test.equal(cooked[0].joiner.whereCriteria[0].rhs.value, 'p.ProductID[0].Value');
-            test.equal(cooked[0].joiner.whereCriteria[0].rhs.joiningColumn, 2);
-            test.equal(cooked[0].extras.length, 1);
-            test.equal(cooked[0].extras[0], 2);
-            test.equal(cooked[0].joiner.extras.length, 1);
-            test.equal(cooked[0].joiner.extras[0], 2);
-            var selected = cooked[0].selected;
+            test.equal(cooked.rhs.type, 'select');
+            test.equal(cooked.rhs.joiner.type, 'select');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].lhs.name, 'ps.productid');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].rhs.value, 'p.ProductID[0].Value');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].rhs.joiningColumn, 2);
+            test.equal(cooked.rhs.extras.length, 1);
+            test.equal(cooked.rhs.extras[0], 2);
+            test.equal(cooked.rhs.joiner.extras.length, 1);
+            test.equal(cooked.rhs.joiner.extras[0], 2);
+            var selected = cooked.rhs.selected;
             test.equal(selected.length, 4);
             test.equal(selected[0].from, 'main');
             test.equal(selected[1].from, 'main');
@@ -554,15 +498,15 @@ module.exports = {
         var q = 'select p.ProductID[0].Value, p.StockPhotoURL, p.Title, ps.buyBoxPriceResponse, ps.inventoryCountResponse from products as p, prodstats as ps where ps.productid = p.ProductID[0].Value';
         try {
             var cooked = compiler.compile(q);
-            test.equal(cooked[0].type, 'select');
-            test.equal(cooked[0].joiner.type, 'select');
-            test.equal(cooked[0].joiner.whereCriteria[0].lhs.name, 'ps.productid');
-            test.equal(cooked[0].joiner.whereCriteria[0].rhs.value, 'p.ProductID[0].Value');
-            test.equal(cooked[0].joiner.whereCriteria[0].rhs.joiningColumn, 0);
-            test.equal(cooked[0].extras.length, 0);
-            test.equal(cooked[0].joiner.extras.length, 1);
-            test.equal(cooked[0].joiner.extras[0], 2);
-            var selected = cooked[0].selected;
+            test.equal(cooked.rhs.type, 'select');
+            test.equal(cooked.rhs.joiner.type, 'select');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].lhs.name, 'ps.productid');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].rhs.value, 'p.ProductID[0].Value');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].rhs.joiningColumn, 0);
+            test.equal(cooked.rhs.extras.length, 0);
+            test.equal(cooked.rhs.joiner.extras.length, 1);
+            test.equal(cooked.rhs.joiner.extras[0], 2);
+            var selected = cooked.rhs.selected;
             test.equal(selected.length, 5);
             test.equal(selected[0].from, 'main');
             test.equal(selected[1].from, 'main');
@@ -586,15 +530,15 @@ module.exports = {
         var q = 'select p.StockPhotoURL, p.Title, ps.buyBoxPriceResponse, ps.productid, ps.inventoryCountResponse from products as p, prodstats as ps where ps.productid = p.ProductID[0].Value';
         try {
             var cooked = compiler.compile(q);
-            test.equal(cooked[0].type, 'select');
-            test.equal(cooked[0].joiner.type, 'select');
-            test.equal(cooked[0].joiner.whereCriteria[0].lhs.name, 'ps.productid');
-            test.equal(cooked[0].joiner.whereCriteria[0].rhs.value, 'p.ProductID[0].Value');
-            test.equal(cooked[0].joiner.whereCriteria[0].rhs.joiningColumn, 2);
-            test.equal(cooked[0].extras.length, 1);
-            test.equal(cooked[0].extras[0], 2);
-            test.equal(cooked[0].joiner.extras.length, 0);
-            var selected = cooked[0].selected;
+            test.equal(cooked.rhs.type, 'select');
+            test.equal(cooked.rhs.joiner.type, 'select');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].lhs.name, 'ps.productid');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].rhs.value, 'p.ProductID[0].Value');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].rhs.joiningColumn, 2);
+            test.equal(cooked.rhs.extras.length, 1);
+            test.equal(cooked.rhs.extras[0], 2);
+            test.equal(cooked.rhs.joiner.extras.length, 0);
+            var selected = cooked.rhs.selected;
             test.equal(selected.length, 5);
             test.equal(selected[0].from, 'main');
             test.equal(selected[1].from, 'main');
@@ -619,16 +563,16 @@ module.exports = {
         var q = 'select p.StockPhotoURL, p.Title, ps.buyBoxPriceResponse, ps.inventoryCountResponse from products as p, prodstats as ps where p.ProductID[0].Value = ps.productid';
         try {
             var cooked = compiler.compile(q);
-            test.equal(cooked[0].type, 'select');
-            test.equal(cooked[0].joiner.type, 'select');
-            test.equal(cooked[0].joiner.whereCriteria[0].lhs.name, 'ps.productid');
-            test.equal(cooked[0].joiner.whereCriteria[0].rhs.value, 'p.ProductID[0].Value');
-            test.equal(cooked[0].joiner.whereCriteria[0].rhs.joiningColumn, 2);
-            test.equal(cooked[0].extras.length, 1);
-            test.equal(cooked[0].extras[0], 2);
-            test.equal(cooked[0].joiner.extras.length, 1);
-            test.equal(cooked[0].joiner.extras[0], 2);
-            var selected = cooked[0].selected;
+            test.equal(cooked.rhs.type, 'select');
+            test.equal(cooked.rhs.joiner.type, 'select');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].lhs.name, 'ps.productid');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].rhs.value, 'p.ProductID[0].Value');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].rhs.joiningColumn, 2);
+            test.equal(cooked.rhs.extras.length, 1);
+            test.equal(cooked.rhs.extras[0], 2);
+            test.equal(cooked.rhs.joiner.extras.length, 1);
+            test.equal(cooked.rhs.joiner.extras[0], 2);
+            var selected = cooked.rhs.selected;
             test.equal(selected.length, 4);
             test.equal(selected[0].from, 'main');
             test.equal(selected[1].from, 'main');
@@ -651,15 +595,15 @@ module.exports = {
         var q = 'select p.ProductID[0].Value, p.StockPhotoURL, p.Title, ps.buyBoxPriceResponse, ps.inventoryCountResponse from products as p, prodstats as ps where ps.productid = p.ProductID[0].Value';
         try {
             var cooked = compiler.compile(q);
-            test.equal(cooked[0].type, 'select');
-            test.equal(cooked[0].joiner.type, 'select');
-            test.equal(cooked[0].joiner.whereCriteria[0].lhs.name, 'ps.productid');
-            test.equal(cooked[0].joiner.whereCriteria[0].rhs.value, 'p.ProductID[0].Value');
-            test.equal(cooked[0].joiner.whereCriteria[0].rhs.joiningColumn, 0);
-            test.equal(cooked[0].extras.length, 0);
-            test.equal(cooked[0].joiner.extras.length, 1);
-            test.equal(cooked[0].joiner.extras[0], 2);
-            var selected = cooked[0].selected;
+            test.equal(cooked.rhs.type, 'select');
+            test.equal(cooked.rhs.joiner.type, 'select');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].lhs.name, 'ps.productid');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].rhs.value, 'p.ProductID[0].Value');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].rhs.joiningColumn, 0);
+            test.equal(cooked.rhs.extras.length, 0);
+            test.equal(cooked.rhs.joiner.extras.length, 1);
+            test.equal(cooked.rhs.joiner.extras[0], 2);
+            var selected = cooked.rhs.selected;
             test.equal(selected.length, 5);
             test.equal(selected[0].from, 'main');
             test.equal(selected[1].from, 'main');
@@ -683,15 +627,15 @@ module.exports = {
         var q = 'select p.StockPhotoURL, p.Title, ps.buyBoxPriceResponse, ps.productid, ps.inventoryCountResponse from products as p, prodstats as ps where ps.productid = p.ProductID[0].Value';
         try {
             var cooked = compiler.compile(q);
-            test.equal(cooked[0].type, 'select');
-            test.equal(cooked[0].joiner.type, 'select');
-            test.equal(cooked[0].joiner.whereCriteria[0].lhs.name, 'ps.productid');
-            test.equal(cooked[0].joiner.whereCriteria[0].rhs.value, 'p.ProductID[0].Value');
-            test.equal(cooked[0].joiner.whereCriteria[0].rhs.joiningColumn, 2);
-            test.equal(cooked[0].extras.length, 1);
-            test.equal(cooked[0].extras[0], 2);
-            test.equal(cooked[0].joiner.extras.length, 0);
-            var selected = cooked[0].selected;
+            test.equal(cooked.rhs.type, 'select');
+            test.equal(cooked.rhs.joiner.type, 'select');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].lhs.name, 'ps.productid');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].rhs.value, 'p.ProductID[0].Value');
+            test.equal(cooked.rhs.joiner.whereCriteria[0].rhs.joiningColumn, 2);
+            test.equal(cooked.rhs.extras.length, 1);
+            test.equal(cooked.rhs.extras[0], 2);
+            test.equal(cooked.rhs.joiner.extras.length, 0);
+            var selected = cooked.rhs.selected;
             test.equal(selected.length, 5);
             test.equal(selected[0].from, 'main');
             test.equal(selected[1].from, 'main');
@@ -742,14 +686,14 @@ module.exports = {
         var cooked, q = 'select * from ebay.finding.items where keywords=1234';
         try {
             cooked = compiler.compile(q);
-            test.ok(true, 'compilation did not fail');
-            test.equals(cooked[0].type, 'select');
-            test.ok(cooked[0].whereCriteria[0]);
-            test.equals(cooked[0].whereCriteria[0].rhs.value, 1234);
+            test.equals(cooked.rhs.type, 'select');
+            test.ok(cooked.rhs.whereCriteria[0]);
+            test.equals(cooked.rhs.whereCriteria[0].rhs.value, 1234);
             test.done();
         }
         catch(e) {
-            test.ok(false, 'compilation did not fail');
+            console.log(e.stack || e)
+            test.ok(false, 'compilation failed');
             test.done();
         }
     },
@@ -762,11 +706,11 @@ module.exports = {
                           products.QueryKeywords = 'iPhone' and\n\
                           products.siteid = 0;"
         var statement = compiler.compile(q);
-        test.equals(statement[0].type, 'select');
-        test.deepEqual(statement[0].columns, [
+        test.equals(statement.rhs.type, 'select');
+        test.deepEqual(statement.rhs.columns, [
             {name: "products.ProductID[0].Value", type: "column"}
         ]);
-        test.deepEqual(statement[0].selected, [
+        test.deepEqual(statement.rhs.selected, [
             {
                 "from": "joiner",
                 "index": 0
@@ -776,8 +720,8 @@ module.exports = {
                 "index": 0
             }
         ]);
-        test.deepEqual(statement[0].extras.length, 0);
-        test.deepEqual(statement[0].whereCriteria, [
+        test.deepEqual(statement.rhs.extras.length, 0);
+        test.deepEqual(statement.rhs.whereCriteria, [
             {
                 "operator": "=",
                 "lhs": {name: "products.QueryKeywords", type: "column"},
@@ -793,18 +737,18 @@ module.exports = {
                 }
             }
         ]);
-        test.deepEqual(statement[0].fromClause[0], {
+        test.deepEqual(statement.rhs.fromClause[0], {
             "name": "ebay.shopping.products",
             "alias": "products"
         });
-        test.ok(statement[0].joiner);
-        test.equals(statement[0].joiner.type, 'select');
-        test.deepEqual(statement[0].joiner.columns, [
+        test.ok(statement.rhs.joiner);
+        test.equals(statement.rhs.joiner.type, 'select');
+        test.deepEqual(statement.rhs.joiner.columns, [
             {type: "column", name: "details.StockPhotoURL"},
             {type: "column", name: "details.ProductID"}
         ]);
-        test.deepEqual(statement[0].joiner.extras[0], 1);
-        test.deepEqual(statement[0].joiner.whereCriteria, [
+        test.deepEqual(statement.rhs.joiner.extras[0], 1);
+        test.deepEqual(statement.rhs.joiner.whereCriteria, [
             {
                 "operator": "=",
                 "lhs": {name: "details.ProductID", type: "column"},
@@ -829,7 +773,7 @@ module.exports = {
                 }
             }
         ]);
-        test.deepEqual(statement[0].joiner.fromClause[0], {
+        test.deepEqual(statement.rhs.joiner.fromClause[0], {
             "name": "ebay.shopping.productdetails",
             "alias": "details"});
         test.done();
@@ -838,8 +782,7 @@ module.exports = {
     'select-colon': function(test) {
         var q = 'select a:b.c:d from someXml';
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e = {
                 type: 'select',
                 fromClause: [
                     {'name': 'someXml' }
@@ -850,9 +793,8 @@ module.exports = {
                 whereCriteria: undefined,
                 id: 0,
                 line: 1
-            }
-        ];
-        test.deepEqual(statement, e);
+            };
+        test.deepEqual(statement.rhs, e);
         test.done();
     },
 
@@ -874,7 +816,7 @@ module.exports = {
         var q = 'watches = select d.ItemID as itemId, d.Title as title, w.BiddingDetails.MaxBid.$t as userMaxBid\
           from watchList as w, itemDetails as d where w.ItemID = d.ItemID';
         statement = compiler.compile(q);
-        statement = statement[0];
+        statement = statement.rhs;
         // ensure that each column has an alias
         for(i = 0; i < statement.columns.length; i++) {
             test.ok(statement.columns[i].alias, 'column ' + statement.columns[i].name + ' has no alias');
@@ -907,56 +849,52 @@ module.exports = {
         var q = 'watches = select d.ItemID as itemId, w.ItemId as witemId, d.Title as title, w.BiddingDetails.MaxBid.$t as userMaxBid\
                   from watchList as w, itemDetails as d where w.ItemID = d.ItemID;'
         var cooked = compiler.compile(q);
-        test.equals(cooked.length, 1);
-        test.equals(cooked[0].columns[0].name, 'w.ItemId');
-        test.equals(cooked[0].columns[0].alias, 'witemId');
-        test.equals(cooked[0].columns[1].name, 'w.BiddingDetails.MaxBid.$t');
-        test.equals(cooked[0].columns[1].alias, 'userMaxBid');
-        test.equals(cooked[0].columns[2].name, 'w.ItemID');
-        test.equals(cooked[0].columns[2].alias, 'ItemID');
+        test.equals(cooked.rhs.columns[0].name, 'w.ItemId');
+        test.equals(cooked.rhs.columns[0].alias, 'witemId');
+        test.equals(cooked.rhs.columns[1].name, 'w.BiddingDetails.MaxBid.$t');
+        test.equals(cooked.rhs.columns[1].alias, 'userMaxBid');
+        test.equals(cooked.rhs.columns[2].name, 'w.ItemID');
+        test.equals(cooked.rhs.columns[2].alias, 'ItemID');
 
-        test.equals(cooked[0].selected[0].from, 'joiner');
-        test.equals(cooked[0].selected[0].name, 'itemId');
-        test.equals(cooked[0].selected[1].from, 'main');
-        test.equals(cooked[0].selected[1].name, 'witemId');
-        test.equals(cooked[0].selected[2].from, 'joiner');
-        test.equals(cooked[0].selected[2].name, 'title');
-        test.equals(cooked[0].selected[3].from, 'main');
-        test.equals(cooked[0].selected[3].name, 'userMaxBid');
+        test.equals(cooked.rhs.selected[0].from, 'joiner');
+        test.equals(cooked.rhs.selected[0].name, 'itemId');
+        test.equals(cooked.rhs.selected[1].from, 'main');
+        test.equals(cooked.rhs.selected[1].name, 'witemId');
+        test.equals(cooked.rhs.selected[2].from, 'joiner');
+        test.equals(cooked.rhs.selected[2].name, 'title');
+        test.equals(cooked.rhs.selected[3].from, 'main');
+        test.equals(cooked.rhs.selected[3].name, 'userMaxBid');
 
-        test.equals(cooked[0].joiner.columns[0].name, 'd.ItemID');
-        test.equals(cooked[0].joiner.columns[0].alias, 'itemId');
-        test.equals(cooked[0].joiner.columns[1].name, 'd.Title');
-        test.equals(cooked[0].joiner.columns[1].alias, 'title');
+        test.equals(cooked.rhs.joiner.columns[0].name, 'd.ItemID');
+        test.equals(cooked.rhs.joiner.columns[0].alias, 'itemId');
+        test.equals(cooked.rhs.joiner.columns[1].name, 'd.Title');
+        test.equals(cooked.rhs.joiner.columns[1].alias, 'title');
         test.done();
     },
 
     'select-where-mixed': function (test) {
         var q = 'select * from foo where w.ItemID = \'{"a": "<A>a<A>", "b": "B"}\'';
         var cooked = compiler.compile(q);
-        test.equals(cooked.length, 1);
-        test.equals(cooked[0].whereCriteria.length, 1);
-        test.equals(cooked[0].whereCriteria[0].rhs.value, '{"a": "<A>a<A>", "b": "B"}');
+        test.equals(cooked.rhs.whereCriteria.length, 1);
+        test.equals(cooked.rhs.whereCriteria[0].rhs.value, '{"a": "<A>a<A>", "b": "B"}');
         test.done();
     },
 
     'select-where-mixed-2': function (test) {
         var q = 'return select a[\'b\'] from a where a = \'{"a":"b"}\' via route \'/a\' using method get;'
         var cooked = compiler.compile(q);
-        test.equals(cooked.length, 1);
-        var select = cooked[0].rhs;
+        var select = cooked.rhs;
         test.equals(select.whereCriteria.length, 1);
         test.equals(select.whereCriteria[0].rhs.value, '{"a":"b"}');
         test.equals(select.columns[0].name, "a[b]");
-        test.equals(cooked[0].route.path.value, '/a');
+        test.equals(cooked.route.path.value, '/a');
         test.done();
     },
 
     'select-timeouts': function(test) {
         var q = 'select a, b, c, d from foo timeout 10 minDelay 100 maxDelay 10000';
         var statement = compiler.compile(q);
-        var e = [
-            {
+        var e = {
                 type: 'select',
                 line: 1,
                 fromClause: [
@@ -973,9 +911,8 @@ module.exports = {
                 minDelay: 100,
                 maxDelay: 10000,
                 id: 0
-            }
-        ];
-        test.deepEqual(statement, e);
+            };
+        test.deepEqual(statement.rhs, e);
         test.done();
     }
 };

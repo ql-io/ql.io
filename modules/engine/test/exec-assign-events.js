@@ -38,16 +38,13 @@ module.exports = {
             });
             emitter.on('obj', function(data) {
                 test.deepEqual({
-                  "p1" : "v1",
+                  "a": "1",
+                  "b": "Hello world",
                   "p2" : {
                       "p3" : "v3",
                       "p4" : "v4"
                   }
                 }, data);
-                counter++;
-            });
-            emitter.on('p3', function(data) {
-                test.equal('v3', data);
                 counter++;
             });
             emitter.on('p4', function(data) {
@@ -60,8 +57,8 @@ module.exports = {
                     test.done();
                 }
                 else {
-                    test.equal(5, counter);
-                    test.equal('Done', result.body);
+                    test.equal(4, counter);
+                    test.deepEqual(result.body, ['v4']);
                     test.done();
                 }
             });

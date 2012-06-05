@@ -84,7 +84,7 @@ var cooked = {
 
                 }
                 else {
-                    test.equals(result.headers['content-type'], 'application/json', 'HTML expected');
+                    test.equals(result.headers['content-type'], 'application/json', 'JSON expected');
                     test.ok(_.isArray(result.body), 'expected an array');
                     test.ok(result.body.length > 0, 'expected some items');
                     test.equals(2, result.body.length, 'expected 2 locations');

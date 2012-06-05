@@ -20,8 +20,8 @@ var compiler = require('../lib/compiler');
 
 exports['delete'] = function (test) {
     var q = "delete from foo where bar = 'a'";
-    var statement = compiler.compile(q);
-    var e = [{
+    var plan = compiler.compile(q);
+    var e = {
         "type": "delete",
         "source": {
             "name": "foo"
@@ -35,15 +35,15 @@ exports['delete'] = function (test) {
         }],
         "line": 1,
         "id": 0
-    }];
-    test.deepEqual(statement, e);
+    };
+    test.deepEqual(plan.rhs, e);
     test.done();
 };
 
 exports['delete-csv'] = function (test) {
     var q = "delete from ebay.item where itemId in ('180652013910','120711247507')";
-    var statement = compiler.compile(q);
-    var e = [{
+    var plan = compiler.compile(q);
+    var e = {
         type: 'delete',
         "source" :
             {name: 'ebay.item'},
@@ -56,15 +56,15 @@ exports['delete-csv'] = function (test) {
         }],
         line: 1,
         id: 0
-    }];
-    test.deepEqual(statement, e);
+    };
+    test.deepEqual(plan.rhs, e);
     test.done();
 };
 
 exports['delete-timeouts'] = function(test) {
     var q = "delete from ebay.item where itemId in ('180652013910','120711247507') timeout 10 minDelay 100 maxDelay 10000";
-    var statement = compiler.compile(q);
-    var e = [{
+    var plan = compiler.compile(q);
+    var e = {
             type: 'delete',
             "source" :
                 {name: 'ebay.item'},
@@ -80,7 +80,28 @@ exports['delete-timeouts'] = function(test) {
             maxDelay: 10000,
             line: 1,
             id: 0
-        }];
-    test.deepEqual(statement, e);
+        };
+    test.deepEqual(plan.rhs, e);
+    test.done();
+};
+
+exports['delete-from-obj'] = function(test) {
+    var q = 'obj = {\
+                "a" : "A",\
+                "b" : "B",\
+                "c" : "C"\
+            }\
+            return delete from obj where a = "A";';
+    var plan = compiler.compile(q);
+    test.deepEqual(plan.rhs.source, {name: '{obj}'});
+    test.deepEqual(plan.rhs.whereCriteria,
+        [
+            { operator: '=',
+                lhs: { type: 'column', name: 'a' },
+                rhs: { value: 'A' } }
+        ]);
+    test.deepEqual(plan.dependsOn[0].object, { a: 'A', b: 'B', c: 'C' });
     test.done();
 }
+
+
