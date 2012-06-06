@@ -192,6 +192,7 @@ module.exports = {
             };
             var req = http.request(options, function(res) {
                 test.ok(!res.headers['content-encoding'], "Content should not be encoded");
+                test.ok(!(res.headers['vary'] === 'accept-encoding'));
                 app.close();
                 test.done();
             });
@@ -236,6 +237,7 @@ module.exports = {
             };
             var req = http.request(options, function(res) {
                 test.ok(!res.headers['content-encoding'], "Content should not be encoded");
+                test.ok(!(res.headers['vary'] === 'accept-encoding'));
                 app.close();
                 test.done();
             });
