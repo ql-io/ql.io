@@ -41,9 +41,6 @@ exports.compress = function (req, res, options) {
         methods = exports.methods,
         stream;
 
-    // Set the Vary header
-    res.setHeader('vary', 'accept-encoding');
-
     res.write = function (chunk, enc) {
         return stream ? stream.write(chunk, enc) : write.call(res, chunk, enc);
     };
@@ -112,6 +109,8 @@ exports.compress = function (req, res, options) {
         if (method) {
             stream = methods[method](options);
             res.setHeader('content-encoding', method);
+            // Set the Vary header
+            res.setHeader('vary', 'accept-encoding');
 
             stream.on('data', function (chunk) {
                 write.call(res, chunk);
