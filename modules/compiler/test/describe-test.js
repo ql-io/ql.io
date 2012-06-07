@@ -21,26 +21,16 @@ var compiler = require('../lib/compiler');
 exports['describe'] = function (test) {
     var q = "describe foo";
     var statement = compiler.compile(q);
-    var e = {
-        type: 'describe',
-        line: 1,
-        source: {'name': 'foo' },
-        id: 0
-    };
-    test.deepEqual(statement.rhs, e);
+    test.equals(statement.rhs.type, 'describe');
+    test.equals(statement.rhs.source.name, 'foo');
     test.done();
 };
 
 exports['desc'] = function (test) {
     var q = "desc foo";
     var statement = compiler.compile(q);
-    var e = {
-        type: 'describe',
-        line: 1,
-        source: {'name': 'foo' },
-        id: 0
-    };
-    test.deepEqual(statement.rhs, e);
+    test.equals(statement.rhs.type, 'describe');
+    test.equals(statement.rhs.source.name, 'foo');
     test.done();
 };
 
@@ -60,7 +50,7 @@ exports['describe-no-table'] = function(test) {
 exports['describe-assign'] = function (test) {
     var q = "des = describe foo; return {};";
     var statement = compiler.compile(q);
-    test.equal(statement.dependsOn[0].assign, 'des');
+    test.equal(statement.rhs.dependsOn[0].assign, 'des');
     test.done();
 };
 

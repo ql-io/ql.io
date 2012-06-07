@@ -27,12 +27,12 @@ module.exports = {
                   c = "{b}";\
                   return c;'
         plan = compiler.compile(script);
-        test.equals(plan.dependsOn.length, 1);
-        test.equals(plan.dependsOn[0].object, '{b}');
-        test.equals(plan.dependsOn[0].dependsOn.length, 1);
-        test.equals(plan.dependsOn[0].dependsOn[0].object, '{a}');
-        test.equals(plan.dependsOn[0].dependsOn[0].dependsOn.length, 1);
-        test.equals(plan.dependsOn[0].dependsOn[0].dependsOn[0].object, 'a');
+        test.equals(plan.rhs.dependsOn.length, 1);
+        test.equals(plan.rhs.dependsOn[0].object, '{b}');
+        test.equals(plan.rhs.dependsOn[0].dependsOn.length, 1);
+        test.equals(plan.rhs.dependsOn[0].dependsOn[0].object, '{a}');
+        test.equals(plan.rhs.dependsOn[0].dependsOn[0].dependsOn.length, 1);
+        test.equals(plan.rhs.dependsOn[0].dependsOn[0].dependsOn[0].object, 'a');
         test.done();
     },
 

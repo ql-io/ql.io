@@ -21,25 +21,14 @@ var compiler = require('../lib/compiler');
 exports['show'] = function (test) {
     var q = "show tables";
     var statement = compiler.compile(q);
-    var e = {
-        type: 'show',
-        line: 1,
-        id: 0
-    };
-    test.deepEqual(statement.rhs, e);
+    test.equals(statement.rhs.type, 'show');
     test.done();
 };
-
 
 exports['show assign'] = function (test) {
     var q = "tables = show tables; return tables;";
     var statement = compiler.compile(q);
-    var e = { type: 'return',
-      line: 1,
-      id: 1,
-      rhs: { ref: 'tables' },
-      dependsOn: [ { type: 'show', line: 1, assign: 'tables', id: 0, dependsOn: [] } ] };
-    test.equal(statement.dependsOn[0].assign, 'tables');
-    test.equal(statement.dependsOn[0].listeners[0].type, 'return');
+    test.equal(statement.rhs.dependsOn[0].assign, 'tables');
+    test.equal(statement.rhs.dependsOn[0].listeners[0].type, 'ref');
     test.done();
 };

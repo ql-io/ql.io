@@ -29,17 +29,6 @@ exports['route using header'] = function (test) {
     test.done();
 };
 
-exports['route using headers'] = function (test) {
-    var q = "return {} via route '/foo/bar' using method get using headers 'A' = 'B', 'B' = 'C';";
-    var compiled = compiler.compile(q);
-    test.equals(compiled.type, 'return', 'expected return');
-    test.ok(compiled.route, 'expected a route');
-    test.ok(compiled.route.path.value, '/foo/bar');
-    test.ok(compiled.route.method, 'get');
-    test.deepEqual(compiled.route.headers, {'A' : 'B', 'B' : 'C'});
-    test.done();
-};
-
 exports['route using headers token name'] = function (test) {
     var q = "name = \"hello\";return {} via route '/foo/bar' using method get using headers '{name}' = 'B', 'B' = 'C';";
     var compiled = compiler.compile(q);

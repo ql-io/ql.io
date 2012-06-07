@@ -120,34 +120,33 @@ function plan(compiled) {
     }
 
     // Start with the return statement and create the plan.
+    _.each(compiled, function(line) {
+        walk(line, symbols);
+    });
     walk(ret, symbols);
-    if(ret.rhs) {
-        _.each(ret.rhs.dependsOn, function(dependency) {
-            ret.dependsOn.push(dependency);
-        });
-        delete ret.rhs.dependsOn;
-    }
 
     // Reverse links from dependencies and pickup orphans
-    // TODO: no extra walk necessary
     var used = [];
     function rev(node) {
-        used.push(node.id);
+        // used.push(node.id);
         _.each(node.dependsOn, function(dependency) {
-            dependency.listeners = dependency.listeners || [];
-            dependency.listeners.push(node);
             used.push(dependency.id);
             rev(dependency);
         });
         if(node.fallback) {
+            used.push(node.fallback.id);
             rev(node.fallback);
             node.fallback.listeners = node.listeners;
         }
     }
-    rev(ret);
+    used.push(ret.rhs.id);
     rev(ret.rhs);
+    _.each(compiled, function(line) {
+        rev(line);
+    });
+    used.push(ret.id);
 
-    // Insert all orphans at the beginning of dep arr. Orphans occur when depednencies are based on
+    // Insert all orphans at the beginning of dep arr. Orphans occur when dependencies are based on
     // body templates but the language has no way of knowing such dependencies.
     // Orphans include create table statements.
     var orphans = [];
@@ -159,17 +158,18 @@ function plan(compiled) {
             }
             else {
                 orphans.push(line);
+                addListener(line, ret.rhs);
             }
-            line.listeners = line.listeners || [];
-            line.listeners.push(ret);
             if(line.fallback) {
                 line.fallback.listeners = line.listeners;
             }
         }
     });
+    ret.rhs.return = ret;
+
     // Insert creates before orphans.
-    ret.dependsOn = orphans.concat(ret.dependsOn);
-    ret.dependsOn = creates.concat(ret.dependsOn);
+    ret.rhs.dependsOn = orphans.concat(ret.rhs.dependsOn);
+    ret.rhs.dependsOn = creates.concat(ret.rhs.dependsOn);
 
     return ret;
 }
@@ -182,22 +182,14 @@ function walk(line, symbols) {
         case 'ref':
             dependency = symbols[line.ref];
             if(dependency) {
-                addDep(line.dependsOn, dependency, symbols);
+                addDep(line, line.dependsOn, dependency, symbols);
             }
             break;
         case 'define':
-            introspectObject(line.object, symbols, line.dependsOn);
+            introspectObject(line.object, symbols, line.dependsOn, line);
             break;
         case 'return':
-            if(line.rhs.ref) {
-                dependency = symbols[line.rhs.ref];
-                if(dependency) {
-                    addDep(line.dependsOn, dependency, symbols);
-                }
-            }
-            else {
-                walk(line.rhs, symbols);
-            }
+            walk(line.rhs, symbols);
 
             if(line.fallback) {
                 walk(line.fallback, symbols);
@@ -208,8 +200,8 @@ function walk(line, symbols) {
                 introspectString(line.route.path, symbols, line.dependsOn);
                 if(line.route.headers) {
                     _.each(line.route.headers, function(value, name) {
-                        introspectString(value, symbols, line.dependsOn);
-                        introspectString(name, symbols, line.dependsOn);
+                        introspectString(value, symbols, line.rhs.dependsOn, line.rhs);
+                        introspectString(name, symbols, line.rhs.dependsOn, line.rhs);
                     })
                 }
             }
@@ -241,14 +233,41 @@ function walk(line, symbols) {
     }
 }
 
-function addDep(dependsOn, dependency, symbols) {
+function addListener(node, listener) {
     var contains = false;
-    for(var i = 0; i < dependsOn.length; i++) {
-        contains = _.isEqual(dependsOn[i], dependency);
-        if(contains) {
+    node.listeners = node.listeners || [];
+    for(var i = 0; i < node.listeners.length; i++) {
+        if(node.listeners[i].id === listener.id) {
+            contains = true;
             break;
         }
     }
+    if(!contains) {
+        node.listeners.push(listener);
+    }
+}
+
+function addDep(line, dependsOn, dependency, symbols) {
+    var contains = false;
+    dependency.listeners = dependency.listeners || [];
+    for(i = 0; i < dependency.listeners.length; i++) {
+        if(dependency.listeners[i].id === line.id) {
+            contains = true;
+            break;
+        }
+    }
+    if(!contains) {
+        dependency.listeners.push(line);
+    }
+
+    contains = false;
+    for(var i = 0; i < dependsOn.length; i++) {
+        if(dependsOn[i].id === dependency.id) {
+            contains = true;
+            break;
+        }
+    }
+
     if(!contains) {
         dependsOn.push(dependency);
         walk(dependency, symbols);
@@ -258,7 +277,7 @@ function addDep(dependsOn, dependency, symbols) {
 //
 // Introspection utils
 //
-function introspectString(v, symbols, dependsOn) {
+function introspectString(v, symbols, dependsOn, line) {
     try {
         var parsed = strParser.parse(v);
         _.each(parsed.vars, function(refname) {
@@ -276,7 +295,7 @@ function introspectString(v, symbols, dependsOn) {
                     }
                 }
                 if(!contains) {
-                    addDep(dependsOn, dependency, symbols);
+                    addDep(line, dependsOn, dependency, symbols);
                 }
             }
         });
@@ -286,29 +305,29 @@ function introspectString(v, symbols, dependsOn) {
     }
 }
 
-function introspectObject(obj, symbols, dependsOn) {
+function introspectObject(obj, symbols, dependsOn, line) {
     if(_.isString(obj)) {
-        introspectString(obj, symbols, dependsOn);
+        introspectString(obj, symbols, dependsOn, line);
     }
     else if(_.isArray(obj)) {
         _.each(obj, function(v) {
-            introspectObject(v, symbols, dependsOn);
+            introspectObject(v, symbols, dependsOn, line);
         });
     }
     else if(_.isObject(obj)) {
         _.each(obj, function(v, n) {
             if(_.isString(v)) {
-                introspectString(v, symbols, dependsOn);
+                introspectString(v, symbols, dependsOn, line);
             }
             else if(_.isArray(v)) {
                 var arr = [];
                 _.each(v, function(vi) {
-                    introspectObject(vi, symbols, dependsOn);
+                    introspectObject(vi, symbols, dependsOn, line);
                 });
                 ret[n] = arr;
             }
             else {
-                introspectObject(v, symbols, dependsOn);
+                introspectObject(v, symbols, dependsOn, line);
             }
         });
     }
@@ -327,10 +346,10 @@ function introspectFrom(line, froms, symbols, parent) {
                 }
                 else {
                     if(parent) {
-                        addDep(parent.dependsOn, dependency, symbols);
+                        addDep(parent, parent.dependsOn, dependency, symbols);
                     }
                     else {
-                        addDep(line.dependsOn, dependency, symbols);
+                        addDep(line, line.dependsOn, dependency, symbols);
                     }
                 }
             }
@@ -344,10 +363,10 @@ function introspectFrom(line, froms, symbols, parent) {
                 }
                 else {
                     if(parent) {
-                        addDep(parent.dependsOn, dependency, symbols);
+                        addDep(parent, parent.dependsOn, dependency, symbols);
                     }
                     else {
-                        addDep(line.dependsOn, dependency, symbols);
+                        addDep(line, line.dependsOn, dependency, symbols);
                     }
                 }
             }
@@ -386,7 +405,7 @@ function introspectWhere(line, symbols, parent) {
                                     throw new this.SyntaxError('Circular reference ' + line.assign);
                                 }
                                 else if(dependency) {
-                                    addDep(line.dependsOn, dependency, symbols);
+                                    addDep(line, line.dependsOn, dependency, symbols);
                                 }
                             }
                         }
@@ -419,7 +438,7 @@ function introspectWhere(line, symbols, parent) {
                                 throw new this.SyntaxError('Circular reference ' + line.assign);
                             }
                             else {
-                                addDep(line.dependsOn, dependency, symbols);
+                                addDep(parent || line, (parent || line).dependsOn, dependency, symbols);
                             }
                         }
                     }
@@ -436,7 +455,7 @@ function introspectWhere(line, symbols, parent) {
                             throw new this.SyntaxError('Circular reference ' + line.assign);
                         }
                         else {
-                            addDep(line.dependsOn, dependency, symbols);
+                            addDep(line, line.dependsOn, dependency, symbols);
                         }
                     }
                     else {
