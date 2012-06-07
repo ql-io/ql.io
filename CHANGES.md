@@ -1,5 +1,6 @@
 ## June 5, 2012
 
+* Support C style block comments
 * Add file path/name to comiple errors
 
 ## June 4, 2012

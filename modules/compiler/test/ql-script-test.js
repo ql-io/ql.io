@@ -314,5 +314,23 @@ return {"result" : "{fields}"};\
             test.ok(true);
             test.done();
         }
+    },
+
+    'block comments': function(test) {
+        var script = "-- line comment\n\
+            \n\
+        /* block comment\n\
+        block\n\
+        */\n\
+        /** another block */\n\
+            \n\
+        return 'foo';";
+
+        var plan = compiler.compile(script);
+        test.equal(plan.comments.length, 3);
+        test.equal(plan.comments[0].text, 'line comment');
+        test.equal(plan.comments[1].text, 'block comment\n        block\n        ');
+        test.equal(plan.comments[2].text, 'another block ');
+        test.done();
     }
 };
