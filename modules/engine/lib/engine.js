@@ -319,6 +319,13 @@ Engine.prototype.execute = function() {
                             return engineEvent.end(err);
                         }
                     }
+                    else if(results === null || results === undefined
+                        || results.body === null || results.body === undefined){
+                        var fallback = statement.rhs ? statement.rhs.fallback : statement.fallback;
+                        if(fallback) {
+                            return sweep(fallback);
+                        }
+                    }
 
                     execState[todo.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
 
@@ -343,6 +350,7 @@ Engine.prototype.execute = function() {
             engineEvent.end(err);
         }
         else {
+            results = results || {headers:{}, body: null};
             if(plan.route && plan.route.headers) {
                 params = _util.prepareParams(context,
                     request.body,
@@ -475,7 +483,7 @@ function execOne(opts, statement, cb, parentEvent) {
  */
 function _execOne(opts, statement, parentEvent, cb) {
     if(preReqNotFound(statement, opts, parentEvent)) {
-        return nullBody(cb);
+        return cb();
     }
 
     var obj, params, args;
@@ -564,14 +572,6 @@ function preReqNotFound(statement, opts, parentEvent) {
     });
 }
 
-function nullBody(cb) {
-    return cb(null, {
-        headers:{
-            'content-type':'application/json'
-        },
-        body: null
-    });
-}
 
 // Export event types
 Engine.Events = {};
