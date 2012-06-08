@@ -38,7 +38,7 @@ exports.go = function(options) {
     // Compile the DDL and post process
     try {
         var plan = statement || compiler.compile(script);
-        walk(options, plan);
+        walk(options, plan.rhs || plan);
     }
     catch(e) {
         console.log('Error loading ' + options.path + options.name + '.ql');

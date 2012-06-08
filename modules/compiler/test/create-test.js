@@ -21,9 +21,9 @@ var compiler = require('../lib/compiler');
 exports['simple'] = function(test) {
     var q = "create table twitter.public on select get from 'http://twitter.com/statuses/public_timeline.{^format}'  using defaults format = 'json'";
     var compiled = compiler.compile(q);
-    test.equal(compiled.dependsOn[0].type, 'create');
-    test.equal(compiled.dependsOn[0].name, 'twitter.public');
-    test.deepEqual(compiled.dependsOn[0].select, { method: 'get',
+    test.equal(compiled.rhs.dependsOn[0].type, 'create');
+    test.equal(compiled.rhs.dependsOn[0].name, 'twitter.public');
+    test.deepEqual(compiled.rhs.dependsOn[0].select, { method: 'get',
                     uri: 'http://twitter.com/statuses/public_timeline.{^format}',
                     defaults: { format: 'json' },
                     aliases: {},
@@ -45,8 +45,8 @@ exports['multiple actions'] = function(test) {
             using patch "shorten.js"\
             resultset "data.expand"';
     var compiled = compiler.compile(q);
-    test.deepEqual(compiled.dependsOn[0].name, 'bitly.shorten');
-    test.deepEqual(compiled.dependsOn[0].insert, { method: 'get',
+    test.deepEqual(compiled.rhs.dependsOn[0].name, 'bitly.shorten');
+    test.deepEqual(compiled.rhs.dependsOn[0].insert, { method: 'get',
                     uri: 'http://api.bitly.com/v3/shorten?login={^login}&apiKey={^apikey}&longUrl={^longUrl}&format={format}',
                     defaults:
                     { apikey: '{config.tables.bitly.shorten.apikey}',
@@ -58,7 +58,7 @@ exports['multiple actions'] = function(test) {
                     cache: {},
                     patch: 'shorten.js',
                     body: '' });
-    test.deepEqual(compiled.dependsOn[0].select, { method: 'get',
+    test.deepEqual(compiled.rhs.dependsOn[0].select, { method: 'get',
                     uri: 'http://api.bitly.com/v3/expand?login={^login}&apiKey={^apikey}&shortUrl={^shortUrl}&format={format}',
                     defaults:
                     { apikey: '{config.tables.bitly.shorten.apikey}',
@@ -94,7 +94,7 @@ create table ebay.trading.getmyebaybuying\
     using patch "getmyebaybuying.js"\
     using bodyTemplate "getmyebaybuying.xml.mu" type "application/xml"';
     var compiled = compiler.compile(script);
-    test.equals(compiled.dependsOn[0].select.body.type, 'application/xml');
+    test.equals(compiled.rhs.dependsOn[0].select.body.type, 'application/xml');
     test.done();
 };
 
@@ -121,7 +121,7 @@ create table ebay.trading.getmyebaybuying\n\
 
     try {
         var compiled = compiler.compile(script);
-        test.equals(compiled.dependsOn[0].select.body.type, 'application/xml;foo=bar');
+        test.equals(compiled.rhs.dependsOn[0].select.body.type, 'application/xml;foo=bar');
         test.done();
     }
     catch(e) {
@@ -152,7 +152,7 @@ create table ebay.trading.getmyebaybuying\n\
 
     try {
         var compiled = compiler.compile(script);
-        test.equals(compiled.dependsOn[0].select.body.type, 'application/x-www-form-urlencoded');
+        test.equals(compiled.rhs.dependsOn[0].select.body.type, 'application/x-www-form-urlencoded');
         test.done();
     }
     catch(e) {
@@ -164,7 +164,7 @@ exports['auth'] = function(test) {
     var script = 'create table ebay.finding.items on select get from "{config.tables.ebay.finding.items.url}" authenticate using "authmod"';
     try {
         var compiled = compiler.compile(script);
-        test.equals(compiled.dependsOn[0].select.auth, 'authmod');
+        test.equals(compiled.rhs.dependsOn[0].select.auth, 'authmod');
         test.done();
     }
     catch(e) {
@@ -177,7 +177,7 @@ exports['create-many'] = function(test) {
                   create table two on select post to "url2"';
     var compiled = compiler.compile(script);
 
-    test.deepEqual(compiled.dependsOn[0].select, { method: 'get',
+    test.deepEqual(compiled.rhs.dependsOn[0].select, { method: 'get',
                 uri: 'url1',
                 defaults: {},
                 aliases: {},
@@ -186,7 +186,7 @@ exports['create-many'] = function(test) {
                 cache: {},
                 body: '' });
 
-    test.deepEqual(compiled.dependsOn[1].select, { method: 'post',
+    test.deepEqual(compiled.rhs.dependsOn[1].select, { method: 'post',
                 uri: 'url2',
                 defaults: {},
                 aliases: {},
@@ -203,9 +203,9 @@ exports['create-deps'] = function(test) {
                   resp = select * from mytable;\n\
                   return '{resp.$..item}'";
     var plan = compiler.compile(script);
-    test.equals(plan.dependsOn.length, 1);
-    test.equals(plan.dependsOn[0].type, 'select');
-    test.equals(plan.dependsOn[0].dependsOn.length, 1);
-    test.equals(plan.dependsOn[0].dependsOn[0].type, 'create');
+    test.equals(plan.rhs.dependsOn.length, 1);
+    test.equals(plan.rhs.dependsOn[0].type, 'select');
+    test.equals(plan.rhs.dependsOn[0].dependsOn.length, 1);
+    test.equals(plan.rhs.dependsOn[0].dependsOn[0].type, 'create');
     test.done();
 }
