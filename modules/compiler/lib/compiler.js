@@ -128,7 +128,6 @@ function plan(compiled) {
     // Reverse links from dependencies and pickup orphans
     var used = [];
     function rev(node) {
-        // used.push(node.id);
         _.each(node.dependsOn, function(dependency) {
             used.push(dependency.id);
             rev(dependency);
