@@ -55,10 +55,10 @@ exports['Multi-line Two level select with where = & in '] = function(test) {
         var5 = select * from abcd where id in (select * from pqr where id = "{^var6}");\
         return {"var3":"{var3}","var5":"{var5}"};';
     var compiled = compiler.compile(q);
-    test.equal(compiled.dependsOn[0].preRequisites.length, 1);
-    test.equal(compiled.dependsOn[0].preRequisites[0], 'var4');
-    test.equal(compiled.dependsOn[1].preRequisites.length, 1);
-    test.equal(compiled.dependsOn[1].preRequisites[0], 'var6');
+    test.equal(compiled.rhs.dependsOn[0].preRequisites.length, 1);
+    test.equal(compiled.rhs.dependsOn[0].preRequisites[0], 'var4');
+    test.equal(compiled.rhs.dependsOn[1].preRequisites.length, 1);
+    test.equal(compiled.rhs.dependsOn[1].preRequisites[0], 'var6');
     test.done();
 };
 

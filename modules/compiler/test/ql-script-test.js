@@ -30,16 +30,16 @@ module.exports = {
         var statement = compiler.compile(q);
         test.equals(statement.type, 'return');
         test.equals(statement.rhs.ref, 'results');
-        test.equals(statement.dependsOn.length, 1);
-        test.equals(statement.dependsOn[0].assign, 'results');
-        test.equals(statement.dependsOn[0].type, 'select');
-        test.equals(statement.dependsOn[0].listeners.length, 1);
-        test.equals(statement.dependsOn[0].listeners[0].type, 'return');
-        test.equals(statement.dependsOn[0].dependsOn.length, 1);
-        test.equals(statement.dependsOn[0].dependsOn[0].assign, 'a');
-        test.equals(statement.dependsOn[0].dependsOn[0].type, 'select');
-        test.equals(statement.dependsOn[0].dependsOn[0].listeners.length, 1);
-        test.equals(statement.dependsOn[0].dependsOn[0].listeners[0].type, 'select');
+        test.equals(statement.rhs.dependsOn.length, 1);
+        test.equals(statement.rhs.dependsOn[0].assign, 'results');
+        test.equals(statement.rhs.dependsOn[0].type, 'select');
+        test.equals(statement.rhs.dependsOn[0].listeners.length, 1);
+        test.equals(statement.rhs.dependsOn[0].listeners[0].type, 'ref');
+        test.equals(statement.rhs.dependsOn[0].dependsOn.length, 1);
+        test.equals(statement.rhs.dependsOn[0].dependsOn[0].assign, 'a');
+        test.equals(statement.rhs.dependsOn[0].dependsOn[0].type, 'select');
+        test.equals(statement.rhs.dependsOn[0].dependsOn[0].listeners.length, 1);
+        test.equals(statement.rhs.dependsOn[0].dependsOn[0].listeners[0].type, 'select');
         test.done();
     },
 
@@ -55,13 +55,13 @@ module.exports = {
         var plan = compiler.compile(script);
         test.equals(plan.type, 'return');
         test.equals(plan.rhs.type, 'define');
-        test.equals(plan.dependsOn[0].assign, 'bidList'); // orphan
-        test.equals(plan.dependsOn[1].assign, 'bestOfferList'); // orphan
-        test.equals(plan.dependsOn[2].assign, 'watches');
-        test.equals(plan.dependsOn[2].dependsOn[0].assign, 'watchList');
-        test.equals(plan.dependsOn[2].dependsOn[0].listeners[0].assign, 'watches');
-        test.equals(plan.dependsOn[2].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
-        test.equals(plan.dependsOn[2].dependsOn[0].dependsOn[0].listeners[0].assign, 'watchList');
+        test.equals(plan.rhs.dependsOn[0].assign, 'bidList'); // orphan
+        test.equals(plan.rhs.dependsOn[1].assign, 'bestOfferList'); // orphan
+        test.equals(plan.rhs.dependsOn[2].assign, 'watches');
+        test.equals(plan.rhs.dependsOn[2].dependsOn[0].assign, 'watchList');
+        test.equals(plan.rhs.dependsOn[2].dependsOn[0].listeners[0].assign, 'watches');
+        test.equals(plan.rhs.dependsOn[2].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+        test.equals(plan.rhs.dependsOn[2].dependsOn[0].dependsOn[0].listeners[0].assign, 'watchList');
         test.done();
     },
 
@@ -74,9 +74,9 @@ module.exports = {
                   };'
 
         var plan = compiler.compile(script);
-        test.equals(plan.dependsOn[0].assign, 'itemDetails');
-        test.equals(plan.dependsOn[0].dependsOn[0].assign, 'watchList');
-        test.equals(plan.dependsOn[0].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+        test.equals(plan.rhs.dependsOn[0].assign, 'itemDetails');
+        test.equals(plan.rhs.dependsOn[0].dependsOn[0].assign, 'watchList');
+        test.equals(plan.rhs.dependsOn[0].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
         test.done();
     },
 
@@ -89,9 +89,9 @@ module.exports = {
                   };'
 
         var plan = compiler.compile(script);
-        test.equals(plan.dependsOn[0].assign, 'itemDetails');
-        test.equals(plan.dependsOn[0].dependsOn[0].assign, 'watchList');
-        test.equals(plan.dependsOn[0].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+        test.equals(plan.rhs.dependsOn[0].assign, 'itemDetails');
+        test.equals(plan.rhs.dependsOn[0].dependsOn[0].assign, 'watchList');
+        test.equals(plan.rhs.dependsOn[0].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
         test.done();
     },
 
@@ -116,17 +116,17 @@ module.exports = {
                   };';
         try {
             var plan = compiler.compile(script);
-            test.equals(plan.dependsOn.length, 2);
-            test.equals(plan.dependsOn[0].assign, 'watches');
-            test.equals(plan.dependsOn[1].dependsOn.length, 4);
-            test.equals(plan.dependsOn[1].dependsOn[0].assign, 'watchList');
-            test.equals(plan.dependsOn[1].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
-            test.equals(plan.dependsOn[1].dependsOn[1].assign, 'bidList');
-            test.equals(plan.dependsOn[1].dependsOn[1].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
-            test.equals(plan.dependsOn[1].dependsOn[2].assign, 'bestOfferList');
-            test.equals(plan.dependsOn[1].dependsOn[2].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
-            test.equals(plan.dependsOn[1].dependsOn[3].assign, 'activeList');
-            test.equals(plan.dependsOn[1].dependsOn[3].dependsOn[0].assign, 'GetMyeBaySellingResponse');
+            test.equals(plan.rhs.dependsOn.length, 2);
+            test.equals(plan.rhs.dependsOn[0].assign, 'watches');
+            test.equals(plan.rhs.dependsOn[1].dependsOn.length, 4);
+            test.equals(plan.rhs.dependsOn[1].dependsOn[0].assign, 'watchList');
+            test.equals(plan.rhs.dependsOn[1].dependsOn[0].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+            test.equals(plan.rhs.dependsOn[1].dependsOn[1].assign, 'bidList');
+            test.equals(plan.rhs.dependsOn[1].dependsOn[1].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+            test.equals(plan.rhs.dependsOn[1].dependsOn[2].assign, 'bestOfferList');
+            test.equals(plan.rhs.dependsOn[1].dependsOn[2].dependsOn[0].assign, 'GetMyeBayBuyingResponse');
+            test.equals(plan.rhs.dependsOn[1].dependsOn[3].assign, 'activeList');
+            test.equals(plan.rhs.dependsOn[1].dependsOn[3].dependsOn[0].assign, 'GetMyeBaySellingResponse');
             test.done();
         }
         catch(e) {
@@ -145,10 +145,10 @@ module.exports = {
                   };'
         try {
             var plan = compiler.compile(script);
-            test.equals(plan.dependsOn.length, 1);
-            test.equals(plan.dependsOn[0].type, 'select');
-            test.equals(plan.dependsOn[0].dependsOn.length, 1);
-            test.equals(plan.dependsOn[0].dependsOn[0].type, 'select');
+            test.equals(plan.rhs.dependsOn.length, 1);
+            test.equals(plan.rhs.dependsOn[0].type, 'select');
+            test.equals(plan.rhs.dependsOn[0].dependsOn.length, 1);
+            test.equals(plan.rhs.dependsOn[0].dependsOn[0].type, 'select');
             test.done();
         }
         catch(e) {
@@ -180,10 +180,10 @@ return {"result" : "{fields}"};\
         try {
             var plan = compiler.compile(script);
             test.equals(plan.type, 'return');
-            test.equals(plan.dependsOn.length, 1);
-            test.equals(plan.dependsOn[0].type, 'select')
-            test.equals(plan.dependsOn[0].dependsOn.length, 1);
-            test.equals(plan.dependsOn[0].dependsOn[0].type, 'define');
+            test.equals(plan.rhs.dependsOn.length, 1);
+            test.equals(plan.rhs.dependsOn[0].type, 'select')
+            test.equals(plan.rhs.dependsOn[0].dependsOn.length, 1);
+            test.equals(plan.rhs.dependsOn[0].dependsOn[0].type, 'define');
             test.done();
         }
         catch(e) {
@@ -331,6 +331,18 @@ return {"result" : "{fields}"};\
         test.equal(plan.comments[0].text, 'line comment');
         test.equal(plan.comments[1].text, 'block comment\n        block\n        ');
         test.equal(plan.comments[2].text, 'another block ');
+        test.done();
+    },
+
+    'var-subst-orphans': function(test) {
+        var script = 'var1 = "hello";var2 = "{var1.prop}"; var3 = "{var2.prop}"; return {};';
+        var plan = compiler.compile(script);
+        test.equals(plan.rhs.dependsOn.length, 1);
+        test.equals(plan.rhs.dependsOn[0].assign, 'var3');
+        test.equals(plan.rhs.dependsOn[0].dependsOn.length, 1);
+        test.equals(plan.rhs.dependsOn[0].dependsOn[0].assign, 'var2');
+        test.equals(plan.rhs.dependsOn[0].dependsOn[0].dependsOn.length, 1);
+        test.equals(plan.rhs.dependsOn[0].dependsOn[0].dependsOn[0].assign, 'var1');
         test.done();
     }
 };

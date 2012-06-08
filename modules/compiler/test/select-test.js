@@ -22,17 +22,7 @@ module.exports = {
     'select-star': function(test) {
         var q = "select * from foo";
         var statement = compiler.compile(q);
-        var e = {
-                type: 'select',
-                fromClause: [
-                    {'name': 'foo' }
-                ],
-                columns: {name: '*', type: 'column'},
-                whereCriteria: undefined,
-                id: 0,
-                line: 1
-            };
-        test.deepEqual(statement.rhs, e);
+        test.deepEqual(statement.rhs.columns, {name: '*', type: 'column'});
         test.done();
     },
 
@@ -40,22 +30,12 @@ module.exports = {
         var q = 'select title[0], itemId[0], primaryCategory[0].categoryName[0], ' +
             'sellingStatus[0].currentPrice[0] from ebay.finding.items';
         var statement = compiler.compile(q);
-        var e = {
-                type: 'select',
-                fromClause: [
-                    {'name': 'ebay.finding.items' }
-                ],
-                columns: [
-                    {name: 'title[0]', type: "column"},
-                    {name: 'itemId[0]', type: "column"},
-                    {name: 'primaryCategory[0].categoryName[0]', type: "column"},
-                    {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
-                ],
-                whereCriteria: undefined,
-                id: 0,
-                line: 1
-            };
-        test.deepEqual(statement.rhs, e);
+        test.deepEqual(statement.rhs.columns, [
+            {name: 'title[0]', type: "column"},
+            {name: 'itemId[0]', type: "column"},
+            {name: 'primaryCategory[0].categoryName[0]', type: "column"},
+            {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
+        ]);
         test.done();
     },
 
@@ -63,26 +43,17 @@ module.exports = {
         var q = 'select title[0], itemId[0], primaryCategory[0].categoryName[0], ' +
             'sellingStatus[0].currentPrice[0] from ebay.finding.items where keywords="cooper"';
         var statement = compiler.compile(q);
-        var e = {
-                type: 'select',
-                line: 1,
-                fromClause: [
-                    {name: 'ebay.finding.items' }
-                ],
-                columns: [
-                    {name: 'title[0]', type: "column"},
-                    {name: 'itemId[0]', type: "column"},
-                    {name: 'primaryCategory[0].categoryName[0]', type: "column"},
-                    {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
-                ],
-                whereCriteria: [
-                    { operator: '=', lhs: {name: 'keywords', type: "column"}, rhs: {
-                        value: 'cooper'
-                    } }
-                ],
-                id: 0
-            };
-        test.deepEqual(statement.rhs, e);
+        test.deepEqual(statement.rhs.columns, [
+            {name: 'title[0]', type: "column"},
+            {name: 'itemId[0]', type: "column"},
+            {name: 'primaryCategory[0].categoryName[0]', type: "column"},
+            {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
+        ]);
+        test.deepEqual(statement.rhs.whereCriteria, [
+            { operator: '=', lhs: {name: 'keywords', type: "column"}, rhs: {
+                value: 'cooper'
+            } }
+        ]);
         test.done();
     },
 
@@ -90,50 +61,27 @@ module.exports = {
         var q = 'select e.title[0], e.itemId[0], e.primaryCategory[0].categoryName[0], ' +
             'e.sellingStatus[0].currentPrice[0] from ebay.finding.items as e where keywords="cooper"';
         var statement = compiler.compile(q);
-        var e = {
-                type: 'select',
-                line: 1,
-                fromClause: [
-                    {name: 'ebay.finding.items', alias: 'e' }
-                ],
-                columns: [
-                    {name: 'e.title[0]', type: "column"},
-                    {name: 'e.itemId[0]', type: "column"},
-                    {name: 'e.primaryCategory[0].categoryName[0]', type: "column"},
-                    {name: 'e.sellingStatus[0].currentPrice[0]', type: "column"}
-                ],
-                whereCriteria: [
-                    { operator: '=', lhs: {type: "column", name: 'keywords'}, rhs: {
-                        value: 'cooper'
-                    } }
-                ],
-                id: 0
-            };
-        test.deepEqual(statement.rhs, e);
+        test.deepEqual(statement.rhs.fromClause, [
+            {name: 'ebay.finding.items', alias: 'e' }
+        ]);
         test.done();
     },
 
     'select-in-csv': function(test) {
         var q = "select ViewItemURLForNaturalSearch from ebay.item where itemId in ('180652013910','120711247507')";
         var statement = compiler.compile(q);
-        var e = {
-                type: 'select',
-                line: 1,
-                fromClause: [
+        test.deepEqual(statement.rhs.fromClause, [
                     {name: 'ebay.item'}
-                ],
-                columns: [
-                    {name: 'ViewItemURLForNaturalSearch', type: "column"}
-                ],
-                whereCriteria: [
-                    { operator: 'in', lhs: {name: 'itemId'}, "rhs":{
-                        value: ['180652013910', '120711247507']
-                    }
-                    }
-                ],
-                id: 0
-            };
-        test.deepEqual(statement.rhs, e);
+                ]);
+        test.deepEqual(statement.rhs.columns, [
+            {name: 'ViewItemURLForNaturalSearch', type: "column"}
+        ]);
+        test.deepEqual(statement.rhs.whereCriteria, [
+            { operator: 'in', lhs: {name: 'itemId'}, "rhs": {
+                value: ['180652013910', '120711247507']
+            }
+            }
+        ]);
         test.done();
     },
 
@@ -181,59 +129,55 @@ module.exports = {
         var q = "select e.Title, e.ItemID, g.geometry.location from ebay.item as e, google.geocode as g where e.itemId in \
             (select itemId from ebay.finding.items where keywords = 'mini') and g.address = e.Location"
         var statement = compiler.compile(q);
-        var e = {
-                "type": "select",
-                "line": 1,
-                "columns": [
-                    { type: 'column', name: 'e.Title' },
-                    { type: 'column', name: 'e.ItemID' },
-                    { type: 'column', name: 'e.Location' }
-                ],
-                selected: [
-                    { from: 'main', index: 0 },
-                    { from: 'main', index: 1 },
-                    { from: 'joiner', index: 0 }
-                ],
-                extras: [ 2 ],
-                whereCriteria: [
-                    { operator: 'in',
-                        lhs: { name: 'e.itemId' },
-                        rhs: { type: 'select',
-                            line: 1,
-                            fromClause: [
-                                { name: 'ebay.finding.items' }
-                            ],
-                            columns: [
-                                { type: 'column', name: 'itemId' }
-                            ],
-                            whereCriteria: [
-                                { operator: '=',
-                                    lhs: { type: 'column', name: 'keywords' },
-                                    rhs: { value: 'mini' } }
-                            ],
-                            dependsOn: [] } }
-                ],
-                fromClause: [
-                    { name: 'ebay.item', alias: 'e' }
-                ],
-                joiner: { type: 'select',
+        test.deepEqual(statement.rhs.columns, [
+            { type: 'column', name: 'e.Title' },
+            { type: 'column', name: 'e.ItemID' },
+            { type: 'column', name: 'e.Location' }
+        ]);
+        test.deepEqual(statement.rhs.selected, [
+            { from: 'main', index: 0 },
+            { from: 'main', index: 1 },
+            { from: 'joiner', index: 0 }
+        ]);
+
+        test.deepEqual(statement.rhs.extras, [ 2 ]);
+        test.deepEqual(statement.rhs.whereCriteria, [
+            { operator: 'in',
+                lhs: { name: 'e.itemId' },
+                rhs: { type: 'select',
                     line: 1,
-                    columns: [
-                        { type: 'column', name: 'g.geometry.location' },
-                        { type: 'column', name: 'g.address' }
+                    fromClause: [
+                        { name: 'ebay.finding.items' }
                     ],
-                    extras: [ 1 ],
+                    columns: [
+                        { type: 'column', name: 'itemId' }
+                    ],
                     whereCriteria: [
                         { operator: '=',
-                            lhs: { type: 'column', name: 'g.address' },
-                            rhs: { type: 'alias', value: 'e.Location', joiningColumn: 2 } }
+                            lhs: { type: 'column', name: 'keywords' },
+                            rhs: { value: 'mini' } }
                     ],
-                    fromClause: [
-                        { name: 'google.geocode', alias: 'g' }
-                    ],
-                    dependsOn: [] },
-                id: 0 };
-        test.deepEqual(statement.rhs, e);
+                    dependsOn: [] } }
+        ]);
+        test.deepEqual(statement.rhs.fromClause, [
+            { name: 'ebay.item', alias: 'e' }
+        ]);
+        test.deepEqual(statement.rhs.joiner, { type: 'select',
+            line: 1,
+            columns: [
+                { type: 'column', name: 'g.geometry.location' },
+                { type: 'column', name: 'g.address' }
+            ],
+            extras: [ 1 ],
+            whereCriteria: [
+                { operator: '=',
+                    lhs: { type: 'column', name: 'g.address' },
+                    rhs: { type: 'alias', value: 'e.Location', joiningColumn: 2 } }
+            ],
+            fromClause: [
+                { name: 'google.geocode', alias: 'g' }
+            ],
+            dependsOn: [] });
         test.done();
     },
 
@@ -241,23 +185,15 @@ module.exports = {
         var q = 'select title[0], itemId[0], primaryCategory[0].categoryName[0], ' +
             'sellingStatus[0].currentPrice[0] from ebay.finding.items limit 4';
         var statement = compiler.compile(q);
-        var e = {
-                type: 'select',
-                line: 1,
-                fromClause: [
-                    {'name': 'ebay.finding.items' }
-                ],
-                columns: [
-                    {name: 'title[0]', type: "column"},
-                    {name: 'itemId[0]', type: "column"},
-                    {name: 'primaryCategory[0].categoryName[0]', type: "column"},
-                    {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
-                ],
-                whereCriteria: undefined,
-                limit: 4,
-                id: 0
-            };
-        test.deepEqual(statement.rhs, e);
+        test.equals(statement.rhs.type, 'select');
+        test.deepEqual(statement.rhs.fromClause, [{'name': 'ebay.finding.items' }]);
+        test.deepEqual(statement.rhs.columns, [
+            {name: 'title[0]', type: "column"},
+            {name: 'itemId[0]', type: "column"},
+            {name: 'primaryCategory[0].categoryName[0]', type: "column"},
+            {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
+        ]);
+        test.equal(statement.rhs.limit, 4);
         test.done();
     },
 
@@ -265,54 +201,29 @@ module.exports = {
         var q = 'select title[0], itemId[0], primaryCategory[0].categoryName[0], ' +
             'sellingStatus[0].currentPrice[0] from ebay.finding.items limit 4 offset 2';
         var statement = compiler.compile(q);
-        var e = {
-                type: 'select',
-                line: 1,
-                fromClause: [
-                    {'name': 'ebay.finding.items' }
-                ],
-                columns: [
-                    {name: 'title[0]', type: "column"},
-                    {name: 'itemId[0]', type: "column"},
-                    {name: 'primaryCategory[0].categoryName[0]', type: "column"},
-                    {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
-                ],
-                whereCriteria: undefined,
-                limit: 4,
-                offset: 2,
-                id: 0
-            };
-        test.deepEqual(statement.rhs, e);
+        test.equals(statement.rhs.type, 'select');
+        test.deepEqual(statement.rhs.fromClause, [{'name': 'ebay.finding.items' }]);
+        test.deepEqual(statement.rhs.columns, [
+            {name: 'title[0]', type: "column"},
+            {name: 'itemId[0]', type: "column"},
+            {name: 'primaryCategory[0].categoryName[0]', type: "column"},
+            {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
+        ]);
+        test.equal(statement.rhs.limit, 4);
+        test.equal(statement.rhs.offset, 2);
         test.done();
     },
 
     'udf': function(test) {
         var q = 'u = require("u");select * from ebay.finditems where u.contains("mini cooper") and u.blendBy()';
         var statement = compiler.compile(q);
-        var e = {
-                "type": "select",
-                "line": 1,
-                "fromClause": [
-                    {
-                        "name": "ebay.finditems"
-                    }
-                ],
-                "columns": {name: "*", type: 'column'},
-                "whereCriteria": [
-                    {
-                        "operator": "udf",
-                        "name": "u.contains",
-                        "args": [{ "type" : "literal", "value": "mini cooper"}]
-                    },
-                    {
-                        "operator": "udf",
-                        "name": "u.blendBy",
-                        "args": ""
-                    }
-                ],
-                id: 1
-            };
-        test.deepEqual(statement.rhs, e);
+        test.equals(statement.rhs.type, 'select');
+        test.deepEqual(statement.rhs.whereCriteria, [ { operator: 'udf',
+            name: 'u.contains',
+            args: [ { type: 'literal', value: 'mini cooper' } ] },
+          { operator: 'udf', name: 'u.blendBy', args: '' } ]);
+        test.equal(statement.rhs.dependsOn[0].name, 'require');
+        test.deepEqual(statement.rhs.dependsOn[0].args, [{ type: 'literal', value: 'u' } ])
         test.done();
     },
 
@@ -331,38 +242,28 @@ module.exports = {
     'udf-args': function(test) {
         var q = 'u = require("u.js");select * from patch.udf where u.p1("v1") and u.p2("2", "3") and u.p3()';
         var statement = compiler.compile(q);
-        var e = {
-                "type": "select",
-                "line": 1,
-                "fromClause": [
-                    {
-                        "name": "patch.udf"
-                    }
-                ],
-                "columns": {name: "*", type: 'column'},
-                "whereCriteria": [
-                    {
-                        "operator": "udf",
-                        "name": "u.p1",
-                        "args": [{"value": "v1", "type": "literal"}]
-                    },
-                    {
-                        "operator": "udf",
-                        "name": "u.p2",
-                        "args": [{"value": "2", "type": "literal"}, {"value": "3", "type": "literal"}],
-                    },
-                    {
-                        "operator": "udf",
-                        "name": "u.p3",
-                        "args": ""
-                    }
-                ],
-                id: 1
-            };
-        test.deepEqual(statement.rhs, e);
+        test.equals(statement.rhs.type, 'select');
+        test.deepEqual(statement.rhs.whereCriteria, [
+                            {
+                                "operator": "udf",
+                                "name": "u.p1",
+                                "args": [{"value": "v1", "type": "literal"}]
+                            },
+                            {
+                                "operator": "udf",
+                                "name": "u.p2",
+                                "args": [{"value": "2", "type": "literal"}, {"value": "3", "type": "literal"}],
+                            },
+                            {
+                                "operator": "udf",
+                                "name": "u.p3",
+                                "args": ""
+                            }
+                        ]);
+        test.equal(statement.rhs.dependsOn[0].name, 'require');
+        test.deepEqual(statement.rhs.dependsOn[0].args, [{ type: 'literal', value: 'u.js' } ])
         test.done();
     },
-
 
     'select-assign': function(test) {
         var q = 'results = select title[0], itemId[0], primaryCategory[0].categoryName[0], ' +
@@ -385,7 +286,7 @@ module.exports = {
                 dependsOn: [],
                 line: 1
             };
-        test.equals(statement.dependsOn[0].assign, 'results');
+        test.equals(statement.rhs.dependsOn[0].assign, 'results');
         test.done();
     },
 
@@ -393,22 +294,14 @@ module.exports = {
         var q = 'select title[0], \nitemId[0], primaryCategory[0].categoryName[0], ' +
             'sellingStatus[0].currentPrice[0] \nfrom ebay.finding.items';
         var statement = compiler.compile(q);
-        var e ={
-                type: 'select',
-                line: 1,
-                fromClause: [
-                    {'name': 'ebay.finding.items' }
-                ],
-                columns: [
-                    {name: 'title[0]', type: "column"},
-                    {name: 'itemId[0]', type: "column"},
-                    {name: 'primaryCategory[0].categoryName[0]', type: "column"},
-                    {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
-                ],
-                whereCriteria: undefined,
-                id: 0
-            };
-        test.deepEqual(statement.rhs, e);
+        test.equal(statement.rhs.type, 'select');
+        test.deepEqual(statement.rhs.fromClause, [{'name': 'ebay.finding.items' }]);
+        test.deepEqual(statement.rhs.columns, [
+            {name: 'title[0]', type: "column"},
+            {name: 'itemId[0]', type: "column"},
+            {name: 'primaryCategory[0].categoryName[0]', type: "column"},
+            {name: 'sellingStatus[0].currentPrice[0]', type: "column"}
+        ]);
         test.done();
     },
 
@@ -782,19 +675,7 @@ module.exports = {
     'select-colon': function(test) {
         var q = 'select a:b.c:d from someXml';
         var statement = compiler.compile(q);
-        var e = {
-                type: 'select',
-                fromClause: [
-                    {'name': 'someXml' }
-                ],
-                columns: [
-                    {name: 'a:b.c:d', type: "column"}
-                ],
-                whereCriteria: undefined,
-                id: 0,
-                line: 1
-            };
-        test.deepEqual(statement.rhs, e);
+        test.equal(statement.rhs.columns[0].name, 'a:b.c:d');
         test.done();
     },
 
@@ -894,25 +775,9 @@ module.exports = {
     'select-timeouts': function(test) {
         var q = 'select a, b, c, d from foo timeout 10 minDelay 100 maxDelay 10000';
         var statement = compiler.compile(q);
-        var e = {
-                type: 'select',
-                line: 1,
-                fromClause: [
-                    {'name': 'foo' }
-                ],
-                columns: [
-                    {name: 'a', type: "column"},
-                    {name: 'b', type: "column"},
-                    {name: 'c', type: "column"},
-                    {name: 'd', type: "column"}
-                ],
-                whereCriteria: undefined,
-                timeout: 10,
-                minDelay: 100,
-                maxDelay: 10000,
-                id: 0
-            };
-        test.deepEqual(statement.rhs, e);
+        test.equal(statement.rhs.timeout, 10);
+        test.equal(statement.rhs.minDelay, 100);
+        test.equal(statement.rhs.maxDelay, 10000);
         test.done();
     }
 };
