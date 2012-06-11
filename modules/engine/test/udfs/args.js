@@ -58,3 +58,8 @@ exports.filterRow = function(keys) {
     // if null, this row will be excluded from results
     return this.next(null, found ? this.row : null);
 };
+
+exports.stringify = function() {
+    this.row = JSON.stringify(this.row);
+    return this.next(null, this.row);
+}
