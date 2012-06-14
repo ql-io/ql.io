@@ -26,7 +26,13 @@ exports.reject = function(resource, statement, context, source) {
 };
 
 exports.filter = function(resource, statement, context, source) {
-    return _iterate(resource, statement, context, source, true);
+    if(!_.isArray(resource) && statement.columns.name === '*') {
+        // Don't filter
+        return resource;
+    }
+    else {
+        return _iterate(resource, statement, context, source, true);
+    }
 };
 
 function _iterate(resource, statement, context, source, keep) {

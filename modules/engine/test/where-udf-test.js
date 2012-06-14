@@ -300,5 +300,27 @@ module.exports = {
                 test.done();
             });
         })
+    },
+
+
+    'select-*': function(test) {
+        var script = 'u = require("./test/udfs/args.js");\n\
+                      a = {"arr": [1, 1, 2, 2, 3, 3, 4]};\n\
+                      b = select * from a where u.stringify();\n\
+                      return b';
+        engine.execute(script, function (emitter) {
+            emitter.on('end', function (err, results) {
+                if(err) {
+                    console.log(err.stack || err);
+                    test.ok(false);
+                    test.done();
+                }
+                else {
+                    test.equal(results.body, '{"arr":[1,1,2,2,3,3,4]}');
+                    test.done();
+                }
+            })
+        });
+
     }
 }

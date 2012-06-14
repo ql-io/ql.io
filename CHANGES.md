@@ -1,3 +1,7 @@
+## June 11, 2012
+
+* Fix https://github.com/ql-io/ql.io/issues/478
+
 ## June 5, 2012
 
 * Support C style block comments
