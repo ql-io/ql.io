@@ -257,7 +257,6 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
                 bufs.push(chunk);
             });
             unzip.on('end', function () {
-                happy = true;
                 result = response.parseResponse(timings, reqStart, args, res, bufs);
                 putInCache(key, cache, result, res, expires);
                 response.exec(timings, reqStart, args, uniqueId, res, start, result, options);
@@ -275,6 +274,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         }
 
         res.on('data', function (chunk) {
+            happy = true;
             if (zipped) {
                 // TODO Check for corrupted stream. Empty 'bufs' may indicate invalid stream
                 unzip.write(chunk);
@@ -298,6 +298,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             }
         });
         res.on('end', function () {
+            happy = true;
             if (zipped) {
                 unzip.end();
             }
@@ -321,7 +322,9 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
     var timedout = false;
     clientRequest.setTimeout(timeout, function() {
         if(happy) {
-            console.log('*** timeout received when not expected');
+            args.logEmitter.emitWarning(args.httpReqTx.event, {
+                message: "'timeout' received when not expected"
+            });
             return;
         }
         timedout = true;
