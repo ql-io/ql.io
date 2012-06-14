@@ -257,7 +257,6 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
                 bufs.push(chunk);
             });
             unzip.on('end', function () {
-                happy = true;
                 result = response.parseResponse(timings, reqStart, args, res, bufs);
                 putInCache(key, cache, result, res, expires);
                 response.exec(timings, reqStart, args, uniqueId, res, start, result, options);
@@ -298,6 +297,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             }
         });
         res.on('end', function () {
+            happy = true;
             if (zipped) {
                 unzip.end();
             }
