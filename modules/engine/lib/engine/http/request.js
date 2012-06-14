@@ -274,6 +274,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         }
 
         res.on('data', function (chunk) {
+            happy = true;
             if (zipped) {
                 // TODO Check for corrupted stream. Empty 'bufs' may indicate invalid stream
                 unzip.write(chunk);
@@ -321,7 +322,9 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
     var timedout = false;
     clientRequest.setTimeout(timeout, function() {
         if(happy) {
-            console.log('*** timeout received when not expected');
+            args.logEmitter.emitWarning(args.httpReqTx.event, {
+                message: "'timeout' received when not expected"
+            });
             return;
         }
         timedout = true;
