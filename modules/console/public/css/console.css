@@ -71,6 +71,7 @@ textarea.query-input {
     font-family: monospace;
     border: 1px solid #eee;
     min-height: 2em;
+    display: none;
 }
 
 #conn-status {
