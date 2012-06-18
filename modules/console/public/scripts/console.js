@@ -1,6 +1,6 @@
 $(document).ready(function() {
     var oldInput, parseTimer, compiler, editor, markers = [], headers, har,
-        runState, socket, emitter, state, results, html, waitOnLoad = false, wsEnabled,
+        runState, socket, emitter, state, results, html, wsEnabled,
         EventEmitter = require('events').EventEmitter, formatter = new JSONFormatter();
 
     // IE8 is not supported
@@ -46,7 +46,6 @@ $(document).ready(function() {
             urlParams[d(e[1])] = d(e[2]);
         }
     })();
-    waitOnLoad = urlParams['wait'] != undefined;
 
     editor = CodeMirror.fromTextArea(document.getElementById('query-input'), {
         lineNumbers: true,
@@ -63,10 +62,17 @@ $(document).ready(function() {
     $('#util-links').hide();
     oldInput = '-- Type ql script here - all keywords must be in lower case';
 
-    probeWs(socket, function(e, r) {
-        wsEnabled = !e;
-        scheduleParse();
-    });
+    setTimeout(function() {
+        probeWs(socket, function(e, r) {
+            if(e) {
+                $('#conn-status').html('Use latest versions of Firefox or Chrome for better experience.');
+            }
+            else {
+                wsEnabled = true;
+            }
+            scheduleParse();
+        });
+    }, 100);
 
     function parse() {
         var statement, escaped, compiled;
@@ -82,14 +88,16 @@ $(document).ready(function() {
                 compiled = [compiled];
             }
             if(compiled.length > 0) {
-                $('#run-query').show();
                 $('#parse-status').hide();
+                $('#util-links').show();
 
-                // Run it now
-                runQuery(statement, escaped, compiled);
+                $('#run').click(function() {
+                    runQuery(statement, escaped, compiled);
+                });
             }
         }
         catch (e) {
+            $('#util-links').hide();
             $('#parse-status').show();
             $('#parse-status').text(buildErrorMessage(e));
             var result = false;
@@ -98,17 +106,6 @@ $(document).ready(function() {
     }
 
     function scheduleParse(now) {
-        // If the uri includes a param 'wait' don't schedule it immediately
-        if(waitOnLoad) {
-            var statement = editor.getValue().replace(/\uFEFF/g, '');
-            var share = window.location.protocol + '//' + window.location.host + window.location.pathname + '?s=' + encodeURIComponent(statement);
-            $('#run-again').attr('href', share);
-            $('#run-again').text('run');
-            $('#util-links').show();
-            waitOnLoad = false;
-            return;
-        }
-
         if(editor.getValue() === oldInput) {
             return;
         }
@@ -141,17 +138,17 @@ $(document).ready(function() {
 
     function runQuery(statement, escaped, compiled) {
         var share = window.location.protocol + '//' + window.location.host + window.location.pathname + '?s=' + encodeURIComponent(statement);
-        $('#run-again').attr('href', share);
+        history.pushState(null, null, share);
         $('#copy-uri').unbind(); // unbind any previous registered handler.
         $('#copy-uri').click(function() {
             window.prompt('Copy the URI below',
                 window.location.protocol + '//' + window.location.host + '/q?s=' + escaped);
         });
-        $('#util-links').show();
-
+        $('#results').show();
         $('#results').animate({
             opacity: 0.25
         });
+
         if(wsEnabled) {
             try {
                 doWs(statement, escaped, compiled);
@@ -167,8 +164,6 @@ $(document).ready(function() {
 
     function doXhr(statement, escaped, compiled) {
         var mediaType, link, execState, data, x, i, status, event
-
-        $('#conn-status').html('Use latest versions of Firefox or Chrome for better experience.');
 
         emitter = new EventEmitter();
         wireup(emitter);
