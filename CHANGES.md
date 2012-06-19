@@ -1,3 +1,8 @@
+## June 18, 2012
+
+* Fix https://github.com/ql-io/ql.io/issues/13 - disable autorun. Also use `pushState` to store
+  history.
+
 ## June 11, 2012
 
 * Fix https://github.com/ql-io/ql.io/issues/478
