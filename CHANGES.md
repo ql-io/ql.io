@@ -1,3 +1,7 @@
+## June 19, 2012
+
+* Regression from previous fix. Remove duplicate click handlers.
+
 ## June 18, 2012
 
 * Fix https://github.com/ql-io/ql.io/issues/13 - disable autorun. Also use `pushState` to store
