@@ -1,3 +1,7 @@
+## June 22, 2012
+
+* Agent.maxSockets increased to 1000. See Issue: https://github.com/ql-io/ql.io/issues/512
+
 ## June 19, 2012
 
 * Regression from previous fix. Remove duplicate click handlers.

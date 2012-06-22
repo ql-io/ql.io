@@ -77,7 +77,8 @@ exports.send = function(args) {
         headers: args.headers
     };
     client = isTls ? https : http;
-
+    // Avoid request backlog on any given socket.
+    client.globalAgent.maxSockets = 1000;
     // Send
     sendMessage(args, client, options, 0);
 }
