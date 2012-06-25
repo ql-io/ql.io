@@ -16,11 +16,6 @@
 
 "use strict";
 
-process.on('uncaughtException', function(e) {
-//    TODO: Not clear why async.js throws the TypeError
-    console.log(e.stack || e);
-});
-
 var fs = require('fs'),
     Engine = require('../lib/engine'),
     async = require('async'),
@@ -37,7 +32,7 @@ module.exports = {
                 res.end(JSON.stringify({
                     'message': 'ok'
                 }));
-            }, 15000);
+            }, 21000);  // Double the default timeout, as there is a 'retry' on timeout
         });
 
         server.listen(3000, function () {
@@ -72,14 +67,14 @@ module.exports = {
                 res.end(JSON.stringify({
                     'message': 'ok'
                 }));
-            }, 150);
+            }, 150);  // More than double the timeout, as there is a 'retry' on timeout
         });
 
         server.listen(3000, function () {
             // Do the test here.
             var engine = new Engine({
             });
-            var script = 'create table timeout2 on select get from "http://localhost:3000/"\nreturn select * from timeout2 timeout 100;';
+            var script = 'create table timeout2 on select get from "http://localhost:3000/"\nreturn select * from timeout2 timeout 50;';
             engine.execute(
                 script,
                 function (emitter) {
@@ -101,7 +96,7 @@ module.exports = {
     'timeouts-below-threshold': function (test) {
         var attempt = 0;
         var server = http.createServer(function (req, res) {
-            if(attempt < 3) {
+            if(attempt < 6) {
                 setTimeout(function () {
                     res.writeHead(200, {
                         'Content-Type': 'application/json'
@@ -119,7 +114,7 @@ module.exports = {
                     'message': 'ok'
                 }));
             }
-            attempt++;
+            attempt++;  // attempt gets incremented on retry too.
         });
 
         server.listen(3000, function () {
@@ -158,7 +153,7 @@ module.exports = {
     'retries-above-threshold': function (test) {
         var attempt = 0;
         var server = http.createServer(function (req, res) {
-            if(attempt < 4) {
+            if(attempt < 8) {
                 setTimeout(function () {
                     res.writeHead(200, {
                         'Content-Type': 'application/json'
@@ -166,9 +161,10 @@ module.exports = {
                     res.end(JSON.stringify({
                         'message': 'ok'
                     }));
-                }, 500);
+                }, 900);
             }
             else {
+
                 res.writeHead(200, {
                     'Content-Type': 'application/json'
                 });
@@ -183,7 +179,7 @@ module.exports = {
             // Do the test here.
             var engine = new Engine({
             });
-            var script = 'create table timeout4 on select get from "http://localhost:3000/"\nreturn select * from timeout timeout4 100;';
+            var script = 'create table timeout4 on select get from "http://localhost:3000/"\nreturn select * from timeout4 timeout 100;';
 
             var fails = 0, passes = 0;
             function send(callback) {
@@ -193,6 +189,9 @@ module.exports = {
                         emitter.on('end', function (err, results) {
                             if(err) {
                                 fails++;
+                                if (fails === 5) {
+                                    test.equals(err.message, 'Back-off in progress');
+                                }
                             }
                             else {
                                 passes++;
@@ -213,9 +212,9 @@ module.exports = {
     },
 
     'backoff-end': function (test) {
-        var attempts = 0;
+        var attempt = 0;
         var server = http.createServer(function (req, res) {
-            if(attempts < 3) {
+            if(attempt < 6) {
                 setTimeout(function () {
                     res.writeHead(200, {
                         'Content-Type': 'application/json'
@@ -223,7 +222,7 @@ module.exports = {
                     res.end(JSON.stringify({
                         'message': 'ok'
                     }));
-                }, 100);
+                }, 500);
             }
             else {
                 res.writeHead(200, {
@@ -233,7 +232,7 @@ module.exports = {
                     'message': 'ok'
                 }));
             }
-            attempts++;
+            attempt++;
         });
 
         server.listen(3000, function () {
@@ -267,8 +266,10 @@ module.exports = {
                         script,
                         function (emitter) {
                             emitter.on('end', function (err, results) {
+                                test.ok(results.body.message === 'ok');
                                 // Should pass
                                 if(err) {
+                                    console.log("OK");
                                     test.ok(false, 'unexpected');
                                 }
                                 server.close();

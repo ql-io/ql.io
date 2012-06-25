@@ -1,3 +1,7 @@
+## June 25, 2012
+
+* Retry once for idempotent requests on timeouts
+
 ## June 22, 2012
 
 * Agent.maxSockets increased to 1000. See Issue: https://github.com/ql-io/ql.io/issues/512
