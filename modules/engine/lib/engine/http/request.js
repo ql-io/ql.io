@@ -330,15 +330,19 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         }
         timedout = true;
 
-        // No need to end/destroy the socket since node does it.
-
-        charlie.notok([args.uri, args.name]);
-        return args.httpReqTx.end({
-            message: 'Request timed out',
-            timeout: timeout,
-            uri: args.uri,
-            status: 502
-        });
+        if (retry === 0 && args.statement.type === 'select') {
+            _retry(args, client, options, 'timeout');
+        }
+        else {
+            // No need to end/destroy the socket since node does it.
+            charlie.notok([args.uri, args.name]);
+            return args.httpReqTx.end({
+                message: 'Request timed out',
+                timeout: timeout,
+                uri: args.uri,
+                status: 502
+            });
+        }
     });
     clientRequest.on('error', function(err) {
         // timeout also triggers error
@@ -353,14 +357,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         });
         // For select, retry once on network error
         if (!timedout && retry === 0 && args.statement.type === 'select') {
-            args.logEmitter.emitEvent(args.httpReqTx.event, {
-                message: 'Retrying - ' + args.uri
-            });
-
-            // End the current event.
-            args.logEmitter.endEvent(args.httpReqTx.event, 'Retrying ' + args.uri);
-
-            sendMessage(args, client, options, 1);
+            _retry(args, client, options, 'Network Error');
         }
         else {
             charlie.notok([args.uri, args.name]);
@@ -373,6 +370,16 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         }
     });
     clientRequest.end();
+}
+
+function _retry(args, client, options, reason) {
+    var msg = 'Retrying on ' + reason + ' - ' + args.uri;
+    args.logEmitter.emitEvent(args.httpReqTx.event, {
+        message: msg
+    });
+    // End the current event.
+    args.logEmitter.endEvent(args.httpReqTx.event, msg);
+    sendMessage(args, client, options, 1);
 }
 
 function sendMessage(args, client, options, retry) {
