@@ -59,7 +59,7 @@ module.exports = {
     'insert json': function (test) {
         var server = http.createServer(function (req, res) {
             res.writeHead(200, {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/xml'
             });
             util.pump(req, res, function (e) {
                 if(e) {
@@ -70,9 +70,11 @@ module.exports = {
         });
         server.listen(3000, function () {
             // Do the test here.
-            var engine = new Engine();
+            var engine = new Engine({
+                tables: __dirname + '/insert'
+            });
             var listener = new Listener(engine);
-            engine.execute('foo = {"f":2,"g":3}; insert {"f":1} into foo; return foo;', function (emitter) {
+            engine.execute('insert {"id":007, "team":[{"name":"Joe"},{"name":"Mike"},{"name":"Haker"}]} into insert.json', function (emitter) {
                 emitter.on('end', function (err, result) {
                     listener.assert(test);
                     if(err) {
@@ -82,7 +84,7 @@ module.exports = {
                     }
                     else {
                         test.equals(result.headers['content-type'], 'application/json', 'json expected');
-                        test.deepEqual(result.body, {"f":1, "g":3});
+                        test.deepEqual(result.body, {"myrequest" : {"id":007, "team":[{"name":"Joe"},{"name":"Mike"},{"name":"Haker"}]}});
                         test.done();
                     }
                     server.close();
