@@ -41,7 +41,7 @@ exports.compress = function (req, res, options) {
     // Do not compress if CPU is 50%
     if(os.loadavg()[1] > maxLoad ) {
         if(options.logEmitter) {
-            logEmitter.emitWarning('CPU load is high - ' + os.loadavg()[1]  + '. Responses are not compressed.');
+            options.logEmitter.emitWarning('CPU load is high - ' + os.loadavg()[1]  + '. Responses are not compressed.');
         }
         return;
     }
