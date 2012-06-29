@@ -1,3 +1,7 @@
+## June 29, 2012
+
+* No Compression if the CPU load is > 50%
+
 ## June 25, 2012
 
 * Retry once for idempotent requests on timeouts
