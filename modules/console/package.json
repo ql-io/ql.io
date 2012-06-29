@@ -33,6 +33,6 @@
     "devDependencies": {
         "nodeunit": "0.7.4",
         "mime" : "1.2.5",
-        "node-form-data": "https://github.com/idralyuk/node-form-data/tarball/master"
+        "form-data": "0.0.2"
     }
 }
