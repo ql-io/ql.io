@@ -1,7 +1,7 @@
 {
     "author": "ql.io",
     "name": "ql.io-app",
-    "version": "0.6.9",
+    "version": "0.6.13",
     "repository": {
         "type": "git",
         "url": "https://github.com/ql-io/ql.io"
@@ -15,7 +15,7 @@
     },
     "dependencies": {
         "commander": "0.6.0",
-        "ql.io-console": "0.6.9",
+        "ql.io-console": "0.6.13",
         "ql.io-compiler": "0.6.5",
         "winston": "0.5.11",
         "express": "2.5.9",

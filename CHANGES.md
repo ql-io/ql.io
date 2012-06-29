@@ -1,3 +1,20 @@
+## June 25, 2012
+
+* Retry once for idempotent requests on timeouts
+
+## June 22, 2012
+
+* Agent.maxSockets increased to 1000. See Issue: https://github.com/ql-io/ql.io/issues/512
+
+## June 19, 2012
+
+* Regression from previous fix. Remove duplicate click handlers.
+
+## June 18, 2012
+
+* Fix https://github.com/ql-io/ql.io/issues/13 - disable autorun. Also use `pushState` to store
+  history.
+
 ## June 11, 2012
 
 * Fix https://github.com/ql-io/ql.io/issues/478
