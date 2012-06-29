@@ -50,7 +50,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         cb: cb});
 
     resource = context[name];
-    values = {};
+    values = statement.jsonbody || {};
     if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
         resource = jsonfill.unwrap(resource);
         _.each(statement.values, function(value, i) {
@@ -73,12 +73,14 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         if(!verb) {
             return insertTx.cb('Table ' + statement.source.name + ' does not support insert');
         }
-        if(statement.columns){
+        // get table default values
+        _.defaults(values, table.statement.insert.defaults);
+        if (statement.columns) {
             _.each(statement.values, function(value, i) {
                 values[statement.columns[i].name] = jsonfill.lookup(value, context);
             });
         }
-        else{
+        else if (!statement.jsonbody) {
             //assert.ok(statement.values.length > 0, 'statement value should have only one item for opaque param.');
             if (statement.values){
                 // user specified values in console
