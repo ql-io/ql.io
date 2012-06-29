@@ -55,5 +55,39 @@ module.exports = {
                 });
             });
         });
+    },
+    'insert json': function (test) {
+        var server = http.createServer(function (req, res) {
+            res.writeHead(200, {
+                'Content-Type': 'application/json'
+            });
+            util.pump(req, res, function (e) {
+                if(e) {
+                    console.log(e.stack || e);
+                }
+                res.end();
+            });
+        });
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine();
+            var listener = new Listener(engine);
+            engine.execute('foo = {"f":2,"g":3}; insert {"f":1} into foo; return foo;', function (emitter) {
+                emitter.on('end', function (err, result) {
+                    listener.assert(test);
+                    if(err) {
+                        console.log(err.stack || util.inspect(err, false, 10));
+                        test.fail('got error');
+                        test.done();
+                    }
+                    else {
+                        test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                        test.deepEqual(result.body, {"f":1, "g":3});
+                        test.done();
+                    }
+                    server.close();
+                });
+            });
+        });
     }
 };
