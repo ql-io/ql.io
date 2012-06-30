@@ -2,7 +2,7 @@
     "author": "ql.io",
     "description": "A small string template processor for ql.io.",
     "name": "ql.io-str-template",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "repository": {
         "type": "git",
         "url": "https://github.com/ql-io/ql.io"
