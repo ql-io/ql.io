@@ -1,6 +1,7 @@
 ## June 29, 2012
 
 * No Compression if the CPU load is > 50%
+* Version 0.7
 
 ## June 25, 2012
 
