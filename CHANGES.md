@@ -1,3 +1,7 @@
+## July 1, 2012
+
+* Fix 493: ws events should include event name along with the payload
+
 ## June 29, 2012
 
 * No Compression if the CPU load is > 50%
