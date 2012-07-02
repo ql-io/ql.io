@@ -18,7 +18,8 @@
 
 var http = require('http'),
     _ = require('underscore'),
-    zlib = require('zlib');
+    zlib = require('zlib'),
+    os = require('os');
 
 
 var Console = require('../app.js');
@@ -28,6 +29,8 @@ var c = new Console({
 });
 
 var app = c.app;
+
+var cpu_load =  os.cpus().length /2;
 
 module.exports = {
     //Happy case for deflate
@@ -46,6 +49,11 @@ module.exports = {
                 }
             };
             var req = http.request(options, function(res) {
+                if(os.loadavg()[1] > cpu_load) {
+                    test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    test.done();
+                    return;
+                }
                 test.ok(res.headers['content-encoding'] === 'deflate');
                 test.ok(res.headers['vary'] === 'accept-encoding');
                 var data = [];
@@ -97,7 +105,11 @@ module.exports = {
                 }
             };
             var req = http.request(options, function(res) {
-                test.ok(res.headers['content-encoding'] === 'gzip');
+                if(os.loadavg()[1] > cpu_load) {
+                    test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    test.done();
+                    return;
+                }                test.ok(res.headers['content-encoding'] === 'gzip');
                 test.ok(res.headers['vary'] === 'accept-encoding');
                 var data = [];
                 var unzip = zlib.createGunzip();
@@ -146,6 +158,11 @@ module.exports = {
                 }
             };
             var req = http.request(options, function(res) {
+                if(os.loadavg()[1] > cpu_load) {
+                    test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    test.done();
+                    return;
+                }
                 test.ok(res.headers['content-encoding'] === 'gzip',  '\'gzip\' content encoding expected');
                 app.close();
                 test.done();
@@ -168,6 +185,11 @@ module.exports = {
                 }
             };
             var req = http.request(options, function(res) {
+                if(os.loadavg()[1] > cpu_load) {
+                    test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    test.done();
+                    return;
+                }
                 test.ok(res.headers['content-encoding'] === 'deflate', '\'deflate\' content encoding expected');
                 app.close();
                 test.done();
@@ -284,6 +306,11 @@ module.exports = {
                 }
             };
             var req = http.request(options, function(res) {
+                if(os.loadavg()[1] > cpu_load) {
+                    test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    test.done();
+                    return;
+                }
                 test.ok(res.headers['content-encoding'] === 'gzip', "gzip content expected");
                 app.close();
                 test.done();
@@ -380,6 +407,11 @@ module.exports = {
             };
 
             var req = http.request(options, function (res) {
+                if(os.loadavg()[1] > cpu_load) {
+                    test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    test.done();
+                    return;
+                }
                 test.ok(res.headers['content-encoding'] === 'deflate');
                 test.ok(res.headers['vary'] === 'accept-encoding');
                 var data = [];
@@ -431,6 +463,12 @@ module.exports = {
                 }
             };
             var req = http.request(options, function(res) {
+                if(os.loadavg()[1] > cpu_load) {
+                    test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    console.log("NOT RUNNING");
+                    test.done();
+                    return;
+                }
                 test.ok(res.headers['content-encoding'] === 'gzip', "deflate encoding expected");
                 test.ok(res.headers['vary'] === 'accept-encoding');
                 var data = [];
