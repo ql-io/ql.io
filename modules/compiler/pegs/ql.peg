@@ -730,9 +730,12 @@ ValuesParen = 'values' insig '(' insig v:CSV  insig ')'{
 }
 
 // Insert Statement
-InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? insig v:ValuesParen?
+InsertStatement = 'insert' insig j:JSON? insig 'into' insig s:Source insig c:ColumnsParen? insig v:ValuesParen?
                    insig wp:WithParts?
                    timeout:Timeout? insig minDelay:MinDelay? insig maxDelay:MaxDelay? {
+    if (j && (c || v)){
+        throw new this.SyntaxError("Line " + line + ": Inserting JSON cannot co-exist with name value pairs or opaque body.");
+    }
     if (!v && c){
         throw new this.SyntaxError("Line " + line + ": Values are required if columns are specified.");
     }
@@ -768,6 +771,10 @@ InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? ins
     }
     if (wp){
         ret.parts = wp.value;
+    }
+
+    if (j){
+        ret.jsonbody = j;
     }
     return ret;
 }

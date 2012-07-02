@@ -147,3 +147,20 @@ exports['insert-obj'] = function(test) {
     test.equals(plan.rhs.dependsOn[0].dependsOn[0].listeners[0].assign, 'updated');
     test.done();
 }
+
+exports['insert-json'] = function(test) {
+    var q = 'obj = {\n\
+                "p3" : "v3",\n\
+                "p4" : "v4"\n\
+             };\n\
+             updated = insert {"p3": "v5", "p5": "v6"} into obj;\n\
+             return updated;'
+
+    var plan = compiler.compile(q);
+    test.equals(plan.rhs.dependsOn[0].assign, 'updated');
+    test.equals(plan.rhs.dependsOn[0].listeners[0].type, 'ref');
+    test.deepEqual(plan.rhs.dependsOn[0].jsonbody, {"p3": "v5", "p5": "v6"});
+    test.equals(plan.rhs.dependsOn[0].dependsOn[0].assign, 'obj');
+    test.equals(plan.rhs.dependsOn[0].dependsOn[0].listeners[0].assign, 'updated');
+    test.done();
+}
