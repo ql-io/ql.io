@@ -73,20 +73,29 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         if(!verb) {
             return insertTx.cb('Table ' + statement.source.name + ' does not support insert');
         }
-        if(statement.columns){
-            _.each(statement.values, function(value, i) {
-                values[statement.columns[i].name] = jsonfill.lookup(value, context);
-            });
-        }
-        else{
-            //assert.ok(statement.values.length > 0, 'statement value should have only one item for opaque param.');
-            if (statement.values){
-                // user specified values in console
-                verb.opaque = statement.values;
+        if (statement.jsonObj){
+            var jsonObj = statement.jsonObj.value;
+            if(jsonObj.indexOf("{") === 0 && jsonObj.indexOf("}") === jsonObj.length - 1) {
+                jsonObj = jsonObj.substring(1, jsonObj.length - 1);
             }
-            else{
-                //default opaque value is at req.body
-                verb.opaque = context;
+            values = context[jsonObj];
+        }
+        else {// not directly inserting json
+            if(statement.columns){
+                _.each(statement.values, function(value, i) {
+                    values[statement.columns[i].name] = jsonfill.lookup(value, context);
+                });
+            }
+            else {
+                //assert.ok(statement.values.length > 0, 'statement value should have only one item for opaque param.');
+                if (statement.values){
+                    // user specified values in console
+                    verb.opaque = statement.values;
+                }
+                else{
+                    //default opaque value is at req.body
+                    verb.opaque = context;
+                }
             }
         }
         verb.exec({
