@@ -787,13 +787,6 @@ var Console = module.exports = function(opts, cb) {
                 }));
             }
             else if (event.type === 'script') {
-                var _collect = function(packet) {
-                    // Writes events to the client
-                    connection.sendUTF(JSON.stringify({
-                        type: packet.type,
-                        data: packet
-                    }))
-                }
                 var script = event.data;
                 engine.execute(script, {
                     request: {
@@ -805,7 +798,13 @@ var Console = module.exports = function(opts, cb) {
                     }
                 }, function(emitter) {
                     _.each(events, function(event) {
-                        emitter.on(event, _collect);
+                        emitter.on(event, function(packet) {
+                            // Writes events to the client
+                            connection.sendUTF(JSON.stringify({
+                                type: packet.type ? packet.type : event,
+                                data: packet
+                            }))
+                        });
                     });
                     setupCounters(emitter);
                     emitter.on('end', function(err, results) {

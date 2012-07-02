@@ -186,6 +186,54 @@ module.exports = testCase({
                 response: 0
             }, c.app)
         })
+    },
+
+    'script with events': function (test) {
+        var c = new Console();
+        var emitter = new EventEmitter();
+        var conn;
+        c.app.listen(3000, function () {
+            var script = 'foo  = {"a" : "b" }'+
+                'bar  = {"c":"d"}'+
+                'f = select * from foo;'+
+                'b = select * from bar;'+
+                'return {"f" : "{b}", "b" : "{f}"}';
+
+            var socket = new WebSocketClient();
+            var events = ["f", "b"];
+            socket.on('connect', function(connection) {
+                // Tell the server what notifications to receive
+                conn = connection;
+                var packet = {
+                    type : 'events',
+                    data : JSON.stringify(events)
+                }
+                connection.sendUTF(JSON.stringify(packet));
+
+                packet = {
+                    type : 'script',
+                    data : script
+                }
+                connection.sendUTF(JSON.stringify(packet));
+                connection.on('message', function(message) {
+                    var event = JSON.parse(message.utf8Data);
+                    emitter.emit(event.type, event);
+                });
+            });
+            socket.connect('ws://localhost:3000/', 'ql.io-console');
+
+            var f = 0, b = 0;
+            emitter.on('f', function() { ++f; } );
+            emitter.on('b', function() { ++b; } );
+
+            emitter.on(Engine.Events.SCRIPT_RESULT, function(data) {
+                test.ok(f === 1);
+                test.ok(b === 1);
+                c.app.close();
+                conn.close();
+                test.done();
+            });
+        });
     }
 });
 
