@@ -465,7 +465,6 @@ module.exports = {
             var req = http.request(options, function(res) {
                 if(os.loadavg()[1] > cpu_load) {
                     test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
-                    console.log("NOT RUNNING");
                     test.done();
                     return;
                 }
