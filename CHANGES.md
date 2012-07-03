@@ -1,3 +1,7 @@
+## July 3, 2012
+
+* Insert JSON feature.
+
 ## July 1, 2012
 
 * Fix 493: ws events should include event name along with the payload
