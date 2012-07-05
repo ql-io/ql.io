@@ -31,6 +31,7 @@ var configLoader = require('./engine/config.js'),
     select = require('./engine/select.js'),
     insert = require('./engine/insert.js'),
     delet = require('./engine/delet.js'),
+    update = require('./engine/update.js'),
     _util = require('./engine/util.js'),
     jsonfill = require('./engine/jsonfill.js'),
     eventTypes = require('./engine/event-types.js'),
@@ -533,6 +534,9 @@ function _execOne(opts, statement, parentEvent, cb) {
             break;
         case 'delete' :
             delet.exec(opts, statement, parentEvent, cb);
+            break;
+        case 'update' :
+            update.exec(opts, statement, parentEvent, cb);
             break;
         case 'show' :
             show.exec(opts, statement, parentEvent, cb);
