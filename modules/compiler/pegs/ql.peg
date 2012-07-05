@@ -447,7 +447,7 @@ CallUdf = u:UDF {
 }
 
 Statement = SelectStatement / ShowRoutesStatement / ShowStatement / DescribeRouteStatement /
-            DescribeStatement / InsertStatement / DeleteStatement / CreateStatement
+            DescribeStatement / InsertStatement / DeleteStatement / CreateStatement / UpdateStatement
 
 Output = insig w:Word insig '=' insig {
     return {
@@ -798,6 +798,15 @@ DeleteStatement = 'delete' insig 'from' insig s:Source insig wc:WhereClause* ins
         s.maxDelay = maxDelay;
     }
     return s;
+}
+
+UpdateStatement = 'update' insig s:Source insig 'with' insig w:QuotedWord {
+    return {
+        type: 'update',
+        source : s,
+        withClause: w,
+        line: line
+    }
 }
 
 // Various clauses

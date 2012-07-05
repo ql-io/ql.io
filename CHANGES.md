@@ -1,3 +1,7 @@
+## July 5, 2012
+
+* Update support.
+
 ## July 3, 2012
 
 * Insert JSON feature.
