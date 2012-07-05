@@ -16,11 +16,11 @@
 
 // TODO Convert this to a middleware
 // TODO DONT compress if the content length is less than MTU
-// TODO DONT compress if the cpu is busy
 
 var zlib = require('zlib'),
     headers = require('headers'),
-    _ = require('underscore');
+    _ = require('underscore'),
+    os = require('os');
 
 /**
  * Supported content-encoding methods.
@@ -32,17 +32,25 @@ exports.methods = {
     '*':zlib.createGzip
 };
 
+var maxLoad = os.cpus().length / 2; // 50% load
+
 exports.compress = function (req, res, options) {
 
     var options = options || {};
+
+    // Do not compress if CPU is 50%
+    if(os.loadavg()[1] > maxLoad ) {
+        if(options.logEmitter) {
+            options.logEmitter.emitWarning('CPU load is high - ' + os.loadavg()[1]  + '. Responses are not compressed.');
+        }
+        return;
+    }
+
     var acceptEncoding = req.headers['accept-encoding'],
         write = res.write,
         end = res.end,
         methods = exports.methods,
         stream;
-
-    // Set the Vary header
-    res.setHeader('vary', 'accept-encoding');
 
     res.write = function (chunk, enc) {
         return stream ? stream.write(chunk, enc) : write.call(res, chunk, enc);
@@ -112,6 +120,8 @@ exports.compress = function (req, res, options) {
         if (method) {
             stream = methods[method](options);
             res.setHeader('content-encoding', method);
+            // Set the Vary header
+            res.setHeader('vary', 'accept-encoding');
 
             stream.on('data', function (chunk) {
                 write.call(res, chunk);

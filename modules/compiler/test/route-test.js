@@ -22,7 +22,7 @@ exports['route get'] = function (test) {
     var q = "des = describe foo; return des via route '/foo/bar' using method get;";
     var compiled = compiler.compile(q);
     test.equals(compiled.type, 'return', 'expected return');
-    test.equals(compiled.dependsOn[0].type, 'describe', 'expected describe');
+    test.equals(compiled.rhs.dependsOn[0].type, 'describe', 'expected describe');
     test.ok(compiled.route, 'expected a route');
     test.ok(compiled.route.path.value, '/foo/bar');
     test.ok(compiled.route.method, 'get');
@@ -34,7 +34,7 @@ exports['route post'] = function (test) {
     var q = "des = describe foo; return des via route '/foo/{id}' using method post;";
     var compiled = compiler.compile(q);
     test.equals(compiled.type, 'return', 'expected return');
-    test.equals(compiled.dependsOn[0].type, 'describe', 'expected describe');
+    test.equals(compiled.rhs.dependsOn[0].type, 'describe', 'expected describe');
     test.ok(compiled.route, 'expected a route');
     test.ok(compiled.route.path.value, '/foo/bar');
     test.ok(compiled.route.method, 'get');

@@ -703,7 +703,7 @@ var Console = module.exports = function(opts, cb) {
 
     // 404 Handling
     app.use(function(req, res, next) {
-        compress(req, res);
+        compress(req, res, {logEmitter : engine});
         var msg = 'Cannot ' + req.method + ' ' + sanitize(req.url).xss();
         var accept = (req.headers || {}).accept || '';
         if (accept.search('json') > 0) {
@@ -723,7 +723,7 @@ var Console = module.exports = function(opts, cb) {
 
     // Error-handling middleware
     app.use(function(err, req, res, next){
-        compress(req, res);
+        compress(req, res, {logEmitter : engine});
         // TODO call next() if recoverable, else next(err).
         var status = err.status || 500;
         var msg =  "Server Error - " + sanitize(err.msg || err).xss();
@@ -787,13 +787,6 @@ var Console = module.exports = function(opts, cb) {
                 }));
             }
             else if (event.type === 'script') {
-                var _collect = function(packet) {
-                    // Writes events to the client
-                    connection.sendUTF(JSON.stringify({
-                        type: packet.type,
-                        data: packet
-                    }))
-                }
                 var script = event.data;
                 engine.execute(script, {
                     request: {
@@ -805,7 +798,13 @@ var Console = module.exports = function(opts, cb) {
                     }
                 }, function(emitter) {
                     _.each(events, function(event) {
-                        emitter.on(event, _collect);
+                        emitter.on(event, function(packet) {
+                            // Writes events to the client
+                            connection.sendUTF(JSON.stringify({
+                                type: packet.type ? packet.type : event,
+                                data: packet
+                            }))
+                        });
                     });
                     setupCounters(emitter);
                     emitter.on('end', function(err, results) {
@@ -923,7 +922,7 @@ var Console = module.exports = function(opts, cb) {
     }
 
     function handleResponseCB(req, res, execState, err, results) {
-        compress(req, res);   // TODO replace with a middleware
+        compress(req, res, {logEmitter : engine});   // TODO replace with a middleware
         var cb = req.param('callback');
         if (err) {
             var status = err.status || 400;

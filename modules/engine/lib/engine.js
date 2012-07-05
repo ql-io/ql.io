@@ -259,7 +259,6 @@ Engine.prototype.execute = function() {
     function init(statement) {
         execState[statement.id] = {
             state: eventTypes.STATEMENT_WAITING,
-            deps: {},
             count: statement.dependsOn ? statement.dependsOn.length : 0
         };
         _.each(statement.dependsOn, function(dependency) {
@@ -270,7 +269,6 @@ Engine.prototype.execute = function() {
             init(fallback);
         }
     }
-    init(plan);
     init(plan.rhs);
 
     var skip = false;
@@ -293,9 +291,10 @@ Engine.prototype.execute = function() {
             });
         }
 
-        if(execState[statement.id].state === eventTypes.STATEMENT_WAITING &&  // Don't try if in-flight
-            execState[statement.id].count === 0) {
-            execState[statement.id].state = eventTypes.STATEMENT_IN_FLIGHT;
+        var todo = statement.rhs || statement;
+        if(execState[todo.id].state === eventTypes.STATEMENT_WAITING &&  // Don't try if in-flight
+            execState[todo.id].count === 0) {
+            execState[todo.id].state = eventTypes.STATEMENT_IN_FLIGHT;
             execOne({tables: that.tables,
                      routes: that.routes,
                      config: that.config,
@@ -309,11 +308,10 @@ Engine.prototype.execute = function() {
                      logEmitter: that,
                      cache: that.cache
                      },
-                statement.rhs || statement, function(err, results) {
+                todo, function(err, results) {
                     if(err) {
-                        var fallback = statement.rhs ? statement.rhs.fallback : statement.fallback;
-                        if(fallback) {
-                            return sweep(fallback);
+                        if(todo.fallback) {
+                            return sweep(todo.fallback);
                         }
                         else {
                             // Skip the remaining statements and return error
@@ -321,23 +319,30 @@ Engine.prototype.execute = function() {
                             return engineEvent.end(err);
                         }
                     }
+                    else if(results === null || results === undefined
+                        || results.body === null || results.body === undefined){
+                        var fallback = statement.rhs ? statement.rhs.fallback : statement.fallback;
+                        if(fallback) {
+                            return sweep(fallback);
+                        }
+                    }
 
-                    execState[statement.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
+                    execState[todo.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
 
-                    _.each(statement.listeners, function(listener) {
+                    _.each(todo.listeners, function(listener) {
                         execState[listener.id].count--;
                         sweep(listener);
                     });
 
-                    if(execState[statement.id].done) {
-                        execState[statement.id].done.call(null, err, results);
+                    if(execState[todo.id].done) {
+                        execState[todo.id].done.call(null, err, results);
                     }
                 }, engineEvent);
         }
     }
 
     var fnDone = function(err, results) {
-        execState[plan.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
+        execState[plan.rhs.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
 
         var respHeaders = {};
         var params;
@@ -345,6 +350,7 @@ Engine.prototype.execute = function() {
             engineEvent.end(err);
         }
         else {
+            results = results || {headers:{}, body: null};
             if(plan.route && plan.route.headers) {
                 params = _util.prepareParams(context,
                     request.body,
@@ -368,7 +374,7 @@ Engine.prototype.execute = function() {
     }
 
     // Start with the return statement
-    execState[plan.id].done = fnDone;
+    execState[plan.rhs.id].done = fnDone;
     var next = plan.rhs ? plan.rhs.fallback : plan.fallback;
     while(next) {
         execState[next.id].done = fnDone;
@@ -477,7 +483,7 @@ function execOne(opts, statement, cb, parentEvent) {
  */
 function _execOne(opts, statement, parentEvent, cb) {
     if(preReqNotFound(statement, opts, parentEvent)) {
-        return nullBody(cb);
+        return cb();
     }
 
     var obj, params, args;
@@ -566,14 +572,6 @@ function preReqNotFound(statement, opts, parentEvent) {
     });
 }
 
-function nullBody(cb) {
-    return cb(null, {
-        headers:{
-            'content-type':'application/json'
-        },
-        body: null
-    });
-}
 
 // Export event types
 Engine.Events = {};

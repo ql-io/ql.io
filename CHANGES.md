@@ -1,3 +1,42 @@
+## July 3, 2012
+
+* Insert JSON feature.
+
+## July 1, 2012
+
+* Fix 493: ws events should include event name along with the payload
+
+## June 29, 2012
+
+* No Compression if the CPU load is > 50%
+* Version 0.7
+
+## June 25, 2012
+
+* Retry once for idempotent requests on timeouts
+
+## June 22, 2012
+
+* Agent.maxSockets increased to 1000. See Issue: https://github.com/ql-io/ql.io/issues/512
+
+## June 19, 2012
+
+* Regression from previous fix. Remove duplicate click handlers.
+
+## June 18, 2012
+
+* Fix https://github.com/ql-io/ql.io/issues/13 - disable autorun. Also use `pushState` to store
+  history.
+
+## June 11, 2012
+
+* Fix https://github.com/ql-io/ql.io/issues/478
+
+## June 5, 2012
+
+* Support C style block comments
+* Add file path/name to comiple errors
+
 ## June 4, 2012
 
 * Update versions

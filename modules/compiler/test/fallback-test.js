@@ -78,16 +78,16 @@ module.exports = {
                  return foo;";
         var statement = compiler.compile(q);
         test.equal(statement.rhs.ref, 'foo')
-        test.equal(statement.dependsOn.length, 1)
-        test.equal(statement.dependsOn[0].type, 'select');
-        test.equal(statement.dependsOn[0].fromClause[0].name, '{a}');
-        test.equal(statement.dependsOn[0].dependsOn.length, 1);
-        test.equal(statement.dependsOn[0].dependsOn[0].fromClause[0].name, 'A');
-        test.equal(statement.dependsOn[0].fallback.type, 'select');
-        test.equal(statement.dependsOn[0].fallback.fromClause[0].name, '{b}');
-        test.equal(statement.dependsOn[0].fallback.dependsOn.length, 1);
-        test.equal(statement.dependsOn[0].fallback.dependsOn[0].fromClause[0].name, 'B');
-        test.equal(statement.rhs.ref, statement.dependsOn[0].fallback.assign)
+        test.equal(statement.rhs.dependsOn.length, 1)
+        test.equal(statement.rhs.dependsOn[0].type, 'select');
+        test.equal(statement.rhs.dependsOn[0].fromClause[0].name, '{a}');
+        test.equal(statement.rhs.dependsOn[0].dependsOn.length, 1);
+        test.equal(statement.rhs.dependsOn[0].dependsOn[0].fromClause[0].name, 'A');
+        test.equal(statement.rhs.dependsOn[0].fallback.type, 'select');
+        test.equal(statement.rhs.dependsOn[0].fallback.fromClause[0].name, '{b}');
+        test.equal(statement.rhs.dependsOn[0].fallback.dependsOn.length, 1);
+        test.equal(statement.rhs.dependsOn[0].fallback.dependsOn[0].fromClause[0].name, 'B');
+        test.equal(statement.rhs.ref, statement.rhs.dependsOn[0].fallback.assign)
         test.done();
     },
 
@@ -119,9 +119,9 @@ module.exports = {
         test.equals(plan.rhs.fallback.dependsOn[0].dependsOn.length, 1);
         test.equals(plan.rhs.fallback.dependsOn[0].dependsOn[0].type, 'define');
         test.equals(plan.rhs.fallback.dependsOn[0].dependsOn[0].assign, 'data');
-        test.equals(plan.dependsOn.length, 1);
-        test.equals(plan.dependsOn[0].type, 'select');
-        test.equals(plan.dependsOn[0].assign, 'b');
+        test.equals(plan.rhs.dependsOn.length, 1);
+        test.equals(plan.rhs.dependsOn[0].type, 'select');
+        test.equals(plan.rhs.dependsOn[0].assign, 'b');
         test.equals(plan.rhs.fallback.dependsOn.length, 1);
         test.equals(plan.rhs.fallback.dependsOn[0].type, 'select');
         test.equals(plan.rhs.fallback.dependsOn[0].assign, 'a');

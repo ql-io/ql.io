@@ -456,13 +456,25 @@ Output = insig w:Word insig '=' insig {
     }
 }
 
-Comment = '--' sp c:[\u0020-\uffff]* crlf? {
+Comment = LineComment / BlockComment
+
+LineComment = '--' sp c:(!crlf SourceCharacter)* insig {
     return {
         line: line,
         type: 'comment',
-        text: c.join('')
+        text: append(c)
     }
 }
+
+BlockComment = ('/**' / '/*') sp c:(!"*/" SourceCharacter)* sp "*/" insig {
+    return {
+        line: line,
+        type: 'comment',
+        text: append(c)
+    }
+}
+
+SourceCharacter = .
 
 // create table statement
 CreateStatement = 'create' insig 'table' insig s:NonAliasSource insig v:Verb* {
@@ -718,9 +730,12 @@ ValuesParen = 'values' insig '(' insig v:CSV  insig ')'{
 }
 
 // Insert Statement
-InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? insig v:ValuesParen?
+InsertStatement = 'insert' insig j:QuotedWord? insig 'into' insig s:Source insig c:ColumnsParen? insig v:ValuesParen?
                    insig wp:WithParts?
                    timeout:Timeout? insig minDelay:MinDelay? insig maxDelay:MaxDelay? {
+    if (j && (c || v)){
+        throw new this.SyntaxError("Line " + line + ": Inserting JSON object cannot co-exist with name value pairs or opaque body.");
+    }
     if (!v && c){
         throw new this.SyntaxError("Line " + line + ": Values are required if columns are specified.");
     }
@@ -756,6 +771,9 @@ InsertStatement = 'insert' insig 'into' insig s:Source insig c:ColumnsParen? ins
     }
     if (wp){
         ret.parts = wp.value;
+    }
+    if (j){
+        ret.jsonObj = j;
     }
     return ret;
 }
@@ -1175,9 +1193,7 @@ sp = ([\x09]/[\x20])*{
   return ''
 }
 
-crlf = c:[\x0d\x0a] {
-  return c;
-}
+crlf = [\n\r\u2028\u2029]
 
 //
 // JSONPath
