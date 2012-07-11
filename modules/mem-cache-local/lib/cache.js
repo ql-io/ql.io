@@ -40,15 +40,13 @@ var Cache = module.exports = function (opts) {
 
     var SLICE_OVERHEAD = 100; // Braces, Quotes, etc save with every slice
 
-    var POOL_SIZE = 100;
-
     var heartbeat = null;
 
     var self = this;
 
     var requestBackup = [];
 
-    var requestsInProgress = 0;
+    var opsInProgress = 0;
 
     function doHeartbeat() {
         memcached.stats(function (err, result) {
@@ -127,7 +125,7 @@ var Cache = module.exports = function (opts) {
             }
         });
 
-        blockIfBusyDoOpt(operation);
+        blockIfBusyDoOp(operation);
     }
 
     function fetchSliceBySlice(cacheKey, count, key, slices, numSlices, cb) {
@@ -160,7 +158,7 @@ var Cache = module.exports = function (opts) {
                     return cb({message:'failed', data:{key:key}, error:'unexpected result', result:slice});
                 }
             });
-            blockIfBusyDoOpt(operation);
+            blockIfBusyDoOp(operation);
         }
     }
 
@@ -212,7 +210,7 @@ var Cache = module.exports = function (opts) {
                 }
                 return saveSliceBySlice(cacheKey, 0, key, dataStr, numSlices, dataSliceSize, duration, cb);
             });
-            blockIfBusyDoOpt(operation);
+            blockIfBusyDoOp(operation);
         }
         else {
             var operation = {op: 'set', args: []};
@@ -230,7 +228,7 @@ var Cache = module.exports = function (opts) {
 
                 return cb(null, {message:'success', data:result});
             });
-            blockIfBusyDoOpt(operation);
+            blockIfBusyDoOp(operation);
         }
     }
 
@@ -294,31 +292,31 @@ var Cache = module.exports = function (opts) {
 
         });
 
-        blockIfBusyDoOpt(operation);
+        blockIfBusyDoOp(operation);
     }
 
-    function blockIfBusyDoOpt(opts){
-        var userFunction =  opts.args[opts.args.length-1];
-        opts.args[opts.args.length-1] = function(err,val) {
-            requestsInProgress--;
-            var backedRequest = requestBackup.shift();
-            if(backedRequest){
-                doOpt(backedRequest);
+    function blockIfBusyDoOp(op){
+        var userFunction =  op.args[op.args.length-1];
+        op.args[op.args.length-1] = function(err,val) {
+            opsInProgress--;
+            var backedOp = requestBackup.shift();
+            if(backedOp){
+                doOpt(backedOp);
             }
             return userFunction(err,val);
         };
 
-        if(requestsInProgress < memcached.poolSize){
-            doOpt(opts);
+        if(opsInProgress < memcached.poolSize){
+            doOpt(op);
         }
         else {
-            requestBackup.push(opts);
+            requestBackup.push(op);
         }
     }
 
-    function doOpt(opts){
-        requestsInProgress++;
-        return memcached[opts.op].apply(memcached,opts.args);
+    function doOpt(op){
+        opsInProgress++;
+        return memcached[op.op].apply(memcached,op.args);
     }
 }
 
