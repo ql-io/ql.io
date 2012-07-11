@@ -1,6 +1,6 @@
 ## July 11, 2012
 
-* Changes to mem-cache-local to block if connections are not available.:q
+* Changes to mem-cache-local to queue operations if connections are not available.
 
 ## July 5, 2012
 
