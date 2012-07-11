@@ -44,6 +44,10 @@ var Cache = module.exports = function (opts) {
 
     var self = this;
 
+    var requestBackup = [];
+
+    var opsInProgress = 0;
+
     function doHeartbeat() {
         memcached.stats(function (err, result) {
             if (err && err.error && (err.error != {} && err.error != [])) {
@@ -57,11 +61,12 @@ var Cache = module.exports = function (opts) {
         if (memcached) {
             return;
         }
+        var Memcached = require('memcached');
         if (_.isObject(opts) && opts.config) {
-            memcached = new (require('memcached'))(opts.config, opts.options);
+            memcached = new Memcached(opts.config, opts.options);
         }
         else {
-            memcached = new (require('memcached'))(opts);
+            memcached = new Memcached(opts);
         }
 
         memcached.on('issue', function(details){
@@ -100,22 +105,27 @@ var Cache = module.exports = function (opts) {
     }
 
     function saveSliceBySlice(cacheKey, count, key, dataStr, numSlices, dataSliceSize, duration, cb) {
-        memcached.set(cacheKey + count, dataStr.substr(count * dataSliceSize, dataSliceSize), duration,
-            function (err, result) {
-                if (err || !result) {
-                    self.emit(cacheEvents.ERROR, {key:key, error:err || "unknown"});
-                    return cb({message:'failed', data:{key:key, data:dataStr, duration:duration}, error:err
-                        || "unknown"});
-                }
-                count++;
-                if (count == numSlices) {
-                    self.emit(cacheEvents.NEW, {key:key, duration:duration});
-                    return cb(null, {message:'success', data:result});
-                }
-                else {
-                    return saveSliceBySlice(cacheKey, count, key, dataStr, numSlices, dataSliceSize, duration, cb);
-                }
-            });
+        var operation = {op: 'set', args: []};
+        operation.args.push(cacheKey + count);
+        operation.args.push(dataStr.substr(count * dataSliceSize, dataSliceSize));
+        operation.args.push(duration);
+        operation.args.push(function (err, result) {
+            if (err || !result) {
+                self.emit(cacheEvents.ERROR, {key:key, error:err || "unknown"});
+                return cb({message:'failed', data:{key:key, data:dataStr, duration:duration}, error:err
+                    || "unknown"});
+            }
+            count++;
+            if (count == numSlices) {
+                self.emit(cacheEvents.NEW, {key:key, duration:duration});
+                return cb(null, {message:'success', data:result});
+            }
+            else {
+                return saveSliceBySlice(cacheKey, count, key, dataStr, numSlices, dataSliceSize, duration, cb);
+            }
+        });
+
+        blockIfBusyDoOp(operation);
     }
 
     function fetchSliceBySlice(cacheKey, count, key, slices, numSlices, cb) {
@@ -132,7 +142,9 @@ var Cache = module.exports = function (opts) {
             }
         }
         else {
-            memcached.get(cacheKey + count, function (err, slice) {
+            var operation = {op: 'get', args: []};
+            operation.args.push(cacheKey + count);
+            operation.args.push(function (err, slice) {
                 if (err) {
                     self.emit(cacheEvents.MISS, {key:key, error:err});
                     return cb({message:'failed', data:{key:key}, error:err});
@@ -146,6 +158,7 @@ var Cache = module.exports = function (opts) {
                     return cb({message:'failed', data:{key:key}, error:'unexpected result', result:slice});
                 }
             });
+            blockIfBusyDoOp(operation);
         }
     }
 
@@ -182,8 +195,11 @@ var Cache = module.exports = function (opts) {
         if(dataStr.length > MAX_SLICE_SIZE){
             var dataSliceSize = MAX_SLICE_SIZE - key.length - SLICE_OVERHEAD;
             var numSlices = Math.ceil(dataStr.length/dataSliceSize);
-
-            memcached.set(cacheKey, {key:key, slices:numSlices}, duration, function(err, result){
+            var operation = {op: 'set', args: []};
+            operation.args.push(cacheKey);
+            operation.args.push({key:key, slices:numSlices});
+            operation.args.push(duration);
+            operation.args.push(function(err, result){
                 if(err || !result){
 
                     self.emit(cacheEvents.ERROR, {key:key, error: err || "unknown"});
@@ -192,13 +208,16 @@ var Cache = module.exports = function (opts) {
                         data:{key:key, data:data, duration:duration}, error: err
                         || "unknown"});
                 }
-
                 return saveSliceBySlice(cacheKey, 0, key, dataStr, numSlices, dataSliceSize, duration, cb);
             });
-
+            blockIfBusyDoOp(operation);
         }
         else {
-            memcached.set(cacheKey, {key:key, data:dataStr}, duration, function (err, result) {
+            var operation = {op: 'set', args: []};
+            operation.args.push(cacheKey);
+            operation.args.push({key:key, data:dataStr});
+            operation.args.push(duration);
+            operation.args.push(function (err, result) {
                 if (err || !result) {
                     self.emit(cacheEvents.ERROR, {key:key, error: err || "unknown"});
 
@@ -209,6 +228,7 @@ var Cache = module.exports = function (opts) {
 
                 return cb(null, {message:'success', data:result});
             });
+            blockIfBusyDoOp(operation);
         }
     }
 
@@ -231,7 +251,9 @@ var Cache = module.exports = function (opts) {
 
         cacheKey = crypto.createHash('md5').update(key).digest('hex');
 
-        memcached.get(cacheKey, function (err, cacheValue) {
+        var operation = {op: 'get', args: []};
+        operation.args.push(cacheKey);
+        operation.args.push(function (err, cacheValue) {
             if (err) {
                 self.emit(cacheEvents.MISS, {key:key, error:err});
 
@@ -269,6 +291,32 @@ var Cache = module.exports = function (opts) {
             }
 
         });
+
+        blockIfBusyDoOp(operation);
+    }
+
+    function blockIfBusyDoOp(op){
+        var userFunction =  op.args[op.args.length-1];
+        op.args[op.args.length-1] = function(err,val) {
+            opsInProgress--;
+            var backedOp = requestBackup.shift();
+            if(backedOp){
+                doOpt(backedOp);
+            }
+            return userFunction(err,val);
+        };
+
+        if(opsInProgress < memcached.poolSize){
+            doOpt(op);
+        }
+        else {
+            requestBackup.push(op);
+        }
+    }
+
+    function doOpt(op){
+        opsInProgress++;
+        return memcached[op.op].apply(memcached,op.args);
     }
 }
 
