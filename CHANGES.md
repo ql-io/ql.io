@@ -2,6 +2,31 @@
 
 * Changes to mem-cache-local to block if connections are not available.:q
 
+## July 5, 2012
+
+* Update support.
+
+## July 3, 2012
+
+* Insert JSON feature.
+
+## July 1, 2012
+
+* Fix 493: ws events should include event name along with the payload
+
+## June 29, 2012
+
+* No Compression if the CPU load is > 50%
+* Version 0.7
+
+## June 25, 2012
+
+* Retry once for idempotent requests on timeouts
+
+## June 22, 2012
+
+* Agent.maxSockets increased to 1000. See Issue: https://github.com/ql-io/ql.io/issues/512
+
 ## June 19, 2012
 
 * Regression from previous fix. Remove duplicate click handlers.
