@@ -1,6 +1,7 @@
 ## July 11, 2012
 
 * Changes to mem-cache-local to queue operations if connections are not available.
+* Upgrade code-mirror to 2.3
 
 ## July 5, 2012
 
