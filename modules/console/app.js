@@ -158,7 +158,7 @@ var Console = module.exports = function(opts, cb) {
                 'dataType': 'javascript',
                 'files': [
                     'splitter.js',
-                    'codemirror-compressed.js',
+                    'codemirror.js',
                     'qlio-editor.js',
                     'jquery.treeview.js',
                     'jsonview.js',
