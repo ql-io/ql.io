@@ -42,5 +42,26 @@ module.exports = {
         test.equals(plan.rhs.type, 'show routes');
         test.equals(plan.dependsOn.length, 0);
         test.done();
+    },
+    'fallback': function(test) {
+        var q = 'ret1 = null; \
+        ret2 = select category from mytable; \
+        comp1 = "{ret2}"; \
+        finalResult = "{ret1}" || "{comp1}"; \
+        return finalResult';
+        var plan = compiler.compile(q);
+        var temp = plan.rhs;
+        test.equals(temp.type, 'ref');
+        test.equals(temp.ref, 'finalResult');
+        test.equals(temp.dependsOn.length, 1);
+        temp = temp.dependsOn[0];
+        test.equals(temp.type, 'define');
+        test.equals(temp.assign, 'finalResult');
+        test.equals(temp.dependsOn.length, 1);
+        test.equals(temp.dependsOn[0].type, 'define');
+        test.equals(temp.dependsOn[0].assign, 'ret1');
+        test.ok(temp.fallback);
+        test.equals(temp.fallback.dependsOn.length, 1);
+        test.done();
     }
 };

@@ -133,9 +133,11 @@ function plan(compiled) {
             rev(dependency);
         });
         if(node.fallback) {
+            var a = symbols[node.fallback.object]
             used.push(node.fallback.id);
             rev(node.fallback);
             node.fallback.listeners = node.listeners;
+
         }
     }
     used.push(ret.rhs.id);
@@ -186,6 +188,9 @@ function walk(line, symbols) {
             break;
         case 'define':
             introspectObject(line.object, symbols, line.dependsOn, line);
+            if(line.fallback) {
+                walk(line.fallback, symbols);
+            }
             break;
         case 'return':
             walk(line.rhs, symbols);
