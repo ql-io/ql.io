@@ -133,11 +133,9 @@ function plan(compiled) {
             rev(dependency);
         });
         if(node.fallback) {
-            var a = symbols[node.fallback.object]
             used.push(node.fallback.id);
             rev(node.fallback);
             node.fallback.listeners = node.listeners;
-
         }
     }
     used.push(ret.rhs.id);
