@@ -312,6 +312,7 @@ Engine.prototype.execute = function() {
                 todo, function(err, results) {
                     if(err) {
                         if(todo.fallback) {
+                            todo.fallback.fbhold = false;
                             return sweep(todo.fallback);
                         }
                         else {
@@ -324,6 +325,7 @@ Engine.prototype.execute = function() {
                         || results.body === null || results.body === undefined){
                         var fallback = statement.rhs ? statement.rhs.fallback : statement.fallback;
                         if(fallback) {
+                            fallback.fbhold = false;
                             return sweep(fallback);
                         }
                     }
@@ -332,9 +334,10 @@ Engine.prototype.execute = function() {
 
                     _.each(todo.listeners, function(listener) {
                         execState[listener.id].count--;
-                        sweep(listener);
+                        if (!(listener.fbhold)){
+                            sweep(listener);
+                        }
                     });
-
                     if(execState[todo.id].done) {
                         execState[todo.id].done.call(null, err, results);
                     }
