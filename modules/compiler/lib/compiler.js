@@ -186,6 +186,9 @@ function walk(line, symbols) {
             break;
         case 'define':
             introspectObject(line.object, symbols, line.dependsOn, line);
+            if(line.fallback) {
+                walk(line.fallback, symbols);
+            }
             break;
         case 'return':
             walk(line.rhs, symbols);
