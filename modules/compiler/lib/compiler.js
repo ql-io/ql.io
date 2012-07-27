@@ -136,6 +136,7 @@ function plan(compiled) {
             used.push(node.fallback.id);
             rev(node.fallback);
             node.fallback.listeners = node.listeners;
+            node.fallback.fbhold = true;
         }
     }
     used.push(ret.rhs.id);
