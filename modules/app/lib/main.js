@@ -72,12 +72,9 @@ exports.exec = function() {
     }
     program.parse(process.argv);
 
-    var ports = _.map(program.port.split(','), function(port) {
-        return parseInt(port);
-    });
     var options = {
         cluster: program.cluster,
-        port: ports,
+        port: parseInt(program.port),
         monPort: parseInt(program.monPort),
         config: program.config,
         tables: program.tables,
