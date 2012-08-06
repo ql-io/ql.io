@@ -1,3 +1,7 @@
+## JULY 23, 2012
+
+*  Upgrade code-mirror to 2.32 to avoid space issue
+
 ## July 11, 2012
 
 * Changes to mem-cache-local to queue operations if connections are not available.
