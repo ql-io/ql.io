@@ -75,7 +75,6 @@ exports.exec = function() {
     var ports = _.map(program.port.split(','), function(port) {
         return parseInt(port);
     });
-
     var options = {
         cluster: program.cluster,
         port: ports,
