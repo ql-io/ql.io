@@ -1,3 +1,7 @@
+## August 8, 2012
+
+* Depend on browersify-0.6 temporarily until they fix the incompatibilities they introduced.
+
 ## JULY 23, 2012
 
 *  Upgrade code-mirror to 2.32 to avoid space issue
