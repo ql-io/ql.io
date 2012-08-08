@@ -8,7 +8,7 @@ ql.io is a declarative, data-retrieval and aggregation gateway for quickly consu
 
 ## How to Build ql.io
 
-To build ql.io on your own, you need node (version 0.6.0 or later) and npm. In Ubuntu, you need
+To build ql.io on your own, you need node (version 0.8.0 or later) and npm. In Ubuntu, you need
 libexpat-dev additionally. Once you have these set up, do the following:
 
     git clone git://github.com/ql-io/ql.io.git
