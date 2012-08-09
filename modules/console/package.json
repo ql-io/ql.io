@@ -1,7 +1,7 @@
 {
     "author": "ql.io",
     "name": "ql.io-console",
-    "version": "0.7.6",
+    "version": "0.7.7",
     "repository": {
         "type": "git",
         "url": "https://github.com/ql-io/ql.io"
@@ -18,7 +18,7 @@
         "ql.io-engine": "0.7.3",
         "ql.io-mutable-uri": "0.7.0",
         "winston": "0.5.11",
-        "browserify": "1.10.15",
+        "browserify-0.6": "1.14.5",
         "uglify-js": "1.2.6",
         "headers": "0.9.6",
         "formidable" : "1.0.9",
