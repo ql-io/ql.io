@@ -51,6 +51,7 @@ module.exports = {
             var req = http.request(options, function(res) {
                 if(os.loadavg()[1] > cpu_load) {
                     test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    app.close();
                     test.done();
                     return;
                 }
@@ -107,6 +108,7 @@ module.exports = {
             var req = http.request(options, function(res) {
                 if(os.loadavg()[1] > cpu_load) {
                     test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    app.close();
                     test.done();
                     return;
                 }                test.ok(res.headers['content-encoding'] === 'gzip');
@@ -160,6 +162,7 @@ module.exports = {
             var req = http.request(options, function(res) {
                 if(os.loadavg()[1] > cpu_load) {
                     test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    app.close();
                     test.done();
                     return;
                 }
@@ -187,6 +190,7 @@ module.exports = {
             var req = http.request(options, function(res) {
                 if(os.loadavg()[1] > cpu_load) {
                     test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    app.close();
                     test.done();
                     return;
                 }
@@ -308,6 +312,7 @@ module.exports = {
             var req = http.request(options, function(res) {
                 if(os.loadavg()[1] > cpu_load) {
                     test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    app.close();
                     test.done();
                     return;
                 }
@@ -409,6 +414,7 @@ module.exports = {
             var req = http.request(options, function (res) {
                 if(os.loadavg()[1] > cpu_load) {
                     test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    app.close();
                     test.done();
                     return;
                 }
@@ -465,6 +471,7 @@ module.exports = {
             var req = http.request(options, function(res) {
                 if(os.loadavg()[1] > cpu_load) {
                     test.ok(! res.headers['content-encoding'] || res.headers['content-encoding'] === 'identity');
+                    app.close();
                     test.done();
                     return;
                 }
