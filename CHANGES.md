@@ -1,3 +1,8 @@
+## August 09, 2012
+
+* Node 0.8.x and other dependecy upgrades.
+* Timeout support for update.
+
 ## JULY 23, 2012
 
 *  Upgrade code-mirror to 2.32 to avoid space issue

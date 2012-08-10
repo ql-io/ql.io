@@ -800,13 +800,26 @@ DeleteStatement = 'delete' insig 'from' insig s:Source insig wc:WhereClause* ins
     return s;
 }
 
-UpdateStatement = 'update' insig s:Source insig 'with' insig w:QuotedWord {
-    return {
+UpdateStatement = 'update' insig s:Source insig 'with' insig w:QuotedWord  insig
+        timeout:Timeout? insig minDelay:MinDelay? insig maxDelay:MaxDelay? {
+
+    var u = {
         type: 'update',
         source : s,
         withClause: w,
         line: line
+    };
+
+    if(timeout) {
+        u.timeout = timeout;
     }
+    if(minDelay) {
+        u.minDelay = minDelay;
+    }
+    if(maxDelay) {
+        u.maxDelay = maxDelay;
+    }
+    return u;
 }
 
 // Various clauses

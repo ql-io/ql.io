@@ -35,5 +35,18 @@ module.exports = {
         test.ok(statement.rhs.dependsOn.length === 1);
         test.ok(statement.rhs.dependsOn[0].type === "select");
         test.done();
+    },
+
+    'update-timeout': function (test) {
+        var q = 'a = select * from tab; update tab with "{a}" timeout 100 minDelay 50 maxDelay 5000';
+        var statement = compiler.compile(q);
+        test.ok(statement.rhs.type === 'update');
+        test.ok(statement.rhs.dependsOn.length === 1);
+        test.ok(statement.rhs.dependsOn[0].type === "select");
+        test.ok(statement.rhs.timeout === 100);
+        test.ok(statement.rhs.minDelay === 50);
+        test.ok(statement.rhs.maxDelay === 5000);
+        test.done();
     }
+	
 };
