@@ -18,7 +18,7 @@
 
 var winston = require('winston'),
     express = require('express'),
-    browserify = require('browserify'),
+    browserify = require('browserify-0.6'),
     headers = require('headers'),
     fs = require('fs'),
     os = require('os'),
