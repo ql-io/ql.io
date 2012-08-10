@@ -141,6 +141,10 @@ var Engine = module.exports = function(opts) {
         self.emitError('Unable to attach to Cache: ' + JSON.stringify(err, false, null));
     });
 
+    this.debugData = {
+        active : false,
+        max : 1
+    };
 
 }
 
@@ -176,6 +180,9 @@ Engine.prototype.execute = function() {
     var route, context, plan, parentEvent,
         request, start = Date.now(), tempResources = {}, packet, requestId = '', that = this;
 
+    //for debug
+    var emitterID, unexecuted, step1;
+
     if(arguments.length === 2) {
         script = arguments[0];
         func = arguments[1];
@@ -185,6 +192,14 @@ Engine.prototype.execute = function() {
         script = arguments[0];
         func = arguments[2];
         opts = arguments[1];
+    }
+    else if(arguments.length === 4) {
+        // debug mode
+        script = arguments[0];
+        func = arguments[2];
+        opts = arguments[1];
+        // only assign emitterID in debug mode.
+        emitterID = that.debugData.max++;
     }
     else {
         assert.ok(false, 'Incorrect arguments');
@@ -254,6 +269,17 @@ Engine.prototype.execute = function() {
             requestId += (reqId + ']');
         }
     });
+    if (emitterID) {
+        emitter.on(eventTypes.DEBUG_STEP, function (){
+            execOneStatement(unexecuted.shift());
+        });
+        emitter.on(eventTypes.KILL, function (){
+            engineEvent.end(null, null);
+        });
+        that.debugData[emitterID] = emitter;
+        unexecuted = [];
+        step1 = true;
+    }
 
     // Initialize the exec state
     var execState = {};
@@ -296,53 +322,76 @@ Engine.prototype.execute = function() {
         if(execState[todo.id].state === eventTypes.STATEMENT_WAITING &&  // Don't try if in-flight
             execState[todo.id].count === 0) {
             execState[todo.id].state = eventTypes.STATEMENT_IN_FLIGHT;
-            execOne({tables: that.tables,
-                     routes: that.routes,
-                     config: that.config,
-                     settings: that.settings,
-                     xformers: that.xformers,
-                     serializers: that.serializers,
-                     tempResources: tempResources,
-                     context: context,
-                     request: request,
-                     emitter: emitter,
-                     logEmitter: that,
-                     cache: that.cache
-                     },
-                todo, function(err, results) {
-                    if(err) {
-                        if(todo.fallback) {
-                            todo.fallback.fbhold = false;
-                            return sweep(todo.fallback);
-                        }
-                        else {
-                            // Skip the remaining statements and return error
-                            skip = true;
-                            return engineEvent.end(err);
-                        }
-                    }
-                    else if(results === null || results === undefined
-                        || results.body === null || results.body === undefined){
-                        var fallback = statement.rhs ? statement.rhs.fallback : statement.fallback;
-                        if(fallback) {
-                            fallback.fbhold = false;
-                            return sweep(fallback);
-                        }
-                    }
-
-                    execState[todo.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
-
-                    _.each(todo.listeners, function(listener) {
-                        execState[listener.id].count--;
-                        if (!(listener.fbhold)){
-                            sweep(listener);
-                        }
-                    });
-                    if(execState[todo.id].done) {
-                        execState[todo.id].done.call(null, err, results);
-                    }
-                }, engineEvent);
+            if (emitterID && !step1) {
+                unexecuted.push(statement);
+            }
+            else {
+                if (step1) {
+                    // execute the first step in debugging mode without pause.
+                    step1 = false;
+                }
+                execOneStatement(statement);
+            }
         }
+    }
+
+    var execOneStatement = function(statement) {
+        if (!statement) {
+            return;
+        }
+        var todo = statement.rhs || statement;
+        execOne({tables: that.tables,
+                routes: that.routes,
+                config: that.config,
+                settings: that.settings,
+                xformers: that.xformers,
+                serializers: that.serializers,
+                tempResources: tempResources,
+                context: context,
+                request: request,
+                emitter: emitter,
+                logEmitter: that,
+                cache: that.cache
+            },
+            todo, function(err, results) {
+                if(err) {
+                    if(todo.fallback) {
+                        todo.fallback.fbhold = false;
+                        return sweep(todo.fallback);
+                    }
+                    else {
+                        // Skip the remaining statements and return error
+                        skip = true;
+                        return engineEvent.end(err);
+                    }
+                }
+                else if(results === null || results === undefined
+                    || results.body === null || results.body === undefined){
+                    var fallback = statement.rhs ? statement.rhs.fallback : statement.fallback;
+                    if(fallback) {
+                        fallback.fbhold = false;
+                        return sweep(fallback);
+                    }
+                }
+
+                execState[todo.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
+
+                _.each(todo.listeners, function(listener) {
+                    execState[listener.id].count--;
+                    if (!(listener.fbhold)){
+                        sweep(listener);
+                    }
+                });
+                if (emitterID && unexecuted.length) {
+                    emitter.emit(eventTypes.DEBUG, {
+                        context : context,
+                        emitterID : emitterID
+                    });
+                }
+                else if(execState[todo.id].done) {
+                    execState[todo.id].done.call(null, err, results);
+                }
+            }, engineEvent);
     }
 
     var fnDone = function(err, results) {

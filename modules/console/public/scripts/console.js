@@ -1,6 +1,6 @@
 $(document).ready(function() {
     var oldInput, parseTimer, compiler, editor, markers = [], headers, har,
-        runState, socket, emitter, state, results, html, wsEnabled,
+        runState, socket, emitter, emitterID, results, html, wsEnabled,
         EventEmitter = require('events').EventEmitter, formatter = new JSONFormatter();
 
     // IE8 is not supported
@@ -18,6 +18,8 @@ $(document).ready(function() {
         $('#bottom-pane').width('100%');
         $('.hsplitbar').width('100%');
     });
+
+    $('#step').hide();
     // Splitter to show har data
     $('#splitter').splitter({
         splitHorizontal: true,
@@ -77,8 +79,28 @@ $(document).ready(function() {
                 $('#util-links').show();
 
                 $('#run').click(function() {
+                    killPrevEvent();
+                    $('#step').hide();
                     $("#run").unbind('click');
+                    emitterID = 0;
                     runQuery(statement, escaped, compiled);
+                });
+                $('#debug').click(function() {
+                    killPrevEvent();
+                    $("#debug").unbind('click');
+                    //temporarily assign a place holder for emitterID
+                    emitterID = 1;
+                    runQuery(statement, escaped, compiled, true);
+
+                    $('#step').show();
+                });
+                $('#step').click(function() {
+                    $("#step").unbind('click');
+                    packet = {
+                        type : 'debug',
+                        emitterID : emitterID
+                    };
+                    socket.send(JSON.stringify(packet));
                 });
             }
         }
@@ -122,7 +144,7 @@ $(document).ready(function() {
         }
     }
 
-    function runQuery(statement, escaped, compiled) {
+    function runQuery(statement, escaped, compiled, debug) {
         var share = window.location.protocol + '//' + window.location.host + window.location.pathname + '?s=' + encodeURIComponent(statement);
         history.pushState(null, null, share);
         $('#copy-uri').unbind(); // unbind any previous registered handler.
@@ -137,7 +159,7 @@ $(document).ready(function() {
 
         if(wsEnabled) {
             try {
-                doWs(statement, escaped, compiled);
+                doWs(statement, escaped, compiled, debug);
             }
             catch(e) {
                 doXhr(statement, escaped, compiled);
@@ -217,10 +239,22 @@ $(document).ready(function() {
         markers.push(editor.setMarker(compiled[0].line - 1, '&#9992', 'red'));
     }
 
-    function doWs(statement, escaped, compiled) {
+    function doWs(statement, escaped, compiled, debug) {
         var uri, packet;
         try {
             emitter = new EventEmitter();
+            if (debug) {
+                var packet = {
+                    type: 'script',
+                    data: '__debug__'+statement
+                };
+            }
+            else {
+                var packet = {
+                    type: 'script',
+                    data: statement
+                };
+            }
             if(socket === undefined || socket.readyState !== 1) {
                 uri = 'ws://' + document.domain;
                 uri = uri + ':' + (document.location.protocol === 'https:' ? 443 : document.location.port);
@@ -228,18 +262,10 @@ $(document).ready(function() {
                 socket = new wsCtor(uri, 'ql.io-console');
                 socket.onopen = function () {
                     subscribe(socket);
-                    var packet = {
-                        type: 'script',
-                        data: statement
-                    };
                     socket.send(JSON.stringify(packet));
                 };
             }
             else {
-                packet = {
-                    type: 'script',
-                    data: statement
-                };
                 socket.send(JSON.stringify(packet));
             }
             socket.onerror = function() {
@@ -288,7 +314,7 @@ $(document).ready(function() {
     // Tell the server what notifications to receive
     function subscribe(socket, uri) {
         var events = ['ack', 'compile-error', 'statement-error', 'statement-in-flight',
-            'statement-success', 'statement-request', 'statement-response', 'script-done'];
+            'statement-success', 'statement-request', 'statement-response', 'script-done', 'ql.io-debug'];
         var packet = {
             type: 'events',
             data: JSON.stringify(events)
@@ -373,10 +399,35 @@ $(document).ready(function() {
             har.timings(data.id, data.timings);
         });
         emitter.on('statement-success', function (data) {
-            markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
+            if (emitterID) {
+                // &#9658
+                markers.push(editor.setMarker(data.line - 1, '&#8226', 'green'));
+            }
+            else {
+                markers.push(editor.setMarker(data.line - 1, data.elapsed + 'ms', 'green'));
+            }
+        });
+        emitter.on('ql.io-debug', function (data) {
+            emitterID = data.emitterID;
+            $('#results').attr('class', 'results tree json').html(formatter.jsonToHTML(data.context));
+            $('#results').treeview();
+            $('#results').animate({
+                opacity: 1.0
+            });
         });
         emitter.on('script-done', function (data) {
-            markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
+            markers.push(editor.setMarker(data.line - 1, data.elapsed + 'ms', 'green'));
         });
+    }
+
+    function killPrevEvent() {
+        if (!emitterID || socket === undefined || socket.readyState !== 1) {
+            return;
+        }
+        var packet = {
+            type : 'kill',
+            id : emitterID
+        };
+        socket.send(JSON.stringify(packet));
     }
 });
