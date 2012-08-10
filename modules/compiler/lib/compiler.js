@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
+'use strict';
+
 var ql = require('./peg/ql.js'),
     assert = require('assert'),
-    strParser = require('ql.io-str-template')
-    _ = require('underscore')
-
-'use strict'
+    strParser = require('ql.io-str-template'),
+    _ = require('underscore');
 
 exports.version = require('../package.json').version;
 
