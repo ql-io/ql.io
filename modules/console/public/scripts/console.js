@@ -1,6 +1,6 @@
 $(document).ready(function() {
     var oldInput, parseTimer, compiler, editor, markers = [], headers, har,
-        runState, socket, emitter, emitterID, results, html, wsEnabled,
+        runState, socket, emitter, emitterID, results, html, wsEnabled, step,
         EventEmitter = require('events').EventEmitter, formatter = new JSONFormatter();
 
     // IE8 is not supported
@@ -81,21 +81,19 @@ $(document).ready(function() {
                 $('#run').click(function() {
                     killPrevEvent();
                     $('#step').hide();
-                    $("#run").unbind('click');
                     emitterID = 0;
                     runQuery(statement, escaped, compiled);
                 });
                 $('#debug').click(function() {
                     killPrevEvent();
-                    $("#debug").unbind('click');
                     //temporarily assign a place holder for emitterID
                     emitterID = 1;
+                    // step number in debugging.
+                    step = 1;
                     runQuery(statement, escaped, compiled, true);
-
                     $('#step').show();
                 });
                 $('#step').click(function() {
-                    $("#step").unbind('click');
                     packet = {
                         type : 'debug',
                         emitterID : emitterID
@@ -275,8 +273,7 @@ $(document).ready(function() {
                 var event = JSON.parse(e.data);
                 emitter.emit(event.type, event.data);
             };
-            socket.onclose = function() {
-            };
+            socket.onclose = function() {};
             wireup(emitter);
             emitter.on('script-result', function(data) {
                 var contentType = data.headers && data.headers['content-type'];
@@ -408,14 +405,16 @@ $(document).ready(function() {
         });
         emitter.on('ql.io-debug', function (data) {
             emitterID = data.emitterID;
-            $('#results').attr('class', 'results tree json').html(formatter.jsonToHTML(data.context));
+            var context = data.context;
+            context._step = step++;
+            $('#results').attr('class', 'results tree json').html(formatter.jsonToHTML(context));
             $('#results').treeview();
             $('#results').animate({
                 opacity: 1.0
             });
         });
         emitter.on('script-done', function (data) {
-            markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
+            markers.push(editor.setMarker(data.line - 1, data.elapsed + ' mss', 'green'));
         });
     }
 
