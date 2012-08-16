@@ -78,12 +78,15 @@ $(document).ready(function() {
                 $('#parse-status').hide();
                 $('#util-links').show();
 
+                $('#run').unbind();
                 $('#run').click(function() {
                     killPrevEvent();
                     $('#step').hide();
                     emitterID = 0;
                     runQuery(statement, escaped, compiled);
                 });
+
+                $('#debug').unbind();
                 $('#debug').click(function() {
                     killPrevEvent();
                     //temporarily assign a place holder for emitterID
@@ -92,7 +95,10 @@ $(document).ready(function() {
                     step = 1;
                     runQuery(statement, escaped, compiled, true);
                     $('#step').show();
+                    pastePic()
                 });
+
+                $('#step').unbind();
                 $('#step').click(function() {
                     packet = {
                         type : 'debug',
