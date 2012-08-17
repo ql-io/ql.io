@@ -420,7 +420,7 @@ $(document).ready(function() {
             });
         });
         emitter.on('script-done', function (data) {
-            markers.push(editor.setMarker(data.line - 1, data.elapsed + ' mss', 'green'));
+            markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
         });
     }
 
