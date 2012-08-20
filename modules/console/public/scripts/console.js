@@ -78,7 +78,7 @@ $(document).ready(function() {
                 $('#parse-status').hide();
                 $('#util-links').show();
 
-                //$('#run').unbind();
+                $('#run').unbind();
                 $('#run').click(function() {
                     killPrevEvent();
                     $('#step').hide();
@@ -86,7 +86,7 @@ $(document).ready(function() {
                     runQuery(statement, escaped, compiled);
                 });
 
-                //$('#debug').unbind();
+                $('#debug').unbind();
                 $('#debug').click(function() {
                     killPrevEvent();
                     //temporarily assign a place holder for emitterID
@@ -97,7 +97,7 @@ $(document).ready(function() {
                     $('#step').show();
                 });
 
-                //$('#step').unbind();
+                $('#step').unbind();
                 $('#step').click(function() {
                     packet = {
                         type : 'debug',
