@@ -95,7 +95,7 @@ $(document).ready(function() {
                     step = 1;
                     runQuery(statement, escaped, compiled, true);
                     $('#step').show();
-                    pastePic()
+                    pastePic(compiled);
                 });
 
                 $('#step').unbind();
@@ -420,7 +420,7 @@ $(document).ready(function() {
             });
         });
         emitter.on('script-done', function (data) {
-            markers.push(editor.setMarker(data.line - 1, data.elapsed + ' mss', 'green'));
+            markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
         });
     }
 
@@ -433,5 +433,37 @@ $(document).ready(function() {
             id : emitterID
         };
         socket.send(JSON.stringify(packet));
+    }
+
+    function pastePic(tree) {
+        function getDepHelper(tree) {
+            sofar = "";
+
+            if (tree.hasOwnProperty('rhs')) {
+                sofar += getDepHelper(tree.rhs);
+            }
+            var line_num = tree.line ? tree.line : 'return';
+            if (tree.hasOwnProperty('fallback') && tree.fallback.dependsOn.length > 0) {
+                var fallback = tree.fallback;
+                for (var j = 0; j < fallback.dependsOn.length; j++) {
+                    var addition = '%5B'+line_num+'%5D->%5Bnote:'+fallback.dependsOn[j].line+'%5D,';
+                    sofar += addition;
+                    sofar += getDepHelper(fallback.dependsOn[j]);
+                }
+            }
+            if (tree.dependsOn && tree.dependsOn.length > 0) {
+                for (var j = 0; j < tree.dependsOn.length; j++) {
+                    var dep = tree.dependsOn[j];
+                    var addition = '%5B'+line_num+'%5D-%3E%5B'+dep.line+'%5D,'
+                    sofar += addition;
+                    sofar += getDepHelper(dep);
+                }
+            }
+
+            return sofar;
+            }
+        var deptxt = getDepHelper(tree[0]);
+        deptxt = 'http://yuml.me/diagram/scruffy;/class/'+deptxt.substring(0, deptxt.length-1)+'.png';
+        $('#dependencyMap').attr('src', deptxt);
     }
 });
