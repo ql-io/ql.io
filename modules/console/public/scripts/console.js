@@ -461,7 +461,7 @@ $(document).ready(function() {
             }
 
             return sofar;
-            }
+        }
         var deptxt = getDepHelper(tree[0]);
         deptxt = 'http://yuml.me/diagram/scruffy;/class/'+deptxt.substring(0, deptxt.length-1)+'.png';
         $('#dependencyMap').attr('src', deptxt);
