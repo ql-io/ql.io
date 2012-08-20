@@ -95,7 +95,6 @@ $(document).ready(function() {
                     step = 1;
                     runQuery(statement, escaped, compiled, true);
                     $('#step').show();
-                    pastePic()
                 });
 
                 $('#step').unbind();
