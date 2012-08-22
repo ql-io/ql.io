@@ -142,7 +142,6 @@ var Engine = module.exports = function(opts) {
     });
 
     this.debugData = {
-        active : false,
         max : 1
     };
 
@@ -274,11 +273,15 @@ Engine.prototype.execute = function() {
             execOneStatement(unexecuted.shift());
         });
         emitter.on(eventTypes.KILL, function (){
+            delete that.debugData[emitterID];
             engineEvent.end(null, null);
         });
         that.debugData[emitterID] = emitter;
         unexecuted = [];
         step1 = true;
+        setTimeout( function () {
+            emitter.emit(eventTypes.KILL);
+        }, 1800000);// clear unused session in 30 minutes.
     }
 
     // Initialize the exec state

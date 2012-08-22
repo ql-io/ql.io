@@ -84,6 +84,7 @@ $(document).ready(function() {
                     $('#step').hide();
                     emitterID = 0;
                     runQuery(statement, escaped, compiled);
+                    pastePic();
                 });
 
                 $('#debug').unbind();
@@ -435,7 +436,7 @@ $(document).ready(function() {
         socket.send(JSON.stringify(packet));
     }
 
-    function pastePic(tree) {
+    function pastePic(forest) {
         function getDepHelper(tree) {
             sofar = "";
 
@@ -462,8 +463,13 @@ $(document).ready(function() {
 
             return sofar;
         }
-        var deptxt = getDepHelper(tree[0]);
-        deptxt = 'http://yuml.me/diagram/scruffy;/class/'+deptxt.substring(0, deptxt.length-1)+'.png';
+        var deptxt = '';
+        if (forest) {
+            for (var k = 0; k < forest.length; k++) {
+                deptxt += getDepHelper(forest[k]);
+            }
+            deptxt = 'http://yuml.me/diagram/scruffy;/class/'+deptxt.substring(0, deptxt.length-1)+'.png';
+        }
         $('#dependencyMap').attr('src', deptxt);
     }
 });

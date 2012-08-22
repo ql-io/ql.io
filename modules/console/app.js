@@ -845,7 +845,9 @@ var Console = module.exports = function(opts, cb) {
                 engine.debugData[event.emitterID].emit(Engine.Events.DEBUG_STEP);
             }
             else if (event.type === 'kill') {
-                engine.debugData[event.id].emit(Engine.Events.KILL);
+                if (engine.debugData.hasOwnProperty(event.id)) {
+                    engine.debugData[event.id].emit(Engine.Events.KILL);
+                }
             }
         });
         connection.on('close', function() {

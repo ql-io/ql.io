@@ -74,6 +74,11 @@ textarea.query-input {
     display: none;
 }
 
+#dependencyMap {
+    float: right;
+    clear: right;
+}
+
 #conn-status {
     font-size: small;
 }
