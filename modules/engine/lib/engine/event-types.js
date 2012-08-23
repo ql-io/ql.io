@@ -103,3 +103,10 @@ exports.ERROR = 'ql.io-error';
  * Gather request ID for Call tracing
  */
 exports.REQUEST_ID_RECEIVED = 'ql-io-request-id-received';
+
+/**
+ * debug event
+ */
+exports.DEBUG = 'ql.io-debug';
+exports.DEBUG_STEP = 'ql.io-debug-step';
+exports.KILL = 'ql.io-kill';

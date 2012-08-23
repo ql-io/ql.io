@@ -788,7 +788,7 @@ var Console = module.exports = function(opts, cb) {
             }
             else if (event.type === 'script') {
                 var script = event.data;
-                engine.execute(script, {
+                var pack = {
                     request: {
                         headers: {},
                         params: {},
@@ -796,7 +796,8 @@ var Console = module.exports = function(opts, cb) {
                             remoteAddress: connection.remoteAddress
                         }
                     }
-                }, function(emitter) {
+                };
+                var cb = function(emitter) {
                     _.each(events, function(event) {
                         emitter.on(event, function(packet) {
                             // Writes events to the client
@@ -830,7 +831,23 @@ var Console = module.exports = function(opts, cb) {
                             connection.end();
                         }
                     })
-                })
+                };
+                if (script.indexOf('__debug__') == 0){
+                    script = script.replace('__debug__','')
+                    engine.execute(script, pack, cb, true);
+                }
+                else {
+                    engine.execute(script, pack, cb);
+                }
+
+            }
+            else if (event.type === 'debug'){
+                engine.debugData[event.emitterID].emit(Engine.Events.DEBUG_STEP);
+            }
+            else if (event.type === 'kill') {
+                if (engine.debugData.hasOwnProperty(event.id)) {
+                    engine.debugData[event.id].emit(Engine.Events.KILL);
+                }
             }
         });
         connection.on('close', function() {

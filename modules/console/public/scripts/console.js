@@ -1,6 +1,6 @@
 $(document).ready(function() {
     var oldInput, parseTimer, compiler, editor, markers = [], headers, har,
-        runState, socket, emitter, state, results, html, wsEnabled,
+        runState, socket, emitter, emitterID, results, html, wsEnabled, step,
         EventEmitter = require('events').EventEmitter, formatter = new JSONFormatter();
 
     // IE8 is not supported
@@ -18,6 +18,8 @@ $(document).ready(function() {
         $('#bottom-pane').width('100%');
         $('.hsplitbar').width('100%');
     });
+
+    $('#step').hide();
     // Splitter to show har data
     $('#splitter').splitter({
         splitHorizontal: true,
@@ -76,9 +78,34 @@ $(document).ready(function() {
                 $('#parse-status').hide();
                 $('#util-links').show();
 
+                $('#run').unbind();
                 $('#run').click(function() {
-                    $("#run").unbind('click');
+                    killPrevEvent();
+                    $('#step').hide();
+                    emitterID = 0;
                     runQuery(statement, escaped, compiled);
+                    pastePic();
+                });
+
+                $('#debug').unbind();
+                $('#debug').click(function() {
+                    killPrevEvent();
+                    //temporarily assign a place holder for emitterID
+                    emitterID = 1;
+                    // step number in debugging.
+                    step = 1;
+                    runQuery(statement, escaped, compiled, true);
+                    $('#step').show();
+                    pastePic(compiled);
+                });
+
+                $('#step').unbind();
+                $('#step').click(function() {
+                    packet = {
+                        type : 'debug',
+                        emitterID : emitterID
+                    };
+                    socket.send(JSON.stringify(packet));
                 });
             }
         }
@@ -122,7 +149,7 @@ $(document).ready(function() {
         }
     }
 
-    function runQuery(statement, escaped, compiled) {
+    function runQuery(statement, escaped, compiled, debug) {
         var share = window.location.protocol + '//' + window.location.host + window.location.pathname + '?s=' + encodeURIComponent(statement);
         history.pushState(null, null, share);
         $('#copy-uri').unbind(); // unbind any previous registered handler.
@@ -137,7 +164,7 @@ $(document).ready(function() {
 
         if(wsEnabled) {
             try {
-                doWs(statement, escaped, compiled);
+                doWs(statement, escaped, compiled, debug);
             }
             catch(e) {
                 doXhr(statement, escaped, compiled);
@@ -217,10 +244,22 @@ $(document).ready(function() {
         markers.push(editor.setMarker(compiled[0].line - 1, '&#9992', 'red'));
     }
 
-    function doWs(statement, escaped, compiled) {
+    function doWs(statement, escaped, compiled, debug) {
         var uri, packet;
         try {
             emitter = new EventEmitter();
+            if (debug) {
+                var packet = {
+                    type: 'script',
+                    data: '__debug__'+statement
+                };
+            }
+            else {
+                var packet = {
+                    type: 'script',
+                    data: statement
+                };
+            }
             if(socket === undefined || socket.readyState !== 1) {
                 uri = 'ws://' + document.domain;
                 uri = uri + ':' + (document.location.protocol === 'https:' ? 443 : document.location.port);
@@ -228,18 +267,10 @@ $(document).ready(function() {
                 socket = new wsCtor(uri, 'ql.io-console');
                 socket.onopen = function () {
                     subscribe(socket);
-                    var packet = {
-                        type: 'script',
-                        data: statement
-                    };
                     socket.send(JSON.stringify(packet));
                 };
             }
             else {
-                packet = {
-                    type: 'script',
-                    data: statement
-                };
                 socket.send(JSON.stringify(packet));
             }
             socket.onerror = function() {
@@ -249,8 +280,7 @@ $(document).ready(function() {
                 var event = JSON.parse(e.data);
                 emitter.emit(event.type, event.data);
             };
-            socket.onclose = function() {
-            };
+            socket.onclose = function() {};
             wireup(emitter);
             emitter.on('script-result', function(data) {
                 var contentType = data.headers && data.headers['content-type'];
@@ -288,7 +318,7 @@ $(document).ready(function() {
     // Tell the server what notifications to receive
     function subscribe(socket, uri) {
         var events = ['ack', 'compile-error', 'statement-error', 'statement-in-flight',
-            'statement-success', 'statement-request', 'statement-response', 'script-done'];
+            'statement-success', 'statement-request', 'statement-response', 'script-done', 'ql.io-debug'];
         var packet = {
             type: 'events',
             data: JSON.stringify(events)
@@ -373,10 +403,73 @@ $(document).ready(function() {
             har.timings(data.id, data.timings);
         });
         emitter.on('statement-success', function (data) {
-            markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
+            if (emitterID) {
+                markers.push(editor.setMarker(data.line - 1, '&#8226', 'green'));
+            }
+            else {
+                markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
+            }
+        });
+        emitter.on('ql.io-debug', function (data) {
+            emitterID = data.emitterID;
+            var context = data.context;
+            context._step = step++;
+            $('#results').attr('class', 'results tree json').html(formatter.jsonToHTML(context));
+            $('#results').treeview();
+            $('#results').animate({
+                opacity: 1.0
+            });
         });
         emitter.on('script-done', function (data) {
             markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
         });
+    }
+
+    function killPrevEvent() {
+        if (!emitterID || socket === undefined || socket.readyState !== 1) {
+            return;
+        }
+        var packet = {
+            type : 'kill',
+            id : emitterID
+        };
+        socket.send(JSON.stringify(packet));
+    }
+
+    function pastePic(forest) {
+        function getDepHelper(tree) {
+            sofar = "";
+
+            if (tree.hasOwnProperty('rhs')) {
+                sofar += getDepHelper(tree.rhs);
+            }
+            var line_num = tree.line ? tree.line : 'return';
+            if (tree.hasOwnProperty('fallback') && tree.fallback.dependsOn.length > 0) {
+                var fallback = tree.fallback;
+                for (var j = 0; j < fallback.dependsOn.length; j++) {
+                    var addition = '%5B'+line_num+'%5D->%5Bnote:'+fallback.dependsOn[j].line+'%5D,';
+                    sofar += addition;
+                    sofar += getDepHelper(fallback.dependsOn[j]);
+                }
+            }
+            if (tree.dependsOn && tree.dependsOn.length > 0) {
+                for (var j = 0; j < tree.dependsOn.length; j++) {
+                    var dep = tree.dependsOn[j];
+                    var addition = '%5B'+line_num+'%5D-%3E%5B'+dep.line+'%5D,'
+                    sofar += addition;
+                    sofar += getDepHelper(dep);
+                }
+            }
+
+            return sofar;
+        }
+        var deptxt = '';
+        if (forest) {
+            for (var k = 0; k < forest.length; k++) {
+                deptxt += getDepHelper(forest[k]);
+            }
+            deptxt = 'http://yuml.me/diagram/scruffy;/class/'+deptxt.substring(0, deptxt.length-1)+'.png';
+        }
+        $('#dependencyMap').attr('src', deptxt);
     }
 });
