@@ -74,6 +74,11 @@ textarea.query-input {
     display: none;
 }
 
+#dependencyMap {
+    float: right;
+    clear: right;
+}
+
 #conn-status {
     font-size: small;
 }
@@ -201,8 +206,8 @@ pre, code {
 }
 
 .CodeMirror-scroll {
-  height: auto;
-  overflow-y: hidden;
-  overflow-x: auto;
-  width: 100%
+    height: auto;
+    overflow-y: hidden;
+    overflow-x: auto;
+    width: 100%
 }
