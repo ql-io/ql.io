@@ -473,7 +473,7 @@ Engine.prototype.exec = function() {
             // to "this"
             if(opts.emitter) {
                 events = ['ack', 'compile-error', 'statement-error', 'statement-in-flight',
-                    'statement-success', 'statement-request', 'statement-response', 'script-done'];
+                          'statement-success', 'statement-request', 'statement-response', 'script-done'];
                 _.each(events, function(event) {
                     listeners = opts.emitter.listeners(event);
                     _.each(listeners, function(listener) {
@@ -553,12 +553,12 @@ function _execOne(opts, statement, parentEvent, cb) {
             break;
         case 'define' :
             params = _util.prepareParams(opts.context,
-                opts.request.body,
-                opts.request.routeParams,
-                opts.request.params,
-                opts.request.headers,
-                opts.request.connection,
-                {config: opts.config});
+                     opts.request.body,
+                     opts.request.routeParams,
+                     opts.request.params,
+                     opts.request.headers,
+                     opts.request.connection,
+                     {config: opts.config});
 
             if(statement.hasOwnProperty('object')) {
                 obj = jsonfill.fill(statement.object, params);

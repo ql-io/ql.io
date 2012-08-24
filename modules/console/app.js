@@ -255,15 +255,15 @@ var Console = module.exports = function(opts, cb) {
                 // routes that distinguish required and optional params
                 var route = _(verbRouteVariants).chain()
                     .filter(function (verbRouteVariant){var defaultKeys = _.chain(verbRouteVariant.query)
-                        .keys()
-                        .filter(function(k){
-                            var querykey = verbRouteVariant.query[k];
-                            if (querykey.indexOf('^') != -1) {
-                                querykey = querykey.substr(1);
-                            }
-                            return _.has(verbRouteVariant.routeInfo.defaults, querykey);
-                        })
-                        .value();
+                            .keys()
+                            .filter(function(k){
+                                var querykey = verbRouteVariant.query[k];
+                                if (querykey.indexOf('^') != -1) {
+                                    querykey = querykey.substr(1);
+                                }
+                                return _.has(verbRouteVariant.routeInfo.defaults, querykey);
+                            })
+                            .value();
                         // missed query params that are neither defaults nor user provided
                         var missed = _.difference(_.keys(verbRouteVariant.query), _.union(defaultKeys, _.keys(holder.params)));
                         var misrequired = _.filter(missed, function(key){
