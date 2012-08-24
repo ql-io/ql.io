@@ -35,17 +35,16 @@ module.exports = {
                             test.deepEqual(packet.context, {"obj" : {"a" : "A", "b" : "B", "c" : "C"}});
                             break;
                         case 1:
-                            test.deepEqual(packet.context, {"obj" : {"a" : "A", "b" : "B", "c" : "C"}, "foo" : ["A"]})
+                            test.deepEqual(packet.context, {"obj" : {"a" : "A", "b" : "B", "c" : "C"}, "foo" : ["A"]});
+                            break;
                     }
                     step_num++;
-                    // Writes events to the client
-                    //test.deepEqual(packet.context, {"obj" : {"a" : "A", "b" : "B", "c" : "C"}})
-                    engine.debugData[packet.emitterID].emit('ql.io-debug-step')
+                    engine.debugData[packet.emitterID].emit('ql.io-debug-step');
                 });
-            emitter.on('end', function(err, results) {
-                test.deepEqual(results.body, ['A']);
-                test.done();
-            });
-        }, true);
+                emitter.on('end', function(err, results) {
+                    test.deepEqual(results.body, ['A']);
+                    test.done();
+                });
+            }, true);
     }
 };

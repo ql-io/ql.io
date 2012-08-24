@@ -180,7 +180,7 @@ Engine.prototype.execute = function() {
         request, start = Date.now(), tempResources = {}, packet, requestId = '', that = this;
 
     //for debug
-    var emitterID, unexecuted, step1;
+    var emitterID, unexecuted, step1, timeoutID;
 
     if(arguments.length === 2) {
         script = arguments[0];
@@ -274,12 +274,13 @@ Engine.prototype.execute = function() {
         });
         emitter.on(eventTypes.KILL, function (){
             delete that.debugData[emitterID];
+            clearTimeout(timeoutID);
             engineEvent.end(null, null);
         });
         that.debugData[emitterID] = emitter;
         unexecuted = [];
         step1 = true;
-        setTimeout( function () {
+        timeoutID = setTimeout( function () {
             emitter.emit(eventTypes.KILL);
         }, 1800000);// clear unused session in 30 minutes.
     }
@@ -425,7 +426,10 @@ Engine.prototype.execute = function() {
             _.each(respHeaders, function(value, name) {
                 results.headers[name] = value;
             });
+            delete that.debugData[emitterID];
+            clearTimeout(timeoutID);
             engineEvent.end(null, results);
+
         }
     }
 
