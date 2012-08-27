@@ -280,5 +280,40 @@ module.exports = {
                 }, 550);
             })
         });
+    },
+    'update-timeout-test': function (test) {
+        var server = http.createServer(function (req, res) {
+            setTimeout(function () {
+                res.writeHead(200, {
+                    'Content-Type': 'application/json'
+                });
+                res.end(JSON.stringify({
+                    'message': 'ok'
+                }));
+            }, 30);  // No 'retry' on timeout for update
+        });
+
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+                tables: __dirname + '/update'
+            });
+            var script = 'upd = {"id":1, "team":[{"name":"Joe"},{"name":"Mike"},{"name":"Haker"}]}; update test.update with "{upd}" timeout 10 minDelay 50 maxDelay 5000';
+            engine.execute(
+                script,
+                function (emitter) {
+                    emitter.on('end', function (err, results) {
+                        if(err) {
+                            // Timeout as expected
+                            test.ok(true);
+                        }
+                        else {
+                            test.ok(false, "Did not fail");
+                        }
+                        server.close();
+                        test.done();
+                    });
+                });
+        });
     }
 };
