@@ -112,15 +112,15 @@ exports.exec = function() {
         cluster.listen(
             // Create an app and call back
             function(cb2) {
-                createConsole(options, cluster, function(app, e) {
+                createConsole(options, cluster, function(app, monApp, e) {
                     emitter = e;
-                    cb2(app);
+                    cb2(app, monApp);
                 })
             },
             // Cluster is ready
             function(app) {
                 if(cb) {
-                    cb(app, program, emitter);
+                    cb(app, monApp, program, emitter);
                 }
             }
         );

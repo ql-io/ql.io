@@ -56,6 +56,9 @@ var Console = module.exports = function(opts, cb) {
 
     var app = this.app = express.createServer();
 
+    // Monitor App to provide VI page, markup/markdown feature.
+    var monApp = this.monApp = express.createServer();
+
     // Remains true until the app receives a 'close' event. Once this event is received, the app
     // sends 'connection: close' on responses (except for express served responses) and ends
     // the connection. See the app.on('close') handler below.
@@ -997,6 +1000,6 @@ var Console = module.exports = function(opts, cb) {
 
     // The caller gets the app and the engine/event emitter
     if(cb) {
-        cb(app, engine);
+        cb(app, monApp, engine);
     }
 };
