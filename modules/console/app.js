@@ -56,6 +56,9 @@ var Console = module.exports = function(opts, cb) {
 
     var app = this.app = express.createServer();
 
+    // Monitor App to provide VI page, markup/markdown feature.
+    var monApp = this.monApp = express.createServer();
+
     // Remains true until the app receives a 'close' event. Once this event is received, the app
     // sends 'connection: close' on responses (except for express served responses) and ends
     // the connection. See the app.on('close') handler below.
@@ -788,7 +791,7 @@ var Console = module.exports = function(opts, cb) {
             }
             else if (event.type === 'script') {
                 var script = event.data;
-                engine.execute(script, {
+                var pack = {
                     request: {
                         headers: {},
                         params: {},
@@ -796,7 +799,8 @@ var Console = module.exports = function(opts, cb) {
                             remoteAddress: connection.remoteAddress
                         }
                     }
-                }, function(emitter) {
+                };
+                var cb = function(emitter) {
                     _.each(events, function(event) {
                         emitter.on(event, function(packet) {
                             // Writes events to the client
@@ -830,7 +834,23 @@ var Console = module.exports = function(opts, cb) {
                             connection.end();
                         }
                     })
-                })
+                };
+                if (script.indexOf('__debug__') == 0){
+                    script = script.replace('__debug__','')
+                    engine.execute(script, pack, cb, true);
+                }
+                else {
+                    engine.execute(script, pack, cb);
+                }
+
+            }
+            else if (event.type === 'debug'){
+                engine.debugData[event.emitterID].emit(Engine.Events.DEBUG_STEP);
+            }
+            else if (event.type === 'kill') {
+                if (engine.debugData.hasOwnProperty(event.id)) {
+                    engine.debugData[event.id].emit(Engine.Events.KILL);
+                }
             }
         });
         connection.on('close', function() {
@@ -980,6 +1000,6 @@ var Console = module.exports = function(opts, cb) {
 
     // The caller gets the app and the engine/event emitter
     if(cb) {
-        cb(app, engine);
+        cb(app, monApp, engine);
     }
 };
