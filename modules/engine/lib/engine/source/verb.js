@@ -70,21 +70,32 @@ var Verb = module.exports = function(table, statement, type, bag, path) {
             return(key.join(':'));
         }
     };
-    this['parse response'] = function(args) { // Just append bufs to a string
+    this['parse response'] = function(args) {
+	// figure out the encoding, default to utf8 if encoding is not provided
         var encoding = 'UTF-8';
         if(args.headers['content-type']) {
             var contentType = headers.parse('content-type', args.headers['content-type'] || '');
             encoding = contentType.params.charset ? contentType.params.charset :
                 contentType.subtype === 'csv' ? 'ASCII' : 'UTF-8';
         }
-        var str = '';
+
+	// calculate the length of the request
+	var length = 0, idx = 0;
+	_.each(args.body, function(b) {
+            length += b.length;
+	});
+
+	// create a buffer large enough to fit the entire request and copy the request into it
+	var buf = new Buffer(length);
+	_.each(args.body, function(b) {
+            idx = idx + b.copy(buf, idx);
+	});
+
         var iconv = new Iconv(encoding, 'UTF-8');
-        _.each(args.body, function(buf) {
-            buf = (iconv.convert(buf));
-            str += buf.toString('UTF-8');
-        });
+        buf = (iconv.convert(buf)); // convert the buf to utf8
+
         return {
-            content: str
+            content: buf.toString('UTF-8')
         };
     };
     this['patch response'] = function(args) {return args.body; };
