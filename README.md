@@ -1,4 +1,3 @@
-
 [![ql.io](http://ql.io/images/ql.io-large.png)](http://ql.io)
 
 ql.io is a declarative, data-retrieval and aggregation gateway for quickly consuming HTTP APIs. See
