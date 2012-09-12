@@ -1,3 +1,7 @@
+## August 27, 2012
+
+* debugger and visualization in console.
+
 ## August 09, 2012
 
 * Node 0.8.x and other dependecy upgrades.
