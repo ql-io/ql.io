@@ -120,7 +120,7 @@ exports.exec = function() {
             // Cluster is ready
             function(app) {
                 if(cb) {
-                    cb(app, monApp, program, emitter);
+                    cb(app, program, emitter);
                 }
             }
         );
