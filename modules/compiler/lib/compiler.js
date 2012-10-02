@@ -54,6 +54,32 @@ function plan(compiled) {
     var comments = [];
     var creates = {};
     var maxid = 0;
+    function divescope(lines, scope) {
+        var i, line;
+        for (i = 0; i < lines.length; i++) {
+            line = lines[i];
+            maxid = line.id > maxid ? line.id : maxid;
+            line.scope = scope;
+            if(line.assign) {
+                if(symbols[line.assign]) {
+                    throw new this.SyntaxError('Duplicate symbol ' + line.assign);
+                }
+                else {
+                    symbols[line.assign] = line;
+                }
+                single = line;
+            }
+            else if(line.type === 'create') { // Makes sense when DDL is inline
+                symbols[line.name] = line;
+                creates[line.id.toString()] = line;
+            }
+            else if (line.type === 'if') {
+                divscope(line.condition);
+                divescope(line.if);
+                divescope(line.else);
+            }
+        }
+    }
     for(i = 0; i < compiled.length; i++) {
         line = compiled[i];
         maxid = line.id > maxid ? line.id : maxid;
@@ -81,6 +107,12 @@ function plan(compiled) {
         else if(line.type === 'create') { // Makes sense when DDL is inline
             symbols[line.name] = line;
             creates[line.id.toString()] = line;
+        }
+        else if (line.type === 'if') {
+            divescope(line.if, line)
+            if (line.else){
+                divescope(line.else, line)
+            }
         }
         else {
             single = line;
@@ -138,6 +170,10 @@ function plan(compiled) {
             node.fallback.listeners = node.listeners;
             node.fallback.fbhold = true;
         }
+        if(node.scope) {
+            used.push(node.scope.id);
+            //addListener(node, node.scope);
+        }
     }
     used.push(ret.rhs.id);
     rev(ret.rhs);
@@ -170,7 +206,6 @@ function plan(compiled) {
     // Insert creates before orphans.
     ret.rhs.dependsOn = orphans.concat(ret.rhs.dependsOn);
     ret.rhs.dependsOn = creates.concat(ret.rhs.dependsOn);
-
     return ret;
 }
 
@@ -218,9 +253,22 @@ function walk(line, symbols) {
             break;
         case 'insert':
             introspectFrom(line, [line.source], symbols);
+            if(line.columns){
+                _.each(line.values, function(val) {
+                    //introspectString(line, val, symbols);
+                    introspectString(val, symbols, line.dependsOn, line);
+                })
+            }
+            if(line.jsonObj) {
+                introspectString(line.jsonObj.value, symbols, line.dependsOn, line);
+            }
             if(line.fallback) {
                 walk(line.fallback, symbols);
             }
+            break;
+        case 'update':
+            introspectFrom(line, [line.source], symbols);
+            introspectString(line.withClause.value, symbols, line.dependsOn, line);
             break;
         case 'select':
             introspectFrom(line, line.fromClause, symbols);
@@ -231,6 +279,19 @@ function walk(line, symbols) {
             }
             if(line.fallback) {
                 walk(line.fallback, symbols);
+            }
+            break;
+        case 'if':
+            dependency = symbols[line.condition];
+            if(dependency) {
+                addDep(line, line.dependsOn, dependency, symbols);
+                walk(dependency, symbols);
+            }
+            try{
+            walk(line.if[line.if.length-1], symbols);
+            walk(line.else[line.else.length-1], symbols);
+            }catch(e){
+
             }
             break;
     }

@@ -32,6 +32,7 @@ var configLoader = require('./engine/config.js'),
     insert = require('./engine/insert.js'),
     delet = require('./engine/delet.js'),
     update = require('./engine/update.js'),
+    ifelse = require('./engine/ifelse.js'),
     _util = require('./engine/util.js'),
     jsonfill = require('./engine/jsonfill.js'),
     eventTypes = require('./engine/event-types.js'),
@@ -299,6 +300,9 @@ Engine.prototype.execute = function() {
         if(fallback) {
             init(fallback);
         }
+        if (statement.scope) {
+            init(statement.scope);
+        }
     }
     init(plan.rhs);
 
@@ -313,6 +317,9 @@ Engine.prototype.execute = function() {
                 sweep(dependency);
             }
         });
+        if(statement.scope && execState[statement.scope.id].state === eventTypes.STATEMENT_WAITING) {
+            sweep(statement.scope);
+        }
         if(statement.rhs) {
             _.each(statement.rhs.dependsOn, function(dependency) {
                 if(execState[dependency.id].state === eventTypes.STATEMENT_WAITING) {
@@ -320,11 +327,16 @@ Engine.prototype.execute = function() {
                     sweep(dependency);
                 }
             });
+            if(statement.rhs.scope && execState[statement.rhs.scope.id].state === eventTypes.STATEMENT_WAITING) {
+                sweep(statement.rhs.scope);
+            }
         }
 
-        var todo = statement.rhs || statement;
+        var todo = statement.rhs || statement,
+            scopeDone = !todo.scope || execState[todo.scope.id].state === eventTypes.STATEMENT_SUCCESS;
         if(execState[todo.id].state === eventTypes.STATEMENT_WAITING &&  // Don't try if in-flight
-            execState[todo.id].count === 0) {
+            execState[todo.id].count === 0 &&
+            scopeDone) {
             execState[todo.id].state = eventTypes.STATEMENT_IN_FLIGHT;
             if (emitterID && !step1) {
                 unexecuted.push(statement);
@@ -378,8 +390,40 @@ Engine.prototype.execute = function() {
                     }
                 }
 
+
                 execState[todo.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
 
+                function execScope(statement, arg) {
+                    switch(statement.type) {
+                        case 'if' :
+                            var toskip, toexec;
+                            if(arg) {
+                                toskip = statement.else;
+                                toexec = statement.if;
+                            }
+                            else {
+                                toskip = statement.if;
+                                toexec = statement.else;
+                            }
+                            _.each(toskip, function(st) {
+                                context[st.assign] = undefined;
+                                execState[st.id].state = eventTypes.STATEMENT_SUCCESS;
+                                _.each(st.listeners, function(listener) {
+                                    execState[listener.id].count--;
+                                    if (!(listener.fbhold)){
+                                        sweep(listener);
+                                    }
+                                });
+                            });
+                            _.each(toexec, function(st) {
+                                sweep(st);
+                            })
+                            break;
+                    }
+                }
+                if(todo.type === 'if') {
+                    execScope(todo, results);
+                }
                 _.each(todo.listeners, function(listener) {
                     execState[listener.id].count--;
                     if (!(listener.fbhold)){
@@ -621,6 +665,9 @@ function _execOne(opts, statement, parentEvent, cb) {
                 body: obj,
                 headers: {}
             });
+            break;
+        case 'if':
+            ifelse.exec(opts, statement, parentEvent, cb);
             break;
     }
 }

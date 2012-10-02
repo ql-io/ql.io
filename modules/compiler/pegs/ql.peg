@@ -384,7 +384,7 @@
 //
 // The bigbang
 //
-start = crlf* larr:LineCrlf* insig r:Return? insig crlf* insig carr:Comment* insig crlf*{
+start = crlf* larr:ClauseCrlf* insig r:Return? insig crlf* insig carr:Comment* insig crlf*{
     ret = [];
     ret = ret.concat(larr);
     if(r) {
@@ -394,13 +394,31 @@ start = crlf* larr:LineCrlf* insig r:Return? insig crlf* insig carr:Comment* ins
     return ret;
 }
 
-// A line in a statement
-LineCrlf = l:Line crlf* {
-    return l;
+// a scope of statements
+//mystart
+ClauseCrlf = sp s:(pClause / Line) crlf* {
+    return s;
+}
+
+
+pClause = IfClause;//IfScope / TryScope / LoopScope
+
+IfClause = 'if' insig '(' insig condition:Word insig ')' insig '{' insig iflines:ClauseCrlf* insig '}' insig elselines:ElseClause?{
+    return {
+        id : id++,
+        line: line,
+        type : 'if',
+        condition : condition,
+        if : iflines,
+        else : elselines
+    }
+}
+ElseClause = 'else' insig '{' insig larr:ClauseCrlf* insig'}' {
+    return larr;
 }
 
 // Statement can be an assignment or a comemnt
-Line = sp l:(Assign / Comment) {
+Line = l:(Assign / Comment) {
     if(l.type !== 'comment') {
         l.id = id++;
     }
