@@ -341,7 +341,7 @@ Engine.prototype.execute = function() {
                     if(execState[todo.id].done) {
                         execState[todo.id].done.call(null, err, results);
                     }
-                }, engineEvent);
+                }, engineEvent.event);
         }
     }
 
