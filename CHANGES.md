@@ -1,3 +1,8 @@
+
+## October 10, 2012
+
+* Fix Issue #558 
+
 ## August 8, 2012
 
 * Depend on browersify-0.6 temporarily until they fix the incompatibilities they introduced.
