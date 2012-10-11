@@ -4,6 +4,10 @@
 
 ## August 09, 2012
 
+* Fix Issue #558
+
+## August 09, 2012
+
 * Node 0.8.x and other dependecy upgrades.
 * Timeout support for update.
 
