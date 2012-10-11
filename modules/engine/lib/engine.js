@@ -395,7 +395,7 @@ Engine.prototype.execute = function() {
                 else if(execState[todo.id].done) {
                     execState[todo.id].done.call(null, err, results);
                 }
-            }, engineEvent);
+            }, engineEvent.event);
     }
 
     var fnDone = function(err, results) {
