@@ -19,11 +19,26 @@
 var compiler = require('../lib/compiler');
 
 module.exports = {
-    'if': function(test) {
+    'try catch': function(test) {
+        var q = "try {select * from aaa;\n\
+        throw (asdf)}\n\
+        catch (asdf){\n\
+            a = 1\n\
+        }\n\
+        finally {select * from bbb}";
+        var statement = compiler.compile(q);
+
+        test.done();
+    },
+    'if else': function(test) {
         var q = "if (awef) {e = select * from f} else {g = select * from h}\n\
             return e || g";
         var statement = compiler.compile(q);
-
+        test.equals(statement.rhs.dependsOn.length, 1);
+        test.equals(statement.rhs.dependsOn[0].assign, 'e');
+        test.ok(statement.rhs.dependsOn[0].scope);
+        test.ok(statement.rhs.fallback);
+        test.equals(statement.rhs.fallback.ref, 'g');
         test.done();
     }
 };

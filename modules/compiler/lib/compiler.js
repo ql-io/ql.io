@@ -59,7 +59,9 @@ function plan(compiled) {
         for (i = 0; i < lines.length; i++) {
             line = lines[i];
             maxid = line.id > maxid ? line.id : maxid;
-            line.scope = scope;
+            if(scope){
+                line.scope = scope;
+            }
             if(line.assign) {
                 if(symbols[line.assign]) {
                     throw new this.SyntaxError('Duplicate symbol ' + line.assign);
@@ -67,16 +69,24 @@ function plan(compiled) {
                 else {
                     symbols[line.assign] = line;
                 }
-                single = line;
             }
             else if(line.type === 'create') { // Makes sense when DDL is inline
                 symbols[line.name] = line;
                 creates[line.id.toString()] = line;
             }
             else if (line.type === 'if') {
-                divscope(line.condition);
                 divescope(line.if);
                 divescope(line.else);
+            }
+            else if (line.type === 'try') {
+                //dependsOn are the lines in try clause
+                divescope(line.dependsOn);
+                _.each(line.catchClause, function(k, mycatch){
+                    divescope(mycatch, line);
+                });
+                if(line.finallyClause) {
+                    divescope(line.finallyClause, line);
+                }
             }
         }
     }
@@ -109,10 +119,23 @@ function plan(compiled) {
             creates[line.id.toString()] = line;
         }
         else if (line.type === 'if') {
-            divescope(line.if, line)
+            //divscope(line.condition);
+            divescope(line.if, line);
             if (line.else){
-                divescope(line.else, line)
+                divescope(line.else, line);
             }
+            single = line;
+        }
+        else if (line.type === 'try') {
+            //dependsOn are the lines in try clause
+            divescope(line.dependsOn);
+            _.each(line.catchClause, function(mycatch, k){
+               divescope(mycatch, line);
+            });
+            if(line.finallyClause) {
+                divescope(line.finallyClause, line);
+            }
+            single = line;
         }
         else {
             single = line;
@@ -287,11 +310,30 @@ function walk(line, symbols) {
                 addDep(line, line.dependsOn, dependency, symbols);
                 walk(dependency, symbols);
             }
-            try{
-            walk(line.if[line.if.length-1], symbols);
-            walk(line.else[line.else.length-1], symbols);
-            }catch(e){
 
+            _.each(line.if, function(ifline){
+                walk(ifline, symbols);
+            });
+            if(line.else){
+                _.each(line.else, function(elseline){
+                    walk(elseline, symbols);
+            })
+            }
+            break;
+        case 'try':
+            _.each(line.dependsOn, function(tryline){
+                addListener(tryline, line);
+                walk(tryline, symbols);
+            });
+            _.each(line.catchClause, function(currentcatch, k){
+                _.each(currentcatch, function(catchline){
+                    walk(catchline, symbols);
+                })
+            });
+            if(line.finallyClause) {
+                _.each(line.finallyClause, function(finallyline){
+                    walk(finallyline, symbols);
+                });
             }
             break;
     }

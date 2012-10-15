@@ -33,6 +33,7 @@ var configLoader = require('./engine/config.js'),
     delet = require('./engine/delet.js'),
     update = require('./engine/update.js'),
     ifelse = require('./engine/ifelse.js'),
+    trycatch = require('./engine/trycatch.js'),
     _util = require('./engine/util.js'),
     jsonfill = require('./engine/jsonfill.js'),
     eventTypes = require('./engine/event-types.js'),
@@ -182,7 +183,6 @@ Engine.prototype.execute = function() {
 
     //for debug
     var emitterID, unexecuted, step1, timeoutID;
-
     if(arguments.length === 2) {
         script = arguments[0];
         func = arguments[1];
@@ -289,6 +289,36 @@ Engine.prototype.execute = function() {
     // Initialize the exec state
     var execState = {};
     function init(statement) {
+        function scopeInit(statement) {
+            switch(statement.type){
+                case 'if':
+                    _.each(statement.ifClause, function(line){
+                        init(line);
+                    });
+                    _.each(statement.elseClause, function(line){
+                        init(line);
+                    });
+                    break;
+                case 'try':
+                    _.each(statement.tryClause, function(line){
+                        init(line);
+                    });
+                    _.each(statement.catchClause, function(currentcatch, k){
+                        _.each(currentcatch, function(line){
+                            init(line);
+                        });
+                    });
+                    if(statement.finallyClause) {
+                        _.each(line.finallyClause, function(line){
+                            init(line);
+                        });
+                    }
+                    break;
+            }
+        }
+        if(execState[statement.id]) {
+            return;
+        }
         execState[statement.id] = {
             state: eventTypes.STATEMENT_WAITING,
             count: statement.dependsOn ? statement.dependsOn.length : 0
@@ -303,8 +333,49 @@ Engine.prototype.execute = function() {
         if (statement.scope) {
             init(statement.scope);
         }
+        scopeInit(statement);
     }
     init(plan.rhs);
+
+    /* Skip assign statement. Make it undefined, and trigger listener
+     */
+    function skipVar(statement){
+        context[statement.assign] = undefined;
+        execState[statement.id].state = eventTypes.STATEMENT_SUCCESS;
+        _.each(statement.listeners, function(listener) {
+            execState[listener.id].count--;
+            if (!(listener.fbhold)){
+                sweep(listener);
+            }
+        });
+    }
+
+    // scope is complex to execute, handle separately
+    function execScope(statement, arg) {
+        switch(statement.type) {
+            case 'if' :
+                var toskip = arg.skip,
+                    toexec = arg.exec;
+                _.each(toskip, function(st) {
+                    skipVar(st);
+                });
+                _.each(toexec, function(st) {
+                    sweep(st);
+                })
+                break;
+            case 'try':
+                //arg is a 1:1 mapping to catchClause, only execute the ones that are true
+                var catchzip = _.zip(arg, statement.catchClause)
+                _.each(catchzip, function(mycatch) {
+                    if(mycatch[0]){
+                        sweep(mycatch[1]);
+                    }else{
+                        skipVar(mycatch[1]);
+                    }
+                });
+                break;
+        }
+    }
 
     var skip = false;
     function sweep(statement) {
@@ -339,6 +410,7 @@ Engine.prototype.execute = function() {
             scopeDone) {
             execState[todo.id].state = eventTypes.STATEMENT_IN_FLIGHT;
             if (emitterID && !step1) {
+                // only used for debugger
                 unexecuted.push(statement);
             }
             else {
@@ -393,35 +465,8 @@ Engine.prototype.execute = function() {
 
                 execState[todo.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
 
-                function execScope(statement, arg) {
-                    switch(statement.type) {
-                        case 'if' :
-                            var toskip, toexec;
-                            if(arg) {
-                                toskip = statement.else;
-                                toexec = statement.if;
-                            }
-                            else {
-                                toskip = statement.if;
-                                toexec = statement.else;
-                            }
-                            _.each(toskip, function(st) {
-                                context[st.assign] = undefined;
-                                execState[st.id].state = eventTypes.STATEMENT_SUCCESS;
-                                _.each(st.listeners, function(listener) {
-                                    execState[listener.id].count--;
-                                    if (!(listener.fbhold)){
-                                        sweep(listener);
-                                    }
-                                });
-                            });
-                            _.each(toexec, function(st) {
-                                sweep(st);
-                            })
-                            break;
-                    }
-                }
-                if(todo.type === 'if') {
+
+                if(todo.type === 'if' || todo.type === 'try') {
                     execScope(todo, results);
                 }
                 _.each(todo.listeners, function(listener) {
@@ -669,6 +714,12 @@ function _execOne(opts, statement, parentEvent, cb) {
         case 'if':
             ifelse.exec(opts, statement, parentEvent, cb);
             break;
+        case 'try':
+            trycatch.exec(opts, statement, parentEvent, cb);
+            break;
+        case 'throw':
+            trycatch.throw(opts, statement, parentEvent, cb);
+            break;
     }
 }
 
@@ -681,7 +732,6 @@ function preReqNotFound(statement, opts, parentEvent) {
         return found;
     });
 }
-
 
 // Export event types
 Engine.Events = {};

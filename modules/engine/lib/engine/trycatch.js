@@ -26,25 +26,37 @@ exports.exec = function(opts, statement, parentEvent, cb) {
     assert.ok(statement, 'Argument cb can not be undefined');
 
     var tables = opts.tables, context = opts.context,
-        ifTx = opts.logEmitter.beginEvent({
+        request = opts.request, emitter = opts.emitter,
+        tryTx = opts.logEmitter.beginEvent({
             parent: parentEvent,
-            type: 'if',
+            type: 'try',
             message: {
                 line: statement.line
             },
-            cb: cb}),
-        mycondition = logic.exec(statement.condition, context),
-        toskip, toexec;
-    if(mycondition) {
-        toskip = statement.else;
-        toexec = statement.if;
+            cb: cb})
+    var results = _.map(statement.catchClause, function(onecatch){
+        return logic.exec(onecatch.condition, context);
+    });
+    tryTx.cb(null, results);
+
+
+}
+
+exports.throw = function(opts, statement, parentEvent, cb) {
+    assert.ok(opts.tables, 'Argument tables can not be undefined');
+    assert.ok(statement, 'Argument statement can not be undefined');
+    assert.ok(statement, 'Argument cb can not be undefined');
+
+    var tables = opts.tables,
+        throwTx = opts.logEmitter.beginEvent({
+            parent: parentEvent,
+            type: 'throw',
+            message: {
+                line: statement.line
+            },
+            cb: cb})
+        if(!opts.context[statement.err]){// this is simple field check, no logic.exec required
+        opts.context[statement.err] = statement.err;
     }
-    else {
-        toskip = statement.if;
-        toexec = statement.else;
-    }
-
-    ifTx.cb(undefined, {skip: toskip, exec: toexec})
-
-
+    throwTx.cb(null, statement.err);
 }

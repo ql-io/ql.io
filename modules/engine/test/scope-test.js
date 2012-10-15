@@ -21,6 +21,36 @@ var Engine = require('../lib/engine');
 var engine = new Engine();
 
 module.exports = {
+    'trycatch' : function(test) {
+        var context, q;
+        context = {
+            foo : {
+                'hello' : 'Hello',
+                'world' : 'World'
+            },
+            bar : {
+                'chocolate' : 'Chocolate',
+                'milk' : 'Milk'
+            },
+            cond : 1
+        };
+        q = 'try {\n\
+            b = select * from foo;\n\
+            throw (hello)}\n\
+            catch (hello){\n\
+            a =select * from foo}\n\
+            return a || b';
+        engine.exec({script: q, context: context, cb: function(err, result) {
+            if(err) {
+                test.fail('got error: ' + err.stack);
+                test.done();
+            }
+            else {
+                test.deepEqual(result.body, context.foo);
+                test.done();
+            }
+        }});
+    },
     'if': function(test) {
         var context, q;
         context = {

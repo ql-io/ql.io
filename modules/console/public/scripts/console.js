@@ -469,7 +469,17 @@ $(document).ready(function() {
             for (var k = 0; k < forest.length; k++) {
                 deptxt += getDepHelper(forest[k]);
             }
-            deptxt = 'http://yuml.me/diagram/scruffy;/class/'+deptxt.substring(0, deptxt.length-1)+'.png';
+            /*$.ajax({
+                type: 'POST',
+                url: 'http://yuml.me/diagram/plain/class/',
+                body: {dsl_text: '[a]'},
+                success: function(){
+                    alert('good')
+                },
+                error: function(data){console.log(data)}
+            }) */
+            //$.get('http://yuml.me/diagram/plain/class/[a]', function(){alert('nice')})
+            deptxt = 'http://ql-2:3026/diagram/scruffy;/class/'+deptxt.substring(0, deptxt.length-1)+'.png';
         }
         $('#dependencyMap').attr('src', deptxt);
     }

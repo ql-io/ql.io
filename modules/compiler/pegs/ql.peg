@@ -401,12 +401,12 @@ ClauseCrlf = sp s:(pClause / Line) crlf* {
 }
 
 
-pClause = IfClause;//IfScope / TryScope / LoopScope
+pClause = IfClause / TryClause;
 
-IfClause = 'if' insig '(' insig condition:Word insig ')' insig '{' insig iflines:ClauseCrlf* insig '}' insig elselines:ElseClause?{
+IfClause = 'if' insig condition:LogicParen insig '{' insig iflines:ClauseCrlf* insig '}' insig elselines:ElseClause?{
     return {
         id : id++,
-        line: line,
+        line : line,
         type : 'if',
         condition : condition,
         if : iflines,
@@ -417,6 +417,84 @@ ElseClause = 'else' insig '{' insig larr:ClauseCrlf* insig'}' {
     return larr;
 }
 
+TryClause = 'try' insig '{' insig tryClause:TryCrlf+ insig '}' catchClause:CatchClause+ finallyClause:FinallyClause? {
+    return {
+        id : id++,
+        line : line,
+        type : 'try',
+        dependsOn : tryClause,
+        catchClause : catchClause,
+        exceptions : [],
+        finallyClause : finallyClause || undefined
+    }
+}
+
+CatchClause = insig 'catch' insig condition:LogicParen insig '{' insig lines:TryCrlf* insig '}' {
+    return {
+        condition : condition,
+        lines : lines
+    }
+}
+
+FinallyClause = insig 'finally' insig '{' insig lines:ClauseCrlf+ '}' {
+    return lines;
+}
+
+TryCrlf = ThrowCrlf / ClauseCrlf;
+
+ThrowCrlf = sp 'throw' insig '(' insig condition:Word insig ')' insig crlf* {
+    return {
+        id : id++,
+        line : line,
+        type : 'throw',
+        err : condition
+    }
+}
+
+
+/**
+ *  Logic statement has three levels or priorities. ! > && > ||
+ *  e.g. aa && !bb || cc == (aa && (!bb)) || cc
+  */
+
+LogicStatement = LogicParen / LogicPhrase;
+LogicParen = '(' insig p:LogicPhrase insig ')' insig {
+    return p;
+}
+LogicPhrase = OrPhrase / AndPhrase / NotPhrase / NormalPhrase;
+
+OrPhrase = s1:AndPhrase insig sn:OrTail+{
+    return {
+        logic: 'or',
+        values: [s1].concat(sn)
+    }
+}
+OrTail = '||' insig s:LogicStatement insig{
+    return s;
+}
+
+AndPhrase = s1:NotPhrase insig sn:AndTail+{
+    return {
+        logic: 'and',
+        values: [s1].concat(sn)
+    }
+}
+AndTail = '&&' insig s:LogicStatement {
+    return s;
+}
+
+NotPhrase = '!' s:(LogicParen / NotPhrase / NormalPhrase) {
+    return {
+        logic : 'not',
+        values : s
+    }
+}
+NormalPhrase = w:Word {
+    return {
+        logic: 'normal',
+        values: w
+    }
+}
 // Statement can be an assignment or a comemnt
 Line = l:(Assign / Comment) {
     if(l.type !== 'comment') {
