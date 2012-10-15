@@ -24,14 +24,14 @@ ifeq ($(memcached),)
 	cd test/binaries/memcached/memcached-1.4.13; ./configure; make; make install; cd ../../../..
 	-rm -fr test/binaries/memcached
 endif
-	export LD_LIBRARY_PATH=/usr/local/lib
-	memcached -u $(user) -d -m 24 -p 8026 &
+	export LD_LIBRARY_PATH=/usr/local/lib:LD_LIBRARY_PATH
+	memcached -u $(user) -d -m 2000 -p 8026 &
 	node_modules/.bin/nodeunit test;
 	killall memcached
 
 test-part:
-	export LD_LIBRARY_PATH=/usr/local/lib
-	memcached -u $(user) -d -m 24 -p 8026 &
+	export LD_LIBRARY_PATH=/usr/local/lib:LD_LIBRARY_PATH
+	memcached -u $(user) -d -m 2000 -p 8026 &
 	node_modules/.bin/nodeunit test --reporter junit --output ../../reports
 	killall memcached
 
