@@ -15,8 +15,19 @@
  */
 var _ = require('underscore'),
     assert = require('assert');
+exports.exec = function(opts, statement, parentEvent, cb) {
+    statement.result = calculate(statement, opts.context);
+    logicTx = opts.logEmitter.beginEvent({
+        parent: parentEvent,
+        type: 'logic',
+        message: {
+            line: statement.line
+        },
+        cb: cb});
+    logicTx.cb(statement.result);
+}
 
-exports.exec = function(condition, context){
+function calculate(condition, context){
     assert.ok(condition, 'Condition is missing.');
     assert.ok(condition.logic, 'Condition is in unexpected form. Need to have logic field.');
     assert.ok(condition.values, 'Condition is in unexpected form. Need to have values field.');
@@ -24,14 +35,14 @@ exports.exec = function(condition, context){
     switch(condition.logic){
         case 'or':
             return _.any(condition.values, function(onecond){
-                return exec(onecond, context);
+                return calculate(onecond, context);
             });
         case 'and':
             return _.all(condition.values, function(onecond){
-                return exec(onecond, context);
+                return calculate(onecond, context);
             });
         case 'not':
-            return !exec(condition.values, context);
+            return !calculate(condition.values, context);
         default://normal
             return !!context[condition.values];
     }

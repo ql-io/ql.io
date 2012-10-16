@@ -27,11 +27,15 @@ module.exports = {
         }\n\
         finally {select * from bbb}";
         var statement = compiler.compile(q);
-
+        test.equals(statement.rhs.dependsOn.length, 2);
+        test.equals(statement.rhs.catchClause.length, 1);
+        test.equals(statement.rhs.catchClause[0].condition.values, 'asdf');
+        test.equals(statement.rhs.catchClause[0].condition.logic, 'normal');
+        test.equals(statement.rhs.finallyClause.length, 1);
         test.done();
     },
     'if else': function(test) {
-        var q = "if (awef) {e = select * from f} else {g = select * from h}\n\
+        var q = "if (awef || wef && !jlk) {e = select * from f} else {g = select * from h}\n\
             return e || g";
         var statement = compiler.compile(q);
         test.equals(statement.rhs.dependsOn.length, 1);

@@ -119,7 +119,6 @@ function plan(compiled) {
             creates[line.id.toString()] = line;
         }
         else if (line.type === 'if') {
-            //divscope(line.condition);
             divescope(line.if, line);
             if (line.else){
                 divescope(line.else, line);
@@ -305,12 +304,8 @@ function walk(line, symbols) {
             }
             break;
         case 'if':
-            dependency = symbols[line.condition];
-            if(dependency) {
-                addDep(line, line.dependsOn, dependency, symbols);
-                walk(dependency, symbols);
-            }
-
+            addDep(line, line.dependsOn, line.condition, symbols);
+            walk(line.condition, symbols);
             _.each(line.if, function(ifline){
                 walk(ifline, symbols);
             });
@@ -320,13 +315,24 @@ function walk(line, symbols) {
             })
             }
             break;
+        case 'logic':
+            var condDepends = logicVars(line, symbols);
+            _.each(condDepends, function(dependency){
+                addDep(line, line.dependsOn, dependency, symbols);
+                walk(dependency, symbols);
+            });
+            if(line.fallback) {
+                walk(line.fallback, symbols);
+            }
+
+            break;
         case 'try':
             _.each(line.dependsOn, function(tryline){
                 addListener(tryline, line);
                 walk(tryline, symbols);
             });
-            _.each(line.catchClause, function(currentcatch, k){
-                _.each(currentcatch, function(catchline){
+            _.each(line.catchClause, function(currentcatch){
+                _.each(currentcatch.lines, function(catchline){
                     walk(catchline, symbols);
                 })
             });
@@ -572,4 +578,22 @@ function introspectWhere(line, symbols, parent) {
         }
     }
     return line;
+}
+
+// find all variables that appears in a logic condition.
+function logicVars(condition, symbols){
+    if(_.isString(condition.values)){
+        var conditionDep = symbols[condition.values];
+        if (conditionDep) {
+            return [conditionDep];
+        }else{
+            return [];
+        }
+    }
+    else if (!_.isArray(condition.values)){
+        return logicVars(condition.values, symbols);
+    }
+    return _.reduce(condition.values, function(memo, val){
+        return memo.concat(logicVars(val, symbols));
+    }, [])
 }

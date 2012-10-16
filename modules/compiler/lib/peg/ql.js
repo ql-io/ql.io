@@ -486,10 +486,10 @@ module.exports = (function(){
                                     result5 = parse_insig();
                                     if (result5 !== null) {
                                         result6 = [];
-                                        result7 = parse_ClauseCrlf();
+                                        result7 = parse_TryCrlf();
                                         while (result7 !== null) {
                                             result6.push(result7);
-                                            result7 = parse_ClauseCrlf();
+                                            result7 = parse_TryCrlf();
                                         }
                                         if (result6 !== null) {
                                             result7 = parse_insig();
@@ -603,10 +603,10 @@ module.exports = (function(){
                             result3 = parse_insig();
                             if (result3 !== null) {
                                 result4 = [];
-                                result5 = parse_ClauseCrlf();
+                                result5 = parse_TryCrlf();
                                 while (result5 !== null) {
                                     result4.push(result5);
-                                    result5 = parse_ClauseCrlf();
+                                    result5 = parse_TryCrlf();
                                 }
                                 if (result4 !== null) {
                                     result5 = parse_insig();
@@ -1206,25 +1206,22 @@ module.exports = (function(){
             }
 
             function parse_OrPhrase() {
-                var result0, result1, result2, result3;
+                var result0, result1, result2;
                 var pos0, pos1;
 
                 pos0 = clone(pos);
                 pos1 = clone(pos);
                 result0 = parse_AndPhrase();
+                if (result0 === null) {
+                    result0 = parse_NotPhrase();
+                    if (result0 === null) {
+                        result0 = parse_NormalPhrase();
+                    }
+                }
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        result3 = parse_OrTail();
-                        if (result3 !== null) {
-                            result2 = [];
-                            while (result3 !== null) {
-                                result2.push(result3);
-                                result3 = parse_OrTail();
-                            }
-                        } else {
-                            result2 = null;
-                        }
+                        result2 = parse_OrTail();
                         if (result2 !== null) {
                             result0 = [result0, result1, result2];
                         } else {
@@ -1241,10 +1238,10 @@ module.exports = (function(){
                 }
                 if (result0 !== null) {
                     result0 = (function(offset, line, column, s1, sn) {
-                        return {
-                            logic: 'or',
-                            values: [s1].concat(sn)
+                        if(sn){
+                            s1.fallback = sn;
                         }
+                        return s1;
                     })(pos0.offset, pos0.line, pos0.column, result0[0], result0[2]);
                 }
                 if (result0 === null) {
@@ -1304,25 +1301,19 @@ module.exports = (function(){
             }
 
             function parse_AndPhrase() {
-                var result0, result1, result2, result3;
+                var result0, result1, result2;
                 var pos0, pos1;
 
                 pos0 = clone(pos);
                 pos1 = clone(pos);
                 result0 = parse_NotPhrase();
+                if (result0 === null) {
+                    result0 = parse_NormalPhrase();
+                }
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        result3 = parse_AndTail();
-                        if (result3 !== null) {
-                            result2 = [];
-                            while (result3 !== null) {
-                                result2.push(result3);
-                                result3 = parse_AndTail();
-                            }
-                        } else {
-                            result2 = null;
-                        }
+                        result2 = parse_AndTail();
                         if (result2 !== null) {
                             result0 = [result0, result1, result2];
                         } else {
@@ -1340,7 +1331,10 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result0 = (function(offset, line, column, s1, sn) {
                         return {
+                            type: 'logic',
                             logic: 'and',
+                            id : id++,
+                            line : line,
                             values: [s1].concat(sn)
                         }
                     })(pos0.offset, pos0.line, pos0.column, result0[0], result0[2]);
@@ -1352,7 +1346,7 @@ module.exports = (function(){
             }
 
             function parse_AndTail() {
-                var result0, result1, result2;
+                var result0, result1, result2, result3;
                 var pos0, pos1;
 
                 pos0 = clone(pos);
@@ -1371,7 +1365,13 @@ module.exports = (function(){
                     if (result1 !== null) {
                         result2 = parse_LogicStatement();
                         if (result2 !== null) {
-                            result0 = [result0, result1, result2];
+                            result3 = parse_insig();
+                            if (result3 !== null) {
+                                result0 = [result0, result1, result2, result3];
+                            } else {
+                                result0 = null;
+                                pos = clone(pos1);
+                            }
                         } else {
                             result0 = null;
                             pos = clone(pos1);
@@ -1431,7 +1431,10 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result0 = (function(offset, line, column, s) {
                         return {
+                            type: 'logic',
                             logic : 'not',
+                            id : id++,
+                            line : line,
                             values : s
                         }
                     })(pos0.offset, pos0.line, pos0.column, result0[1]);
@@ -1451,7 +1454,10 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result0 = (function(offset, line, column, w) {
                         return {
+                            type: 'logic',
                             logic: 'normal',
+                            id : id++,
+                            line : line,
                             values: w
                         }
                     })(pos0.offset, pos0.line, pos0.column, result0);

@@ -34,6 +34,7 @@ var configLoader = require('./engine/config.js'),
     update = require('./engine/update.js'),
     ifelse = require('./engine/ifelse.js'),
     trycatch = require('./engine/trycatch.js'),
+    logic = require('./engine/logic.js'),
     _util = require('./engine/util.js'),
     jsonfill = require('./engine/jsonfill.js'),
     eventTypes = require('./engine/event-types.js'),
@@ -292,19 +293,20 @@ Engine.prototype.execute = function() {
         function scopeInit(statement) {
             switch(statement.type){
                 case 'if':
-                    _.each(statement.ifClause, function(line){
+                    init(statement.condition);
+                    _.each(statement.if, function(line){
                         init(line);
                     });
-                    _.each(statement.elseClause, function(line){
+                    _.each(statement.else, function(line){
                         init(line);
                     });
                     break;
                 case 'try':
-                    _.each(statement.tryClause, function(line){
+                    _.each(statement.dependsOn, function(line){
                         init(line);
                     });
-                    _.each(statement.catchClause, function(currentcatch, k){
-                        _.each(currentcatch, function(line){
+                    _.each(statement.catchClause, function(currentcatch){
+                        _.each(currentcatch.lines, function(line){
                             init(line);
                         });
                     });
@@ -368,9 +370,13 @@ Engine.prototype.execute = function() {
                 var catchzip = _.zip(arg, statement.catchClause)
                 _.each(catchzip, function(mycatch) {
                     if(mycatch[0]){
-                        sweep(mycatch[1]);
+                        _.each(mycatch[1].lines, function(line){
+                            sweep(line);
+                        });
                     }else{
-                        skipVar(mycatch[1]);
+                        _.each(mycatch[1].lines, function(line){
+                            skipVar(line);
+                        });
                     }
                 });
                 break;
@@ -390,6 +396,10 @@ Engine.prototype.execute = function() {
         });
         if(statement.scope && execState[statement.scope.id].state === eventTypes.STATEMENT_WAITING) {
             sweep(statement.scope);
+        }
+        if(statement.type === 'logic'){
+            //sweep if's condition
+            console.log('hi')
         }
         if(statement.rhs) {
             _.each(statement.rhs.dependsOn, function(dependency) {
@@ -719,6 +729,9 @@ function _execOne(opts, statement, parentEvent, cb) {
             break;
         case 'throw':
             trycatch.throw(opts, statement, parentEvent, cb);
+            break;
+        case 'logic':
+            logic.exec(opts, statement, parentEvent, cb);
             break;
     }
 }

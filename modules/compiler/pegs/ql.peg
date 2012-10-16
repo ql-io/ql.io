@@ -403,7 +403,7 @@ ClauseCrlf = sp s:(pClause / Line) crlf* {
 
 pClause = IfClause / TryClause;
 
-IfClause = 'if' insig condition:LogicParen insig '{' insig iflines:ClauseCrlf* insig '}' insig elselines:ElseClause?{
+IfClause = 'if' insig condition:LogicParen insig '{' insig iflines:TryCrlf* insig '}' insig elselines:ElseClause?{
     return {
         id : id++,
         line : line,
@@ -413,7 +413,7 @@ IfClause = 'if' insig condition:LogicParen insig '{' insig iflines:ClauseCrlf* i
         else : elselines
     }
 }
-ElseClause = 'else' insig '{' insig larr:ClauseCrlf* insig'}' {
+ElseClause = 'else' insig '{' insig larr:TryCrlf* insig'}' {
     return larr;
 }
 
@@ -463,35 +463,44 @@ LogicParen = '(' insig p:LogicPhrase insig ')' insig {
 }
 LogicPhrase = OrPhrase / AndPhrase / NotPhrase / NormalPhrase;
 
-OrPhrase = s1:AndPhrase insig sn:OrTail+{
-    return {
-        logic: 'or',
-        values: [s1].concat(sn)
+OrPhrase = s1:(AndPhrase / NotPhrase / NormalPhrase) insig sn:OrTail{
+    if(sn){
+        s1.fallback = sn;
     }
+    return s1;
 }
 OrTail = '||' insig s:LogicStatement insig{
     return s;
 }
 
-AndPhrase = s1:NotPhrase insig sn:AndTail+{
+AndPhrase = s1:(NotPhrase / NormalPhrase) insig sn:AndTail{
     return {
+        type: 'logic',
         logic: 'and',
+        id : id++,
+        line : line,
         values: [s1].concat(sn)
     }
 }
-AndTail = '&&' insig s:LogicStatement {
+AndTail = '&&' insig s:LogicStatement insig{
     return s;
 }
 
 NotPhrase = '!' s:(LogicParen / NotPhrase / NormalPhrase) {
     return {
+        type: 'logic',
         logic : 'not',
+        id : id++,
+        line : line,
         values : s
     }
 }
 NormalPhrase = w:Word {
     return {
+        type: 'logic',
         logic: 'normal',
+        id : id++,
+        line : line,
         values: w
     }
 }
