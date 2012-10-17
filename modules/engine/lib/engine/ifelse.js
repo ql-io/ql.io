@@ -17,6 +17,7 @@
 'use strict';
 
 var _ = require('underscore'),
+    logic = require('./logic.js'),
     assert = require('assert');
 
 exports.exec = function(opts, statement, parentEvent, cb) {
@@ -32,7 +33,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 line: statement.line
             },
             cb: cb}),
-        mycondition = true;//logic.exec(statement.condition, context),
+        mycondition = logic.findResult(statement.condition),
         toskip, toexec;
     if(mycondition) {
         toskip = statement.else;

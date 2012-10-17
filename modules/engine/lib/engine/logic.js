@@ -24,7 +24,18 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             line: statement.line
         },
         cb: cb});
-    logicTx.cb(statement.result);
+    logicTx.cb(null, statement.result);
+}
+
+exports.findResult = function(statement) {
+    var sofar = statement;
+    while(sofar){
+        if(sofar.result){
+            return sofar.result;
+        }
+        sofar = sofar.fallback;
+    }
+    return false;
 }
 
 function calculate(condition, context){
@@ -33,10 +44,6 @@ function calculate(condition, context){
     assert.ok(condition.values, 'Condition is in unexpected form. Need to have values field.');
     assert.ok(context, 'context is missing.')
     switch(condition.logic){
-        case 'or':
-            return _.any(condition.values, function(onecond){
-                return calculate(onecond, context);
-            });
         case 'and':
             return _.all(condition.values, function(onecond){
                 return calculate(onecond, context);

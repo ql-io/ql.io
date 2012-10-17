@@ -397,10 +397,6 @@ Engine.prototype.execute = function() {
         if(statement.scope && execState[statement.scope.id].state === eventTypes.STATEMENT_WAITING) {
             sweep(statement.scope);
         }
-        if(statement.type === 'logic'){
-            //sweep if's condition
-            console.log('hi')
-        }
         if(statement.rhs) {
             _.each(statement.rhs.dependsOn, function(dependency) {
                 if(execState[dependency.id].state === eventTypes.STATEMENT_WAITING) {
@@ -464,7 +460,8 @@ Engine.prototype.execute = function() {
                     }
                 }
                 else if(results === null || results === undefined
-                    || results.body === null || results.body === undefined){
+                    || results.body === null || results.body === undefined
+                    || todo.type === 'logic' && results === false){
                     var fallback = statement.rhs ? statement.rhs.fallback : statement.fallback;
                     if(fallback) {
                         fallback.fbhold = false;

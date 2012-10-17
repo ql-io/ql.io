@@ -332,6 +332,7 @@ function walk(line, symbols) {
                 walk(tryline, symbols);
             });
             _.each(line.catchClause, function(currentcatch){
+                walk(currentcatch.condition, symbols);
                 _.each(currentcatch.lines, function(catchline){
                     walk(catchline, symbols);
                 })

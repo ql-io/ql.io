@@ -35,7 +35,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             },
             cb: cb})
     var results = _.map(statement.catchClause, function(onecatch){
-        return logic.exec(onecatch.condition, context);
+        return logic.findResult(onecatch.condition);
     });
     tryTx.cb(null, results);
 

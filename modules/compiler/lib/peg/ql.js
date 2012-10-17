@@ -767,6 +767,16 @@ module.exports = (function(){
                 }
                 if (result0 !== null) {
                     result0 = (function(offset, line, column, tryClause, catchClause, finallyClause) {
+                        var errMap = findThrows(tryClause);
+                        for (var i = 0; i < catchClause.length; i++){
+                            var catchvars = countLogicVars(catchClause[i].condition);
+                            for (var j = 0; j < catchvars.length; j++){
+                                var errVar = catchvars[j];
+                                if(errMap.indexOf(errVar) == -1){
+                                    throw new this.SyntaxError("Line " + line + " exception variable "+errVar+" is not thrown inside the try statement.");
+                                }
+                            }
+                        }
                         return {
                             id : id++,
                             line : line,
@@ -9201,6 +9211,47 @@ module.exports = (function(){
                     }
                 }
                 return -1;
+            }
+
+            function countLogicVars(condition){
+                var fallback, ret;
+                if (condition.fallback){
+                    fallback = countLogicVars(condition.fallback);
+                }else{
+                    fallback = [];
+                }
+                switch(condition.logic){
+                    case 'and':
+                        ret = _.all(condition.values, function(onecond){
+                            return countLogicVars(onecond);
+                        });
+                    case 'not':
+                        ret = !countLogicVars(condition.values);
+                    default://normal
+                        ret = [condition.values];
+                }
+                return ret.concat(fallback);
+            }
+
+            function findThrows(tryClause){
+                if(!tryClause){
+                    return [];
+                }
+                var errMap = [];
+                for (var i = 0; i < tryClause.length; i++){
+                    var thistry = tryClause[i];
+                    if(thistry.type === 'throw'){
+                        errMap.push(thistry.err);
+                    }else if(thistry.type === 'if'){
+                        errMap = errMap.concat(findThrows(thistry.if));
+                        errMap = errMap.concat(findThrows(thistry.else));
+                    }else if (thistry.type === 'try'){
+                        errMap = errMap.concat(findThrows(thistry.tryClause));
+                        errMap = errMap.concat(findThrows(thistry.catchClause));
+                        errMap = errMap.concat(findThrows(thistry.finallyClause));
+                    }
+                }
+                return errMap;
             }
 
             // Split join statements in to main and a joiner. The main statement is the independent

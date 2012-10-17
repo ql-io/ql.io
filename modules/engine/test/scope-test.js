@@ -19,7 +19,6 @@
 var Engine = require('../lib/engine');
 
 var engine = new Engine();
-
 module.exports['if'] = function(test) {
     var context, q;
     context = {
@@ -173,7 +172,8 @@ module.exports['trycatch-nested'] = function(test) {
             catch (hello){\n\
             a =select * from foo}\n\
             catch (world){\n\
-            c = select * from empty}\
+            c = select * from empty}\n\
+            throw(abc)\n\
             }catch(abc){}\n\
             return c || a || b';
     engine.exec({script: q, context: context, cb: function(err, result) {
