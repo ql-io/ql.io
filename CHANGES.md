@@ -1,3 +1,7 @@
+## October 17, 2012
+
+* now works with node-expat 2.0.0 
+
 ## August 27, 2012
 
 * debugger and visualization in console.
