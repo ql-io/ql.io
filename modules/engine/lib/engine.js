@@ -41,6 +41,7 @@ var configLoader = require('./engine/config.js'),
     LogEmitter = require('./engine/log-emitter.js'),
     winston = require('winston'),
     compiler = require('ql.io-compiler'),
+    visualization = require('./engine/visualization'),
     _ = require('underscore'),
     EventEmitter = require('events').EventEmitter,
     util = require('util'),
@@ -285,6 +286,9 @@ Engine.prototype.execute = function() {
         timeoutID = setTimeout( function () {
             emitter.emit(eventTypes.KILL);
         }, 1800000);// clear unused session in 30 minutes.
+        //try get visualization picture.
+        visualization.getPic(plan, emitter);
+
     }
 
     // Initialize the exec state
@@ -306,6 +310,7 @@ Engine.prototype.execute = function() {
                         init(line);
                     });
                     _.each(statement.catchClause, function(currentcatch){
+                        init(currentcatch.condition);
                         _.each(currentcatch.lines, function(line){
                             init(line);
                         });
@@ -342,14 +347,45 @@ Engine.prototype.execute = function() {
     /* Skip assign statement. Make it undefined, and trigger listener
      */
     function skipVar(statement){
-        context[statement.assign] = undefined;
+        if (execState[statement.id].state == eventTypes.STATEMENT_SUCCESS){
+            return;
+        }
         execState[statement.id].state = eventTypes.STATEMENT_SUCCESS;
-        _.each(statement.listeners, function(listener) {
-            execState[listener.id].count--;
-            if (!(listener.fbhold)){
-                sweep(listener);
-            }
-        });
+        switch(statement.type){
+            case 'try':
+                _.each(statement.dependsOn, function(tryline){//these are just lines within try{}
+                    skipVar(tryline);
+                });
+                _.each(statement.catchClause, function(mycatch,k){
+                    _.each(mycatch.lines, function(catchline){
+                        skipVar(catchline);
+                    });
+                });
+                _.each(statement.finallyClause, function(finallyline){
+                    skipVar(finallyline);
+                });
+                break;
+            case 'if':
+                _.each(statement.if, function(st) {
+                    skipVar(st);
+                });
+                _.each(statement.else, function(st) {
+                    skipVar(st);
+                });
+                break;
+            default:
+                if(!statement.assign){
+                    return;
+                }
+                context[statement.assign] = null;
+                _.each(statement.listeners, function(listener) {
+                    execState[listener.id].count--;
+                    if (!(listener.fbhold)){
+                        sweep(listener);
+                    }
+                });
+        }
+
     }
 
     // scope is complex to execute, handle separately
@@ -388,15 +424,16 @@ Engine.prototype.execute = function() {
         if(skip) {
             return;
         }
+        if(statement.scope && execState[statement.scope.id].state === eventTypes.STATEMENT_WAITING) {
+            sweep(statement.scope);
+            return;
+        }
         _.each(statement.dependsOn, function(dependency) {
             if(execState[dependency.id].state === eventTypes.STATEMENT_WAITING) {
                 // Exec the dependency
                 sweep(dependency);
             }
         });
-        if(statement.scope && execState[statement.scope.id].state === eventTypes.STATEMENT_WAITING) {
-            sweep(statement.scope);
-        }
         if(statement.rhs) {
             _.each(statement.rhs.dependsOn, function(dependency) {
                 if(execState[dependency.id].state === eventTypes.STATEMENT_WAITING) {

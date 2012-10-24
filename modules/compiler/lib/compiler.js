@@ -75,12 +75,12 @@ function plan(compiled) {
                 creates[line.id.toString()] = line;
             }
             else if (line.type === 'if') {
-                divescope(line.if);
-                divescope(line.else);
+                divescope(line.if, line);
+                divescope(line.else, line);
             }
             else if (line.type === 'try') {
                 //dependsOn are the lines in try clause
-                divescope(line.dependsOn);
+                divescope(line.dependsOn, line);
                 _.each(line.catchClause, function(k, mycatch){
                     divescope(mycatch, line);
                 });
@@ -194,7 +194,6 @@ function plan(compiled) {
         }
         if(node.scope) {
             used.push(node.scope.id);
-            //addListener(node, node.scope);
         }
     }
     used.push(ret.rhs.id);
@@ -244,17 +243,9 @@ function walk(line, symbols) {
             break;
         case 'define':
             introspectObject(line.object, symbols, line.dependsOn, line);
-            if(line.fallback) {
-                walk(line.fallback, symbols);
-            }
             break;
         case 'return':
             walk(line.rhs, symbols);
-
-            if(line.fallback) {
-                walk(line.fallback, symbols);
-            }
-
             // Route
             if(line.route) {
                 introspectString(line.route.path, symbols, line.dependsOn);
@@ -269,9 +260,6 @@ function walk(line, symbols) {
         case 'delete':
             introspectFrom(line, [line.source], symbols);
             line = introspectWhere(line, symbols);
-            if(line.fallback) {
-                walk(line.fallback, symbols);
-            }
             break;
         case 'insert':
             introspectFrom(line, [line.source], symbols);
@@ -284,9 +272,6 @@ function walk(line, symbols) {
             if(line.jsonObj) {
                 introspectString(line.jsonObj.value, symbols, line.dependsOn, line);
             }
-            if(line.fallback) {
-                walk(line.fallback, symbols);
-            }
             break;
         case 'update':
             introspectFrom(line, [line.source], symbols);
@@ -298,9 +283,6 @@ function walk(line, symbols) {
             if(line.joiner) {
                 introspectFrom(line.joiner, line.joiner.fromClause, symbols, line);
                 introspectWhere(line.joiner, symbols, line);
-            }
-            if(line.fallback) {
-                walk(line.fallback, symbols);
             }
             break;
         case 'if':
@@ -321,10 +303,6 @@ function walk(line, symbols) {
                 addDep(line, line.dependsOn, dependency, symbols);
                 walk(dependency, symbols);
             });
-            if(line.fallback) {
-                walk(line.fallback, symbols);
-            }
-
             break;
         case 'try':
             _.each(line.dependsOn, function(tryline){
@@ -343,6 +321,9 @@ function walk(line, symbols) {
                 });
             }
             break;
+    }
+    if(line.fallback) {
+        walk(line.fallback, symbols);
     }
 }
 

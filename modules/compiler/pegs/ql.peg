@@ -475,7 +475,6 @@ TryClause = 'try' insig '{' insig tryClause:TryCrlf+ insig '}' catchClause:Catch
         type : 'try',
         dependsOn : tryClause,
         catchClause : catchClause,
-        exceptions : [],
         finallyClause : finallyClause || undefined
     }
 }
@@ -515,9 +514,7 @@ LogicParen = '(' insig p:LogicPhrase insig ')' insig {
 LogicPhrase = OrPhrase / AndPhrase / NotPhrase / NormalPhrase;
 
 OrPhrase = s1:(AndPhrase / NotPhrase / NormalPhrase) insig sn:OrTail{
-    if(sn){
-        s1.fallback = sn;
-    }
+    s1.fallback = sn;
     return s1;
 }
 OrTail = '||' insig s:LogicStatement insig{

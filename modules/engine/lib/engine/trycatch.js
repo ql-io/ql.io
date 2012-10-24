@@ -48,14 +48,14 @@ exports.throw = function(opts, statement, parentEvent, cb) {
     assert.ok(statement, 'Argument cb can not be undefined');
 
     var tables = opts.tables,
-        throwTx = opts.logEmitter.beginEvent({
-            parent: parentEvent,
-            type: 'throw',
-            message: {
-                line: statement.line
-            },
-            cb: cb})
-        if(!opts.context[statement.err]){// this is simple field check, no logic.exec required
+    throwTx = opts.logEmitter.beginEvent({
+        parent: parentEvent,
+        type: 'throw',
+        message: {
+            line: statement.line
+        },
+        cb: cb})
+    if(!opts.context.hasOwnProperty(statement.err)){// this is simple field check, no logic.exec required
         opts.context[statement.err] = statement.err;
     }
     throwTx.cb(null, statement.err);

@@ -17,7 +17,7 @@
 "use strict";
 
 var compiler = require('../lib/compiler');
-
+var _ = require('underscore')
 module.exports = {
     'try catch': function(test) {
         var q = "try {select * from aaa;\n\
