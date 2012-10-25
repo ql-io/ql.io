@@ -21,7 +21,12 @@ var jsonfill = require('./jsonfill.js'),
     assert = require('assert');
 
 exports.exec = function(opts, statement, parentEvent, cb) {
-
+    function getVarVal(varname) {
+        if(varname.indexOf("{") === 0 && varname.indexOf("}") === varname.length - 1) {
+            return varname.substring(1, varname.length - 1);
+        }
+        else return varname;
+    }
     assert.ok(opts.tables, 'Argument tables can not be undefined');
     assert.ok(statement, 'Argument statement can not be undefined');
     assert.ok(statement, 'Argument cb can not be undefined');
@@ -37,10 +42,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
 
     // Lookup context for the source - we do this since the compiler puts the name in
     // braces to denote the source as a variable and not a table.
-    if(name.indexOf("{") === 0 && name.indexOf("}") === name.length - 1) {
-        name = name.substring(1, statement.source.name.length - 1);
-    }
-
+    name = getVarVal(name);
     insertTx = opts.logEmitter.beginEvent({
         parent: parentEvent,
         type: 'insert',
@@ -51,11 +53,17 @@ exports.exec = function(opts, statement, parentEvent, cb) {
 
     resource = context[name];
     values = {};
+
     if(context.hasOwnProperty(name)) { // The value may be null/undefined, and hence the check the property
         resource = jsonfill.unwrap(resource);
         _.each(statement.values, function(value, i) {
             values[statement.columns[i].name] = jsonfill.lookup(value, context);
         });
+        if (statement.jsonObj){
+            var jsonObj = getVarVal(statement.jsonObj.value);
+            values = context[jsonObj];
+        }
+
         _.each(values, function(val, key) {
             resource[key] = val;
         });
@@ -74,10 +82,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             return insertTx.cb('Table ' + statement.source.name + ' does not support insert');
         }
         if (statement.jsonObj){
-            var jsonObj = statement.jsonObj.value;
-            if(jsonObj.indexOf("{") === 0 && jsonObj.indexOf("}") === jsonObj.length - 1) {
-                jsonObj = jsonObj.substring(1, jsonObj.length - 1);
-            }
+            var jsonObj = getVarVal(statement.jsonObj.value);
             values = context[jsonObj];
         }
         else {// not directly inserting json

@@ -32,12 +32,16 @@ var configLoader = require('./engine/config.js'),
     insert = require('./engine/insert.js'),
     delet = require('./engine/delet.js'),
     update = require('./engine/update.js'),
+    ifelse = require('./engine/ifelse.js'),
+    trycatch = require('./engine/trycatch.js'),
+    logic = require('./engine/logic.js'),
     _util = require('./engine/util.js'),
     jsonfill = require('./engine/jsonfill.js'),
     eventTypes = require('./engine/event-types.js'),
     LogEmitter = require('./engine/log-emitter.js'),
     winston = require('winston'),
     compiler = require('ql.io-compiler'),
+    visualization = require('./engine/visualization'),
     _ = require('underscore'),
     EventEmitter = require('events').EventEmitter,
     util = require('util'),
@@ -181,7 +185,6 @@ Engine.prototype.execute = function() {
 
     //for debug
     var emitterID, unexecuted, step1, timeoutID;
-
     if(arguments.length === 2) {
         script = arguments[0];
         func = arguments[1];
@@ -283,11 +286,46 @@ Engine.prototype.execute = function() {
         timeoutID = setTimeout( function () {
             emitter.emit(eventTypes.KILL);
         }, 1800000);// clear unused session in 30 minutes.
+        //try get visualization picture.
+        visualization.getPic(plan, emitter);
+
     }
 
     // Initialize the exec state
     var execState = {};
     function init(statement) {
+        function scopeInit(statement) {
+            switch(statement.type){
+                case 'if':
+                    init(statement.condition);
+                    _.each(statement.if, function(line){
+                        init(line);
+                    });
+                    _.each(statement.else, function(line){
+                        init(line);
+                    });
+                    break;
+                case 'try':
+                    _.each(statement.dependsOn, function(line){
+                        init(line);
+                    });
+                    _.each(statement.catchClause, function(currentcatch){
+                        init(currentcatch.condition);
+                        _.each(currentcatch.lines, function(line){
+                            init(line);
+                        });
+                    });
+                    if(statement.finallyClause) {
+                        _.each(line.finallyClause, function(line){
+                            init(line);
+                        });
+                    }
+                    break;
+            }
+        }
+        if(execState[statement.id]) {
+            return;
+        }
         execState[statement.id] = {
             state: eventTypes.STATEMENT_WAITING,
             count: statement.dependsOn ? statement.dependsOn.length : 0
@@ -299,12 +337,95 @@ Engine.prototype.execute = function() {
         if(fallback) {
             init(fallback);
         }
+        if (statement.scope) {
+            init(statement.scope);
+        }
+        scopeInit(statement);
     }
     init(plan.rhs);
+
+    /* Skip assign statement. Make it undefined, and trigger listener
+     */
+    function skipVar(statement){
+        if (execState[statement.id].state == eventTypes.STATEMENT_SUCCESS){
+            return;
+        }
+        execState[statement.id].state = eventTypes.STATEMENT_SUCCESS;
+        switch(statement.type){
+            case 'try':
+                _.each(statement.dependsOn, function(tryline){//these are just lines within try{}
+                    skipVar(tryline);
+                });
+                _.each(statement.catchClause, function(mycatch,k){
+                    _.each(mycatch.lines, function(catchline){
+                        skipVar(catchline);
+                    });
+                });
+                _.each(statement.finallyClause, function(finallyline){
+                    skipVar(finallyline);
+                });
+                break;
+            case 'if':
+                _.each(statement.if, function(st) {
+                    skipVar(st);
+                });
+                _.each(statement.else, function(st) {
+                    skipVar(st);
+                });
+                break;
+            default:
+                if(!statement.assign){
+                    return;
+                }
+                context[statement.assign] = null;
+                _.each(statement.listeners, function(listener) {
+                    execState[listener.id].count--;
+                    if (!(listener.fbhold)){
+                        sweep(listener);
+                    }
+                });
+        }
+
+    }
+
+    // scope is complex to execute, handle separately
+    function execScope(statement, arg) {
+        switch(statement.type) {
+            case 'if' :
+                var toskip = arg.skip,
+                    toexec = arg.exec;
+                _.each(toskip, function(st) {
+                    skipVar(st);
+                });
+                _.each(toexec, function(st) {
+                    sweep(st);
+                })
+                break;
+            case 'try':
+                //arg is a 1:1 mapping to catchClause, only execute the ones that are true
+                var catchzip = _.zip(arg, statement.catchClause)
+                _.each(catchzip, function(mycatch) {
+                    if(mycatch[0]){
+                        _.each(mycatch[1].lines, function(line){
+                            sweep(line);
+                        });
+                    }else{
+                        _.each(mycatch[1].lines, function(line){
+                            skipVar(line);
+                        });
+                    }
+                });
+                break;
+        }
+    }
 
     var skip = false;
     function sweep(statement) {
         if(skip) {
+            return;
+        }
+        if(statement.scope && execState[statement.scope.id].state === eventTypes.STATEMENT_WAITING) {
+            sweep(statement.scope);
             return;
         }
         _.each(statement.dependsOn, function(dependency) {
@@ -320,13 +441,19 @@ Engine.prototype.execute = function() {
                     sweep(dependency);
                 }
             });
+            if(statement.rhs.scope && execState[statement.rhs.scope.id].state === eventTypes.STATEMENT_WAITING) {
+                sweep(statement.rhs.scope);
+            }
         }
 
-        var todo = statement.rhs || statement;
+        var todo = statement.rhs || statement,
+            scopeDone = !todo.scope || execState[todo.scope.id].state === eventTypes.STATEMENT_SUCCESS;
         if(execState[todo.id].state === eventTypes.STATEMENT_WAITING &&  // Don't try if in-flight
-            execState[todo.id].count === 0) {
+            execState[todo.id].count === 0 &&
+            scopeDone) {
             execState[todo.id].state = eventTypes.STATEMENT_IN_FLIGHT;
             if (emitterID && !step1) {
+                // only used for debugger
                 unexecuted.push(statement);
             }
             else {
@@ -370,7 +497,8 @@ Engine.prototype.execute = function() {
                     }
                 }
                 else if(results === null || results === undefined
-                    || results.body === null || results.body === undefined){
+                    || results.body === null || results.body === undefined
+                    || todo.type === 'logic' && results === false){
                     var fallback = statement.rhs ? statement.rhs.fallback : statement.fallback;
                     if(fallback) {
                         fallback.fbhold = false;
@@ -378,8 +506,13 @@ Engine.prototype.execute = function() {
                     }
                 }
 
+
                 execState[todo.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
 
+
+                if(todo.type === 'if' || todo.type === 'try') {
+                    execScope(todo, results);
+                }
                 _.each(todo.listeners, function(listener) {
                     execState[listener.id].count--;
                     if (!(listener.fbhold)){
@@ -622,6 +755,18 @@ function _execOne(opts, statement, parentEvent, cb) {
                 headers: {}
             });
             break;
+        case 'if':
+            ifelse.exec(opts, statement, parentEvent, cb);
+            break;
+        case 'try':
+            trycatch.exec(opts, statement, parentEvent, cb);
+            break;
+        case 'throw':
+            trycatch.throw(opts, statement, parentEvent, cb);
+            break;
+        case 'logic':
+            logic.exec(opts, statement, parentEvent, cb);
+            break;
     }
 }
 
@@ -634,7 +779,6 @@ function preReqNotFound(statement, opts, parentEvent) {
         return found;
     });
 }
-
 
 // Export event types
 Engine.Events = {};

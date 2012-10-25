@@ -111,4 +111,6 @@ exports.DEBUG = 'ql.io-debug';
 
 exports.DEBUG_STEP = 'ql.io-debug-step';
 
+exports.VISUALIZATION = 'ql.io-visualization'
+
 exports.KILL = 'ql.io-kill';
