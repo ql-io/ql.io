@@ -20,8 +20,8 @@ var http = require('http'),
     eventTypes = require('./event-types'),
     _ = require('underscore');
 exports.getPic = function(compiled, emitter){
-    var post_domain = 'ql-2';
-    var post_port = 3026;
+    var post_domain = 'yuml.me';
+    var post_port = 80;
     var post_path = '/diagram/scruffy/class/';
     var diagramtxt = composeDiagram(compiled);
     if(!diagramtxt){

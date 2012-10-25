@@ -55,6 +55,9 @@ function plan(compiled) {
     var creates = {};
     var maxid = 0;
     function divescope(lines, scope) {
+        if (!lines){
+            return;
+        }
         var i, line;
         for (i = 0; i < lines.length; i++) {
             line = lines[i];
@@ -82,7 +85,7 @@ function plan(compiled) {
                 //dependsOn are the lines in try clause
                 divescope(line.dependsOn, line);
                 _.each(line.catchClause, function(k, mycatch){
-                    divescope(mycatch, line);
+                    divescope(mycatch.lines, line);
                 });
                 if(line.finallyClause) {
                     divescope(line.finallyClause, line);
@@ -127,9 +130,9 @@ function plan(compiled) {
         }
         else if (line.type === 'try') {
             //dependsOn are the lines in try clause
-            divescope(line.dependsOn);
+            divescope(line.dependsOn,line);
             _.each(line.catchClause, function(mycatch, k){
-               divescope(mycatch, line);
+               divescope(mycatch.lines, line);
             });
             if(line.finallyClause) {
                 divescope(line.finallyClause, line);
