@@ -17,7 +17,6 @@
 "use strict";
 
 var compiler = require('../lib/compiler');
-
 exports['insert'] = function(test) {
     var q = "insert into suppliers (supplier_id, supplier_name) values ('24553', 'IBM')";
     var plan = compiler.compile(q);
@@ -158,10 +157,10 @@ exports['insert-json'] = function(test) {
              return updated;'
 
     var plan = compiler.compile(q);
-    test.equals(plan.rhs.dependsOn[0].assign, 'j');
+    test.equals(plan.rhs.dependsOn[0].assign, 'updated');
     test.equals(plan.rhs.dependsOn[0].listeners[0].type, 'ref');
-    test.deepEqual(plan.rhs.dependsOn[1].jsonObj, { "value" : "{j}"});
-    test.equals(plan.rhs.dependsOn[1].dependsOn[0].assign, 'obj');
-    test.equals(plan.rhs.dependsOn[1].dependsOn[0].listeners[0].assign, 'updated');
+    test.deepEqual(plan.rhs.dependsOn[0].jsonObj, { "value" : "{j}"});
+    test.equals(plan.rhs.dependsOn[0].dependsOn[0].assign, 'obj');
+    test.equals(plan.rhs.dependsOn[0].dependsOn[0].listeners[0].assign, 'updated');
     test.done();
 }

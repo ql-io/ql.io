@@ -27,7 +27,15 @@ module.exports = {
         test.ok(statement.rhs.dependsOn.length === 1);
         test.done();
     },
-
+    'update-then-return': function (test) {
+        var q = 'a = { "one" : 1 }; update tab with "{a}";select * from tab';
+        var statement = compiler.compile(q);
+        test.ok(statement.rhs.type === 'select');
+        test.ok(statement.rhs.dependsOn.length === 1);
+        test.ok(statement.rhs.dependsOn[0].type === 'update');
+        test.ok(statement.rhs.dependsOn[0].dependsOn.length === 1);
+        test.done();
+    },
     'update-select': function (test) {
         var q = 'a = select * from tab; update tab with "{a}"';
         var statement = compiler.compile(q);

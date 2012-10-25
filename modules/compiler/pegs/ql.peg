@@ -89,6 +89,47 @@
         return -1;
     }
 
+    function countLogicVars(condition){
+        var fallback, ret;
+        if (condition.fallback){
+            fallback = countLogicVars(condition.fallback);
+        }else{
+            fallback = [];
+        }
+        switch(condition.logic){
+            case 'and':
+                ret = _.all(condition.values, function(onecond){
+                    return countLogicVars(onecond);
+                });
+            case 'not':
+                ret = !countLogicVars(condition.values);
+            default://normal
+                ret = [condition.values];
+        }
+        return ret.concat(fallback);
+    }
+
+    function findThrows(tryClause){
+        if(!tryClause){
+            return [];
+        }
+        var errMap = [];
+        for (var i = 0; i < tryClause.length; i++){
+            var thistry = tryClause[i];
+            if(thistry.type === 'throw'){
+                errMap.push(thistry.err);
+            }else if(thistry.type === 'if'){
+                errMap = errMap.concat(findThrows(thistry.if));
+                errMap = errMap.concat(findThrows(thistry.else));
+            }else if (thistry.type === 'try'){
+                errMap = errMap.concat(findThrows(thistry.tryClause));
+                errMap = errMap.concat(findThrows(thistry.catchClause));
+                errMap = errMap.concat(findThrows(thistry.finallyClause));
+            }
+        }
+        return errMap;
+    }
+
     // Split join statements in to main and a joiner. The main statement is the independent
     // and the joiner depends on the outcome of the main statement. In this process, we split
     // the columns in the columns clause across the main and joiner, and merge them at runtime
@@ -384,7 +425,7 @@
 //
 // The bigbang
 //
-start = crlf* larr:LineCrlf* insig r:Return? insig crlf* insig carr:Comment* insig crlf*{
+start = crlf* larr:ClauseCrlf* insig r:Return? insig crlf* insig carr:Comment* insig crlf*{
     ret = [];
     ret = ret.concat(larr);
     if(r) {
@@ -394,13 +435,125 @@ start = crlf* larr:LineCrlf* insig r:Return? insig crlf* insig carr:Comment* ins
     return ret;
 }
 
-// A line in a statement
-LineCrlf = l:Line crlf* {
-    return l;
+// a scope of statements
+//mystart
+ClauseCrlf = sp s:(pClause / Line) crlf* {
+    return s;
 }
 
+
+pClause = IfClause / TryClause;
+
+IfClause = 'if' insig condition:LogicParen insig '{' insig iflines:TryCrlf* insig '}' insig elselines:ElseClause?{
+    return {
+        id : id++,
+        line : line,
+        type : 'if',
+        condition : condition,
+        if : iflines,
+        else : elselines
+    }
+}
+ElseClause = 'else' insig '{' insig larr:TryCrlf* insig'}' {
+    return larr;
+}
+
+TryClause = 'try' insig '{' insig tryClause:TryCrlf+ insig '}' catchClause:CatchClause+ finallyClause:FinallyClause? {
+    var errMap = findThrows(tryClause);
+    for (var i = 0; i < catchClause.length; i++){
+        var catchvars = countLogicVars(catchClause[i].condition);
+        for (var j = 0; j < catchvars.length; j++){
+            var errVar = catchvars[j];
+            if(errMap.indexOf(errVar) == -1){
+                throw new this.SyntaxError("Line " + line + " exception variable "+errVar+" is not thrown inside the try statement.");
+            }
+        }
+    }
+    return {
+        id : id++,
+        line : line,
+        type : 'try',
+        dependsOn : tryClause,
+        catchClause : catchClause,
+        finallyClause : finallyClause || undefined
+    }
+}
+
+CatchClause = insig 'catch' insig condition:LogicParen insig '{' insig lines:TryCrlf* insig '}' {
+    return {
+        condition : condition,
+        lines : lines
+    }
+}
+
+FinallyClause = insig 'finally' insig '{' insig lines:ClauseCrlf+ '}' {
+    return lines;
+}
+
+TryCrlf = ThrowCrlf / ClauseCrlf;
+
+ThrowCrlf = sp 'throw' insig '(' insig condition:Word insig ')' insig crlf* {
+    return {
+        id : id++,
+        line : line,
+        type : 'throw',
+        err : condition
+    }
+}
+
+
+/**
+ *  Logic statement has three levels or priorities. ! > && > ||
+ *  e.g. aa && !bb || cc == (aa && (!bb)) || cc
+  */
+
+LogicStatement = LogicParen / LogicPhrase;
+LogicParen = '(' insig p:LogicPhrase insig ')' insig {
+    return p;
+}
+LogicPhrase = OrPhrase / AndPhrase / NotPhrase / NormalPhrase;
+
+OrPhrase = s1:(AndPhrase / NotPhrase / NormalPhrase) insig sn:OrTail{
+    s1.fallback = sn;
+    return s1;
+}
+OrTail = '||' insig s:LogicStatement insig{
+    return s;
+}
+
+AndPhrase = s1:(NotPhrase / NormalPhrase) insig sn:AndTail{
+    return {
+        type: 'logic',
+        logic: 'and',
+        id : id++,
+        line : line,
+        values: [s1].concat(sn)
+    }
+}
+AndTail = '&&' insig s:LogicStatement insig{
+    return s;
+}
+
+NotPhrase = '!' s:(LogicParen / NotPhrase / NormalPhrase) {
+    return {
+        type: 'logic',
+        logic : 'not',
+        id : id++,
+        line : line,
+        values : s
+    }
+}
+NormalPhrase = w:Word {
+    return {
+        type: 'logic',
+        logic: 'normal',
+        id : id++,
+        line : line,
+        values: w
+    }
+}
 // Statement can be an assignment or a comemnt
-Line = sp l:(Assign / Comment) {
+Line = l:(Assign / Comment) {
     if(l.type !== 'comment') {
         l.id = id++;
     }
