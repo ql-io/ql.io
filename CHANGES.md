@@ -1,3 +1,15 @@
+## October 17, 2012
+
+* now works with node-expat 2.0.0 
+
+## August 27, 2012
+
+* debugger and visualization in console.
+
+## August 09, 2012
+
+* Fix Issue #558
+
 ## August 09, 2012
 
 * Node 0.8.x and other dependecy upgrades.

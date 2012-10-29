@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ **/
 
 'use strict';
 
@@ -54,6 +54,45 @@ function plan(compiled) {
     var comments = [];
     var creates = {};
     var maxid = 0;
+    function divescope(lines, scope) {
+        if (!lines){
+            return;
+        }
+        var i, line;
+        for (i = 0; i < lines.length; i++) {
+            line = lines[i];
+            maxid = line.id > maxid ? line.id : maxid;
+            if(scope){
+                line.scope = scope;
+            }
+            if(line.assign) {
+                if(symbols[line.assign]) {
+                    throw new this.SyntaxError('Duplicate symbol ' + line.assign);
+                }
+                else {
+                    symbols[line.assign] = line;
+                }
+            }
+            else if(line.type === 'create') { // Makes sense when DDL is inline
+                symbols[line.name] = line;
+                creates[line.id.toString()] = line;
+            }
+            else if (line.type === 'if') {
+                divescope(line.if, line);
+                divescope(line.else, line);
+            }
+            else if (line.type === 'try') {
+                //dependsOn are the lines in try clause
+                divescope(line.dependsOn);
+                _.each(line.catchClause, function(k, mycatch){
+                    divescope(mycatch.lines, line);
+                });
+                if(line.finallyClause) {
+                    divescope(line.finallyClause, line);
+                }
+            }
+        }
+    }
     for(i = 0; i < compiled.length; i++) {
         line = compiled[i];
         maxid = line.id > maxid ? line.id : maxid;
@@ -81,6 +120,24 @@ function plan(compiled) {
         else if(line.type === 'create') { // Makes sense when DDL is inline
             symbols[line.name] = line;
             creates[line.id.toString()] = line;
+        }
+        else if (line.type === 'if') {
+            divescope(line.if, line);
+            if (line.else){
+                divescope(line.else, line);
+            }
+            single = line;
+        }
+        else if (line.type === 'try') {
+            //dependsOn are the lines in try clause
+            divescope(line.dependsOn);
+            _.each(line.catchClause, function(mycatch, k){
+               divescope(mycatch.lines, line);
+            });
+            if(line.finallyClause) {
+                divescope(line.finallyClause, line);
+            }
+            single = line;
         }
         else {
             single = line;
@@ -138,6 +195,9 @@ function plan(compiled) {
             node.fallback.listeners = node.listeners;
             node.fallback.fbhold = true;
         }
+        if(node.scope) {
+            used.push(node.scope.id);
+        }
     }
     used.push(ret.rhs.id);
     rev(ret.rhs);
@@ -170,7 +230,6 @@ function plan(compiled) {
     // Insert creates before orphans.
     ret.rhs.dependsOn = orphans.concat(ret.rhs.dependsOn);
     ret.rhs.dependsOn = creates.concat(ret.rhs.dependsOn);
-
     return ret;
 }
 
@@ -187,17 +246,9 @@ function walk(line, symbols) {
             break;
         case 'define':
             introspectObject(line.object, symbols, line.dependsOn, line);
-            if(line.fallback) {
-                walk(line.fallback, symbols);
-            }
             break;
         case 'return':
             walk(line.rhs, symbols);
-
-            if(line.fallback) {
-                walk(line.fallback, symbols);
-            }
-
             // Route
             if(line.route) {
                 introspectString(line.route.path, symbols, line.dependsOn);
@@ -212,15 +263,22 @@ function walk(line, symbols) {
         case 'delete':
             introspectFrom(line, [line.source], symbols);
             line = introspectWhere(line, symbols);
-            if(line.fallback) {
-                walk(line.fallback, symbols);
-            }
             break;
         case 'insert':
             introspectFrom(line, [line.source], symbols);
-            if(line.fallback) {
-                walk(line.fallback, symbols);
+            if(line.columns){
+                _.each(line.values, function(val) {
+                    //introspectString(line, val, symbols);
+                    introspectString(val, symbols, line.dependsOn, line);
+                })
             }
+            if(line.jsonObj) {
+                introspectString(line.jsonObj.value, symbols, line.dependsOn, line);
+            }
+            break;
+        case 'update':
+            introspectFrom(line, [line.source], symbols);
+            introspectString(line.withClause.value, symbols, line.dependsOn, line);
             break;
         case 'select':
             introspectFrom(line, line.fromClause, symbols);
@@ -229,10 +287,46 @@ function walk(line, symbols) {
                 introspectFrom(line.joiner, line.joiner.fromClause, symbols, line);
                 introspectWhere(line.joiner, symbols, line);
             }
-            if(line.fallback) {
-                walk(line.fallback, symbols);
+            break;
+        case 'if':
+            addDep(line, line.dependsOn, line.condition, symbols);
+            walk(line.condition, symbols);
+            _.each(line.if, function(ifline){
+                walk(ifline, symbols);
+            });
+            if(line.else){
+                _.each(line.else, function(elseline){
+                    walk(elseline, symbols);
+            })
             }
             break;
+        case 'logic':
+            var condDepends = logicVars(line, symbols);
+            _.each(condDepends, function(dependency){
+                addDep(line, line.dependsOn, dependency, symbols);
+                walk(dependency, symbols);
+            });
+            break;
+        case 'try':
+            _.each(line.dependsOn, function(tryline){
+                addListener(tryline, line);
+                walk(tryline, symbols);
+            });
+            _.each(line.catchClause, function(currentcatch){
+                walk(currentcatch.condition, symbols);
+                _.each(currentcatch.lines, function(catchline){
+                    walk(catchline, symbols);
+                })
+            });
+            if(line.finallyClause) {
+                _.each(line.finallyClause, function(finallyline){
+                    walk(finallyline, symbols);
+                });
+            }
+            break;
+    }
+    if(line.fallback) {
+        walk(line.fallback, symbols);
     }
 }
 
@@ -469,4 +563,22 @@ function introspectWhere(line, symbols, parent) {
         }
     }
     return line;
+}
+
+// find all variables that appears in a logic condition.
+function logicVars(condition, symbols){
+    if(_.isString(condition.values)){
+        var conditionDep = symbols[condition.values];
+        if (conditionDep) {
+            return [conditionDep];
+        }else{
+            return [];
+        }
+    }
+    else if (!_.isArray(condition.values)){
+        return logicVars(condition.values, symbols);
+    }
+    return _.reduce(condition.values, function(memo, val){
+        return memo.concat(logicVars(val, symbols));
+    }, [])
 }

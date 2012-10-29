@@ -84,7 +84,6 @@ $(document).ready(function() {
                     $('#step').hide();
                     emitterID = 0;
                     runQuery(statement, escaped, compiled);
-                    pastePic();
                 });
 
                 $('#debug').unbind();
@@ -96,7 +95,6 @@ $(document).ready(function() {
                     step = 1;
                     runQuery(statement, escaped, compiled, true);
                     $('#step').show();
-                    pastePic(compiled);
                 });
 
                 $('#step').unbind();
@@ -319,7 +317,7 @@ $(document).ready(function() {
     // Tell the server what notifications to receive
     function subscribe(socket, uri) {
         var events = ['ack', 'compile-error', 'statement-error', 'statement-in-flight',
-            'statement-success', 'statement-request', 'statement-response', 'script-done', 'ql.io-debug'];
+            'statement-success', 'statement-request', 'statement-response', 'script-done', 'ql.io-debug', 'ql.io-visualization'];
         var packet = {
             type: 'events',
             data: JSON.stringify(events)
@@ -421,6 +419,10 @@ $(document).ready(function() {
                 opacity: 1.0
             });
         });
+        emitter.on('ql.io-visualization', function(data){
+            $('#dependencyMap').attr('src', data);
+            $('#dependencyMap').show();
+        })
         emitter.on('script-done', function (data) {
             markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
         });
@@ -435,42 +437,14 @@ $(document).ready(function() {
             id : emitterID
         };
         socket.send(JSON.stringify(packet));
+        delPic();
     }
 
-    function pastePic(forest) {
-        function getDepHelper(tree) {
-            sofar = "";
-
-            if (tree.hasOwnProperty('rhs')) {
-                sofar += getDepHelper(tree.rhs);
-            }
-            var line_num = tree.line ? tree.line : 'return';
-            if (tree.hasOwnProperty('fallback') && tree.fallback.dependsOn.length > 0) {
-                var fallback = tree.fallback;
-                for (var j = 0; j < fallback.dependsOn.length; j++) {
-                    var addition = '%5B'+line_num+'%5D->%5Bnote:'+fallback.dependsOn[j].line+'%5D,';
-                    sofar += addition;
-                    sofar += getDepHelper(fallback.dependsOn[j]);
-                }
-            }
-            if (tree.dependsOn && tree.dependsOn.length > 0) {
-                for (var j = 0; j < tree.dependsOn.length; j++) {
-                    var dep = tree.dependsOn[j];
-                    var addition = '%5B'+line_num+'%5D-%3E%5B'+dep.line+'%5D,'
-                    sofar += addition;
-                    sofar += getDepHelper(dep);
-                }
-            }
-
-            return sofar;
-        }
-        var deptxt = '';
-        if (forest) {
-            for (var k = 0; k < forest.length; k++) {
-                deptxt += getDepHelper(forest[k]);
-            }
-            deptxt = 'http://yuml.me/diagram/scruffy;/class/'+deptxt.substring(0, deptxt.length-1)+'.png';
-        }
-        $('#dependencyMap').attr('src', deptxt);
+    function delPic(){
+        $('#dependencyMap').hide()
     }
 });
+
+
+
+

@@ -1,12 +1,11 @@
-
 [![ql.io](http://ql.io/images/ql.io-large.png)](http://ql.io)
 
 ql.io is a declarative, data-retrieval and aggregation gateway for quickly consuming HTTP APIs. See
-[ql.io](http://ql.io) for docs, demos and examples.
+[ql.io](http://ql.io) for docs, demos and examples. 
 
 ![Travis status](https://secure.travis-ci.org/ql-io/ql.io.png)
 
-## How to Build ql.io
+## How to Build ql.io 
 
 To build ql.io on your own, you need node (version 0.8.0 or later) and npm. In Ubuntu, you need
 libexpat-dev additionally. Once you have these set up, do the following:
