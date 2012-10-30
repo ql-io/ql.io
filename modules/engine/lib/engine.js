@@ -306,7 +306,7 @@ Engine.prototype.execute = function() {
                     });
                     break;
                 case 'try':
-                    _.each(statement.dependsOn, function(line){
+                    _.each(statement.tryClause, function(line){
                         init(line);
                     });
                     _.each(statement.catchClause, function(currentcatch){
@@ -346,46 +346,59 @@ Engine.prototype.execute = function() {
 
     /* Skip assign statement. Make it undefined, and trigger listener
      */
-    function skipVar(statement){
-        if (execState[statement.id].state == eventTypes.STATEMENT_SUCCESS){
-            return;
-        }
-        execState[statement.id].state = eventTypes.STATEMENT_SUCCESS;
-        switch(statement.type){
-            case 'try':
-                _.each(statement.dependsOn, function(tryline){//these are just lines within try{}
-                    skipVar(tryline);
-                });
-                _.each(statement.catchClause, function(mycatch,k){
-                    _.each(mycatch.lines, function(catchline){
-                        skipVar(catchline);
+    function skipVarList(statements){
+        function skipVar(statement){
+            if (execState[statement.id].state == eventTypes.STATEMENT_SUCCESS){
+                return;
+            }
+            execState[statement.id].state = eventTypes.STATEMENT_SUCCESS;
+            switch(statement.type){
+                case 'try':
+                    _.each(statement.tryClause, function(tryline){//these are just lines within try{}
+                        skipVar(tryline);
                     });
-                });
-                _.each(statement.finallyClause, function(finallyline){
-                    skipVar(finallyline);
-                });
-                break;
-            case 'if':
-                _.each(statement.if, function(st) {
-                    skipVar(st);
-                });
-                _.each(statement.else, function(st) {
-                    skipVar(st);
-                });
-                break;
-            default:
-                if(!statement.assign){
-                    return;
-                }
-                context[statement.assign] = null;
-                _.each(statement.listeners, function(listener) {
-                    execState[listener.id].count--;
-                    if (!(listener.fbhold)){
-                        sweep(listener);
+                    _.each(statement.catchClause, function(mycatch,k){
+                        _.each(mycatch.lines, function(catchline){
+                            skipVar(catchline);
+                        });
+                    });
+                    _.each(statement.finallyClause, function(finallyline){
+                        skipVar(finallyline);
+                    });
+                    break;
+                case 'if':
+                    _.each(statement.if, function(st) {
+                        skipVar(st);
+                    });
+                    _.each(statement.else, function(st) {
+                        skipVar(st);
+                    });
+                    break;
+                default:
+                    if(!statement.assign){
+                        return;
                     }
-                });
-        }
+                    context[statement.assign] = null;
+                    _.each(statement.listeners, function(listener) {
+                        execState[listener.id].count--;
+                        if (!(listener.fbhold)){
+                            return listener;
+                        }
+                    });
+            }
 
+        }
+        var listeners = [];
+        _.each(statements, function(statement){
+            var tmp = skipVar(statement);
+            if(tmp){
+                listeners.push(tmp);
+            }
+        });
+        listeners = _.uniq(listeners);
+        _.each(listeners, function(listener){
+            sweep(listener);
+        });
     }
 
     // scope is complex to execute, handle separately
@@ -394,9 +407,7 @@ Engine.prototype.execute = function() {
             case 'if' :
                 var toskip = arg.skip,
                     toexec = arg.exec;
-                _.each(toskip, function(st) {
-                    skipVar(st);
-                });
+                skipVarList(toskip);
                 _.each(toexec, function(st) {
                     sweep(st);
                 })
@@ -410,9 +421,7 @@ Engine.prototype.execute = function() {
                             sweep(line);
                         });
                     }else{
-                        _.each(mycatch[1].lines, function(line){
-                            skipVar(line);
-                        });
+                        skipVarList(mycatch[1].lines);
                     }
                 });
                 break;
@@ -452,6 +461,12 @@ Engine.prototype.execute = function() {
             execState[todo.id].count === 0 &&
             scopeDone) {
             execState[todo.id].state = eventTypes.STATEMENT_IN_FLIGHT;
+
+            if(todo.type === 'try'){
+                _.each(todo.tryClause, function(tryline){
+                    sweep(tryline);
+                });
+            }
             if (emitterID && !step1) {
                 // only used for debugger
                 unexecuted.push(statement);
