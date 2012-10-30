@@ -187,3 +187,46 @@ module.exports['trycatch-nested'] = function(test) {
         }
     }});
 };
+
+module.exports['ifelse-nested'] = function(test) {
+    var context, q;
+    context = {
+        foo : {
+            'hello' : 'Hello',
+            'world' : 'World'
+        },
+        bar : {
+            'chocolate' : 'Chocolate',
+            'milk' : 'Milk'
+        },
+        empty : null,
+        cond : 1
+    };
+    q = 'if (x||y)\n\
+    {\n\
+        q= 12345\n\
+        if (!j )\n\
+        {\n\
+            g = "sad"\n\
+        }\n\
+        else\n\
+        {\n\
+            d= "sleepy"\n\
+        }\n\
+    }\n\
+    else\n\
+    {\n\
+        e = "enjoy"\n\
+    }\n\
+    return q||g|| d||e;';
+    engine.exec({script: q, context: context, cb: function(err, result) {
+        if(err) {
+            test.fail('got error: ' + err.stack);
+            test.done();
+        }
+        else {
+            test.equals(result.body, "enjoy");
+            test.done();
+        }
+    }});
+};

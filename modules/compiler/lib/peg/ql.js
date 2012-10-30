@@ -781,9 +781,8 @@ module.exports = (function(){
                             id : id++,
                             line : line,
                             type : 'try',
-                            dependsOn : tryClause,
+                            tryClause : tryClause,
                             catchClause : catchClause,
-                            exceptions : [],
                             finallyClause : finallyClause || undefined
                         }
                     })(pos0.offset, pos0.line, pos0.column, result0[4], result0[7], result0[8]);
@@ -1248,9 +1247,7 @@ module.exports = (function(){
                 }
                 if (result0 !== null) {
                     result0 = (function(offset, line, column, s1, sn) {
-                        if(sn){
-                            s1.fallback = sn;
-                        }
+                        s1.fallback = sn;
                         return s1;
                     })(pos0.offset, pos0.line, pos0.column, result0[0], result0[2]);
                 }

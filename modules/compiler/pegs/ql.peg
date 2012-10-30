@@ -473,7 +473,7 @@ TryClause = 'try' insig '{' insig tryClause:TryCrlf+ insig '}' catchClause:Catch
         id : id++,
         line : line,
         type : 'try',
-        dependsOn : tryClause,
+        tryClause : tryClause,
         catchClause : catchClause,
         finallyClause : finallyClause || undefined
     }
