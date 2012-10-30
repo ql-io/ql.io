@@ -83,8 +83,8 @@ function plan(compiled) {
             }
             else if (line.type === 'try') {
                 //dependsOn are the lines in try clause
-                divescope(line.dependsOn);
-                _.each(line.catchClause, function(k, mycatch){
+                divescope(line.tryClause, line);
+                _.each(line.catchClause, function(mycatch, k){
                     divescope(mycatch.lines, line);
                 });
                 if(line.finallyClause) {
@@ -130,7 +130,7 @@ function plan(compiled) {
         }
         else if (line.type === 'try') {
             //dependsOn are the lines in try clause
-            divescope(line.dependsOn);
+            divescope(line.tryClause, line);
             _.each(line.catchClause, function(mycatch, k){
                divescope(mycatch.lines, line);
             });
@@ -308,8 +308,7 @@ function walk(line, symbols) {
             });
             break;
         case 'try':
-            _.each(line.dependsOn, function(tryline){
-                addListener(tryline, line);
+            _.each(line.tryClause, function(tryline){
                 walk(tryline, symbols);
             });
             _.each(line.catchClause, function(currentcatch){
