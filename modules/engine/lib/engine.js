@@ -42,6 +42,7 @@ var configLoader = require('./engine/config.js'),
     winston = require('winston'),
     compiler = require('ql.io-compiler'),
     visualization = require('./engine/visualization'),
+    udf = require('./engine/udf'),
     _ = require('underscore'),
     EventEmitter = require('events').EventEmitter,
     util = require('util'),
@@ -712,6 +713,7 @@ function _execOne(opts, statement, parentEvent, cb) {
                 obj = jsonfill.fill(statement.object, params);
             }
             else if(statement.udf) {
+                if (statement.udf === 'require'){
                 args = [];
                 _.each(_.pluck(statement.args, 'value'), function(arg) {
                     args.push(jsonfill.lookup(arg, opts.context));
@@ -722,6 +724,18 @@ function _execOne(opts, statement, parentEvent, cb) {
                 catch(e) {
                     console.log(e.stack || e);
                     return cb(e);
+                }
+                }else{//assign variable using udf.
+                    udf.applyAssign(opts, statement, function(err, results) {
+                        if(err) {
+                            cb('udf assignment failed.')
+                        }
+                        else {
+                            if(statement.assign) {
+                                obj = results;
+                            }
+                        }
+                    });
                 }
             }
 

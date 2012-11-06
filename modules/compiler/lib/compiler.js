@@ -246,6 +246,14 @@ function walk(line, symbols) {
             break;
         case 'define':
             introspectObject(line.object, symbols, line.dependsOn, line);
+            if(line.udf && line.udf != 'require'){
+                _.each(line.args, function(arg){
+                    dependency = symbols[arg.name];
+                    if(dependency){
+                        addDep(line, line.dependsOn, dependency, symbols);
+                    }
+                });
+            }
             break;
         case 'return':
             walk(line.rhs, symbols);
