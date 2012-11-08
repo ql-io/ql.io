@@ -457,20 +457,6 @@ Engine.prototype.execute = function() {
                 sweep(dependency);
             }
         });
-
-        /*if(statement.type === 'try'){
-            var dependsDone = _.all(statement.dependsOn, function(tryline){
-                return execState[tryline.id].state === 'statement-success';
-            })
-            if(!dependsDone){
-                //block revisit try from lines in this scope.
-                statement.lock = true;
-                _.each(statement.dependsOn, function(tryline){
-                    sweep(tryline);
-                });
-                return;
-            }
-        }      */
         if(statement.rhs) {
             _.each(statement.rhs.dependsOn, function(dependency) {
                 if(execState[dependency.id].state === eventTypes.STATEMENT_WAITING) {
