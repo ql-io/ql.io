@@ -777,13 +777,18 @@ module.exports = (function(){
                                 }
                             }
                         }
+                        var catchConds = [];
+                        for(var i = 0; i < catchClause.length; i++){
+                            catchConds.push(catchClause[i].condition);
+                        }
                         return {
                             id : id++,
                             line : line,
                             type : 'try',
-                            tryClause : tryClause,
+                            dependsOn : tryClause.concat(catchConds),
                             catchClause : catchClause,
-                            finallyClause : finallyClause || undefined
+                            finallyClause : finallyClause || undefined,
+                            lock : false
                         }
                     })(pos0.offset, pos0.line, pos0.column, result0[4], result0[7], result0[8]);
                 }
