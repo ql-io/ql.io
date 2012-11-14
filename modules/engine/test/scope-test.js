@@ -230,3 +230,31 @@ module.exports['ifelse-nested'] = function(test) {
         }
     }});
 };
+
+module.exports['ifelse-nested'] = function(test) {
+    var q = 'foo = true \
+    bar = false\
+    try{\
+        mycond = select * from bar\
+        if(mycond){\
+            result4 = "hello world";\
+        }else{\
+            NoLanguagePack = true\
+            throw (NoLanguagePack)\
+        } \
+    }\
+    catch (NoLanguagePack){\
+        result3 = "not found"\
+    }\
+    return result4 || result3';
+    engine.exec({script: q, cb: function(err, result) {
+        if(err) {
+            test.fail('got error: ' + err.stack);
+            test.done();
+        }
+        else {
+            test.equals(result.body, "not found");
+            test.done();
+        }
+    }});
+}

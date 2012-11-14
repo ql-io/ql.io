@@ -32,8 +32,17 @@ exports.require = function() {
             return module.require.apply(null, args);
         }
         catch(e) {
-            args[0] = __dirname + '/' + name;
-            return module.require.apply(null, args);
+            try {
+                var splitpath = process.cwd().split('/');
+                splitpath[splitpath.length-1] = name;
+                args[0] = splitpath.join('/');
+                return module.require.apply(null, args);
+
+            } catch(e) {
+                args[0] = __dirname + '/' + name;
+                return module.require.apply(null, args);
+            }
         }
+
     }
 }
