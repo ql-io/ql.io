@@ -60,7 +60,8 @@ var LogEmitter = module.exports = function() {
             clazz: 'begin',
             type: type || 'ql.io',
             name: name || 'ql.io',
-            uuid: (parent && parent.uuid ? parent.uuid : uuid())
+            uuid: (parent && parent.uuid ? parent.uuid : uuid()),
+            tid: (parent && parent.tid ? parent.tid : Math.random()) // nodejs does not has multiple threads. the tid would trick Cal to consider calls in different threads.
         };
 
         this.emit(eventTypes.BEGIN_EVENT, event, message);
