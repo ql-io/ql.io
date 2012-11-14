@@ -26,8 +26,14 @@ var eventTypes = require('./event-types.js'),
  * The point of this emitter is to capture events in a hierarchy so know which part of the script
  * caused what HTTP request.
  */
+
+var tid = 0;
 var LogEmitter = module.exports = function() {
     events.EventEmitter.call(this);
+
+    function gettid(){
+        return tid++;
+    }
 
     /**
      * This begins a new event and returns an event object
@@ -61,7 +67,7 @@ var LogEmitter = module.exports = function() {
             type: type || 'ql.io',
             name: name || 'ql.io',
             uuid: (parent && parent.uuid ? parent.uuid : uuid()),
-            tid: (parent && parent.tid ? parent.tid : Math.random()) // nodejs does not has multiple threads. the tid would trick Cal to consider calls in different threads.
+            tid: (parent && parent.tid ? parent.tid : gettid()) // nodejs does not has multiple threads. the tid would trick Cal to consider calls in different threads.
         };
 
         this.emit(eventTypes.BEGIN_EVENT, event, message);
