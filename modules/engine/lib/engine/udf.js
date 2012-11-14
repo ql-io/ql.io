@@ -127,6 +127,29 @@ exports.applyWhere = function(opts, statement, results, cb, tempNames, tempIndic
     }
 }
 
+exports.applyAssign = function(opts, statement, cb){
+    var fn = resolveUdf(opts, statement),
+        context = opts.context,
+        args = _.map(statement.args, function(arg){
+            if(arg.name){
+                return context[arg.name];
+            }else{
+                return arg.value;
+            }
+        }),
+        wrapper = {
+            __proto__: context
+        },
+        result, err;
+    try{
+        result = fn.apply(wrapper, args);;
+    }catch(e){
+        err = e;
+    }finally{
+        cb(null, result);
+    }
+    //return result;
+}
 function resolve(opts, columns, extras, udf, tempNames, tempIndices) {
     var fn = resolveUdf(opts, udf);
     if(fn) {

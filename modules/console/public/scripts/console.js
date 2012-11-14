@@ -425,6 +425,8 @@ $(document).ready(function() {
         })
         emitter.on('script-done', function (data) {
             markers.push(editor.setMarker(data.line - 1, data.elapsed + ' ms', 'green'));
+            delPic();
+            $('#step').hide();
         });
     }
 
@@ -438,6 +440,7 @@ $(document).ready(function() {
         };
         socket.send(JSON.stringify(packet));
         delPic();
+        $('#step').hide();
     }
 
     function delPic(){

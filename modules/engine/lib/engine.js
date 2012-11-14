@@ -42,6 +42,7 @@ var configLoader = require('./engine/config.js'),
     winston = require('winston'),
     compiler = require('ql.io-compiler'),
     visualization = require('./engine/visualization'),
+    udf = require('./engine/udf'),
     _ = require('underscore'),
     EventEmitter = require('events').EventEmitter,
     util = require('util'),
@@ -306,7 +307,7 @@ Engine.prototype.execute = function() {
                     });
                     break;
                 case 'try':
-                    _.each(statement.tryClause, function(line){
+                    _.each(statement.dependsOn, function(line){
                         init(line);
                     });
                     _.each(statement.catchClause, function(currentcatch){
@@ -354,7 +355,7 @@ Engine.prototype.execute = function() {
             execState[statement.id].state = eventTypes.STATEMENT_SUCCESS;
             switch(statement.type){
                 case 'try':
-                    _.each(statement.tryClause, function(tryline){//these are just lines within try{}
+                    _.each(statement.dependsOn, function(tryline){//these are just lines within try{}
                         skipVar(tryline);
                     });
                     _.each(statement.catchClause, function(mycatch,k){
@@ -382,6 +383,9 @@ Engine.prototype.execute = function() {
                     _.each(statement.listeners, function(listener) {
                         execState[listener.id].count--;
                         if (!(listener.fbhold)){
+                            if(listener.type === 'try'){
+                                listener.lock = false;
+                            }
                             return listener;
                         }
                     });
@@ -433,9 +437,19 @@ Engine.prototype.execute = function() {
         if(skip) {
             return;
         }
-        if(statement.scope && execState[statement.scope.id].state === eventTypes.STATEMENT_WAITING) {
+        if(statement.scope && execState[statement.scope.id].state === eventTypes.STATEMENT_WAITING &&
+            (statement.scope.type !== 'try' || !statement.scope.lock)) {
             sweep(statement.scope);
             return;
+        }
+        if(statement.type === 'try'){
+            var dependsDone = _.all(statement.dependsOn, function(tryline){
+                return execState[tryline.id].state === 'statement-success';
+            });
+            if(!dependsDone){
+                //block revisit try from lines in this scope.
+                statement.lock = true;
+            }
         }
         _.each(statement.dependsOn, function(dependency) {
             if(execState[dependency.id].state === eventTypes.STATEMENT_WAITING) {
@@ -456,17 +470,12 @@ Engine.prototype.execute = function() {
         }
 
         var todo = statement.rhs || statement,
-            scopeDone = !todo.scope || execState[todo.scope.id].state === eventTypes.STATEMENT_SUCCESS;
+            scopeDone = !todo.scope || execState[todo.scope.id].state === eventTypes.STATEMENT_SUCCESS || (todo.scope.lock && _.contains(todo.scope.dependsOn, todo));
         if(execState[todo.id].state === eventTypes.STATEMENT_WAITING &&  // Don't try if in-flight
             execState[todo.id].count === 0 &&
             scopeDone) {
             execState[todo.id].state = eventTypes.STATEMENT_IN_FLIGHT;
 
-            if(todo.type === 'try'){
-                _.each(todo.tryClause, function(tryline){
-                    sweep(tryline);
-                });
-            }
             if (emitterID && !step1) {
                 // only used for debugger
                 unexecuted.push(statement);
@@ -531,6 +540,9 @@ Engine.prototype.execute = function() {
                 _.each(todo.listeners, function(listener) {
                     execState[listener.id].count--;
                     if (!(listener.fbhold)){
+                        if(listener.type === 'try'){
+                            listener.lock = false;
+                        }
                         sweep(listener);
                     }
                 });
@@ -712,6 +724,7 @@ function _execOne(opts, statement, parentEvent, cb) {
                 obj = jsonfill.fill(statement.object, params);
             }
             else if(statement.udf) {
+                if (statement.udf === 'require'){
                 args = [];
                 _.each(_.pluck(statement.args, 'value'), function(arg) {
                     args.push(jsonfill.lookup(arg, opts.context));
@@ -722,6 +735,18 @@ function _execOne(opts, statement, parentEvent, cb) {
                 catch(e) {
                     console.log(e.stack || e);
                     return cb(e);
+                }
+                }else{//assign variable using udf.
+                    udf.applyAssign(opts, statement, function(err, results) {
+                        if(err) {
+                            cb('udf assignment failed.')
+                        }
+                        else {
+                            if(statement.assign) {
+                                obj = results;
+                            }
+                        }
+                    });
                 }
             }
 
