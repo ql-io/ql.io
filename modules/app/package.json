@@ -15,7 +15,7 @@
     },
     "dependencies": {
         "commander": "1.0.0",
-        "ql.io-console": "0.8.7",
+        "ql.io-console": "0.8.7a",
         "ql.io-compiler": "0.8.4",
         "winston": "0.6.2",
         "express": "2.5.11",
