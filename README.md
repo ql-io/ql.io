@@ -23,7 +23,7 @@ These steps will link ql.io modules locally so can you refer to those modules fr
 
 To run tests
 
-    make test
+    make test 
 
 ql.io source is organized into several modules that you can test independently.
 
