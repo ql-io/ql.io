@@ -99,7 +99,8 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         uri: args.uri,
         headers: [],
         start: reqStart,
-        type: eventTypes.STATEMENT_REQUEST
+        type: eventTypes.STATEMENT_REQUEST,
+        timeStamp: Date.now()
     };
 
     _.each(args.headers, function(v, n) {
@@ -109,11 +110,28 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         });
     });
 
+    var responseLength = 0;
     args.httpReqTx = args.logEmitter.beginEvent({
         parent: args.parentEvent,
         name: 'http-request',
         message: packet,
-        cb: args.cb
+        cb: function(err, results){
+            if(args.logEmitter){
+                var reqlength = JSON.stringify(options.headers).length +options.host.length;
+                if(options.body){
+                    reqlength += JSON.stringify(options.body).length
+                }
+                var foo = JSON.stringify(results).length
+
+                args.logEmitter.emitEvent(JSON.stringify({
+                    //text: 'aaaaaaawefajwioeji;oaawjenio;ahweigo;hawio;eghiaow;eigha;woieghawio;eighaew;g',
+                    reqSize: reqlength,
+                    resSize: responseLength
+                }))
+            }
+            return args.cb(err, results)
+
+        }
     });
 
     if(args.emitter) {
@@ -123,6 +141,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             packet.body = args.body;
         }
         args.emitter.emit(packet.type, packet);
+
     }
 
     if (args.parts && args.statement.parts) {
@@ -164,7 +183,9 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
     // As of node 0.6.17, 'timeout' events can get emitted after we get a valid response from
     // the socket. We need to work-around that for now.
     var happy = false; // This flag keeps track of whether we're getting response and to skip timeout events.
+    var startTime = Date.now();
     var clientRequest = client.request(options, function (res) {
+        res.networkWait = Date.now() - startTime;
         // Tell charlie that things are good.
         charlie.ok([args.uri, args.name]);
 
@@ -230,7 +251,6 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         }
 
         var bufs = []; // array for bufs for each chunk
-        var responseLength = 0;
         var contentEncoding = res.headers['content-encoding'];
         var zipped = false, unzip;
         var result;
@@ -403,11 +423,11 @@ function sendMessage(args, client, options, retry) {
             }
             else {
                 args.httpReqTx = args.logEmitter.beginEvent({
-                            parent: args.parentEvent,
-                            type: 'http-request',
-                            message: key, // TODO
-                            cb: args.cb
-                        });
+                    parent: args.parentEvent,
+                    type: 'http-request',
+                    message: key, // TODO
+                    cb: args.cb
+                });
                 args.logEmitter.emitEvent(args.httpReqTx.event, {
                     'cache-key': key,
                     'hit': true

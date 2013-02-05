@@ -349,6 +349,9 @@ var Console = module.exports = function(opts, cb) {
                         headers: req.headers
                     },
                     cb: function(err, results) {
+                        var reqSize = req.url.length + req.headers.length + req.method +1
+                        var resSize = results ? JSON.stringify(results).length : JSON.stringify(err)
+                        engine.emitEvent("Use's request size is " + reqSize + ", response size is "+resSize)
                         return handleResponseCB(req, res, execState, err, results);
                     }
                 });
