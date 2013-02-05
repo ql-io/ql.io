@@ -99,8 +99,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         uri: args.uri,
         headers: [],
         start: reqStart,
-        type: eventTypes.STATEMENT_REQUEST,
-        timeStamp: Date.now()
+        type: eventTypes.STATEMENT_REQUEST
     };
 
     _.each(args.headers, function(v, n) {
@@ -183,9 +182,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
     // As of node 0.6.17, 'timeout' events can get emitted after we get a valid response from
     // the socket. We need to work-around that for now.
     var happy = false; // This flag keeps track of whether we're getting response and to skip timeout events.
-    var startTime = Date.now();
     var clientRequest = client.request(options, function (res) {
-        res.networkWait = Date.now() - startTime;
         // Tell charlie that things are good.
         charlie.ok([args.uri, args.name]);
 
