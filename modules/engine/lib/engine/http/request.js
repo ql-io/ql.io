@@ -28,7 +28,8 @@ var _ = require('underscore'),
     jsonfill = require('../jsonfill.js'),
     FormData = require('form-data'),
     util = require('util'),
-    charlie = require('charlie');
+    charlie = require('charlie'),
+    aop = require('../aop.js');
 
 var maxResponseLength;
 
@@ -115,20 +116,25 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         name: 'http-request',
         message: packet,
         cb: function(err, results){
+            var processingEvent = args.logEmitter.beginEvent({
+                parent: args.parentEvent,
+                name: 'processingEvent',
+                message: 'calculates cpu time',
+                    cb: function(){}
+            })
             if(args.logEmitter){
                 var reqlength = JSON.stringify(options.headers).length +options.host.length;
                 if(options.body){
                     reqlength += JSON.stringify(options.body).length
                 }
-                var foo = JSON.stringify(results).length
-
                 args.logEmitter.emitEvent(JSON.stringify({
-                    //text: 'aaaaaaawefajwioeji;oaawjenio;ahweigo;hawio;eghiaow;eigha;woieghawio;eighaew;g',
                     reqSize: reqlength,
                     resSize: responseLength
                 }))
             }
-            return args.cb(err, results)
+            var toreturn = args.cb(err, results)
+            processingEvent.end();
+            return toreturn
 
         }
     });

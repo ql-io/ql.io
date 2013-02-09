@@ -349,9 +349,6 @@ var Console = module.exports = function(opts, cb) {
                         headers: req.headers
                     },
                     cb: function(err, results) {
-                        var reqSize = req.url.length + req.headers.length + req.method +1
-                        var resSize = results ? JSON.stringify(results).length : JSON.stringify(err)
-                        engine.emitEvent("Use's request size is " + reqSize + ", response size is "+resSize)
                         return handleResponseCB(req, res, execState, err, results);
                     }
                 });
@@ -946,6 +943,10 @@ var Console = module.exports = function(opts, cb) {
 
     function handleResponseCB(req, res, execState, err, results) {
         compress(req, res, {logEmitter : engine});   // TODO replace with a middleware
+        var reqSize = req.url.length + JSON.stringify(req.headers).length + req.method.length +1
+        var resSize = results ? JSON.stringify(results).length : JSON.stringify(err).length
+        engine.emitEvent("User's request size is " + reqSize + ", response size is "+resSize)
+
         var cb = req.param('callback');
         if (err) {
             var status = err.status || 400;
