@@ -16,8 +16,8 @@
 
 "use strict";
 
-var Engine = require('../lib/engine');
-
+var Engine = require('../lib/engine'),
+    http = require('http');
 
 
 module.exports = {
@@ -47,5 +47,49 @@ module.exports = {
                     test.done();
                 });
             }, true);
+    },
+    'auth-ok': function (test) {
+        var server = http.createServer(function (req, res) {
+            res.writeHead(200, {
+                'Content-Type': 'application/json'
+            });
+            res.end(JSON.stringify({'message': 'ok'}));
+        });
+        server.listen(3000, function () {
+            // Do the test here.
+            var engine = new Engine({
+                tables: __dirname + '/auth'
+            });
+            var events = []
+            engine.execute('select * from auth.plugin where ok = "ok"', function (emitter) {
+                engine.on('ql.io-event',function(event){
+                    events.push(event)
+                })
+                engine.on('ql.io-begin-event',function(event){
+                    events.push(event)
+                })
+                engine.on('ql.io-end-event',function(event){
+                    events.push(event)
+                })
+                emitter.on('end', function (err, result) {
+                    if(err) {
+                        console.log(err.stack || util.inspect(err, false, 10));
+                        test.fail('got error');
+                        test.done();
+                    }
+                    else {
+                        test.equals(events.length, 13)
+                        test.equals(events[4].name,'http-request')
+                        test.equals(events[5].name,'processingEvent')
+                        test.equals(events[6].name,'http-request')
+                        test.equals(events[7].name,'processingEvent')
+                        test.equals(result.headers['content-type'], 'application/json', 'json expected');
+                        test.equals(result.body.message, 'ok');
+                        test.done();
+                    }
+                    server.close();
+                });
+            });
+        });
     }
 };

@@ -1,5 +1,6 @@
 /*
-* Copyright 2013 eBay Software Foundation
+* Code taken from Danne Lundqvist with custom modification
+* http://www.dotvoid.com/2005/06/aspect-oriented-programming-and-javascript/
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.

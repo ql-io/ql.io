@@ -36,7 +36,8 @@ exports.require = function() {
                 var splitpath = process.cwd().split('/');
                 splitpath[splitpath.length-1] = name;
                 args[0] = splitpath.join('/');
-                return module.require.apply(null, args);
+                return module.require.a
+                pply(null, args);
 
             } catch(e) {
                 args[0] = __dirname + '/' + name;
