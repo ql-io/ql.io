@@ -7,6 +7,7 @@
  *
  *    http://www.apache.org/licenses/LICENSE-2.0
  *
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -109,11 +110,33 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         });
     });
 
+    var responseLength = 0;
     args.httpReqTx = args.logEmitter.beginEvent({
         parent: args.parentEvent,
         name: 'http-request',
         message: packet,
-        cb: args.cb
+        cb: function(err, results){
+            var processingEvent = args.logEmitter.beginEvent({
+                parent: args.parentEvent,
+                name: 'processingEvent',
+                message: 'calculates cpu time',
+                    cb: function(){}
+            })
+            if(args.logEmitter){
+                var reqlength = JSON.stringify(options.headers).length +options.host.length;
+                if(options.body){
+                    reqlength += JSON.stringify(options.body).length
+                }
+                args.logEmitter.emitEvent(JSON.stringify({
+                    reqSize: reqlength,
+                    resSize: responseLength
+                }))
+            }
+            var toreturn = args.cb(err, results)
+            processingEvent.end();
+            return toreturn
+
+        }
     });
 
     if(args.emitter) {
@@ -123,6 +146,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             packet.body = args.body;
         }
         args.emitter.emit(packet.type, packet);
+
     }
 
     if (args.parts && args.statement.parts) {
@@ -230,7 +254,6 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
         }
 
         var bufs = []; // array for bufs for each chunk
-        var responseLength = 0;
         var contentEncoding = res.headers['content-encoding'];
         var zipped = false, unzip;
         var result;
@@ -403,11 +426,11 @@ function sendMessage(args, client, options, retry) {
             }
             else {
                 args.httpReqTx = args.logEmitter.beginEvent({
-                            parent: args.parentEvent,
-                            type: 'http-request',
-                            message: key, // TODO
-                            cb: args.cb
-                        });
+                    parent: args.parentEvent,
+                    type: 'http-request',
+                    message: key, // TODO
+                    cb: args.cb
+                });
                 args.logEmitter.emitEvent(args.httpReqTx.event, {
                     'cache-key': key,
                     'hit': true
