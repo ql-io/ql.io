@@ -46,7 +46,8 @@ var configLoader = require('./engine/config.js'),
     _ = require('underscore'),
     EventEmitter = require('events').EventEmitter,
     util = require('util'),
-    assert = require('assert');
+    assert = require('assert'),
+    aop = require('./engine/aop.js');
 
 exports.version = require('../package.json').version;
 
@@ -178,7 +179,24 @@ util.inherits(Engine, LogEmitter);
  *         });
  *     });
  */
-Engine.prototype.execute = function() {
+Engine.prototype.execute = function(){
+    var grandParentEvent = null;
+    if(arguments.length > 1){
+        grandParentEvent = arguments[1].parentEvent
+    }
+
+    var parentEvent = this.beginEvent({
+        parent: grandParentEvent,
+        name: 'start-exec',
+        message: 'none',
+        cb: function(err, results) {
+            grandParentEvent.cb()
+        }
+    });
+    arguments[1].parentEvent = parentEvent;
+    this.doExecute.apply(this,arguments);
+}
+Engine.prototype.doExecute = function() {
     var script, opts, func;
 
     var route, context, plan, parentEvent,
@@ -823,3 +841,31 @@ function preReqNotFound(statement, opts, parentEvent) {
 // Export event types
 Engine.Events = {};
 _.extend(Engine.Events, eventTypes);
+
+// logging aop
+var processingEvent;
+Engine.doProcessing = function(){
+    // original function is last
+    var myDoExec = Engine.doProcessing.prototype._innerFunc
+    var parentEvent = null
+    if(arguments.length > 1){
+        parentEvent = arguments[1].parentEvent
+    }
+
+    var processingEvent = this.beginEvent({
+        parent: parentEvent,
+        name: 'processingEvent',
+        message: 'calculates cpu time.',
+        cb: function(){}
+    });
+    myDoExec.apply(this,arguments);
+    processingEvent.end(null, null);
+
+}
+try {
+    aop.addAround(Engine.doProcessing, Engine, "doExecute")
+}
+catch(e)
+{
+    console.log('epic fail')
+}

@@ -84,7 +84,7 @@ module.exports = {
                     }
                     else {
                         test.ok(!eventIdOne, "1 is unexpected event id");
-                        test.ok(!parentEventIdZero, "0 is unexpected parent event id");
+                        test.ok(parentEventIdZero == 4, "4 is unexpected parent event id");
                         test.done();
                         server.close();
                     }
