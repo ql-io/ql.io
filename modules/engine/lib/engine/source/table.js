@@ -18,7 +18,9 @@
 
 var _ = require('underscore'),
     Verb = require('./verb.js'),
-    markdown = require('markdown');
+    markdown = require('markdown'),
+    HttpConnector = require('./httpConnector.js'),
+    mongo = require('mongodb');;
 
 var Table = module.exports = function(opts, comments, statement) {
     this.statement = statement;
@@ -41,13 +43,19 @@ var Table = module.exports = function(opts, comments, statement) {
             self.comments += markdown.markdown.toHTML(comment.text);
         });
     }
-
+    switch(statement.connector){
+        case 1:
+            //this.connector = new
+            break;
+        default:
+            this.connector = new HttpConnector(self.name, self.statement.select, 'select', bag, self.opts.path);
+    }
     var verbs = ['select', 'insert', 'update', 'delete'];
     for(var i = 0; i < verbs.length; i++) {
         var type = verbs[i];
         if(self.statement[type]) {
             try {
-                var verb = new Verb(self.name, self.statement[type], type, bag, self.opts.path);
+                var verb = new Verb(self.name, self.statement[type], type, bag, self.opts.path, statement.connector);
                 self.verbs[type] = verb;
             }
             catch(e) {

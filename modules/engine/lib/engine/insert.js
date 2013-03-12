@@ -95,11 +95,11 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 //assert.ok(statement.values.length > 0, 'statement value should have only one item for opaque param.');
                 if (statement.values){
                     // user specified values in console
-                    verb.opaque = statement.values;
+                    verb.connectors.http.opaque = statement.values;
                 }
                 else{
                     //default opaque value is at req.body
-                    verb.opaque = context;
+                    verb.connectors.http.opaque = context;
                 }
             }
         }
@@ -108,7 +108,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
             context: opts.context,
             config: opts.config,
             settings: opts.settings,
-            resource: verb,
+            resource: verb.connector,
             xformers: opts.xformers,
             serializers: opts.serializers,
             params: values,

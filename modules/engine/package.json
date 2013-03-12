@@ -31,7 +31,8 @@
         "iconv": "1.2.3",
         "charlie": "0.0.5",
         "stream-buffers": "https://github.com/idralyuk/node-stream-buffer/tarball/master",
-        "form-data": "0.0.2"
+        "form-data": "0.0.2",
+        "mongodb": "1.2.13"
     },
     "devDependencies": {
         "nodeunit": "0.7.4",

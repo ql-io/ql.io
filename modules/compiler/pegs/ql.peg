@@ -634,14 +634,29 @@ BlockComment = ('/**' / '/*') sp c:(!"*/" SourceCharacter)* sp "*/" insig {
 
 SourceCharacter = .
 
+Connector = 'via' insig c:('http' / 'mongodb' / 'custom'){
+    return c;
+}
+
 // create table statement
-CreateStatement = 'create' insig 'table' insig s:NonAliasSource insig v:Verb* {
+CreateStatement = 'create' insig 'table' insig s:NonAliasSource insig connector:Connector? insig v:Verb* {
+
     var s = {
         type: 'create',
         name: s.name,
-        line: line
+        line: line,
+        connector: connector || 'http'
     };
     for(i = 0; i < v.length; i++) {
+    //check verb-connector match.
+        switch(connector){
+            case 'http':
+                var validVerbs = ['get', 'post', 'put', 'delete', 'patch'];
+                if(validVerbs.indexOf(v[i].method) == -1){
+                    throw new this.SyntaxError("Line " + line + ": unknown verb method " + v[i].method + " found.");
+                }
+                break;
+        }
         s[v[i].type] = v[i];
         delete v[i].type;
     }
@@ -651,16 +666,19 @@ CreateStatement = 'create' insig 'table' insig s:NonAliasSource insig v:Verb* {
 Type = 'select' / 'insert' / 'delete' / 'update'
 URI = QuotedWord
 
-Verb = 'on' insig t:Type insig m:VerbName insig u:URI insig  a:WithAliases? h:UsingHeaders?
+Verb = httpVerb / generalVerb
+
+httpVerb = 'on' insig t:Type insig m:VerbName insig u:URI insig  a:WithAliases? h:UsingHeaders?
             d:UsingDefaults? p:UsingMonkeyPatch? insig b:UsingBodyTemplate? insig
             auth:AuthenticateUsing? insig r:ResultSet? insig exp:Expires? {
     var ret = {
         type: t,
         method: m,
         uri: u.value,
-        defaults: d || {},
         aliases: a || {},
         headers: h || {},
+        defaults: d || {},
+        body: b,
         resultSet: r || '',
         cache: exp || {}
     };
@@ -668,8 +686,44 @@ Verb = 'on' insig t:Type insig m:VerbName insig u:URI insig  a:WithAliases? h:Us
         ret.auth = auth;
     }
     if(p) ret.patch = p;
-    ret.body = b;
     return ret;
+}
+Required = '^'
+Variable = r:Required? insig w:Word {
+    return {
+        name: w,
+        required: !!r
+    };
+
+}
+CommaVariable = ',' insig v:Variable{
+    return v;
+}
+Expect = 'expect' insig var1:Variable insig vars:CommaVariable*{
+    ret = vars || [];
+    ret.unshift(var1);
+    return ret;
+}
+generalVerb = 'on' insig t:Type insig 'do' insig m:Word insig 'at' insig u:URI insig a:WithAliases? h:UsingHeaders? e:Expect?
+              d:UsingDefaults? p:UsingMonkeyPatch? insig b:UsingBodyTemplate? insig auth:AuthenticateUsing?
+              insig r:ResultSet? insig exp:Expires? {
+      var ret = {
+              type: t,
+              method: m,
+              uri: u.value,
+              aliases: a || {},
+              headers: h || {},
+              expect: e || {},
+              defaults: d || {},
+              body: b,
+              resultSet: r || '',
+              cache: exp || {}
+          };
+          if(auth && auth.length > 0) {
+              ret.auth = auth;
+          }
+          if(p) ret.patch = p;
+          return ret;
 }
 
 // A verb maps to an HTTP method. Don't ask for custom methods. Just use POST

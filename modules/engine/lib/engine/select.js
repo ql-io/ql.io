@@ -308,13 +308,12 @@ function execInternal(opts, statement, parentEvent, cb) {
                 params[limit] = statement.limit;
                 var offset = verb.aliases && verb.aliases.offset || 'offset';
                 params[offset] = statement.offset;
-
                 verb.exec({
                     name: name,
                     context: opts.context,
                     config: opts.config,
                     settings: opts.settings,
-                    resource: verb,
+                    resource: verb.connector,
                     xformers: opts.xformers,
                     serializers: opts.serializers,
                     params: params,
