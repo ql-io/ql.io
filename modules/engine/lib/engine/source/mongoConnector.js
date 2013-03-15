@@ -89,6 +89,7 @@ var mongoConnector = module.exports = function(table, statement, type, bag, path
 
         //return temp;
     };
+    _process(this, statement, bag, path);
     this.exec = function(args) {
         var self = this, holder = {};
         var params = _util.prepareParams(args.context,
@@ -105,7 +106,13 @@ var mongoConnector = module.exports = function(table, statement, type, bag, path
         var expects = [];
         if(args.statement.expects){
             for(var i in args.statement.expects){
-                var expectval = params[args.statement.expects[i].name];
+                var name = args.statement.expects[i].name
+                var expectval = args.context[args.statement.expects[i].name]
+                if(expectval){
+                    expects.push(expectval)
+                    continue
+                }
+                expectval = params[args.statement.expects[i].name];
                 if(!expectval && expect.required) {
                     args.callback(e);
                 } else {
@@ -120,16 +127,7 @@ var mongoConnector = module.exports = function(table, statement, type, bag, path
         catch(e) {
             return args.callback(e);
         }
-        //var server = new mongo.Server(resourceUri[0], 27017, {});
-        /*var client = new mongo.Db('test', server, {}).open(function (error, client) {
-            if (error) throw error;
-            var collection = new mongo.Collection(client, 'test_collection');
-            //collection[statement.method].apply(expects)
-            collection.find({}, {limit:10}).toArray(function(err, docs) {
-                console.dir(docs);
-            });
-        });
-               */
+
 
         if(!resourceUri || resourceUri.length === 0) {
             return args.callback(undefined, {
@@ -192,25 +190,6 @@ var mongoConnector = module.exports = function(table, statement, type, bag, path
             }
         });
 
-        /*var destination = resourceUri[0];
-        var client = new mongo.Db(destination.db, new mongo.Server(destination.uri, destination.port, {}), {w: 1}),
-            test = function (err, collection) {
-
-
-
-                // Locate all the entries using find
-                collection.find().toArray(function(err, results) {
-                    // Let's close the db
-                    client.close();
-                    return results;
-                });
-
-            };
-
-        client.open(function(err, p_client) {
-            client.collection('test_insert', test);
-        });     */
-
     }
 
 function send(verb, args, destination, params, cb) {
@@ -221,11 +200,12 @@ function send(verb, args, destination, params, cb) {
             if (err) cb(err);
             // Locate all the entries using find
             var s = statement;
+            var mycb = function(err,results){
+                verb['patch-'+verb.method].apply(verb,[err,results,client,cb])
+
+            }
+            params.push(mycb)
             collection[statement.method].apply(collection,params)
-                    //cb(err,results)}])//.toArray(function(err, results) {
-            //collection[statement.method].apply(collection,[]).toArray(function(err, results) {
-               // cb(err,results)
-            //});
         };
 
     client.open(function(err, p_client) {
@@ -258,3 +238,84 @@ this.log = function(emitter, parentEvent, severity, message) {
     }
 };
 };
+
+
+function _process(self, statement, bag, root) {
+    var template, param, compiled;
+    self.params = [];
+    if(statement.uri) {
+        try {
+            // Look for '{' and '}
+            compiled = strTemplate.parse(statement.uri);
+            statement.uri = compiled.format(bag, true);
+        }
+        catch(e) {
+            // Continue as we can treat non-templates as usual
+        }
+        // self
+        self.uri = statement.uri;
+        self.method = statement.method.toLowerCase();
+
+        template = uriTemplate.parse(statement.uri);
+
+        _.each(template.stream, function(token) {
+            if(token && token.variable) {
+                param = cloneDeep(token);
+                // Don't worry - there is an intentional typo here
+                param.defautl = statement.defaults ? statement.defaults[token.variable] : undefined;
+                self.params.push(param);
+            }
+        });
+    }
+    if(statement.headers) {
+        _.each(statement.headers, function(v, n) {
+            try {
+                var compiled = strTemplate.parse(v);
+
+                // Keep non-matching tokens here so that they can be replaced at engine.exec time.
+                statement.headers[n] = compiled.format(bag, true);
+            }
+            catch(e) {
+                // Ignore as we want to treat non-conformat strings as opaque
+            }
+        });
+    }
+    if(statement.defaults) {
+        _.each(statement.defaults, function(v, n) {
+            try {
+                var compiled = strTemplate.parse(v);
+
+                // Keep non-matching tokens here so that they can be replaced at engine.exec time.
+                statement.defaults[n] = compiled.format(bag, true);
+            }
+            catch(e) {
+                // Ignore as we want to treat non-conformat strings as opaque
+            }
+        });
+    }
+    if(statement.body) {
+        // Load the file
+        statement.body.content = fs.readFileSync(normalize(root + statement.body.template), 'utf8');
+        self.body = cloneDeep(statement.body);
+    }
+    if(statement.patch) {
+        var path = root + statement.patch;
+
+        // Monkey patch is the compiled patch module
+        var patch = require(path);
+        _.each(patch, function(v, k) {
+            self[k] = v;
+        });
+    }
+    if(statement.auth) {
+        // auth is the compiled auth module
+        try {
+            self.auth = require(statement.auth);
+        }
+        catch(e) {
+            // Not found in a module path. Try current dir
+            path = root + statement.auth;
+            self.auth = require(path);
+        }
+    }
+}

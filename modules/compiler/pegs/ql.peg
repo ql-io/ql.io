@@ -634,7 +634,7 @@ BlockComment = ('/**' / '/*') sp c:(!"*/" SourceCharacter)* sp "*/" insig {
 
 SourceCharacter = .
 
-Connector = 'via' insig c:('http' / 'mongodb' / 'custom'){
+Connector = 'via' insig c:Word{
     return c;
 }
 

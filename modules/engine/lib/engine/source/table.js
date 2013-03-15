@@ -43,13 +43,6 @@ var Table = module.exports = function(opts, comments, statement) {
             self.comments += markdown.markdown.toHTML(comment.text);
         });
     }
-    switch(statement.connector){
-        case 1:
-            //this.connector = new
-            break;
-        default:
-            this.connector = new HttpConnector(self.name, self.statement.select, 'select', bag, self.opts.path);
-    }
     var verbs = ['select', 'insert', 'update', 'delete'];
     for(var i = 0; i < verbs.length; i++) {
         var type = verbs[i];

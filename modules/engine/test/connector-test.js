@@ -32,11 +32,14 @@ var cooked = {
                 payload: JSON.stringify({'message' : 'ok'})
             }
         ],
-        script: 'create table items via mongodb on select do find at "ql-2:27017:test" expect foo, bar '+
-            'foo1 = {"a":1}; cb = require("udfs/mongo")'+
-            'return select * from items where foo = foo1 and bar = "{cb.find}";',
-        /*script: 'a=1;select * from a',
-        */
+        script: 'create table items via mongodb on select do find at "ql-2:27017:test" expect foo using patch '
+        /*'create table items via mongodb on select do find at "ql-2:27017:test" expect foo, bar '+
+         'foo1 = {"a":1}; cb = require("udfs/mongo")'+
+         'return select * from items where foo = foo1 and bar = "{cb.find}";',
+         'create table items via mongodb on select do insert at "ql-2:27017:test" expect foo, bar '+
+         'foo1 = {"a":1}; cb = require("udfs/mongo")'+
+         'return select * from items where foo = foo1 and bar = "{cb.find}";'      */
+        ,
         udf: {
             test : function (test, err, result) {
                 if(err)
@@ -63,43 +66,43 @@ module.exports = require('ql-unit').init({
 
     })
 });        /*
-module.exports['trycatch'] = function(test) {
-var client = new mongo.Db('test', new mongo.Server("ql-2", 27017, {}), {w: 1}),
-    test = function (err, collection) {
+ module.exports['trycatch'] = function(test) {
+ var client = new mongo.Db('test', new mongo.Server("ql-2", 27017, {}), {w: 1}),
+ test = function (err, collection) {
 
-            collection.count(function(err, count) {
-                console.log(count);
-            });
+ collection.count(function(err, count) {
+ console.log(count);
+ });
 
-            // Locate all the entries using find
-            collection.find().toArray(function(err, results) {
-                console.log(results);
+ // Locate all the entries using find
+ collection.find().toArray(function(err, results) {
+ console.log(results);
 
-                // Let's close the db
-                client.close();
-            });
+ // Let's close the db
+ client.close();
+ });
 
-    };
+ };
 
-client.open(function(err, p_client) {
-    client.collection('test_insert', test);
-});
-} */
+ client.open(function(err, p_client) {
+ client.collection('test_insert', test);
+ });
+ } */
 /*var client = new mongo.Db('test', new mongo.Server("ql-2", 27017, {}), {w: 1}),
-    test = function (err, collection) {
+ test = function (err, collection) {
 
-            // Locate all the entries using find
-            collection.find().toArray(function(err, results) {
-                test.equals(1, results.length);
-                test.equals(results[0].a ,2);
+ // Locate all the entries using find
+ collection.find().toArray(function(err, results) {
+ test.equals(1, results.length);
+ test.equals(results[0].a ,2);
 
-                // Let's close the db
-                client.close();
-            });
+ // Let's close the db
+ client.close();
+ });
 
-    };
+ };
 
-client.open(function(err, p_client) {
-    client.collection('test_insert', test);
-});
-     */
+ client.open(function(err, p_client) {
+ client.collection('test_insert', test);
+ });
+ */

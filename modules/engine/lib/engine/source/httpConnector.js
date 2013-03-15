@@ -282,7 +282,7 @@ var httpConnector = module.exports = function(table, statement, type, bag, path)
             log: this.curry(this.log, args.logEmitter, args.parentEvent)
         }) || res.statusCode;
     };
-
+    _process(this, statement, bag, path);
     this.exec = function(args) {
         var self = this, holder = {};
 

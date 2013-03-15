@@ -58,6 +58,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         _.each(['select', 'insert', 'update', 'delete'], function(type) {
             var verb = table.verb(type);
             if(verb) {
+                verb = verb.connector
                 desc[verb.type] = {
                     'method': verb.method,
                     'uri': verb.uri,

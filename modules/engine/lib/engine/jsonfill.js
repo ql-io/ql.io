@@ -63,7 +63,7 @@ function lookup(key, bag) {
         template = strTemplate.parse(key);
         key = template.format(bag, true);
         // If key is fully resolved, no need to run the rest of the code.
-        if(key.indexOf("{") === 0 && key.lastIndexOf("}") === key.length - 1) {
+        if(typeof(key) == 'string' && key.indexOf("{") === 0 && key.lastIndexOf("}") === key.length - 1) {
             ref = key.substring(1, key.length - 1);
             path = ref;
             index = ref.indexOf('.');

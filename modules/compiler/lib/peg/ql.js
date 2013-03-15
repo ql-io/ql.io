@@ -2074,37 +2074,7 @@ module.exports = (function(){
                 if (result0 !== null) {
                     result1 = parse_insig();
                     if (result1 !== null) {
-                        if (input.substr(pos.offset, 4) === "http") {
-                            result2 = "http";
-                            advance(pos, 4);
-                        } else {
-                            result2 = null;
-                            if (reportFailures === 0) {
-                                matchFailed("\"http\"");
-                            }
-                        }
-                        if (result2 === null) {
-                            if (input.substr(pos.offset, 7) === "mongodb") {
-                                result2 = "mongodb";
-                                advance(pos, 7);
-                            } else {
-                                result2 = null;
-                                if (reportFailures === 0) {
-                                    matchFailed("\"mongodb\"");
-                                }
-                            }
-                            if (result2 === null) {
-                                if (input.substr(pos.offset, 6) === "custom") {
-                                    result2 = "custom";
-                                    advance(pos, 6);
-                                } else {
-                                    result2 = null;
-                                    if (reportFailures === 0) {
-                                        matchFailed("\"custom\"");
-                                    }
-                                }
-                            }
-                        }
+                        result2 = parse_Word();
                         if (result2 !== null) {
                             result0 = [result0, result1, result2];
                         } else {
