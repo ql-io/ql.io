@@ -106,13 +106,14 @@ var mongoConnector = module.exports = function(table, statement, type, bag, path
         var expects = [];
         if(args.statement.expects){
             for(var i in args.statement.expects){
-                var name = args.statement.expects[i].name
-                var expectval = args.context[args.statement.expects[i].name]
+                var expect = args.statement.expects[i]
+                var name = expect.name
+                var expectval = args.context[name]
                 if(expectval){
                     expects.push(expectval)
                     continue
                 }
-                expectval = params[args.statement.expects[i].name];
+                expectval = params[name];
                 if(!expectval && expect.required) {
                     args.callback(e);
                 } else {

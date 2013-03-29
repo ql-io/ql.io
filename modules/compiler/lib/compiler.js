@@ -24,13 +24,14 @@ var ql = require('./peg/ql.js'),
 exports.version = require('../package.json').version;
 
 var cache = {};
-exports.compile = function(script) {
+exports.compile = function(script, loaded) {
     assert.ok(script, 'script is undefined');
 
     var compiled, cooked, cacheKey;
 
     cacheKey = script;
     cooked = cache[cacheKey];
+    cache['_tables'] = loaded
     if(cooked) {
         return cooked;
     }
@@ -467,6 +468,12 @@ function introspectFrom(line, froms, symbols, parent) {
                 line.expects = hasverb.expect;
 
             }
+        }else{
+            try{
+                var fromTable = cache['_tables'][from.name].verbs[line.type].expects;
+                line.expects = fromTable;
+            }
+            catch(e){}
         }
     }
 }

@@ -27,6 +27,7 @@ var Table = module.exports = function(opts, comments, statement) {
     this.name = statement.name;
     this.opts = opts;
     this.verbs = {};
+    //this.connectorPath = opts.connectorPath;
     var bag = {
         config: opts.config
     };

@@ -37,12 +37,17 @@ var Verb = module.exports = function(table, statement, type, bag, path, conn) {
     this.type = type;
     this.__proto__ = statement;
     this.connector = conn;
+    this.expects = statement.expect;
     switch(conn){
         case 'mongodb':
             this.connector = new mongoConnector(table, statement, type, bag, path);
             break;
-        default :
+        case 'http' :
             this.connector = new HttpConnector(table, statement, type, bag, path);
+            break;
+        default:
+
+
 
     }
 

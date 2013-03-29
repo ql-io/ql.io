@@ -23,6 +23,7 @@
 var configLoader = require('./engine/config.js'),
     tableLoader = require('./engine/load.js'),
     routeLoader = require('./engine/load-routes.js'),
+    connectorLoader = require('./engine/load-connector.js'),
     show = require('./engine/show.js'),
     showRoutes = require('./engine/show-routes.js'),
     describe = require('./engine/describe.js'),
@@ -88,11 +89,16 @@ var Engine = module.exports = function(opts) {
     this.tables = tableLoader.load({
         tables: opts.tables,
         logEmitter: this,
-        config: this.config});
+        config: this.config
+        });
     this.routes = routeLoader.load({
         tables: this.tables,
         routes: opts.routes,
         logEmitter: this});
+    //this.connectors = connectorLoader.load({
+    //    path: opts.connectors,
+   //     logEmitter: this
+    //});
 
     // Settings - copy everything except the known few.
     this.settings = {};
@@ -275,7 +281,8 @@ Engine.prototype.doExecute = function() {
 
     try {
         // We don't cache here since the parser does the caching.
-        plan = route ? script : compiler.compile(script);
+        // pass in loaded tables for dependency build up. Not required for http
+        plan = route ? script : compiler.compile(script, that.tables);
     }
     catch(err) {
         emitter.emit(eventTypes.SCRIPT_COMPILE_ERROR, {
