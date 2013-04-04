@@ -29,7 +29,8 @@ var Table = module.exports = function(opts, comments, statement) {
     this.verbs = {};
     //this.connectorPath = opts.connectorPath;
     var bag = {
-        config: opts.config
+        config: opts.config,
+        connectors: opts.connectors
     };
 
     // Metadata for describe

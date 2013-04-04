@@ -36,7 +36,7 @@ var Verb = module.exports = function(table, statement, type, bag, path, conn) {
     this.table = table;
     this.type = type;
     this.__proto__ = statement;
-    this.connector = conn;
+    //this.connector = conn;
     this.expects = statement.expect;
     switch(conn){
         case 'mongodb':
@@ -46,10 +46,9 @@ var Verb = module.exports = function(table, statement, type, bag, path, conn) {
             this.connector = new HttpConnector(table, statement, type, bag, path);
             break;
         default:
-
-
-
-    }
+            var myConnector = require(bag.connectors[conn]);
+            this.connector = new myConnector();
+        }
 
 
     // May override patches

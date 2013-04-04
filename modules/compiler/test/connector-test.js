@@ -25,7 +25,7 @@ exports['simple'] = function(test) {
     test.equal(compiled.rhs.dependsOn[0].name, 'twitter.public');
     test.deepEqual(compiled.rhs.dependsOn[0].select, { method: 'get',
         uri: 'http://twitter.com/statuses/public_timeline.{^format}',
-        defaults: { format: 'json' },
+        defaults: {},
         aliases: {},
         headers: {},
         resultSet: '',

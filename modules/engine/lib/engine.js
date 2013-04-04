@@ -86,19 +86,21 @@ var Engine = module.exports = function(opts) {
     this.config = _.isObject(opts.config) ? opts.config : configLoader.load({
         config: opts.config,
         logEmitter: this});
+    this.connectors = connectorLoader.load({
+        path: opts.connectors,
+        logEmitter: this
+    });
     this.tables = tableLoader.load({
         tables: opts.tables,
         logEmitter: this,
-        config: this.config
+        config: this.config,
+        connectors: this.connectors
         });
     this.routes = routeLoader.load({
         tables: this.tables,
         routes: opts.routes,
         logEmitter: this});
-    //this.connectors = connectorLoader.load({
-    //    path: opts.connectors,
-   //     logEmitter: this
-    //});
+
 
     // Settings - copy everything except the known few.
     this.settings = {};
@@ -342,7 +344,7 @@ Engine.prototype.doExecute = function() {
                         });
                     });
                     if(statement.finallyClause) {
-                        _.each(line.finallyClause, function(line){
+                        _.each(statement.finallyClause, function(line){
                             init(line);
                         });
                     }
@@ -453,6 +455,9 @@ Engine.prototype.doExecute = function() {
                         skipVarList(mycatch[1].lines);
                     }
                 });
+                _.each(statement.finallyClause, function(myfinally){
+                    sweep(myfinally);
+                })
                 break;
         }
     }

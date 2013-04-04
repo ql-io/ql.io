@@ -9891,7 +9891,7 @@ module.exports = (function(){
                         if(indexOf(main.columns, join.whereCriteria[i].rhs.value) >= 0) {
                             join.whereCriteria[i].rhs.joiningColumn = indexOf(main.columns, join.whereCriteria[i].rhs.value);
                         }
-                        else {
+                        else if (indexOf(main.columns, join.whereCriteria[i].lhs.name) >= 0){
                             // Flip the condition
                             var temp = join.whereCriteria[i].rhs.value;
                             join.whereCriteria[i].rhs.value = join.whereCriteria[i].lhs.name;
@@ -9909,7 +9909,7 @@ module.exports = (function(){
                 // The joining column is an index by default.
                 for (var j in join.whereCriteria){
                     var joiningColumn;
-                    if(main.columns[join.whereCriteria[j].rhs.joiningColumn].alias) {
+                    if(main.columns[join.whereCriteria[j].rhs.joiningColumn] && main.columns[join.whereCriteria[j].rhs.joiningColumn].alias) {
                         for(var i = 0; i < main.columns.length; i++) {
                             if(main.columns[i].name === main.joiner.whereCriteria[j].rhs.value) {
                                 joiningColumn = main.columns[i].alias;

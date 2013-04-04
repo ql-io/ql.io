@@ -57,6 +57,7 @@ exports.exec = function() {
         option('-c, --config <configFile>', 'path to config', cwd + '/../config/dev.json').
         option('-p, --port <port>', 'port to bind to', '3000').
         option('-m, --monPort <monPort>', 'port for monitoring', 3001).
+        option('-conn, --connectors <connectors>', 'path of dir containing connectors', cwd + '/connectors').
         option('-t, --tables <tables>', 'path of dir containing tables', cwd + '/tables').
         option('-r, --routes <routes>', 'path of dir containing routes', cwd + '/routes').
         option('-x, --xformers <xformers>', 'path of dir containing xformers', cwd + '/config/xformers.json').
@@ -82,6 +83,7 @@ exports.exec = function() {
         config: program.config,
         tables: program.tables,
         routes: program.routes,
+        connectors: program.connectors,
         xformers: program.xformers,
         disableConsole: program.disableConsole,
         disableQ: program.disableQ,
@@ -242,6 +244,7 @@ function createConsole(options, cluster, cb) {
         },
         'tables': program.tables,
         'routes': program.routes,
+        'connectors': program.connectors,
         'config': program.config,
         'xformers': program.xformers,
         'enable console': !disableConsole,

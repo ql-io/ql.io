@@ -134,7 +134,6 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
             }
             processingEvent.end();
             var toreturn = args.cb(err, results);
-            //processingEvent.end();
             return toreturn
 
         }

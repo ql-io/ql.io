@@ -67,6 +67,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
 
                 // Set the join field on the joiner statement.
                 for(var i in cloned.whereCriteria){
+                    if (joiningColumns[i] != undefined)
                     cloned.whereCriteria[i].rhs.value = (_.isArray(row) || _.isObject(row)) ? row[joiningColumns[i]] : row;
                 }
 
