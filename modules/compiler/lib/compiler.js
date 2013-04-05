@@ -469,11 +469,9 @@ function introspectFrom(line, froms, symbols, parent) {
 
             }
         }else{
-            try{
-                var fromTable = cache['_tables'][from.name].verbs[line.type].expects;
+            if(cache['_tables'] && cache['_tables'][from.name] && cache['_tables'][from.name].verbs && cache['_tables'][from.name].verbs[line.type] && cache['_tables'][from.name].verbs[line.type].expects){
                 line.expects = fromTable;
             }
-            catch(e){}
         }
     }
 }
