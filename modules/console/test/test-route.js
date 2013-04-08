@@ -606,7 +606,8 @@ module.exports = {
 
             });
         });
-    },'optional param' : function(test) {
+    },
+    'optional param' : function(test) {
         var c = new Console({
             tables : __dirname + '/tables',
             routes : __dirname + '/routes/',

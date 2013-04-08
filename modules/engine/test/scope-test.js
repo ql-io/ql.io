@@ -80,7 +80,38 @@ module.exports['trycatch'] = function(test) {
     }});
 };
 
-
+module.exports['finally1'] = function(test) {
+    var context, q;
+    context = {
+        foo : {
+            'hello' : 'Hello',
+            'world' : 'World'
+        },
+        bar : {
+            'chocolate' : 'Chocolate',
+            'milk' : 'Milk'
+        }
+    };
+    q = 'try {\n\
+            b = select * from foo;\n\
+            throw (hello)}\n\
+            catch (hello){\n\
+            a =select * from foo}\n\
+            finally{\n\
+            c = 1\n\
+            }\n\
+            return c || a';
+    engine.exec({script: q, context: context, cb: function(err, result) {
+        if(err) {
+            test.fail('got error: ' + err.stack);
+            test.done();
+        }
+        else {
+            test.deepEqual(result.body, 1);
+            test.done();
+        }
+    }});
+};
 
 module.exports['else'] = function(test) {
         var context, q;
@@ -258,3 +289,4 @@ module.exports['ifelse-nested'] = function(test) {
         }
     }});
 }
+

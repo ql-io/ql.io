@@ -78,7 +78,7 @@ module.exports = {
                         test.done();
                     }
                     else {
-                        test.equals(events.length, 13)
+                        test.equals(events.length, 14)
                         test.equals(events[4].name,'http-request')
                         test.equals(events[5].name,'processingEvent')
                         test.equals(events[6].name,'http-request')

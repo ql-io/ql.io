@@ -33,7 +33,7 @@ exports.exec = function(opts, statement, parentEvent, cb) {
     assert.ok(cb, 'Argument cb can not be undefined');
     assert.ok(opts.xformers, 'No xformers set');
 
-    var funcs, cloned, joiningColumn, selectEvent;
+    var funcs, cloned, joiningColumns, selectEvent;
     selectEvent = opts.logEmitter.beginEvent({
         parent: parentEvent,
         name: 'select',
@@ -53,8 +53,9 @@ exports.exec = function(opts, statement, parentEvent, cb) {
         }
         if(statement.joiner) {
             // Do the join now - execute the joiner once for each row from the main's results.
-            // Right now, we can only deal with one joining column. The PEG does the check for this.
-            joiningColumn = statement.joiner.whereCriteria[0].rhs.joiningColumn;
+            joiningColumns = _.map(statement.joiner.whereCriteria, function(criteria){
+                return criteria.rhs.joiningColumn;
+            });
 
             // Prepare the joins
             funcs = [];
@@ -65,7 +66,10 @@ exports.exec = function(opts, statement, parentEvent, cb) {
                 cloned.whereCriteria = clone(cloned.whereCriteria);
 
                 // Set the join field on the joiner statement.
-                cloned.whereCriteria[0].rhs.value = (_.isArray(row) || _.isObject(row)) ? row[joiningColumn] : row;
+                for(var i in cloned.whereCriteria){
+                    if (joiningColumns[i] != undefined)
+                    cloned.whereCriteria[i].rhs.value = (_.isArray(row) || _.isObject(row)) ? row[joiningColumns[i]] : row;
+                }
 
                 // Determine whether the number of funcs is within the limit, otherwise break out of the loop
                 if (funcs.length >= maxRequests) {
@@ -308,13 +312,12 @@ function execInternal(opts, statement, parentEvent, cb) {
                 params[limit] = statement.limit;
                 var offset = verb.aliases && verb.aliases.offset || 'offset';
                 params[offset] = statement.offset;
-
                 verb.exec({
                     name: name,
                     context: opts.context,
                     config: opts.config,
                     settings: opts.settings,
-                    resource: verb,
+                    resource: verb.connector,
                     xformers: opts.xformers,
                     serializers: opts.serializers,
                     params: params,
