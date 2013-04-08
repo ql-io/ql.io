@@ -24,13 +24,14 @@ var ql = require('./peg/ql.js'),
 exports.version = require('../package.json').version;
 
 var cache = {};
-exports.compile = function(script) {
+exports.compile = function(script, loaded) {
     assert.ok(script, 'script is undefined');
 
     var compiled, cooked, cacheKey;
 
     cacheKey = script;
     cooked = cache[cacheKey];
+    cache['_tables'] = loaded
     if(cooked) {
         return cooked;
     }
@@ -444,36 +445,32 @@ function introspectFrom(line, froms, symbols, parent) {
         from = froms[j];
         if(from.name.indexOf('{') === 0) {
             refname = from.name.substring(1, from.name.length - 1);
-            dependency = symbols[refname];
-            if(dependency) {
-                if(line.assign === refname) {
-                    throw new this.SyntaxError('Circular reference ' + line.assign);
-                }
-                else {
-                    if(parent) {
-                        addDep(parent, parent.dependsOn, dependency, symbols);
-                    }
-                    else {
-                        addDep(line, line.dependsOn, dependency, symbols);
-                    }
-                }
-            }
+
         }
         else if(symbols[from.name]) {
             refname = from.name
-            dependency = symbols[refname];
-            if(dependency) {
-                if(line.assign === refname) {
-                    throw new this.SyntaxError('Circular reference ' + line.assign);
+        }
+        dependency = symbols[refname];
+        if(dependency) {
+            if(line.assign === refname) {
+                throw new this.SyntaxError('Circular reference ' + line.assign);
+            }
+            else {
+                if(parent) {
+                    addDep(parent, parent.dependsOn, dependency, symbols);
                 }
                 else {
-                    if(parent) {
-                        addDep(parent, parent.dependsOn, dependency, symbols);
-                    }
-                    else {
-                        addDep(line, line.dependsOn, dependency, symbols);
-                    }
+                    addDep(line, line.dependsOn, dependency, symbols);
                 }
+            }
+            var hasverb = dependency[line.type];
+            if(hasverb && hasverb.expect){
+                line.expects = hasverb.expect;
+
+            }
+        }else{
+            if(cache['_tables'] && cache['_tables'][from.name] && cache['_tables'][from.name].verbs && cache['_tables'][from.name].verbs[line.type] && cache['_tables'][from.name].verbs[line.type].expects){
+                line.expects = fromTable;
             }
         }
     }

@@ -18,15 +18,19 @@
 
 var _ = require('underscore'),
     Verb = require('./verb.js'),
-    markdown = require('markdown');
+    markdown = require('markdown'),
+    HttpConnector = require('./httpConnector.js'),
+    mongo = require('mongodb');;
 
 var Table = module.exports = function(opts, comments, statement) {
     this.statement = statement;
     this.name = statement.name;
     this.opts = opts;
     this.verbs = {};
+    //this.connectorPath = opts.connectorPath;
     var bag = {
-        config: opts.config
+        config: opts.config,
+        connectors: opts.connectors
     };
 
     // Metadata for describe
@@ -41,13 +45,12 @@ var Table = module.exports = function(opts, comments, statement) {
             self.comments += markdown.markdown.toHTML(comment.text);
         });
     }
-
     var verbs = ['select', 'insert', 'update', 'delete'];
     for(var i = 0; i < verbs.length; i++) {
         var type = verbs[i];
         if(self.statement[type]) {
             try {
-                var verb = new Verb(self.name, self.statement[type], type, bag, self.opts.path);
+                var verb = new Verb(self.name, self.statement[type], type, bag, self.opts.path, statement.connector);
                 self.verbs[type] = verb;
             }
             catch(e) {

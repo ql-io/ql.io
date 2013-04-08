@@ -92,21 +92,20 @@
                     // Case of nested token - only single valued for now
                     key = _format('', ele.variable, bag, keep);
                     val = select(key, bag);
-                    if(val) {
-                        str = str + val;
-                    }
-                    else if(keep) {
-                        str = str + '{' + ele.str + '}'
-                    }
+
                 }
                 else {
                     val = select(ele.variable, bag);
-                    if(val) {
-                        str = str + val;
+                }
+                if(val) {
+                    if(typeof(val) == 'function' && stream.length == 1){
+                        // return functions as it
+                        return val;
                     }
-                    else if(keep) {
-                        str = str + '{' + ele.str + '}'
-                    }
+                    str = str + val;
+                }
+                else if(keep) {
+                    str = str + '{' + ele.str + '}'
                 }
             }
         }
