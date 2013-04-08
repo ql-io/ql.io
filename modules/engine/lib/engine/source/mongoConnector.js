@@ -239,7 +239,7 @@ this.log = function(emitter, parentEvent, severity, message) {
     }
 };
 };
-
+mongoConnector.connectorName = 'mongodb'
 
 function _process(self, statement, bag, root) {
     var template, param, compiled;

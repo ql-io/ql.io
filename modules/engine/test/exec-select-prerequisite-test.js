@@ -33,7 +33,7 @@ var engine = new Engine({
 
 var Listener = require('./utils/log-listener.js');
 
-module.exports = { /*
+module.exports = {
     'select with required key missing': function(test) {
         var q;
         q = 'first = {"keywords": "iphone"};' +
@@ -126,7 +126,7 @@ module.exports = { /*
                 }
             });
         })
-    },  */
+    },
     'select-join-n-rows key not missing': function(test) {
         var script = 'v = "y1"\
                       a = [{"x":"x", "id":"1"}];\

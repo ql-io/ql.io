@@ -428,7 +428,7 @@ var httpConnector = module.exports = function(table, statement, type, bag, path)
         }
     };
 };
-
+httpConnector.connectorName = 'http'
 function mergeArray(uarr, prop, merge) {
     // Remove undefined.
     var arr = _.filter(uarr, function(ele) {
