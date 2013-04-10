@@ -1,0 +1,211 @@
+/*
+ * Copyright 2013 eBay Software Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+"use strict";
+
+var compiler = require('../lib/compiler');
+
+exports['simple'] = function(test) {
+    var q = "create table twitter.public via mongodb on select get from 'http://twitter.com/statuses/public_timeline.{^format}'";
+    var compiled = compiler.compile(q);
+    test.equal(compiled.rhs.dependsOn[0].type, 'create');
+    test.equal(compiled.rhs.dependsOn[0].name, 'twitter.public');
+    test.deepEqual(compiled.rhs.dependsOn[0].select, { method: 'get',
+        uri: 'http://twitter.com/statuses/public_timeline.{^format}',
+        defaults: {},
+        aliases: {},
+        headers: {},
+        resultSet: '',
+        cache: {},
+        body: '' });
+    test.done();
+};
+
+exports['multiple actions'] = function(test) {
+    var q = 'create table bitly.shorten\
+  on insert get from "http://api.bitly.com/v3/shorten?login={^login}&apiKey={^apikey}&longUrl={^longUrl}&format={format}"\
+            using defaults apikey = "{config.tables.bitly.shorten.apikey}", login = "{config.tables.bitly.shorten.login}", format = "json"\
+            using patch "shorten.js"\
+            resultset "data.url"\
+  on select get from "http://api.bitly.com/v3/expand?login={^login}&apiKey={^apikey}&shortUrl={^shortUrl}&format={format}"\
+            using defaults apikey = "{config.tables.bitly.shorten.apikey}", login = "{config.tables.bitly.shorten.login}", format = "json"\
+            using patch "shorten.js"\
+            resultset "data.expand"';
+    var compiled = compiler.compile(q);
+    test.deepEqual(compiled.rhs.dependsOn[0].name, 'bitly.shorten');
+    test.deepEqual(compiled.rhs.dependsOn[0].insert, { method: 'get',
+        uri: 'http://api.bitly.com/v3/shorten?login={^login}&apiKey={^apikey}&longUrl={^longUrl}&format={format}',
+        defaults:
+        { apikey: '{config.tables.bitly.shorten.apikey}',
+            login: '{config.tables.bitly.shorten.login}',
+            format: 'json' },
+        aliases: {},
+        headers: {},
+        resultSet: 'data.url',
+        cache: {},
+        patch: 'shorten.js',
+        body: '' });
+    test.deepEqual(compiled.rhs.dependsOn[0].select, { method: 'get',
+        uri: 'http://api.bitly.com/v3/expand?login={^login}&apiKey={^apikey}&shortUrl={^shortUrl}&format={format}',
+        defaults:
+        { apikey: '{config.tables.bitly.shorten.apikey}',
+            login: '{config.tables.bitly.shorten.login}',
+            format: 'json' },
+        aliases: {},
+        headers: {},
+        resultSet: 'data.expand',
+        cache: {},
+        patch: 'shorten.js',
+        body: '' });
+    test.done();
+};
+
+exports['media type'] = function(test) {
+
+    var script = '-- This is a mapping for eBay\'s [GetMyEbayBuying](http://developer.ebay.com/DevZone/xml/docs/Reference/ebay/GetMyeBayBuying.html) API. Here is an example: select * from ebay.trading.getmybuying\n\
+create table ebay.trading.getmyebaybuying\
+  on select post to "{config.tables.ebay.trading.myebaybuying.uri}"\
+    using headers "Content-Type"= "application/xml; charset=UTF-8",\
+                  "X-EBAY-API-DETAIL-LEVEL"= "0",\
+                  "X-EBAY-API-RESPONSE-ENCODING"= "XML",\
+                  "X-EBAY-API-CALL-NAME"= "GetMyeBayBuying",\
+                  "X-EBAY-API-SITEID" = "0",\
+                  "X-EBAY-API-COMPATIBILITY-LEVEL"= "723"\
+    using defaults format = "{config.tables.ebay.trading.myebaybuying.defaults.format}",\
+              globalid = "{config.tables.ebay.trading.myebaybuying.defaults.globalid}",\
+              currency = "{config.tables.ebay.trading.myebaybuying.defaults.currency}",\
+              itemSearchScope = "{config.tables.ebay.trading.myebaybuying.defaults.itemSearchScope}",\
+              limit = "{config.tables.ebay.trading.myebaybuying.defaults.limit}",\
+              offset = "{config.tables.ebay.trading.myebaybuying.defaults.offset}",\
+              eBayAuthToken = "{config.tables.ebay.trading.myebaybuying.defaults.eBayAuthToken}"\
+    using patch "getmyebaybuying.js"\
+    using bodyTemplate "getmyebaybuying.xml.mu" type "application/xml"';
+    var compiled = compiler.compile(script);
+    test.equals(compiled.rhs.dependsOn[0].select.body.type, 'application/xml');
+    test.done();
+};
+
+exports['media type param'] = function(test) {
+
+    var script = '-- This is a mapping for eBay\'s [GetMyEbayBuying](http://developer.ebay.com/DevZone/xml/docs/Reference/ebay/GetMyeBayBuying.html) API. Here is an example: select * from ebay.trading.getmybuying\n\
+create table ebay.trading.getmyebaybuying\n\
+  on select post to "{config.tables.ebay.trading.myebaybuying.uri}"\n\
+    using headers "Content-Type"= "application/xml; charset=UTF-8",\n\
+                  "X-EBAY-API-DETAIL-LEVEL"= "0",\n\
+                  "X-EBAY-API-RESPONSE-ENCODING"= "XML",\n\
+                  "X-EBAY-API-CALL-NAME"= "GetMyeBayBuying",\n\
+                  "X-EBAY-API-SITEID" = "0",\n\
+                  "X-EBAY-API-COMPATIBILITY-LEVEL"= "723"\n\
+    using defaults format = "{config.tables.ebay.trading.myebaybuying.defaults.format}",\n\
+              globalid = "{config.tables.ebay.trading.myebaybuying.defaults.globalid}",\n\
+              currency = "{config.tables.ebay.trading.myebaybuying.defaults.currency}",\n\
+              itemSearchScope = "{config.tables.ebay.trading.myebaybuying.defaults.itemSearchScope}",\n\
+              limit = "{config.tables.ebay.trading.myebaybuying.defaults.limit}",\n\
+              offset = "{config.tables.ebay.trading.myebaybuying.defaults.offset}",\n\
+              eBayAuthToken = "{config.tables.ebay.trading.myebaybuying.defaults.eBayAuthToken}"\n\
+    using patch "getmyebaybuying.js"\n\
+    using bodyTemplate "getmyebaybuying.xml.mu" type "application/xml;foo=bar"';
+
+    try {
+        var compiled = compiler.compile(script);
+        test.equals(compiled.rhs.dependsOn[0].select.body.type, 'application/xml;foo=bar');
+        test.done();
+    }
+    catch(e) {
+        console.log(e.stack || e);
+    }
+};
+
+exports['media type form'] = function(test) {
+
+    var script = '-- This is a mapping for eBay\'s [GetMyEbayBuying](http://developer.ebay.com/DevZone/xml/docs/Reference/ebay/GetMyeBayBuying.html) API. Here is an example: select * from ebay.trading.getmybuying\n\
+create table ebay.trading.getmyebaybuying\n\
+  on select post to "{config.tables.ebay.trading.myebaybuying.uri}"\n\
+    using headers "Content-Type"= "application/xml; charset=UTF-8",\n\
+                  "X-EBAY-API-DETAIL-LEVEL"= "0",\n\
+                  "X-EBAY-API-RESPONSE-ENCODING"= "XML",\n\
+                  "X-EBAY-API-CALL-NAME"= "GetMyeBayBuying",\n\
+                  "X-EBAY-API-SITEID" = "0",\n\
+                  "X-EBAY-API-COMPATIBILITY-LEVEL"= "723"\n\
+    using defaults format = "{config.tables.ebay.trading.myebaybuying.defaults.format}",\n\
+              globalid = "{config.tables.ebay.trading.myebaybuying.defaults.globalid}",\n\
+              currency = "{config.tables.ebay.trading.myebaybuying.defaults.currency}",\n\
+              itemSearchScope = "{config.tables.ebay.trading.myebaybuying.defaults.itemSearchScope}",\n\
+              limit = "{config.tables.ebay.trading.myebaybuying.defaults.limit}",\n\
+              offset = "{config.tables.ebay.trading.myebaybuying.defaults.offset}",\n\
+              eBayAuthToken = "{config.tables.ebay.trading.myebaybuying.defaults.eBayAuthToken}"\n\
+    using patch "getmyebaybuying.js"\n\
+    using bodyTemplate "getmyebaybuying.xml.mu" type "application/x-www-form-urlencoded"';
+
+    try {
+        var compiled = compiler.compile(script);
+        test.equals(compiled.rhs.dependsOn[0].select.body.type, 'application/x-www-form-urlencoded');
+        test.done();
+    }
+    catch(e) {
+        console.log(e.stack || e);
+    }
+};
+
+exports['auth'] = function(test) {
+    var script = 'create table ebay.finding.items on select get from "{config.tables.ebay.finding.items.url}" authenticate using "authmod"';
+    try {
+        var compiled = compiler.compile(script);
+        test.equals(compiled.rhs.dependsOn[0].select.auth, 'authmod');
+        test.done();
+    }
+    catch(e) {
+        console.log(e.stack || e);
+    }
+}
+
+exports['create-many'] = function(test) {
+    var script = 'create table one on select get from "url1"\n\
+                  create table two on select post to "url2"';
+    var compiled = compiler.compile(script);
+
+    test.deepEqual(compiled.rhs.dependsOn[0].select, { method: 'get',
+        uri: 'url1',
+        defaults: {},
+        aliases: {},
+        headers: {},
+        resultSet: '',
+        cache: {},
+        body: '' });
+
+    test.deepEqual(compiled.rhs.dependsOn[1].select, { method: 'post',
+        uri: 'url2',
+        defaults: {},
+        aliases: {},
+        headers: {},
+        resultSet: '',
+        cache: {},
+        body: '' });
+    test.done();
+}
+
+exports['create-deps'] = function(test) {
+    var script = "create table mytable\
+                    on select get from 'someuri';\n\
+                  resp = select * from mytable;\n\
+                  return '{resp.$..item}'";
+    var plan = compiler.compile(script);
+    test.equals(plan.rhs.dependsOn.length, 1);
+    test.equals(plan.rhs.dependsOn[0].type, 'select');
+    test.equals(plan.rhs.dependsOn[0].dependsOn.length, 1);
+    test.equals(plan.rhs.dependsOn[0].dependsOn[0].type, 'create');
+    test.done();
+}

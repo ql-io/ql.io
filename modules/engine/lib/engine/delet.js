@@ -131,7 +131,7 @@ exports.exec = function (opts, statement, parentEvent, cb) {
                 context: opts.context,
                 config: opts.config,
                 settings: opts.settings,
-                resource: verb,
+                resource: verb.connector,
                 xformers: opts.xformers,
                 serializers: opts.serializers,
                 params: params,

@@ -120,7 +120,7 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
                 parent: args.parentEvent,
                 name: 'processingEvent',
                 message: 'calculates cpu time',
-                    cb: function(){}
+                cb: function(){}
             })
             if(args.logEmitter){
                 var reqlength = JSON.stringify(options.headers).length +options.host.length;
@@ -132,8 +132,8 @@ function sendHttpRequest(client, options, args, start, timings, reqStart, key, c
                     resSize: responseLength
                 }))
             }
-            var toreturn = args.cb(err, results)
             processingEvent.end();
+            var toreturn = args.cb(err, results);
             return toreturn
 
         }

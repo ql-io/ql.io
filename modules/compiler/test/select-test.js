@@ -656,7 +656,7 @@ module.exports = {
                 "lhs": {name: "details.siteid", type: "column"},
                 "rhs": {
                     "value": "0"
-                }
+            }
             },
             {
                 "operator": "=",
