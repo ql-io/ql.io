@@ -378,23 +378,23 @@ var cooked = {
                 subType: "json",
                 payload:JSON.stringify(
                     [
-                        {   "ProductID" :"99998176",
+                        { "ProductID" :"99998176",
                             "StockPhotoURL":"http://i.ebayimg.com/00/$(KGrHqR,!loE8EW+5STkBPRL6QZRh!~~_6.JPG?set_id=89040003C1",
                             "Title" : "Apple iPhone 4 - 16GB - Black (AT&T) Smartphone (MC318LL/A)"
                         },
-                        {   "ProductID" :"101892398",
+                        { "ProductID" :"101892398",
                             "StockPhotoURL":"http://i.ebayimg.com/00/$(KGrHqJ,!lwE65n1q-zjBO5dLYuRFg~~_6.JPG?set_id=89040003C1",
                             "Title" : "Apple iPhone 3G - 8GB - Black (AT&T) Smartphone"
                         },
-                        {   "ProductID" :"101828989",
+                        { "ProductID" :"101828989",
                             "StockPhotoURL":"http://i.ebayimg.com/00/$(KGrHqJ,!lwE65n1q-zjBO5dLYuRFg~~_6.JPG?set_id=89040003C1",
                             "Title" : "Apple iPhone 3GS - 16GB - Black (AT&T) Smartphone"
                         },
-                        {   "ProductID" :"100012593",
+                        { "ProductID" :"100012593",
                             "StockPhotoURL":"http://i.ebayimg.com/00/$(KGrHqJ,!lwE65n1q-zjBO5dLYuRFg~~_6.JPG?set_id=89040003C1",
                             "Title" : "Apple iPhone 3GS - 8GB - Black (AT&T) Smartphone"
                         },
-                        {   "ProductID" :"101787954",
+                        { "ProductID" :"101787954",
                             "StockPhotoURL":"http://i.ebayimg.com/00/$(KGrHqR,!loE8EW+5STkBPRL6QZRh!~~_6.JPG?set_id=89040003C1",
                             "Title" : "Apple iPhone 4 - 16GB - Black (Verizon) Smartphone"
                         }
@@ -599,6 +599,67 @@ var cooked = {
         }
 
 
+    },
+    doublewhere : {
+        ports:[
+            {
+                port: 3000,
+                status: 200,
+                type: "application",
+                subType: "xml",
+                payload:
+                    '<root><stations><station><name>12th St. Oakland City Center</name><abbr>12TH</abbr><gtfs_latitude>37.803664</gtfs_latitude><gtfs_longitude>-122.271604</gtfs_longitude><address>1245 Broadway</address><city>Oakland</city><county>alameda</county><state>CA</state><zipcode>94612</zipcode><north_routes><route>ROUTE 2</route><route> ROUTE 3</route><route> ROUTE 8</route></north_routes><south_routes><route>ROUTE 1</route><route> ROUTE 4</route><route> ROUTE 7</route></south_routes><north_platforms><platform>1</platform><platform> 3</platform></north_platforms><south_platforms><platform>2</platform></south_platforms><platform_info>Always check destination signs and listen for departure announcements.</platform_info><intro>12th St. Oakland City Center Station is in the heart of Downtown Oakland, near historic Old Oakland and Oaklands Chinatown.</intro><cross_street>Nearby Cross: 12th St.</cross_street><food>Nearby restaurant reviews from <a href="http://www.yelp.com/search?find_desc=Restaurant+&amp;ns=1&amp;rpp=10&amp;find_loc=1245 Broadway Oakland, CA 94602" rel="external">yelp.com</a></food><shopping>Local shopping from <a href="http://www.yelp.com/search?find_desc=Shopping+&amp;ns=1&amp;rpp=10&amp;find_loc=1245 Broadway Oakland, CA 94602" rel="external">yelp.com</a></shopping><attraction>More station area attractions from <a href="http://www.yelp.com/search?find_desc=+&amp;ns=1&amp;rpp=10&amp;find_loc=1245 Broadway Oakland, CA 94602" rel="external">yelp.com</a></attraction><link>http://www.bart.gov/stations/12TH/index.aspx</link></station></stations><message/></root>'
+    },
+            {
+                port: 3026,
+                status: 200,
+                type: "application",
+                subType: "json",
+                payload:JSON.stringify(
+                    [
+                        {   "longtitude":"-122.271604",
+                            "lattitude":"37.803664",
+                            "ProductID" :"99998176",
+                            "StockPhotoURL":"http://i.ebayimg.com/00/$(KGrHqR,!loE8EW+5STkBPRL6QZRh!~~_6.JPG?set_id=89040003C1",
+                            "Title" : "Apple iPhone 4 - 16GB - Black (AT&T) Smartphone (MC318LL/A)"
+                        },
+                        {   "longtitude":"-122",
+                            "ProductID" :"101892398",
+                            "StockPhotoURL":"http://i.ebayimg.com/00/$(KGrHqJ,!lwE65n1q-zjBO5dLYuRFg~~_6.JPG?set_id=89040003C1",
+                            "Title" : "Apple iPhone 3G - 8GB - Black (AT&T) Smartphone"
+                        },
+                        {   "ProductID" :"101828989",
+                            "StockPhotoURL":"http://i.ebayimg.com/00/$(KGrHqJ,!lwE65n1q-zjBO5dLYuRFg~~_6.JPG?set_id=89040003C1",
+                            "Title" : "Apple iPhone 3GS - 16GB - Black (AT&T) Smartphone"
+                        },
+                        {   "ProductID" :"100012593",
+                            "StockPhotoURL":"http://i.ebayimg.com/00/$(KGrHqJ,!lwE65n1q-zjBO5dLYuRFg~~_6.JPG?set_id=89040003C1",
+                            "Title" : "Apple iPhone 3GS - 8GB - Black (AT&T) Smartphone"
+                        },
+                        {   "ProductID" :"101787954",
+                            "StockPhotoURL":"http://i.ebayimg.com/00/$(KGrHqR,!loE8EW+5STkBPRL6QZRh!~~_6.JPG?set_id=89040003C1",
+                            "Title" : "Apple iPhone 4 - 16GB - Black (Verizon) Smartphone"
+                        }
+                    ]
+                )
+            }
+        ],
+        script: 'create table bart   \
+        on select get from "http://localhost:3000"\
+        resultset "root.stations.station" \
+        create table myg  \
+        on select get from "http://localhost:3026"  \
+        select g.Title from bart as b, myg as g where b.gtfs_longitude = g.longtitude and g.lattitude = b.gtfs_latitude',
+        udf: {
+        test : function (test, err, result) {
+            if(err) {
+                test.ok(false, 'failed');
+            } else{
+                test.equal(result.body.length,5)
+            }
+
+        }
+        }
     }
 
 }

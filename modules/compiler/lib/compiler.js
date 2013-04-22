@@ -470,7 +470,7 @@ function introspectFrom(line, froms, symbols, parent) {
             }
         }else{
             if(cache['_tables'] && cache['_tables'][from.name] && cache['_tables'][from.name].verbs && cache['_tables'][from.name].verbs[line.type] && cache['_tables'][from.name].verbs[line.type].expects){
-                line.expects = fromTable;
+                line.expects = cache['_tables'][from.name].verbs[line.type].expects;
             }
         }
     }
