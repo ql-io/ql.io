@@ -26,7 +26,7 @@ module.exports = {
         on select get from "http://api.bart.gov/api/stn.aspx?cmd=stninfo&orig=12th&key=MW9S-E7SL-26DU-VV8V"\
         resultset "root.stations.station" \
         create table myg  \
-        on select get from "http://maps.googleapis.com/maps/api/geocode/json?latlng={lo},{la}&sensor=true"  \
+        on select get from "http://maps.googleapis.com/maps/api/geocode/json?latlng={lo},{la}&sensor=true".  \
         select g.results from bart as b, myg as g where b.gtfs_latitude = g.lo and g.la = b.gtfs_longitude'
         engine.execute(script, function(emitter) {
             emitter.on('end', function(err, result) {
@@ -35,6 +35,9 @@ module.exports = {
                     test.done();
                 }
                 else {
+                    test.equals(result.body.length, 1);
+                    test.equals(result.body[0].length, 1);
+                    test.equals(result.body[0][0].length, 10);
                     test.done();
                 }
             });

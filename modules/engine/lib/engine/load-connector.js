@@ -46,12 +46,12 @@ function loadInternal(path, prefix, logEmitter, connectors) {
 
     paths.forEach(function(filename) {
         stats = fs.statSync(path + filename);
-        if(stats.isDirectory()) {
+        /*if(stats.isDirectory()) {
             loadInternal(path + filename,
                 prefix.length > 0 ? prefix + '.' + filename : filename,
                 logEmitter, connectors);
         }
-        else if(stats.isFile() && /\.js$/.test(filename)) {
+        else */if(stats.isFile() && /\.js$/.test(filename)) {
            loadOne(path+filename,connectors)
 
         }
