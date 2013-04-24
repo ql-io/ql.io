@@ -187,6 +187,7 @@ util.inherits(Engine, LogEmitter);
  *         });
  *     });
  */
+// this execute wrapper is for logging purpose only.
 Engine.prototype.execute = function(){
     var grandParentEvent = null;
     if(arguments.length > 1){
@@ -204,6 +205,9 @@ Engine.prototype.execute = function(){
     arguments[1].parentEvent = parentEvent;
     this.doExecute.apply(this,arguments);
 }
+/*
+The real logic of engine execution
+ */
 Engine.prototype.doExecute = function() {
     var script, opts, func;
 
@@ -321,6 +325,8 @@ Engine.prototype.doExecute = function() {
 
     // Initialize the exec state
     var execState = {};
+    // initialize variable assignment by walking through the dependency tree.
+    // Unused variable will be treated as orphans and executed eventually.
     function init(statement) {
         function scopeInit(statement) {
             switch(statement.type){
@@ -373,6 +379,7 @@ Engine.prototype.doExecute = function() {
     init(plan.rhs);
 
     /* Skip assign statement. Make it undefined, and trigger listener
+       for if/else and try/catch/finally clause only
      */
     function skipVarList(statements){
         function skipVar(statement){
@@ -432,7 +439,9 @@ Engine.prototype.doExecute = function() {
         });
     }
 
-    // scope is complex to execute, handle separately
+    // scope is complex to execute, handle separately.
+    // If any line in the clause is hitted, execute every line of the calus
+    // for if/else, try/catch/finally only
     function execScope(statement, arg) {
         switch(statement.type) {
             case 'if' :
@@ -463,6 +472,10 @@ Engine.prototype.doExecute = function() {
     }
 
     var skip = false;
+    /*
+    Sweep a statement, execute it only if all its dependencies are done.
+    If not, sweep the dependencies first.
+     */
     function sweep(statement) {
         if(skip) {
             return;
@@ -505,7 +518,8 @@ Engine.prototype.doExecute = function() {
             execState[todo.id].count === 0 &&
             scopeDone) {
             execState[todo.id].state = eventTypes.STATEMENT_IN_FLIGHT;
-
+            // step1 is true only if run in debug mode and not the first step.
+            // put all unexecuted statements into a list and execute them one by one by clicking "step" on console.
             if (emitterID && !step1) {
                 // only used for debugger
                 unexecuted.push(statement);
@@ -587,7 +601,7 @@ Engine.prototype.doExecute = function() {
                 }
             }, engineEvent.event);
     }
-
+    // done with all sweep, this is the final wrap up.
     var fnDone = function(err, results) {
         execState[plan.rhs.id].state = err ? eventTypes.STATEMENT_ERROR : eventTypes.STATEMENT_SUCCESS;
 
