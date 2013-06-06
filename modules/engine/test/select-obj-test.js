@@ -102,6 +102,111 @@ module.exports = {
         }});
     },
 
+    'select-filter-integer' : function(test) {
+        var context, q;
+        context = {
+            foo: [
+                { "id": 1, "foo": true },
+                { "id": 2, "foo": false }
+            ]
+        };
+        q = 'select * from foo where id = 1';
+        engine.exec({script: q, context: context, cb: function(err, result) {
+            if(err) {
+                test.fail('got error: ' + err.stack);
+                test.done();
+            }
+            else {
+                test.deepEqual(result.body, [ { "id": 1, "foo": true } ]);
+                test.done();
+            }
+        }});
+    },
+
+    'select-filter-string' : function(test) {
+        var context, q;
+        context = {
+            foo: [
+                { "name": "name-A", "foo": true },
+                { "name": "name-B", "foo": false }
+            ]
+        };
+        q = 'select * from foo where name = "name-A"';
+        engine.exec({script: q, context: context, cb: function(err, result) {
+            if(err) {
+                test.fail('got error: ' + err.stack);
+                test.done();
+            }
+            else {
+                test.deepEqual(result.body, [ { "name": "name-A", "foo": true } ]);
+                test.done();
+            }
+        }});
+    },
+
+    'select-filter-true' : function(test) {
+        var context, q;
+        context = {
+            foo: [
+                { "id": 1, "foo": true },
+                { "id": 2, "foo": false }
+            ]
+        };
+        q = 'select * from foo where foo = true';
+        engine.exec({script: q, context: context, cb: function(err, result) {
+            if(err) {
+                test.fail('got error: ' + err.stack);
+                test.done();
+            }
+            else {
+                test.deepEqual(result.body, [ { "id": 1, "foo": true } ]);
+                test.done();
+            }
+        }});
+    },
+
+    'select-filter-true-only' : function(test) {
+        var context, q;
+        context = {
+            foo: [
+                { "id": 1, "foo": true },
+                { "id": 2, "foo": 1 } // 1 is not true
+            ]
+        };
+        q = 'select * from foo where foo = true';
+        engine.exec({script: q, context: context, cb: function(err, result) {
+            if(err) {
+                test.fail('got error: ' + err.stack);
+                test.done();
+            }
+            else {
+                test.deepEqual(result.body, [ { "id": 1, "foo": true } ]);
+                test.done();
+            }
+        }});
+    },
+
+    'select-filter-false-only' : function(test) {
+        var context, q;
+        context = {
+            foo: [
+                { "id": 1, "foo": 0 }, // 0 is not false
+                { "id": 2, "foo": false }
+            ]
+        };
+        q = 'select * from foo where foo = false';
+        engine.exec({script: q, context: context, cb: function(err, result) {
+            if(err) {
+                test.fail('got error: ' + err.stack);
+                test.done();
+            }
+            else {
+                test.deepEqual(result.body, [ { "id": 2, "foo": false } ]);
+                test.done();
+            }
+        }});
+    },
+
     'select-join-one-field': function(test) {
         var q = 'a1 = [{ \
             "name": "Name-A",\
