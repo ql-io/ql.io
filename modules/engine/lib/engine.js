@@ -162,6 +162,99 @@ var Engine = module.exports = function(opts) {
 }
 
 util.inherits(Engine, LogEmitter);
+/**
+* Calculate the route using path, query params etc.
+* Returns the route
+*/
+
+Engine.prototype.getScript = function() {
+
+    if(arguments.length != 1){
+        assert.ok(false, 'Incorrect arguments');
+    }
+
+    var request = arguments[0];
+
+    var verbRoutes = this.routes.verbMap[request.path];
+    if(!verbRoutes) {
+        return null;
+    }
+    var verbRouteVariants = verbRoutes[request.method];
+    if(!verbRouteVariants) {
+        return null;
+    }
+
+    var route = _(verbRouteVariants).chain()
+        .filter(function (verbRouteVariant){var defaultKeys = _.chain(verbRouteVariant.query)
+                .keys()
+                .filter(function(k){ 
+                    var querykey = verbRouteVariant.query[k];
+                    if (querykey.indexOf('^') != -1) {
+                        querykey = querykey.substr(1);
+                    }
+                    return _.has(verbRouteVariant.routeInfo.defaults, querykey);
+                })
+                .value();
+            // missed query params that are neither defaults nor user provided
+            var missed = _.difference(_.keys(verbRouteVariant.query), _.union(defaultKeys, _.keys(request.params)));
+            var misrequired = _.filter(missed, function(key){
+                if (verbRouteVariant.routeInfo.optparam){
+                    // if with optional params, find if any required param is missed
+                    return verbRouteVariant.query[key] && verbRouteVariant.query[key].indexOf("^") == 0;
+                }
+                else {
+                    // everything is required
+                    return missed;
+                }
+            });
+            return !misrequired.length;
+        })
+        .max(function (verbRouteVariant){
+            if (!verbRouteVariant.routeInfo.optparam){
+                return 0;
+            }
+            // with optional param
+            var matchCount = _.intersection(_.keys(request.params), _.keys(verbRouteVariant.query)).length;
+            var requiredCount = _.filter(_.keys(verbRouteVariant.query), function(key){
+                return verbRouteVariant[key] && verbRouteVariant[key].indexOf("^") == 0;
+            }).length;
+            return matchCount - requiredCount;
+
+        })
+        .value();    
+        if (!route) {
+            return null;
+        }
+
+        // collect default query params if needed
+        _.each(route.routeInfo.defaults, function(defaultValue, queryParam) {
+            if (queryParam.indexOf('^') != -1){
+                queryParam = queryParam.substr(1);
+            }
+            request.routeParams[queryParam] = defaultValue;
+        });
+        var keys = _.keys(request.reqParams);
+        _.each(keys, function(key) {
+            request.routeParams[key] = request.reqParams[key];
+        });
+
+        _.each(route.query, function(queryParam, paramName) {
+            if (request.params[paramName]) {
+                if (queryParam.indexOf('^') != -1){
+                    queryParam = queryParam.substr(1);
+                }
+                request.routeParams[queryParam] = request.params[paramName];
+            }
+            else if (!request.routeParams[queryParam]) {
+                request.routeParams[queryParam] = null;
+            }
+        });     
+
+        return  route;     
+
+
+}
+
 
 /**
  * Executes a script. In the generic form, this function takes the following args:
@@ -216,21 +309,18 @@ Engine.prototype.doExecute = function() {
 
     //for debug
     var emitterID, unexecuted, step1, timeoutID;
-    if(arguments.length === 2) {
-        script = arguments[0];
-        func = arguments[1];
+    if(arguments.length === 1) {
+        func = arguments[0];
         opts = {};
     }
-    else if(arguments.length === 3) {
-        script = arguments[0];
-        func = arguments[2];
-        opts = arguments[1];
+    else if(arguments.length === 2) {
+        func = arguments[1];
+        opts = arguments[0];
     }
-    else if(arguments.length === 4) {
+    else if(arguments.length === 3) {
         // debug mode
-        script = arguments[0];
-        func = arguments[2];
-        opts = arguments[1];
+        func = arguments[1];
+        opts = arguments[0];
         // only assign emitterID in debug mode.
         emitterID = that.debugData.max++;
     }
@@ -238,12 +328,18 @@ Engine.prototype.doExecute = function() {
         assert.ok(false, 'Incorrect arguments');
     }
 
-    opts.script = script;
+    //opts.script = this.getScript(opts.request);
+    route = this.getScript(opts.request);;
 
     // This emitter is used for request-time reporting
     var emitter = new EventEmitter();
     // Let the app register handlers
     func(emitter);
+    if(!route) {
+        emitter.emit('end', 'No valid route', null) ;
+        return;
+    }
+    script = route.script;  
 
     context = opts.context || {};
     parentEvent = opts.parentEvent;

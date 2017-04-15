@@ -235,141 +235,77 @@ var Console = module.exports = function(opts, cb) {
         });
     }
 
+    //ql query url handler
+
+    var queryHandler = function(req, res) {
+
+        var holder = {
+            path: req.url,
+            method: req.method.toLowerCase(),
+            params: {},
+            reqParams: {},
+            headers: {},
+            parts: {},
+            routeParams: {},
+            connection: {
+                remoteAddress: req.connection.remoteAddress
+            }
+        };
+        collectHttpQueryParams(req, holder, false);
+        collectHttpParams(req, holder);
+        var keys = _.keys(req.params);
+        _.each(keys, function(key) {
+            holder.routeParams[key] = req.params[key];
+        });
+        holder.connection = {
+            remoteAddress: req.connection.remoteAddress
+        };
+
+        holder.parts = req.parts;
+        collectHttpHeaders(req, holder);
+
+
+        var urlEvent = engine.beginEvent({
+            clazz: 'info',
+            type: 'route',
+            name: req.method.toUpperCase() + ' ' + req.url,
+            message: {
+                ip: req.connection.remoteAddress,
+                method: req.method,
+                path: req.url,
+                headers: req.headers
+            },
+            cb: function(err, results) {
+                return handleResponseCB(req, res, execState, err, results);
+            }
+        });
+        var execState = [];
+        engine.execute(
+        {
+            request: holder,
+            route: req.url,
+            context: req.body || {},
+            parentEvent: urlEvent.event
+        },
+        function(emitter) {
+            setupExecStateEmitter(emitter, execState, req.param('events'));
+            setupCounters(emitter);
+            emitter.on('end', urlEvent.cb);
+        }
+        );        
+
+    }
+
+
     // register routes
     var routes = engine.routes.verbMap;
     _.each(routes, function(verbRoutes, uri) {
         _.each(verbRoutes, function(verbRouteVariants, verb) {
             engine.emit(Engine.Events.EVENT, {}, 'Adding route ' + uri + ' for ' + verb);
-            app[verb](uri, function(req, res) {
-                var holder = {
-                    params: {},
-                    headers: {},
-                    parts: {},
-                    routeParams: {},
-                    connection: {
-                        remoteAddress: req.connection.remoteAddress
-                    }
-                };
-
-                // get all query params
-                collectHttpQueryParams(req, holder, false);
-
-                // find a route (i.e. associated cooked script)
-                // routes that distinguish required and optional params
-                var route = _(verbRouteVariants).chain()
-                    .filter(function (verbRouteVariant){var defaultKeys = _.chain(verbRouteVariant.query)
-                            .keys()
-                            .filter(function(k){
-                                var querykey = verbRouteVariant.query[k];
-                                if (querykey.indexOf('^') != -1) {
-                                    querykey = querykey.substr(1);
-                                }
-                                return _.has(verbRouteVariant.routeInfo.defaults, querykey);
-                            })
-                            .value();
-                        // missed query params that are neither defaults nor user provided
-                        var missed = _.difference(_.keys(verbRouteVariant.query), _.union(defaultKeys, _.keys(holder.params)));
-                        var misrequired = _.filter(missed, function(key){
-                            if (verbRouteVariant.routeInfo.optparam){
-                                // if with optional params, find if any required param is missed
-                                return verbRouteVariant.query[key] && verbRouteVariant.query[key].indexOf("^") == 0;
-                            }
-                            else {
-                                // everything is required
-                                return missed;
-                            }
-                        });
-                        return !misrequired.length;
-                    })
-                    .max(function (verbRouteVariant){
-                        if (!verbRouteVariant.routeInfo.optparam){
-                            return 0;
-                        }
-                        // with optional param
-                        var matchCount = _.intersection(_.keys(holder.params), _.keys(verbRouteVariant.query)).length;
-                        var requiredCount = _.filter(_.keys(verbRouteVariant.query), function(key){
-                            return verbRouteVariant[key] && verbRouteVariant[key].indexOf("^") == 0;
-                        }).length;
-                        return matchCount - requiredCount;
-
-                    })
-                    .value();
-
-                if (!route) {
-                    res.writeHead(400, 'Bad input', {
-                        'content-type' : 'application/json'
-                    });
-                    res.write(JSON.stringify({'err' : 'No matching route'}));
-                    res.end();
-                    return;
-                }
-
-
-                // collect default query params if needed
-                _.each(route.routeInfo.defaults, function(defaultValue, queryParam) {
-                    if (queryParam.indexOf('^') != -1){
-                        queryParam = queryParam.substr(1);
-                    }
-                    holder.routeParams[queryParam] = defaultValue;
-                });
-                var keys = _.keys(req.params);
-                _.each(keys, function(key) {
-                    holder.routeParams[key] = req.params[key];
-                });
-
-                _.each(route.query, function(queryParam, paramName) {
-                    if (holder.params[paramName]) {
-                        if (queryParam.indexOf('^') != -1){
-                            queryParam = queryParam.substr(1);
-                        }
-                        holder.routeParams[queryParam] = holder.params[paramName];
-                    }
-                    else if (!holder.routeParams[queryParam]) {
-                        holder.routeParams[queryParam] = null;
-                    }
-                });
-
-                // collect headers
-                collectHttpHeaders(req, holder);
-                holder.connection = {
-                    remoteAddress: req.connection.remoteAddress
-                };
-
-                holder.parts = req.parts;
-
-                // Start the top level event
-                var urlEvent = engine.beginEvent({
-                    clazz: 'info',
-                    type: 'route',
-                    name: route.routeInfo.method.toUpperCase() + ' ' + route.routeInfo.path.value,
-                    message: {
-                        ip: req.connection.remoteAddress,
-                        method: req.method,
-                        path: req.url,
-                        headers: req.headers
-                    },
-                    cb: function(err, results) {
-                        return handleResponseCB(req, res, execState, err, results);
-                    }
-                });
-
-                var execState = [];
-                engine.execute(route.script,
-                    {
-                        request: holder,
-                        route: uri,
-                        context: req.body || {},
-                        parentEvent: urlEvent.event
-                    },
-                    function(emitter) {
-                        setupExecStateEmitter(emitter, execState, req.param('events'));
-                        setupCounters(emitter);
-                        emitter.on('end', urlEvent.cb);
-                    }
-                );
-            });
+            app[verb](uri, queryHandler);
         });
     });
+
 
     // HTTP indirection for 'show tables' command
     app.get('/tables', function(req,res){
@@ -857,6 +793,13 @@ var Console = module.exports = function(opts, cb) {
             connection.close();
         });
     });
+
+    function collectHttpParams(req, holder) {
+        // Collect req params (with sanitization)
+        _.each(req.params, function(v, k) {
+            holder.reqParams[k] = sanitize(v).str;
+        });
+    }
 
     function collectHttpQueryParams(req, holder, ignoreS) {
         // Collect req params (with sanitization)
